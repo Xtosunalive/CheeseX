@@ -14,7 +14,7 @@ Node.js API + React/Vite 前端：面向 Obsidian 知识库（vault）的架构�
 ## 安装
 
 ```bash
-git clone https://github.com/Xtosunalive/cheeseX.git && cd cheeseX
+git clone https://github.com/Xtosunalive/CheeseX.git && cd CheeseX
 npm install
 cp .env.example .env       # 按本机情况填 VAULT_PATH 与 PYTHON_PATH
 npm run dev                # API 18083 + 前端 5174 → http://localhost:5174
@@ -64,7 +64,7 @@ npm run build             # vite build
 ## 目录速览
 
 ```
-cheeseX/
+CheeseX/
 ├── contracts/            # 设计期契约：OpenAPI、各类 JSON schema、门禁/数据域注册单（唯一事实源）
 ├── data/theschema/       # TheSchema 主源（词表/字段/本体/关系/版本等 YAML 与数据字典）
 ├── server/               # Node.js API：routes / services / shared；vault-runtime → scripts/vault-runtime（符号链接）

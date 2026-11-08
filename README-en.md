@@ -29,7 +29,7 @@ A knowledge-governance workbench for [Obsidian](https://obsidian.md) vaults: a N
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/Xtosunalive/cheeseX.git && cd cheeseX
+git clone https://github.com/Xtosunalive/CheeseX.git && cd CheeseX
 npm install
 ```
 
@@ -74,7 +74,7 @@ npm run build         # vite production build
 ## Project layout
 
 ```
-cheeseX/
+CheeseX/
 ├── contracts/          # Design-time contracts: OpenAPI, JSON schemas, gate/data-domain registries
 ├── data/theschema/     # TheSchema main source (vocabularies, fields, ontology, relations, versions)
 ├── server/             # Node API: routes / services / shared (persistence, auth, vault channel)

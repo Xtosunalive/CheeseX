@@ -8,12 +8,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Xtosunalive/cheeseX.git"
+    "url": "git+https://github.com/Xtosunalive/CheeseX.git"
   },
   "bugs": {
-    "url": "https://github.com/Xtosunalive/cheeseX/issues"
+    "url": "https://github.com/Xtosunalive/CheeseX/issues"
   },
-  "homepage": "https://github.com/Xtosunalive/cheeseX#readme",
+  "homepage": "https://github.com/Xtosunalive/CheeseX#readme",
   "engines": {
     "node": ">=22.13"
   },

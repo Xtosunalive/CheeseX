@@ -18,7 +18,7 @@
 ## 本地起步
 
 ```bash
-git clone https://github.com/Xtosunalive/cheeseX.git && cd cheeseX
+git clone https://github.com/Xtosunalive/CheeseX.git && cd CheeseX
 npm install
 
 cp .env.example .env
