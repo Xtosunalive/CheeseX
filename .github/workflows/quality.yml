@@ -1,0 +1,195 @@
+name: quality
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # nightly 全量 e2e（PR-013 3B 裁决）：cron 触发，UTC 20:00 = 北京时间次日 04:00（低峰期）。
+    # e2e 需要双服务（API+Vite）+ Chrome + 人工 vault 数据，不进 PR gate——先 nightly 收证据，
+    # 套件连续绿后再分批进 PR gate（登记簿 PR-013 动作项既定路线）。
+    - cron: "0 20 * * *"
+  workflow_dispatch: {}
+
+# 显式声明最小必要权限（PR-024）：register-coverage 需读本次 run 的 step 结论，
+# 默认 GITHUB_TOKEN 无 actions:read → HTTP 403（run 37243983113 实测）。
+# 此声明是**收紧**而非放宽——未列出的权限一律不给。
+permissions:
+  contents: read   # actions/checkout 拉代码
+  actions: read    # register-coverage 读 run 的 step 结论
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # SPEC-025 C11（#75）：Python 域测试环境准备（门禁本身经注册表驱动执行器接线，本步只备环境）
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        # PR-001 根治：package-lock.json 已重建（2026-09-27，全平台绑定条目含 resolved/integrity，
+        # linux-x64-gnu 7 条齐全），恢复 npm ci 锁定安装。保留降级链防回归：若 ci 再遇平台绑定
+        # 漏装（npm#4828 家族），退 rm+install 保 CI 可用并留下明确信号。
+        run: |
+          npm ci --no-audit --no-fund || {
+            echo "::warning::npm ci failed — falling back to rm-lockfile install (PR-001 regression signal)"
+            rm package-lock.json
+            npm install --no-audit --no-fund
+          }
+          echo "--- bindings check ---"
+          ls node_modules/@rolldown/ | grep -c darwin || true
+          ls node_modules/@tailwindcss/ | grep -c oxide || true
+
+      # ── 结构收口批（2026-10-16）：CI 面＝注册表投影 ──
+      # 门禁清单不再手工接线（原 20+ 个逐条 step 退役）：本步读 contracts/quality-gates.json
+      # 依序执行全部 execution=ci 门禁（含 typecheck/lint/test 套件），每门禁独立分组日志，
+      # 结果落 test-results/ci-gates.json（register-coverage 的摄取面）。
+      # 新增/退役门禁＝改注册表一个文件，本 workflow 零编辑。
+      - name: Install python test deps
+        # 顺序前置（WP-134 收官轮实测，PR-272）：清单读取本身要 require('yaml')（npm 依赖），必须排在 npm ci 之后；
+        # 78030bbe 把清单改成投影取源时未注意此依赖，全新 runner 上 MODULE_NOT_FOUND 使 nightly 整 job 在 e2e 前即死。
+        # 包清单从仓内单源投影（scripts/vault-init.mjs 的 PYTHON_PROVISION_PACKAGES，WP-042「不另立第二清单」）。
+        # 手工在此抄包名＝造第二个源：67561251 给 write_gateway 接上 ruamel.yaml 后，本行与 provisioning
+        # 双双落后，nightly 与 check-py-tests 一起崩到 2026-11-06。不加引号——词分割即多个参数。
+        run: |
+          PKGS="$(node --input-type=module -e "import('./scripts/vault-init.mjs').then((m)=>process.stdout.write(m.PYTHON_PROVISION_PACKAGES.join(' ')))")"
+          echo "provision 包清单（单源投影）: $PKGS"
+          test -n "$PKGS" || { echo "单源投影为空——拒绝静默装零依赖" >&2; exit 1; }
+          python3 -m pip install --user $PKGS
+
+      - name: Registered CI gates (registry-driven)
+        run: node scripts/quality/run-ci-gates.mjs
+
+      # WP-143 波1 去注册化：产物新鲜度三件＝普通脚本直呼（语义不变；不再经注册表）
+      - name: Artifact freshness (plain scripts)
+        run: |
+          node scripts/quality/check-derivation-sync.mjs
+          node scripts/quality/gen-ui-stat-provenance.mjs --check
+          node scripts/quality/check-vocab-load-port.mjs
+
+      # 〔结构法审计退役 2026-10-19〕Register coverage gate 摘除——出生问题已被注册表驱动执行器消灭
+
+      # 投影零漂移兜底：check:* 别名段＝注册表投影（本地 gates:fold 写入，此处只断言）
+      - name: Gates projection drift
+        if: always()
+        run: node scripts/quality/gates-fold.mjs --check
+
+      - name: Build
+        run: npm run build
+
+  # ── nightly e2e（PR-013 3B）：全量浏览器端到端，红绿都算证据，不阻断本卡 ──
+  # 已知状态（2026-10-03 首次实跑基线，build-e2e-vault 最小 vault）：
+  # ✓ entity-compliance（PR-013 A 三件套修复后绿）/ relation-review / dashboard 三流全绿；
+  # ✗ article 流 Step 4 = 503 VALIDATOR_NOT_FOUND（validate-article.py 只在真实 Vault，仓内无副本）；
+  # ✗ schema 流 Step 1 = schema-manager 页缺发布快照数据。两红均为独立台账项，不属 PR-013 修复面。
+  # continue-on-error=true：nightly 的职责是收证据不是拦截（PR gate 演进前置条件=连续绿，届时再收）。
+  # continue-on-error 原挂在 job 级 → job 实红而 run 显示绿（Actions 页面零红，PR-021「假绿」）。
+  # 2026-10-05 改为下沉到 step 级：只豁免「跑测试」这一步的退出码，由紧随其后的
+  # E2E baseline gate 依 contracts/e2e-known-red.json 判定本次到底该不该红。
+  nightly-e2e:
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      # SPEC-025 C11（#75）：Python 域测试环境准备（门禁本身经注册表驱动执行器接线，本步只备环境）
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: npm ci --no-audit --no-fund
+
+      - name: Install python test deps
+        # 顺序前置（WP-134 收官轮实测，PR-272）：清单读取本身要 require('yaml')（npm 依赖），必须排在 npm ci 之后；
+        # 78030bbe 把清单改成投影取源时未注意此依赖，全新 runner 上 MODULE_NOT_FOUND 使 nightly 整 job 在 e2e 前即死。
+        # 包清单从仓内单源投影（scripts/vault-init.mjs 的 PYTHON_PROVISION_PACKAGES，WP-042「不另立第二清单」）。
+        # 手工在此抄包名＝造第二个源：67561251 给 write_gateway 接上 ruamel.yaml 后，本行与 provisioning
+        # 双双落后，nightly 与 check-py-tests 一起崩到 2026-11-06。不加引号——词分割即多个参数。
+        run: |
+          PKGS="$(node --input-type=module -e "import('./scripts/vault-init.mjs').then((m)=>process.stdout.write(m.PYTHON_PROVISION_PACKAGES.join(' ')))")"
+          echo "provision 包清单（单源投影）: $PKGS"
+          test -n "$PKGS" || { echo "单源投影为空——拒绝静默装零依赖" >&2; exit 1; }
+          python3 -m pip install --user $PKGS
+
+      - name: Install Chrome (playwright-core needs system browser)
+        run: |
+          # e2e 脚本按 CHROME_CANDIDATES 探测系统 Chrome（不下载 playwright 浏览器包）
+          sudo apt-get update -qq && sudo apt-get install -y -qq google-chrome-stable
+
+      # 值内含 ": " 必须加引号，否则 YAML 解析为嵌套映射（2026-10-05 修复：该行自 8acb4d7 起
+      # 使整个 workflow 解析失败，CI 自 2026-10-04 13:40 起停摆，PR-018 门禁接线无法验证）
+      - name: 'Install Python + PyYAML (PR-016: A 类运行时脚本依赖)'
+        run: |
+          # article 流 spawn validate/promote-article.py（仓内 scripts/vault-runtime 经 resolver），
+          # 两脚本 import yaml——CI 映像需带 PyYAML 的解释器（python-path.cjs 语义：PYTHON_PATH 显式指）。
+          sudo apt-get install -y -qq python3 python3-yaml
+          PY="$(command -v python3)"
+          echo "PYTHON_PATH=$PY" >> "$GITHUB_ENV"
+          "$PY" -c "import yaml; print('PyYAML', yaml.__version__, 'ok')"
+
+      - name: Build e2e vault (PR-013 3B, scripts/e2e/lib/build-e2e-vault.mjs)
+        run: |
+          VAULT_DIR="$(node scripts/e2e/lib/build-e2e-vault.mjs --print-path)"
+          node scripts/e2e/lib/build-e2e-vault.mjs --target "$VAULT_DIR" --force
+          echo "VAULT_PATH=$VAULT_DIR" >> "$GITHUB_ENV"
+
+      - name: Start API server (VAULT_PATH pinned to e2e vault)
+        run: |
+          # PR-016：显式把运行时脚本目录指向 e2e vault——dashboard 流的 pipeline 诊断消费
+          # vault 侧 164 行 stub runner（建库自 fixture 投影），模拟成功路径；不设则 resolver
+          # 仓内优先找到 1646 行真 runner，其 Stage 0.5 真 readiness 对 minimal vault 的
+          # 故意不完整实体报 blocker（实测 ready:false blockerCount:4）→ 诊断中断 → 流红。
+          export VAULT_RUNTIME_SCRIPTS_DIR="$VAULT_PATH/知识库/.claude/scripts"
+          # SPEC-023 波 3 红队 P0-1：钉扎指向仓外拷贝目录（模拟真实切换后形态——vault 执法零放行，
+          # 任何漏迁写路径在此形态下即暴露）；e2e vault 自身 TheSchema 仅供只读面。
+          mkdir -p "$RUNNER_TEMP/theschema-pin" && cp "$VAULT_PATH/知识库/TheSchema"/*.yaml "$RUNNER_TEMP/theschema-pin/" 2>/dev/null || true
+          cp "$VAULT_PATH/知识库/TheSchema"/*.json "$RUNNER_TEMP/theschema-pin/" 2>/dev/null || true
+          export THESCHEMA_DIR="$RUNNER_TEMP/theschema-pin"
+          npm run dev:api &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:18083/api/health >/dev/null 2>&1 && break
+            sleep 1
+          done
+          curl -sf http://127.0.0.1:18083/api/health | head -c 400; echo
+
+      - name: Start Vite dev server
+        run: |
+          npm run dev:web &
+          for i in $(seq 1 60); do
+            curl -sf http://127.0.0.1:5174/ >/dev/null 2>&1 && break
+            sleep 1
+          done
+
+      # 本 step 允许红（退出码不阻断）——是否真的该红，由下一步的 baseline gate 判定。
+      - name: Run all e2e flows
+        continue-on-error: true
+        run: npm run test:e2e
+
+      - name: E2E baseline gate (known-red allowlist)
+        if: always()
+        run: npm run check:e2e-baseline
+
+      - name: Upload e2e artifacts (red or green — both are evidence)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-results-nightly
+          path: |
+            test-results/
+          retention-days: 14
+          if-no-files-found: warn

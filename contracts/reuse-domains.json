@@ -1,0 +1,511 @@
+{
+  "$schema": "../node_modules/@cheeseh/discipline-kit/schemas/reuse-domains.schema.json",
+  "registry_version": 3,
+  "description": "复用领域注册表（代码复用域——TALOS 式按 kind 分表，2026-10-14 自 domain-registry.json v2 拆出）。通用规则（open/advance/reread/single_source）与对表逐字节同源——由 check:domain-registry 一致性面机器执法，改须两表同笔改（TALOS 分表先例＋单源纪律的合并形态）。｜WP-132：status_values 与四条通用规则已迁 contracts/domain-table-common.json 唯一住址——编辑通用面改彼文件，表内禁止回填（回填绊线执法）",
+  "domains": [
+    {
+      "id": "theme",
+      "name": "视觉主题",
+      "status": "completed",
+      "authority": "src/index.css",
+      "contract": "docs/design/theme-contract.md",
+      "gate": "npm run test:node（WP-143 波2：哨兵转普通测试——原门禁 retired，检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "tests": [
+        "scripts/quality/__tests__/check-theme-tokens.test.mjs",
+        "scripts/quality/__tests__/check-theme-vocab.test.mjs",
+        "src/test/usage-badges-strip.test.tsx",
+        "src/test/css-token-integrity.test.ts",
+        "src/test/use-mode-store.test.tsx",
+        "scripts/quality/__tests__/theme-mix-report.test.mjs",
+        "scripts/quality/__tests__/guards/theme-contract.test.mjs"
+      ],
+      "guide": "docs/design/theme-usage-guide.md",
+      "recipes": "docs/design/visual-recipes.json（37 条配方：C3 尺度×3＋表格选型×10＋观感组合×6＋方法/形态×5＋结构约束×3（组件分类法/页面结构/Token分层——参考 antd/pro）＋存量修正×7）",
+      "writers": [
+        "src/styles/"
+      ],
+      "register_entry": "docs/plans/problem-register.md#PR-025",
+      "verification_evidence": "PR-025 关闭卡（验证结果/版本锚点/CI 复核/回归固化位置）；P0 表格 token/preset＝docs/spec/SPEC-014-表格结构化收敛-P0.md（2026-10-15 Master 批准）",
+      "metrics": {
+        "改动半径": 2,
+        "越界机器红": true,
+        "新增有流程": true,
+        "复用周期": "13 笔（首建）＋P0 批（W0 门禁扩面/token/preset/CardNav 收编，2026-10-15）＋体检收账批（2026-10-26：PR-117 生产 token 块丢失＝4 行注释修复（复用既有 token 结构零改动）＋css-token-integrity 测试收编（先红后绿——越界机器红再实证）；F4 useMode 升共享 store（单文件改动全域生效）＋Toaster 接应用模式＋next-themes 退役）＋层级让位批（2026-10-30：--z-chrome 60→35，弹窗压暗层统一罩住顶栏/常驻壳钮——复用既有六档结构零新增档位；全局搜索压暗层 z-docked→z-overlay 随批归位）"
+      },
+      "last_updated": "2026-11-08",
+      "note": "；C3 批并入（2026-10-16）：--z-* 层级族/--control-height/--shadow-{popover,overlay}＋NS 注册＋契约阶段 8（模式属性与上下游明文化）。；体检收账批（2026-10-26）：tests 收编 css-token-integrity/use-mode-store 两枚（3→5），域资产覆盖生产 token 完整性与模式共享源两新面。；WP-036 批（2026-10-28）：L1 增展示字阶 --text-2xl/3xl/5xl（28/32/48）＋L0 深浅卡片分层定调（light 白卡浮浅灰底/dark card-mist 分层），surface-card/popover 改锚 --card；契约阶段 9；theme-mix-report 六值随 L0 重算（测试期望/契约 §五台账/决策卡 §7.2 三处同步）＋tests 收编 theme-mix-report 期望值锚（5→6）；布局组件四件 attach ui-kit（Panel 落位即 panel-basic 配方组件化）。；WP-037 批（2026-10-29）：配方层 32→37（版式五条 layout-spacing-rhythm/page-header-system/tab-placement/empty-state/zero-data-degradation——shadcn 对齐记录在方案 §六）。；层级让位批（2026-10-30，Master 两步裁定：先「chrome 让位 modal」，再「无论任何弹窗打开视觉一致」扩及 overlay）：--z-chrome 60→35（docked30<chrome35<overlay40<modal50）；全局搜索压暗层 z-docked→z-overlay 归位＋去渐进遮罩（四角留亮与弹窗黑罩不一致）；契约 §L2 档位序列＋visual-recipes z-level-selection 同步；css-token-integrity 收编 --z-chrome:35 产线锚。｜2026-11-07 WP-145 R7：--duration-base:250ms 档新增（D3 tsx 非功能时长归一），theme-contract.md L47 清单同步；消费通道＝duration-[var(--duration-*)]（Tailwind v4 duration-* 不读命名空间实证）｜2026-11-07 WP-147 二期：分类色 Radix 换装（走向 B 夜间跟随）——L0 改 vendor 引用、L1 step 档改名、契约 L0 铁律改 vendor 口径、tokens/vocab 两执法面重排并入 theme-contract 包装（faces 脚本更名出 check- 命名空间）、cat 旧词三通道退役执法｜2026-11-09 WP-143 波5 沉淀：主题三门禁（tokens/vocab/contract）随治理退役潮转纪律自觉——颜色写岔不再有机器拦截，色值改动靠 AI 评审＋目检兜；Radix 换装后正确路径＝从 vendor 12 档选档（档间搭配官方保证），手写 hex 即违规"
+    },
+    {
+      "id": "table-base",
+      "name": "表格基座",
+      "status": "gating",
+      "authority": "src/components/data-table/",
+      "contract": "docs/plans/方案决策卡-表格结构化收敛-2026-10-15.md",
+      "gate": "npm run test:node（WP-143 波2：哨兵转普通测试——原门禁 retired，检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "guide": "docs/plans/方案决策卡-表格结构化收敛-2026-10-15.md",
+      "register_entry": "docs/plans/problem-register.md#PR-072（开启补账；原指向 REQUIREMENTS.md#25-26 属登记簿外——审计 V2 判违规）",
+      "verification_evidence": null,
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "gating 推进依据＝卡 §十六明文「W4 收官后按 metrics 证据推进」；candidate 期间的守护测试三件全绿在册。SearchInput 已退役（Master 裁 2026-10-16），authority 不含。；authority 辖区扩展件（RowActions/Statistic/StatusDot/ui/tag/ui/select）见 metrics 与卡 §九-§十一。；A1 补账（2026-10-16 Master 审计）：权辖扩展件走 writers 数组（checkPath 单路径限制）；gate 从全量 commit 面改为表格专属用法 checker＋三件守护测试。；A2 活性门禁（2026-10-16 Master 审计「接线完整性≠对象活性」批）：check:table-usage 三道闸（自写表格/BEM 死类/死件）＋反例夹具 4 用例。；F5 react-refresh 分层批（2026-10-26）：EditableCell 命名空间拆至 editable-cell-group.ts（组件文件只留组件），活性门禁死件闸登记路径随迁、消费面 9 处导入同批改——域内三测试与全量 720 绿，表格形态零变化。；WP-134 波0（2026-11-06）口径注记：本域 writers 的 statistic/ 与 table-pagination/ 两件套 props 加 `| null`（未知可表达），分页总数标签「 / 全量 」改「 / 共 」——client 模式传的是 src/hooks/use-table-list.ts:119-120 的 filtered.length，冠名「全量」属贴错口径；WP-037 P5「总数 0 整块隐藏」按已签收决定不动（未知与真零同形隐藏、类型可分辨）。事实源地图已核：authority 与 writers 无增减，仅件内 props 形状与文案变化，故本条为域行口径注记而非扩域。",
+      "tests": [
+        "src/test/data-table.test.tsx",
+        "src/test/table-list.test.tsx",
+        "src/test/table-cells.test.tsx",
+        "scripts/quality/__tests__/guards/table-usage.test.mjs"
+      ],
+      "recipes": "docs/design/visual-recipes.json（表格域五条选型配方＋info-panel-density）",
+      "writers": [
+        "src/components/table-pagination/",
+        "src/components/table-sort-header/",
+        "src/components/filter-select/",
+        "src/components/row-actions/",
+        "src/components/statistic/",
+        "src/components/status-dot/",
+        "src/styles/table-preset.css",
+        "src/hooks/use-table-list.ts",
+        "src/hooks/use-table-sort.ts",
+        "src/lib/table-url.ts"
+      ]
+    },
+    {
+      "id": "interaction-state",
+      "name": "交互状态机",
+      "status": "gating",
+      "authority": "src/lib/request-status.ts",
+      "contract": "src/lib/request-status.ts",
+      "gate": "npm run test:node（WP-143 波2：哨兵转普通测试——原门禁 retired，检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "tests": [
+        "src/test/table-list.test.tsx",
+        "src/test/request-status.test.ts",
+        "scripts/quality/__tests__/guards/interaction-state.test.mjs"
+      ],
+      "guide": null,
+      "writers": [
+        "src/hooks/use-table-list.ts",
+        "src/hooks/use-table-sort.ts"
+      ],
+      "register_entry": "docs/plans/problem-register.md#PR-073（开启补账；原指向方案决策卡属登记簿外——同族）",
+      "verification_evidence": "P2 交付 10 测试绿＋前端全量（W1-W4 各波）；table-list/table-url 测试在册｜2026-10-21 第二落地（PR-071 子项二）：13 个布尔旗标 store 全部迁五态（10 store 布尔对→status/error＋RequestSlice；graph-data 补入＝第 13 个；两枚举别名合一），gate check:interaction-state 首跑 stores=19 零违例，回归测试 5 用例（三探针红）＋行为校验 2 用例（失败路径）",
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "首落地场景＝useTableList/useTableSort（卡 §十六明文）；表格收敛期 8 表接入（T01/T03/T04/T09/T10/T12/T17 等）；11 状态词散落的原始痛点部分缓解（表格域），非表格域的交互状态机待后续波次。；A3 推进评估（2026-10-16 Master 审计批）：11 store 审计——3 个已用枚举状态机（anomaly-workbench/document-inventory/entity-compliance：idle/loading/success/error/empty 五态），8 个仍布尔 flags（loading/saving/submitting/error 各自为政，状态组合可能矛盾如 loading=true 同时 error!=null）。第二落地候选＝store 层统一五态枚举，涉及 8 store 重构，属独立波次。｜2026-10-21 复用效力复查修正（Master「看是否属实」批）：A3 评估中「entity-compliance 已用五态」与现场不符（实际 5 个布尔旗），本批以现场为准并已迁移。第二落地完成＝13 store（architecture-version/article-associations/article-workflow/entity-compliance/impact-analysis/property/inference-conflict/schema-manager＋子资源切片/pipeline/property-data/review-data/topology/graph-data）全迁 request-status.ts 单源：主请求 status+error（构造器保证 error 非空⇔status=error）；写操作失败走 operationError 不污染主请求；孤 busy 布尔（refreshing/fieldOptionsLoading 等）保留。"
+    },
+    {
+      "id": "term-copy",
+      "name": "术语文案",
+      "status": "gating",
+      "authority": "src/constants/term-const.ts",
+      "contract": "src/constants/term-const.ts",
+      "gate": "npm run lint:full",
+      "tests": [
+        "src/test/architecture-projection/architecture-projection-gap-copy.test.tsx",
+        "src/test/copy-vocabulary-closed-set.test.ts"
+      ],
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-075（开启补账——痛点已证未开工）",
+      "verification_evidence": "2026-10-21 切片一（PR-075 验收口径）：TERM 新增「请求状态词」段 8 词；业务代码 27 处独立字面量（22 文件）全部收编，含 加载中…/加载中... 两种省略号写法的漂移统一；门禁 check:term-copy 首跑 words=8 files=319 零违例，回归测试 5 用例（三探针红＋完整句不误伤）｜2026-10-21 切片二（Master 审计「切片一只管 8 个状态词」）：TERM 新增「通用动作词」段 5 词（取消/展开/收起/新增/删除——按实测频次 9/6/5/4/4 选入；「全部」不入表：一半用例是筛选哨兵值/类型联合，属数据非文案）；28 处独立字面量（15 文件）收编；门禁段标记通用化（段头含 check:term-copy 即执法段，扩词表＝加标记段自动跟随），words=8→13 零违例，回归测试 6 用例｜2026-10-28 切片三（架构投影缺口诊断词，Master「可以改」授权）：TERM 新增「架构投影缺口诊断」段 3 词（缺失组件／间接关联／未发现关联——旧词「缺失／隐式／未连通」为设计未统一管理期组件私设字面量，且「隐式」暗示存在隐式边、「未连通」与 2 跳上限冲突，均属与实现不符）；architecture-projection 四文件 20 处收编＋「种子」并入既有 TERM.ARCH_COMPONENT（消灭同义双名）；门禁 words=13→16 files=335 零违例，新增旧词回流守卫测试 3 用例｜2026-10-28 WP-027（PR-142）：新增「图新鲜度状态词」执法段 3 词（GRAPH_UP_TO_DATE 图谱已是最新／GRAPH_STALE 图谱待更新／GRAPH_STATE_UNKNOWN 图状态未知）——GraphFreshnessChip 消费；门禁 words=16→19 零违例（与切片三合并口径）｜2026-10-28 WP-027（PR-142）：新增「图新鲜度状态词」执法段 3 词（GRAPH_UP_TO_DATE 图谱已是最新／GRAPH_STALE 图谱待更新／GRAPH_STATE_UNKNOWN 图状态未知）——GraphFreshnessChip 消费；门禁 words=13→16 零违例",
+      "metrics": null,
+      "last_updated": "2026-11-07",
+      "note": "TERM SSOT 已存在（225 行/263 消费）但 733 行硬编码中文散 84 文件绕过（16:56 实测）。建议切片：先收与状态机域重叠的高频状态词。｜2026-10-21 复用效力复查（Master「看是否属实」批）：干净口径（排除注释行/测试/constants）硬编码中文 2454 行／202 文件，TERM 消费仅 51 文件——面在扩大。切片一已落地（见 verification_evidence）；门禁只执法 TERM「请求状态词」段的独立字面量，完整说明句直写仍按 term-const 头注释规则 3 允许——全量 2000+ 行不走专项一次收，按触碰迁移＋后续切片扩词表（扩词＝加标记段自动跟随——切片二已按此落地）。；账龄审计补记（2026-10-26）：品牌收口更名尾巴批（35a7b4a8，2026-10-25）触碰域资产，原批漏更；WP-037 批（2026-10-29）：schema 页文案人话化（B1=b 横幅等台账腔改用户语言，对象字典 5 条 definition 同批），tests 收编 schema-copy-humanized 禁词守卫。；2026-11-07 WP-144：介质翻转落地（lint 两族选择器＋基线棘轮吸收检查面，门禁退役在波 4）｜2026-11-07 WP-145 N1：TERM 新增「空态词 Empty State」段 13 键入册（行内小字形态单源，D1 三分口径——区块级走 EmptyState 组件/表格槽走 TableEmptyState/行内走 TERM）；A4 消费实测 check_term_copy=ok words=19｜2026-11-07 WP-145 波4：gate 指针 check:term-copy→lint:full（执法介质翻转收官，退役行留 retired 记账）｜2026-11-07 WP-145 波4 尾项：三局部词表守卫迁移合并＋eslint terminology 规则段退役（ADR-019 §四「词表先迁后删，同批完成」）——9 对受众术语对＋schema 治理话术 8 禁词＋aria 受控文案＋8 页签正名四组断言迁入 copy-vocabulary-closed-set.test.ts（#1404 P1 词族单源断言由闭集体系吸收，词族词表不另迁）；域卡 tests 认领换指：schema-copy-humanized.test.ts（退役删除）→copy-vocabulary-closed-set.test.ts；恢复路径＝git checkout <退役前提交> -- src/test/schema-copy-humanized.test.ts src/test/term-copy-inline-guard.test.ts src/test/check-copy-vocabulary-ssot.test.ts＋eslint.config.js 规则段随退役提交 diff 恢复＋本行回退｜2026-11-07 WP-146：TERM 新增 4 键（PIPELINE_ADVANCED_ACTIONS/DELETED_NOTICE/UNDO_ACTION/STANDARDIZE_ACTION_IN_DRAFT_HINT——交互改版用户文案单源）｜2026-11-09 WP-151/152 沉淀：闭集成员全量 29 文件（19 页级 copy/labels 模块＋term-const＋EntityCategory＋叶子文件）——域卡成员登记此前靠收官追补（跳十几批），纪律自觉版下改由 workflow-gates 域同步闸机器拦截＋收官审计必答一问双保险"
+    },
+    {
+      "id": "api-contract",
+      "name": "API 类型消费收编",
+      "status": "gating",
+      "authority": "contracts/http-api.openapi.json",
+      "contract": "contracts/http-api.openapi.json",
+      "gate": "npm run test:node（WP-143 波3：哨兵转普通测试——检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "tests": [
+        "src/test/admission-api.test.ts",
+        "src/test/admission-statistics-direct-read.test.tsx",
+        "src/test/compliance-summary-caliber.test.tsx",
+        "src/test/dashboard-admitted-entity-caliber.test.tsx",
+        "src/test/review-pending-unknown-not-zero.test.tsx",
+        "src/test/anomaly-workbench-api.test.ts",
+        "src/test/api-envelope-trace.test.ts",
+        "src/test/field-graph-panel.test.tsx",
+        "scripts/quality/__tests__/check-error-codes.test.mjs"
+      ],
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-060",
+      "verification_evidence": "生成链已存在：openapi-typescript 依赖 + gen:api-types 脚本 + generated/api-types.ts（auto-generated 头注释）；openapi 90 paths／407 components／error_code 113（PR-085 收官刷新）；**生成类型消费面 24 文件**（src/features/*/{*-api,*-types}.ts import paths——2026-10-14 记「消费面=0」已被 PR-085 期间前端接线超越，此条为准）；漂移断言已落地（PR-085 第 1 步）：请求侧契约推导执法＋check:contract-route-parity 双向对账 CI 常驻",
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "16:56 实测修正：契约与生成器均在，缺的是①消费面=0（无文件 import 生成类型）②openapi↔后端实现的漂移断言。八步法从第 4 步（立法）起步，非从零。｜2026-10-14 拆表批补齐 gating 三件（contract=openapi 本体/gate=contract-hygiene/register_entry=PR-060 回溯立案——拆表面⑤强制后存量合规）｜2026-10-20 PR-085 第 0 步（请求侧契约执法预备）：48 写操作补 401、36 带请求体操作补 413/415、三码目录单元 UNAUTHENTICATED／REQUEST_BODY_TOO_LARGE／UNSUPPORTED_MEDIA_TYPE（deadEnum 预登记，随第 1/2 步抛点落地移除）；本域缺的「openapi↔后端实现漂移断言」由 PR-085 第 1 步补齐：请求 schema 从 requestBody 推导（镜像响应探针）＋onRoute fail-closed＋新门禁 check:contract-route-parity（契约操作⇄运行时路由双向对账，届时 gate 扩为两条）。决策卡 docs/plans/方案决策卡-PR085-HTTP边界收敛-2026-10-20.md（v2，Master 2026-10-20 批准）｜2026-10-20 PR-085 第 1 步：漂移断言落地——gate 扩为两条（contract-hygiene＋contract-route-parity），请求侧校验由 openapi requestBody 推导（server/shared/contract-request-schema.cjs）｜2026-10-21 复用效力盘点（Master「看看复用效力」）：生成类型消费 0→24 文件；gate 两条均 CI 常驻；契约操作 98 全部有路由（parity 零违例）；登记簿 PR-085 closed 68。；2026-10-26 WP-014（PROJECTION_IDENTITY_UNMOUNTED）＋WP-017（POST /api/releases/mint）入册（ApiEnvelope_Data 信封＋ReleaseMintResult；独立发布入口，铸版语义与文章发布同源）；2026-10-26 WP-018：GET /api/system/changes-since＋WORKFLOW_REVISION_CONFLICT(409)＋CHANGES_*(400) 入册（多用户通知与并发防护）；2026-11-06 WP-134 波1 直读收口：本域 tests 新增 admission-statistics-direct-read——canvas-admission 响应的 total/admitted/blocked/admittedByKind 与 components[].kind 均为后端已发字段，此前 store 只留 admitted/blockedReasons 并丢弃 kind，导致页面按 kind 过滤恒空、统计堆整块不渲染（死面），已准入数再由前端子集 filter 重数一遍。收口形态＝权威面保留 kind＋汇总字段进 store 供直读；契约 optional 缺席保持 null 不降级为 0。同批前端直读点＝/api/articles/uploads 的 total、/api/documents/search 的 summary.totalResults、/api/kg/inference-conflicts 的 total、/api/kg/impact-analysis 的 meta.totalNodesAffected（服务端 impact-analysis-service.cjs:222 单一口径）；2026-11-07 WP-136 a：canvas-admission 响应增 totalByKind（与 admittedByKind 同一次遍历、同集合、含无 id 条目）——「待准入」减法的被减数自此由后端发，前端那份按 components 重数的 kindTotals 退役（住址 src/features/admission/admission-store.ts）。配对自洽 admittedByKind[k] ≤ totalByKind[k] 的口径写进字段 description 本体＋SPEC-074 §6.5；形状谓词缺口（object 型分桶计数不进 COUNT_FIELD 镜头）在册＝PR-269，本批不扩面。"
+    },
+    {
+      "id": "icon-registry",
+      "name": "图标语义",
+      "status": "candidate",
+      "authority": null,
+      "contract": null,
+      "gate": null,
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-076（开启补账——surveying 待验证）",
+      "verification_evidence": null,
+      "metrics": null,
+      "last_updated": "2026-10-06",
+      "note": "证据不足：需 surveying 先验证是否存在同语义多图标的漂移（16:56 评估）。"
+    },
+    {
+      "id": "spacing",
+      "name": "间距 token",
+      "status": "paused",
+      "authority": null,
+      "contract": null,
+      "gate": null,
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-074（撤销关账——防重提行）",
+      "verification_evidence": null,
+      "metrics": null,
+      "last_updated": "2026-10-15",
+      "note": "已裁撤销（Master 2026-10-15「同意」，方案决策卡-表格结构化收敛 §十六）：诉求由 theme 契约 §2 尺度底座条款承载（认领 Tailwind --spacing 为底座、组件 token 一律派生、不建 spacing token 家族）。行保留仅作防重提溯源（gate 生命周期 retired 登记保留先例），不再推进、不参与候选池统计。"
+    },
+    {
+      "id": "error-copy",
+      "name": "错误文案",
+      "status": "gating",
+      "authority": "contracts/empty-state-semantics.json",
+      "contract": "contracts/empty-state-semantics.schema.json",
+      "gate": "npm run test:node（WP-143 波3：哨兵转普通测试——检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "guide": "server/shared/availability-view.cjs",
+      "register_entry": "docs/plans/problem-register.md#PR-077（开启补账——surveying 待验证）",
+      "verification_evidence": null,
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "证据不足：需 surveying 先盘点 formatApiErrorMessage 之外的散落面（16:56 评估）。",
+      "tests": [
+        "scripts/quality/__tests__/check-empty-state-semantics.test.mjs",
+        "server/shared/__tests__/availability-view.test.cjs",
+        "scripts/quality/__tests__/guards/error-codes.test.mjs"
+      ],
+      "description": "｜WP-070（2026-11-02）首张 authority 落表：空态语义契约——三类消费面（form/display/consumer）×行为、缺失种类 what/where/requires（依赖序单源）、站点登记；指引文案唯一组装点 server/shared/availability-view.cjs（guidanceFor/availabilityView/displayAvailability/formOptionAvailability）；执法 check:empty-state-semantics 四面（形状/边闭合/站点闭合/文案 tripwire——第二文案源即红）。裁决：Master 2026-11-02「同意」三类语义（WP-069 D1 结案）。"
+    },
+    {
+      "id": "navigation",
+      "name": "路由跳转契约",
+      "status": "gating",
+      "authority": "src/lib/navigation.ts",
+      "contract": "src/lib/navigation.ts",
+      "gate": "npm run test:node（WP-143 波2：哨兵转普通测试——原门禁 retired，检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "tests": [
+        "src/test/impact-analysis-navigation.test.tsx",
+        "src/test/navigation-read.test.ts",
+        "scripts/quality/__tests__/guards/navigation.test.mjs"
+      ],
+      "writers": [
+        "src/hooks/use-nav-location.ts"
+      ],
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-028",
+      "verification_evidence": "24 处直写已收编至 navigate()；check-navigation 两检查面（禁直写 + 清单对账）破坏实验先红后绿｜2026-10-21 读侧收编：11 处裸读 location.hash＋4 处自挂 hashchange 全部收编至 readNavLocation()/getNavQueryParam()/useNavLocation()；门禁加第三检查面（裸读/裸订阅），回归测试 5 用例（基线绿＋三探针红）；读侧单测 9 用例（解析/读出口/钩子/子路由漂移回归）",
+      "metrics": null,
+      "note": "Master 17:15 裁 A 插队（正在疼优先于排队）。痛点实证：PR-026 侧边容器改造中按钮跳转失败——约 14 处业务代码直写 location.hash（常量/模板/动态拼），getNavFromHash 不认识的 hash 静默回落 dashboard 不报错。2026-10-06 18:27 更新：主契约已落地（gating），并派生【子契约 action-routing】（问题类型×处理方式对应表，13 种 issueKind 全集登记 + 四检查面门禁 check:action-routing）——模式可复用，见 playbook「模式库」P2。｜2026-10-21 复用效力复查（Master「看是否属实」批）：契约此前只管写不管读——读侧 `new URLSearchParams(window.location.hash.split(\"?\")[1]||\"\")` 被抄约 10 遍散在各视图；本批补齐读侧出口（要点 ④）并扩门禁。顺带核出两处子路由登记漂移：review/audit、property/mapping 页签未入 SUB_ROUTES，navigate() 报非法并拒写地址栏（本地 tab 变、URL 不变）——已登记＋回归测试钉住。；F3 懒加载批（2026-10-26）：视图首挂异步化，认领测试同步断言改 findBy（impact-analysis-navigation 两处——语义不变，等待形态随渲染形态更新）。",
+      "last_updated": "2026-11-08"
+    },
+    {
+      "id": "rule-governance",
+      "name": "规则生命周期治理",
+      "status": "completed",
+      "authority": "contracts/entity-readiness-rules.json",
+      "contract": "contracts/rules-lifecycle.schema.json",
+      "gate": "npm run test:node（WP-143 波4b：域执法机器退役——域行守卫=scripts/quality/__tests__/guards/ 哨兵体系（test:node 跑）＋登记簿转只读档案）",
+      "tests": [
+        "src/test/rules-channel-section.test.tsx",
+        "src/test/rules-channel-section.test.tsx"
+      ],
+      "note": "账龄审计补记（2026-10-26）：PR-046（10-12 单一契约三段式）与 PR-063（10-14 category-path 三层裁定）两批触碰域资产，原批漏更——复用周期两波笔数待收官审计归并｜2026-10-30 PR-151 跨域对账入册：字段字典声明文章必填 ⇒ 必须在 entity-readiness-rules.json 登记完整执法链（required＋fields.control＋optionsKey 选项包）——机器面＝check-fields-registry 第五面 checkCompletionParity（字典必填↔补齐契约↔选项包三方对账，repo 主源锚定 CI 可跑）；同源断言测试锁「标准化缺口集＝完整校验必填错误集」。",
+      "guide": "docs/system/rule-governance-guide.md",
+      "recipes": "docs/system/reuse-playbook.md#P6（四层互指对账法——本域长出）；#P0 构造总纲",
+      "register_entry": "docs/plans/problem-register.md#PR-029",
+      "verification_evidence": "PR-029 关闭卡（全景表终算归零/门禁三连破坏实验/全量验证 8/8/两轮合并锚点）",
+      "metrics": {
+        "改动半径": 1,
+        "越界机器红": true,
+        "新增有流程": true,
+        "复用周期": "11+7 笔（首建 11 笔实测 + 波3 通道/三连修 7 笔）",
+        "接线完整性": "check:rules-lifecycle 全绿（四层互指）",
+        "对象活性": "规则信号计数（波3b minCount 门槛）+ 出口消费面（--audit）",
+        "台账规模": "error/warn/info 分级计数（GET /api/rules/lifecycle）",
+        "灰态规则": "新立无执法记录条目数（长期灰=信号弱候选退役）",
+        "借镜来源": "dictionary-of-ai-coding（懒创建/文件即登记——借镜三分层范式层）；GE/OPA（P0 四原则之业界三条）；MDM Stewardship（通道命名）"
+      },
+      "last_updated": "2026-11-08"
+    },
+    {
+      "id": "entity-growth",
+      "name": "知识架构生长框架",
+      "status": "gating",
+      "authority": "docs/adr/ADR-007-知识架构生长框架-派生物管理与实体双通道.md",
+      "contract": "contracts/entity-readiness-rules.json",
+      "gate": "npm run test:node（WP-143 波4b：域执法机器退役——域行守卫=scripts/quality/__tests__/guards/ 哨兵体系（test:node 跑）＋登记簿转只读档案）",
+      "guide": "docs/design/knowledge-architecture-growth-framework.md",
+      "recipes": "docs/system/reuse-playbook.md#二.1.5（方向确认协议——先例四格，PR-111/114/115 三实例）",
+      "register_entry": "docs/plans/problem-register.md#PR-037",
+      "verification_evidence": "MVP 真库验收（Master 19:19 确认）+波1-5 各 tag（growth-wave1~5）+WP-A/B 真浏览器验收（13:38）",
+      "metrics": {
+        "改动半径": 1,
+        "越界机器红": true,
+        "新增有流程": true,
+        "复用周期": "MVP 5 笔+波1-5 约二十笔（含三连修与 409 码族实战）",
+        "借镜来源": "dictionary-of-ai-coding（五件套骨架/出生反查/文件即登记/懒创建——范式层借镜，零代码复制）",
+        "接线完整性": "check:rules-lifecycle 全绿（规则四层互指含 entityGrowthTemplate 契约段）",
+        "对象活性": "词表画像 usage 计数（波2 vocabularyProfile）+候选卡产出史（discovery entityCandidates）",
+        "台账规模": "词表 5 维度+规则 23 条+A01-A10（GET /api/schema/discovery + /api/rules/lifecycle）",
+        "生长健康": "候选→建实体转化率与孤儿实体数（discovery 响应 entityCandidates/orphanEntities）"
+      },
+      "last_updated": "2026-11-08",
+      "tests": [
+        "server/shared/__tests__/entity-identity-mint.test.cjs",
+        "src/test/entity-fields-ssot.test.ts"
+      ],
+      "note": "｜2026-11-05（WP-113 M1-M6）：组件身份 architecture-node-id 的唯一取号点＝server/shared/entity-identity-mint.cjs——新建时由系统铸造（UUID v4，Node 内建 randomUUID，零自造形状、零计数器；M6 改判，Master「换，存量是测试数据可以重建」），人不填；自带值由写门来源门拒（VALIDATION_ERROR/400 details.rule=system-minted，零新错误码）；不可改性仍单源于 field-rule-declarations.cjs 的 immutable 位。两条路不混：新建自带号＝system-minted，改已有号＝immutable。判重素材与写门同源（entityDocsForGate＋buildEntityIndexes＋normalizeString），本域不另起第二份扫描或判重谓词。M4 已接：建图侧不再为缺号组件现编 entity-{slug}（缺号组件不进图、投既有 pendingReview 面带 reason）；promote-article.py 不再拿模块名顶身份号（该键留空，晋升产物按非组件命名故不掉图）。读侧 entity- 前缀兼容保留——撤了会让存量图与账读不到。受控第二入口在册为 M7：空号既有实体的补填仍走文本框。"
+    },
+    {
+      "id": "article-lifecycle",
+      "name": "文章生命周期路径角色",
+      "status": "gating",
+      "authority": "contracts/article-lifecycle.json",
+      "contract": "contracts/article-lifecycle.json",
+      "gate": "npm run test:node（WP-143 波3：哨兵转普通测试——检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "tests": [
+        "server/shared/__tests__/article-lifecycle-paths.test.cjs",
+        "scripts/quality/__tests__/check-article-lifecycle.test.mjs",
+        "src/test/article-retire-dialog.test.tsx",
+        "server/services/governance/__tests__/dangling-ref-convergence.test.cjs",
+        "server/shared/__tests__/article-lifecycle-transitions.test.cjs",
+        "server/shared/__tests__/readable-path-mapper.test.cjs"
+      ],
+      "guide": "server/shared/article-lifecycle-paths.cjs",
+      "register_entry": "docs/plans/problem-register.md#PR-065",
+      "verification_evidence": "先红后绿：门禁首跑 30 处裸拼红→迁移后 ok；红绿自测 3/3（含契约缺角色红）",
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "SPEC-013 L1（Master 裁「一篇＝标准文章×1＋原文归档×1」）。与 vault-write-destinations 分层：彼管写通道合法落点，本域管生命周期角色（何时存在/谁清理/稳态份数）。Python 侧（vault-runtime）路径迁移为后续波次，不在本域执法面（契约 $comment 声明）。｜2026-10-25 扩域立契（WP-007／SPEC-028／PR-098，Master 批准；立契时号 WP-006/PR-095 因并行会话撞号重编）：角色行增 mutability 字段（枚举单源 schema definitions.mutability：read-only-evidence／append-only／human-editable）——本域继续只管角色/份数/清理，可变性档的数据面归新开 vault-content-data 数据域（一域三族），执法面 vault-io 读档强制 wx＋0o444；施工批已落地（WP-007：schema definitions.mutability＋角色行字段＋vault-io 执法＋check 档面三——矩阵证据 SPEC-028）。",
+      "description": "｜2026-11-07 WP-138 R5c：上传扩展名入参值域单源＝server/shared/article-upload-extensions.mjs（server 415 校验与前端 accept/预校验同源，顺序即契约）"
+    },
+    {
+      "id": "gate-governance",
+      "name": "门禁治理",
+      "status": "gating",
+      "authority": "contracts/quality-gates.json",
+      "contract": "docs/problem-handling-spec.md",
+      "gate": "npm run check:domain-registry && node scripts/quality/gates-fold.mjs --check",
+      "tests": [
+        "scripts/quality/__tests__/pre-commit-hook.test.mjs",
+        "scripts/quality/__tests__/check-recipe-usage.test.mjs",
+        "scripts/quality/__tests__/check-fields-registry.test.mjs",
+        "scripts/quality/__tests__/check-derivation-sync.test.mjs",
+        "scripts/quality/__tests__/project-resolved-domains.test.mjs",
+        "scripts/quality/__tests__/domain-test-router.test.mjs",
+        "scripts/quality/__tests__/check-py-tests.test.mjs",
+        "scripts/quality/__tests__/project-to-vault-target-guard.test.mjs",
+        "scripts/quality/__tests__/project-to-vault-orphan-exempt.test.mjs",
+        "scripts/quality/__tests__/check-merge-reconcile.test.mjs",
+        "scripts/quality/__tests__/check-conflict-markers.test.mjs",
+        "scripts/quality/__tests__/check-action-coverage.test.mjs",
+        "scripts/quality/__tests__/check-knip.test.mjs",
+        "scripts/quality/__tests__/check-vocab-envelope-coverage.test.mjs"
+      ],
+      "note": "PR-099 收案批（2026-10-26）：check-derivation-sync/check-fields-registry 两认领测试加反例回显防误读警示头（其红绿夹具的子进程输出回显曾致 CI 误立案）；pre-commit 域批与 test-node 跑批器随 PR-116 增写通道环境钉——门禁基建事实源仍在 quality-gates.json。；2026-10-26 WP-022：conflict-markers 门禁入册（暂存面文本文件扫七字符起止标记——两次带病推送实录防线）；2026-11-07 WP-144 波1：lint 行补 commit 面＋展示面两族选择器入 lint（ADR-019）；基线棘轮 lint:ratchet｜2026-11-09 WP-151/152 沉淀：workflow-gates 两判定缺陷先例（合同闸不认分支已落库合同；冻结闸 A/M 状态混判）——已修（状态过滤＋合同实测回写合规先例），先例登记防下一个写闸者重蹈；断言建造规则＝判定显式处理 git 状态字母＋每判定一具红绿夹具｜probe: wp143-probe-member（WP-143 域同步闸破坏实验探针，随后撤销）",
+      "register_entry": "docs/plans/problem-register.md#PR-066",
+      "verification_evidence": "PR-066 关闭卡（历史）＋结构审计批（2026-10-20 台账）：gate-wiring 已于 10-16 随注册表驱动执行器退役；现执法＝域门禁七面＋别名投影对账",
+      "last_updated": "2026-11-07",
+      "recipes": "docs/system/reuse-playbook.md#P10（实现-消费断链——接线活性三案例 PR-109/115/102 本域长出）；#P11（双许可对照——WP-020 row-schema-guard 实战）"
+    },
+    {
+      "id": "ui-kit",
+      "name": "通用 UI 基础件",
+      "status": "migrating",
+      "authority": "src/components/ui/",
+      "contract": "contracts/ui-kit-baseline.json",
+      "gate": "npm run test:node（WP-143 波2：哨兵转普通测试——原门禁 retired，检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-071（本批立条）",
+      "verification_evidence": "2026-10-21 政策落地：原生 <button 棘轮基线首算 90 文件／223 处（机器生成）；check:ui-kit 三面（基线外即红／只减不增／归零必缩）首跑 ok；回归测试 5 用例（三探针红＋下降不拦）｜2026-10-21 二次扩面（Master 审计「门禁只管 button 没管 input」）：input 纳入同一条棘轮（基线 v2 分标签计数：button 223／input 85／101 文件）；新建 src/components/ui/input.tsx（与 ui/button 同族 shadcn 词表，theme 双门禁绿），首消费＝TablePagination 页码输入（迁移 1 处，存量 84 处按触碰收敛）；门禁回归测试 7 用例",
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "A4 归域（2026-10-16 Master 审计批）：ui/tag(13 消费)/alert-dialog(5)/button(22)/checkbox(1)/select(1) 五件跨域通用但 table-base 不含 ui/——两不管。本域候选立案统管。ui/input 死件已删（0 消费）。aria/ 目录＝侧栏自闭环链（App→sidebar→aria/button+sheet+input），不在此域——处理方案见登记簿。｜2026-10-21 复用效力复查（Master「看是否属实」批）：原生 <input>/<button>/<select>/<textarea> 散约 130 文件，ui/button 仅 22 消费——收编率低。裁定路径＝不专项替换（手写样式与 ui/button 风格差异大，强换改视觉），改为「新代码必须走 ui/button，存量按触碰迁移」——落成棘轮基线＋门禁（contract 字段即基线文件，$comment 载政策）。status→migrating：契约已立、存量按触碰收敛中；推进 gating 仍需 PR-071 子项三的第二落地场景（表单域/导航域/通知系统任一）。input 已于 2026-10-21 二次扩面入棘轮（ui/input 建件＋首消费）；select/textarea 待对应基础件成熟后再入。；F4 体检收账批（2026-10-26）：ui/sonner 重接线——next-themes useTheme（无 Provider 恒 system）换应用 useMode 共享源、next-themes 依赖退役；toast 展示类不变。；WP-037 批（2026-10-29）：EmptyState 空态组件入域（P4 配方 empty-state 落件，两变体 no-data/no-match＋表头保留契约），tests 收编 empty-state 组件测（1→2）。；WP 批（2026-10-29）：TableToolbar/TableToolbarSearch 入域（工具条归一化，12 处手写收编），tests 收编 table-toolbar-guard。；WP-134 波0（2026-11-06）：MissingValue 自 data-dashboard/EntityDetailPanel.tsx:50 的文件内私有件升入 src/components/no-data/（未知呈现单源，禁以 0 冒充缺口），tests 收编 ui-quantity-no-data-kit；同批三处展示件 props 加 `| null`（statistic/Statistic、table-pagination/TablePagination、app-shell/sidebar-primitives SidebarHeader）——假零的制造端是 props 不收 null，闸口打在类型面，执法由既有 typecheck 承担，本域不新增门禁。｜2026-11-07 WP-146：基线重算 211→208（原生按钮净减 3＝EntityHubTrigger 死组件删除＋管线改版收纳，只减不增同向）｜WP-153 沉淀复勘（PR-296）：本批追加行系 WP-146 旧注复写已摘除——销账收官批对本域无实质变更，不塞卡",
+      "tests": [
+        "src/test/empty-state.test.tsx",
+        "src/test/table-toolbar-guard.test.ts",
+        "src/test/ui-quantity-no-data-kit.test.tsx",
+        "src/test/anomaly-preview-unknown-not-zero.test.tsx",
+        "scripts/quality/__tests__/guards/ui-kit.test.mjs",
+        "scripts/quality/__tests__/guards/recipe-usage.test.mjs"
+      ],
+      "writers": [
+        "contracts/ui-kit-baseline.json"
+      ]
+    },
+    {
+      "id": "http-boundary",
+      "name": "HTTP 边界（传输层标准框架化＋身份接缝）",
+      "status": "gating",
+      "authority": "docs/adr/ADR-010-传输层标准框架化-HTTP边界收敛.md",
+      "contract": "docs/spec/SPEC-024-HTTP边界收敛.md",
+      "gate": "npm run test:node（WP-143 波3：哨兵转普通测试——检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "tests": [
+        "server/shared/__tests__/http-app.test.cjs",
+        "server/shared/__tests__/http-app-auth.test.cjs",
+        "server/shared/__tests__/auth-core.test.cjs",
+        "server/shared/__tests__/auth-oidc-adapter.test.cjs",
+        "server/shared/__tests__/runtime-observability-integration.test.cjs",
+        "scripts/quality/__tests__/check-contract-route-parity.test.mjs",
+        "server/shared/__tests__/action-execution-factory.test.cjs"
+      ],
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-085",
+      "verification_evidence": "第 0 步探针 23/23；第 1 步 route-dispatch/route-pattern 退役＋31 路由测试迁 inject＋parity 首跑 100⇄94；第 2 步身份接缝（auth-stack 三态／Principal·ALS／OIDC 桩 IdP 全链／writer-gate 通道轴）单测＋集成 12 用例；第 3 步角色（operator-roles 登记表＋route-roles 绑定表 20 键＋ROLE-1..5）；收官（PR-085 closed 68，c694eff5）：main 全量重测 test:node 1130/0＋gates:ci 26/26＋e2e 6/6×2 独立运行＋红队三向破坏红绿；gate check:contract-route-parity CI 常驻（execution=ci，routes=104⇄contract_ops=98 零违例）",
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "2026-10-21 PR-085 第 2 步开行（Master 2026-10-20 批准 v2 决策卡）：机制＝Fastify 装配 http-app.cjs＋契约推导请求校验 contract-request-schema.cjs＋身份接缝 server/shared/auth/*（有序认证方法序列三态／Principal 入 AsyncLocalStorage／OIDC 标准件／无状态签名会话）。四步迁移（契约预备→框架→认证→角色），第 3 步角色登记表落地后转 gating。与 api-contract 域分界：api-contract 管契约文件与类型消费；本域管契约的运行时执法位与身份。｜2026-10-21 收官转 gating（自设触发条件达成：第 3 步角色登记表落地＋PR-085 关账 closed 68）：机制复用面＝1 套传输层服务 104 路由键（90 字面＋10 墓碑／26 模块；迁移前 18 份手写管线→0）；requestBody 推导器 1 个覆盖 37 带体操作（另 12 写操作 bodyless 执法）；身份/角色/通道三钩子全域承载（路由文件内身份解析代码 0）；测试面 31→1（route-harness，29 文件实际接入）。待办＝真 IdP 集成（部署选型后，SPEC-024 上线清单）——完成前不转 completed。"
+    },
+    {
+      "id": "schema-shape",
+      "name": "配置语义投影（shape 投影层）",
+      "status": "gating",
+      "authority": "src/lib/schema-shape.ts",
+      "contract": "src/lib/schema-shape.ts",
+      "gate": "npm run test:node（WP-143 波3：哨兵转普通测试——检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
+      "tests": [
+        "src/test/schema-shape.test.ts",
+        "src/test/schema-intent-nav.test.tsx",
+        "src/test/schema-partition-overview.test.tsx",
+        "src/test/schema-shape-field-candidates.test.ts",
+        "scripts/quality/__tests__/check-schema-shape.test.mjs",
+        "src/test/schema-shape-field-semantics.test.ts",
+        "src/test/shared-projections.test.ts",
+        "src/test/schema-shape-edge-groups.test.ts"
+      ],
+      "writers": [],
+      "description": "配置数据→语义视图的纯函数投影单源（借镜 OpenMAIC lib/model-settings/shape.ts 机制）：分区模型（schemaPartitions，五分区静态单源）＋引用拓扑＋悬空引用现算（schemaTopology，六类引用边与 server schema-validators.cjs 同规则）＋覆盖面信号（SchemaTopologyCoverage——数据缺席≠零悬空的机制化，消费方凭 coverage.ontology 编程判断徽标显隐）＋分区归属与消费便利口（partitionOfKind/partitionOfTab/danglingForTab/partitionDanglingCounts——警示条与徽标取数一行，不重抄过滤聚合样板）。纪律：纯函数 total、零 feature 依赖（结构化最小输入面，特征侧数据结构性可赋值直通——由测试文件顶部编译期钉子执法）、只做呈现面现算——执法仍在写网关。扩域（2026-10-26，Master「搬」指示）：语义层入域——页签正名/对象定义/编辑性标记从 contracts/object-dictionary.json 投影（tabSemantics/canonicalTabLabels），TAB_LABELS 转字典派生面；上游=object-dictionary（git 契约），下游=IntentNav/PartitionOverview/DanglingNotice。批5：写侧角色面入域——TAB_WRITE_ROLES（事实源=server route-roles.cjs）＋editabilityState 谓词（对象静态编辑性×页签写侧角色×当前主体角色，三态 editable/role-denied/derived-readonly；身份未知只出静态面不假设）。批14：内容组装层入域——TAB_SECTIONS 页签→区块声明（未声明=无挂载点；视图按声明装配，缺渲染器 fail-visible），批13 教训（投影未及组装层致验证场脚手架常驻配置页）的结构闭合。批16（2026-10-27，Master 裁 A 扩域）：实体字段候选投影入域——entityFieldCandidates(enums, versionRegistry?)（基线实现取异常侧抽屉加固版：layers/subdomains 词条双形态取 id、modules 双形态、版本注册表双形态）＋isWildChoice 呈现谓词（野生值检测执法仍在服务端 profiling/合规/wild_tag，域内只管表单高亮判定）。收编两份分叉实现：EntityComplianceView（顺手修模块级可变变量→state、layers 对象形态漏词缺陷）与 AnomalyEntityRepairDrawer（25 行拍平→一行投影）。第二/第三独立消费场景落地（跨出 schema 页——补齐完备性审计缺口①）；域门禁 check:schema-shape 同批注册（补齐缺口②）。批（2026-10-27，Master「全都做」）：字段级语义投影入域——tabFieldSemantics/fieldSemanticOf（上游=object-dictionary fields 条目〔首批「产品版本」4 字段，field_ownership characteristics 层登记〕，下游=VersionRegistryEditor 标签与说明）；B 档治理粒度开端（页签级✓对象级✓字段级自此）。同批产品身份写链路补首次设定口（IDENTITY_ANCHOR_IMMUTABLE 兜底）——schema-shape 消费者从呈现层进到写语义层配合。｜WP-070（2026-11-02）展示类空态呈现面入域：文档清单渲染服务端 availability.hints（契约单源，依赖序服务端排好）——前端内联空库文案（第三文案源）收编退役；组件只读 availability 谓词不自推策略。；WP-134 波4 四件新出口入域（红队反例⑥：自造键 check:derivation-sync 与投影器读不到，已折进本字段）：分区边分组出口 partitionEdgeGroups（healthy＝边−悬空，差集键用 \\u0000 分隔，禁可见字符拼接）＋no-data 门控单源 partitionIsBlind/danglingBadgeForPartition/danglingBadgeFor＋在册边序 TOPOLOGY_EDGE_KINDS；概览面板与导航徽标自此同一处出数。",
+      "recipes": "特征侧装配三步：①import { schemaTopology, danglingForTab, partitionDanglingCounts } from '@/lib/schema-shape'；②useMemo(() => schemaTopology(store.enums, store.ontology), [enums, ontology])——输入即既有 store 状态，不新增请求；③警示条 danglingForTab(activeTab, topology)、分区徽标 danglingBadgeForPartition(partitionId, topology)、盲区判定 partitionIsBlind(partitionId, topology)。ontology 懒加载缺席时 coverage.ontology=false——徽标隐藏而非显示 0（宁缺勿假）。｜徽标口径 2026-11-06 WP-134 波4 起单源在 danglingBadgeForPartition（coverage 门控也在出口内）——不要直接拿 partitionDanglingCounts 自己再判一遍盲区，那正是当年两处分叉的成因；该函数现只作出口内部的聚合。",
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-110",
+      "verification_evidence": "src/test/schema-shape.test.ts 20/20 绿（分区往返≡TAB_LABELS／六类边干净面／六类悬空精确面／coverage 信号／便利口 danglingForTab·partitionDanglingCounts／ontology 缺席与对端空集守卫／纯函数 total／legacy 词条双形态同判）；编译期直通钉子（NormalizedEnumsData/OntologyData→Shape 输入面）npx tsc --noEmit 全仓 0 错；批16 推进证据：机制测试 schema-shape-field-candidates 11/11（双形态词条/modules 双形态/版本注册表双形态/total 空输入/纯函数/野生值谓词）＋门禁回归 5/5（两侧旧形态探针红）＋全量前端 757/757（合并后 main 复跑）＋check:schema-shape 首跑 files=238 零违例（main 244）＋pre-commit 三次现场执法实录（批16/清账/合并三笔提交）",
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "2026-10-26 开域（Master 2026-10-26「先把基础机制复用进本项目，先保证这个能用，看看复用机制领域是不是能登记」指示；open 规则两处同时：本行＋登记簿 PR-110）。机制源流：OpenMAIC 对照分析→SCHEMA-IA-001 立案。开域即带可用机制面＋守护测试（非空壳 candidate）。｜同日批2 装配落地：真实消费面 3 文件（SchemaIntentNav 分区/徽标现算、SchemaDanglingNotice 悬空取数、SchemaManagerView topology 注入）——「机制存在≠生效」由消费测试钉住（schema-intent-nav.test.tsx 9 用例＋view 装配用例 3）。gate 待专用执法门禁立项后转 gating；PD-1 默认形态裁决已收窄为仅翻 DEFAULT_NAV_MODE 一值，不阻塞。｜2026-10-26 扩域：语义投影面入域（借镜 OpenMAIC shape 三层之语义层——此前只搬结构层系判断失误，正名裁决躺在字典两年未执行即症状）；批3 测试补认领。｜批5（同日）：Master 纠正「无角色面/无锁」两处误判——local 单用户全角色是部署默认非能力事实；角色面（route-roles）与锁面（revision 乐观锁/RULE_SEALED 封存/派生只读 additionalProperties）均在册，角色谓词已入域，锁谓词余 revision/sealed 两态待批6。｜2026-10-27 批16：候选投影扩域（Master 裁 A）+域门禁注册（gate 由 null→check:schema-shape）+第二/第三消费场景（合规页/异常抽屉）——candidate→gating 两条件齐备，推进待后续批。｜2026-10-27 candidate→gating（Master「现在开始推进」）：playbook 第二落地规则兑现——首场景＝schema 页六消费点（批2 装配），第二/第三场景＝批16 合规页 EntityComplianceView＋异常抽屉 AnomalyEntityRepairDrawer（跨出 schema 页的独立消费，证明通用基座非单场景定制）；两条件齐备即推（域门禁 check:schema-shape 批16 注册在先）。gating 期执法面=check:schema-shape ci+commit 双面。"
+    },
+    {
+      "id": "runtime-scope",
+      "name": "运行时作用域（进程写到哪个 vault／data 目录／树／服务）",
+      "status": "gating",
+      "authority": "contracts/runtime-scope.json",
+      "contract": "contracts/runtime-scope.schema.json",
+      "gate": "npm run test:node（WP-143 波4b：域执法机器退役——域行守卫=scripts/quality/__tests__/guards/ 哨兵体系（test:node 跑）＋登记簿转只读档案）",
+      "tests": [
+        "scripts/quality/__tests__/e2e-scope-guard.test.mjs",
+        "scripts/quality/__tests__/observations-path.test.mjs",
+        "server/shared/__tests__/mirror-scope.test.cjs",
+        "server/shared/__tests__/vault-runtime-spawn.test.cjs",
+        "scripts/__tests__/graph-eval-run.test.mjs"
+      ],
+      "writers": [],
+      "description": "作用域解析的单一事实源：登记作用域变量全集（VAULT_PATH/KB_VAULT/KB_DATA_DIR/THESCHEMA_DIR/PIPELINE_TRAJECTORIES_DIR/DECISIONS_MIRROR_DIR/TAXONOMY_OBSERVATIONS_FILE/ARCH_REPO/VAULT_RUNTIME_SCRIPTS_DIR/API_BASE）、Node/Python 两侧登记解析器（data-dir.cjs／theschema-root.cjs／vault-runtime-resolver.cjs／kb_paths.py 四族＋vault-id.cjs 服务端作用域证明）、全部起链（test-node 跑批器／pre-commit 域批／e2e harness／run-all-e2e／pipeline spawn／dev）及其钉入子集、现存违约清单 V01–V11（各挂 PR）。四条规则：单一解析器／写路径禁隐式回落（SPEC-021 扩全变量与 Python 侧）／起链钉全集经单一构造器／跨进程消费须取服务端作用域证明（/api/health.vaultId）对账。本表只登记不实现——解析器实现仍在各自模块，不另抄。开域前痛点（PR-116/120/121/122 同根）：作用域由每个写者与每条起链各自决定——写者自拼 parents[N]/REPO_ROOT、三级阶梯隐式翻仓、空串回落；起链各钉子集；e2e 以端口默认值假定服务作用域→测试文章写进用户真库并触发主树管线。 面⑨/②b（WP-080 立／WP-082 换形，2026-11-03，PR-207/208/211）：面⑨ 把规则 no_implicit_fallback_on_write 变成谓词——写敏感变量未 fail-closed 必须在 write_fallback_exceptions 署名（departs_from 指认规则＝规则↔登记回指键，读数 rule_backref），空转/悬空/无理由即红；②b 给 EXEMPT 补「无命中即摘＋理由非空＋文件须存在」（照 ⑤⑥⑦ meta-guard 同族），据此摘掉 5 条空转豁免（7→2）。此前该域四条规则的机器依托全是 checker 内人工翻译件（grep contract.rules 命中 0），守护测试更把该规则错译为「回落写成字符串即合规」。 面⑨ 第二形（WP-082·PR-211）：废掉 26 处 `fail_closed` 手抄位——写敏感变量的合规形态改为可核证据：登记解析器带 `probe:{file,contains}`（门禁逐字核对报错原文存在于所指文件），或在 `write_fallback_exceptions` 署名（departs_from 指认规则）；另立 `rule_implementations` 把四条规则各自实施件登记在册（文件不存在即红、键集多寡皆红），读数 probes=6/6 与 rule_implementations=4/4、rule_backref 4/4。废字段回潮（任一 fail_closed 键再现）即红。反证轮（2026-11-03 独立复核）补三洞：①probe.file 必须等于该解析器行登记的 file（否则指向契约自身抄一句即自证，实测旧口径 7/7 假绿）；②例外行 resolver 与变量行不一致／指向不存在的解析器均即红（换形时该判定曾被净删，实测旧数据 OLD 红→NEW 绿＝回归）；③例外 register 除形态外须在 docs/plans/problem-register.md 定位到条目（PR-999999 类假出处即红），并加条数棘轮断言（＝4，只减不增）。探针证据强度分档账（3 可传播／2 可见拒绝／1 静默警告）另立 PR-213。",
+      "recipes": "消费方三类装配：①起链——经单一构造器注入 variables 全集（蓝本 scripts/test-node.mjs buildRunnerEnv，扩到 THESCHEMA_DIR/PIPELINE_TRAJECTORIES_DIR/TAXONOMY_OBSERVATIONS_FILE，pre-commit/e2e/pipeline-spawn 同款消费）；②写者——Python 经 kb_paths.{data_dir,theschema_dir}、Node 经 data-dir.cjs/theschema-root.cjs，写侧变量缺席 fail-closed，删 parents[N] 硬拼；③跨进程消费（e2e）——起自己的服务或向 API_BASE 取 /api/health.vaultId 与自身 fixture computeVaultId 对账，不等即拒跑。",
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-124",
+      "verification_evidence": "波5：check:runtime-scope ok（faces ①②③④⑤ primitive_allow=53）＋守护 7/7（漏网花样原语层全拦＋棘轮断言）＋py 全量 109 过＋e2e 两遍 6/6＋零脏两遍＋baseline ok；此前四波证据见 PR-124 关闭卡 ；WP-080 活体破坏三则：删例外清单→⑨面 4 红点名变量与出口／变量转 fail-closed 而例外未摘→空转红／EXEMPT 指向无命中内容→②b 红，复原即 ok faces=①…⑨ rule_backref=1/4 fallback_exceptions=4 exempt=2，测试 24/24 绿 ；WP-082 复核：`npm run check:runtime-scope` → probes=6/6 rule_implementations=4/4 rule_backref=4/4 fallback_exceptions=4 exempt=2；契约内 fail_closed 键数按键遍历＝0（原 26）；反证轮补洞后复跑同一读数 probes=6/6 rule_implementations=4/4 且测试 29/29（含五种探针破坏＋假出处＋挂错门三组新反例）",
+      "metrics": null,
+      "last_updated": "2026-11-08",
+      "note": "2026-10-26 开域（Master「你走复用机制开域流程」；open 规则两处同时：本行＋登记簿 PR-124）。机制源流：PR-116（test-node 兜底钉）→PR-120 规约全程（候选→初筛→立案→两子 agent 核实→总管裁决→根因确认）→同类问题溯源清点（9 处）→Master「用复用机制找共性」纠偏。借鉴件四：buildRunnerEnv 运行器级钉（PR-116）／kb_paths.data_dir fail-closed 解析器／repoWrite 目的地执法＋check:schema-writers 面⑨反向对账（门禁形态）／health.vaultId 服务端作用域证明（原语现成未被消费）。开域即带可用机制面（机读契约＋守护测试，非空壳）。迁移波次（按触碰推进，不承诺日期）：波1 e2e 起链接构造器＋服务端作用域证明对账（PR-120 主因，首个消费方）；波2 Python 写者接 kb_paths 解析器＋Python 侧 SPEC-021 写路径 fail-closed（V01/V05/V06/V07）；波3 data/governance 开数据域＋写者登记（PR-121/122，含 V02/V03/V04/V11）；波4 反向扫描门禁立项转 gating（写者 ⊆ 解析器消费方 ∧ 起链 ⊆ 构造器消费方，扫描集含 Python＋fs）。.｜波4（2026-10-27，Master「继续」）：反向扫描门禁立项转 gating——check:runtime-scope 四面（定点回退复查／全仓禁模式扫描含 Python＋fs／起链写面钉对账／违约清零棘轮）；buildRunnerEnv＋pre-commit 补钉写面四变量（THESCHEMA_DIR/VAULT_PATH 不盲钉：repo 主源读语义，写面自钉——记档理由在 test-node.mjs 注释）；契约 11 违约全结清（V07＝登记回落复核＋②面覆盖；V09＝ARCH_REPO 链＋③面对账）；域行 candidate→gating（FR2 推进证据＝门禁绿＋守护 5/5）。.｜gating→completed（2026-10-27，Master「启动待启动项」）：FR2 推进证据＋metrics 四项落 PR-124 关闭卡（行极简政策——验证证据住 register_entry 指向的关闭卡，行内不设 metrics）。.｜波5 扩面（2026-10-27，Master「结构性收敛…难道天天修门禁」→「可以」）：写原语闭集执法面（门禁⑤）——写/建/改原语只许出现在 write_primitive_allow 在册文件（53 条，棘轮只减不增、空转即摘、理由内联）；原语集合封闭（fs/py/sqlite），与写者数量解耦，新写者不碰原语故门禁永不为其加规则；Python 写网关 write_gateway.py 立，merge-inferred 迁入示范（零写原语摘出 allow）。收口实测：此前症状门禁 4 类漏网花样（动态拼接/绝对直写/分段构造/cwd 开库）在原语层全拦（守护测试钉住）。｜2026-11-02 WP-069 扩域退 gating（Master 批 D3）：原 completed 名不副实——开域镜头漏登记服务内 spawn 链（4 条）与 VOCAB_ENVELOPE_PATH；补登＋⑥spawn 位点闭集⑦作用域变量读写闭集两常设扫描面＋唯一拉起点 vault-runtime-spawn（recipes① 单一构造器的服务侧兑现）。回 completed 条件：扫描面跑满两轮无新违约＋主树合并后 e2e 7/7。"
+    },
+    {
+      "id": "mechanism-patterns",
+      "name": "机制模式登记（复用机制领域·登记位实验）",
+      "status": "candidate",
+      "authority": null,
+      "contract": "docs/reuse-patterns.md",
+      "gate": null,
+      "tests": [
+        "scripts/quality/__tests__/gen-ui-stat-provenance.test.mjs"
+      ],
+      "writers": [],
+      "description": "跨域可复用的机制模式登记位（区别于 UI/API 契约域）：每条目=一个模式＋其代码事实源（file:line）＋recipes。首批两模式：①镜像哈希自证（hashVerified——拷后回读 sha256 比对，失配 warn 不阻断自愈；事实源 server/shared/decisions-mirror.cjs:33-36，先例 derived_artifacts.content_hash）②断点透出（lastStage——机制侧状态经 status 只读透出给消费方，Node args 接线；事实源 server/services/pipeline/pipeline-run-service.cjs snapshot+args，先例 --resume runner 机制）。登记位实验：形态由红队/Master 复核后定去留。③同管道双粒度豁免（WP-031/PR-146，Master 2026-10-28 定名「单条豁免和批量豁免只是单选和多选」）：单条（精确 ID）与批量（规则×归属主体）共用同一过滤管道、同一展示口径、同一账本语义，只是匹配粒度不同；事实源 server/services/anomaly/gap-engine.cjs computeGaps 过滤段（resolved ∪ exempt 同点）＋GovernanceTodoTab 豁免计数可见；先例 gap resolve action=exempted（单条）与 frontmatter exempt_rules（批量）。④随写重算（PR-151/WP-044，2026-10-30）：派生证据（校验章）在每条内容写路径由唯一语义源现算、与内容同一笔写落盘，算据不可用整笔拒写（fail-closed）；闸门保持读持久证据的审计语义、新鲜度归写路径不变量——事实源 server/services/article-workflow/validation-stamp-service.cjs＋scripts/vault-runtime/article-validator-lib.cjs applyValidationStamp（SPEC-022 单源）；反例＝PR-046/PR-151 旧章死锁（docs/reuse-patterns.md 模式四）。⑤同集合计数同口径（WP-071，2026-11-02）：同一响应对象内描述同一集合的计数字段（total*/returned*）必须走同一过滤管道、同一展示口径，禁止一个过滤一个全量；声明才执法——对象带 x-count-parity 标记即由 check:response-count-parity 三规则（口径声明/配对自洽/过滤标记一致）机器拦截；事实源 server/routes/dashboard-routes.cjs 两 builder＋server/services/projection/master-graph-service.cjs topNodesByDegree；反例＝topology 旧口径 totalNodes 过滤=1、totalEdges 未过滤=15（docs/reuse-patterns.md 模式五）。⑥多视角对账（WP-074，2026-11-03）：前端每个展示统计数字的视图，在映射单源 contracts/ui-stat-provenance.json 登记其数据模块实际调用的后端 API（按视图→来源聚合），数字顺着接口回后端独立重算、两边一致才算对；check:ui-stat-provenance 两规则（R1 覆盖完整含文件集合与点数、R2 口径可查 description/summary）机器拦截——原 R3「出处真实」于 2026-11-07 WP-136 c 退役（端点改派生后构造性不可能违例，降档结论与退出路径见 SPEC-074 §6.12 与该门 note）；事实源 contracts/ui-stat-provenance.json（12 视图→14 来源；人写段＝apiSources 视图↔api 模块#导出函数，端点段 sourceApis 由 gen-ui-stat-provenance 派生，入 check:derivation-sync 之保）＋scripts/quality/check-ui-stat-provenance.mjs；反例＝新增统计点只写前端不登记出处或绑定契约外接口（docs/reuse-patterns.md 模式六）。｜2026-11-07 WP-138 波2：文档装载键源单点（server/shared/document-keys.cjs，ADR-016 二期兑现）与执法面/入口配置单源（theme-exemptions/article-upload-extensions）机制落位本域登记",
+      "recipes": null,
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-124",
+      "verification_evidence": "scripts/quality/__tests__/check-conflict-markers.test.mjs 5/5（门禁面）；两模式各自服务套件绿（decisions-mirror 4/4；pipeline-run-service 全套）",
+      "metrics": null,
+      "last_updated": "2026-11-03",
+      "note": "2026-10-26 WP-021 开域（Master「批准」复用机制沉淀三件）。候选期＝登记位形态实验：本域不执法（gate 由各模式所属域管），只做「机制有登记位、消费方找得到」的最小事实源。模式⑤的执法件挂 quality-gates（response-count-parity），不在本域 tests 重复登记。 模式⑥执法件挂 quality-gates（ui-stat-provenance），同模式⑤不在本域 tests 重复登记。；2026-11-07 WP-136 b：模式⑥登记面 contracts/ui-stat-provenance.json 的 sourceApis 转半生成件——人只写 apiSources（视图↔api 模块#导出函数），端点清单由 npm run gen:ui-stat-provenance 派生（本域行 generator 即登记住址，check:derivation-sync 自动入保，零新增门禁）。派生前实测手抄面已有 4 处名实不符（WP-134 清点），生成后与人工纠偏结果 12/12 逐字相同。",
+      "generator": "gen:ui-stat-provenance"
+    },
+    {
+      "id": "review-status",
+      "name": "关系审核状态显示投影",
+      "status": "candidate",
+      "authority": "src/lib/domain/ReviewStatus.ts",
+      "contract": "src/lib/domain/ReviewStatus.ts",
+      "gate": null,
+      "tests": [
+        "src/test/review-status-display.test.tsx"
+      ],
+      "writers": [],
+      "description": "契约 ReviewStatus 五态（approved/pending/rejected/deterministic/inherited_approved）→显示层（label/tone/筛选项）的唯一投影单源。PR-095 扩枚举时无供给点致三副本三态旧地图（REVIEW-STATUS-001/PR-129 收编）。纪律：值域单源=OpenAPI 契约（api-types 派生守卫）；显示词走 TERM；不碰 candidateStatus/standardizationStatus（契约明示三状态机独立）；后端合并/生效映射（review-status-projection/formal-relation-selector）不在本域。｜2026-11-07 WP-138 R5c：生效集谓词单点落本域（src/lib/domain/ReviewStatus.ts isEffectiveReviewStatus=formal 口径／isHumanApprovedReviewStatus=人裁上图口径，双口径相邻声明防混用）",
+      "recipes": "消费三步：①import { REVIEW_STATUS_DISPLAY, reviewStatusDisplay } from '@/lib/domain/ReviewStatus'；②标签/色：reviewStatusDisplay(raw)→{label,tone}；③筛选项：REVIEW_STATUS_VALUES（勿按显示名匹配）。守护：parity 测试断言显示键集≡契约枚举。",
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-129",
+      "verification_evidence": null,
+      "metrics": null,
+      "last_updated": "2026-10-27",
+      "note": "2026-10-27 开域（REVIEW-STATUS-001 批；FR 两处同开）；活性由域守护测试承担，不新增 CI 门禁（Master 2026-10-26「不要门禁」裁定沿用）。"
+    },
+    {
+      "id": "status-display",
+      "name": "状态机显示投影（审批/标准化/任务/准入四机）",
+      "status": "candidate",
+      "authority": "src/lib/domain/StatusDisplay.ts",
+      "contract": "src/lib/domain/StatusDisplay.ts",
+      "gate": null,
+      "tests": [
+        "src/test/status-display.test.ts"
+      ],
+      "writers": [],
+      "description": "三台状态机＋一派生投影＋一版本生命周期机（审批 ApprovalStatusEnum 契约五态／文章标准化 standardizationStatus 契约三态／投稿任务 task status 契约六态·SPEC-030 派生投影①〔2026-10-28 批2 已随改〕／准入 admissionStatus 契约无枚举·域 as const 两值〔PD-5 已驳回死值退役〕／版本生命周期 version status 契约六 schema 共用三态枚举〔PR-130 复查补漏扩入，2026-10-27〕）→显示层（label 走 TERM＋tone 四档 fact/warn/error/neutral）的唯一投影单源。PR-130/STATUS-DISPLAY-001 收编三处 feature 副本（ApprovalWorkbench STATUS_LABELS+STATUS_STYLE、article-workflow-types 两套 LABELS、admission-types ADMISSION_STATUS_LABEL+EntityRegistryTable 行内 tone 三元式）——与 review-status 域同病因（扩枚举无供给点即副本漂移）同机制面收编。纪律：纯函数（同输入两次调用 deepEqual）；零 feature 依赖（类型全从 generated/api-types 派生或本域 as const）；五机独立不合并状态机（与 review-status「三状态机独立」纪律同源）；每机一个编译期钉子 Record（契约机：契约加值即 tsc 红；准入机：本域 as const 即值域单源，契约升枚举后钉子改挂契约类型）；fail-safe 缺省回落各机待处理态；只做呈现面投影，状态机转移执法仍在服务端与 feature 动作层。【批1 注记已于批2 兑现（值域六态＋准入两值）；candidateStatus 显示投影待首个消费面（SPEC-030 §四.2）。】",
+      "recipes": "消费三步：①import { approvalStatusDisplay, standardizationStatusDisplay, articleTaskStatusDisplay, admissionStatusDisplay } from '@/lib/domain/StatusDisplay'（或经 @/lib/domain 出口）；②标签/色：xxxDisplay(raw)→{label,tone}，tone→样式映射按四档（feature 内保留 tone→class 小映射不算状态第二份事实）；③筛选项/选项组：Object.entries(XXX_STATUS_DISPLAY).map(([value,d])=>({value,label:d.label}))。守护：parity 键集＋TERM 一致＋fail-safe 测试；禁止 feature 内私有状态映射复活（grep 旧名 STATUS_LABELS/ADMISSION_STATUS_LABEL 应零命中）。",
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-130",
+      "verification_evidence": "npx vitest run src/test/status-display.test.ts（10/10）；tsc -p tsconfig.app.json --noEmit 零错；全量前端套件绿（五机消费面改造后零旧名引用）",
+      "metrics": null,
+      "last_updated": "2026-10-28",
+      "note": "2026-10-27 开域（STATUS-DISPLAY-001 批；PR-130 两处同开）；活性由域守护测试承担不新增 CI 门禁（Master「不要门禁」裁定沿用——结构性收敛优先于门禁）。2026-10-27 Master「用机制检查」复查补漏同批合入：+版本机第五机、ApprovalWorkbench 原始串直渲染、RelationLibraryTab tone 半副本（review-status 域面）、异常台 label/tone 同源化。"
+    },
+    {
+      "id": "state-layering",
+      "name": "投稿领域状态身份三层（状态机/派生投影/字段）",
+      "status": "candidate",
+      "authority": "docs/spec/SPEC-030-投稿状态三层定身份.md",
+      "contract": "docs/spec/SPEC-030-投稿状态三层定身份.md",
+      "gate": null,
+      "tests": [
+        "server/services/article-workflow/__tests__/upload-task-status-liveness.test.cjs",
+        "scripts/quality/__tests__/gen-value-domains.test.mjs"
+      ],
+      "writers": [],
+      "description": "投稿领域任一『状态』必须归入且仅归入三层之一：状态机（值域有契约＋每转移有显式触发者＋独立存储＋闸门/消费方——审批/标准化/校验戳三机）、派生投影（不存储转移、读时从源状态机计算——任务状态/物理位置两投影）、字段（只有值域无流转语义——frontmatter.status 等）。PR-136 四实锤（任务轴两死态/幽灵第四态/校验戳无契约/PR-130 盘点把派生登记为机）的根治框架。权威单源=SPEC-030（含七状态身份裁定表、三机转移触发者表、派生①显式聚合规则表、四条验证标准）；批2 代码对齐、批3 值域活性门禁（gate 届时回填 check-state-liveness）。 2026-11-04 WP-103按Master批准补approved内容变化后standardize回pending的恢复边（SPEC-080），旧批准失效、历史保留，三机不合并。",
+      "recipes": "新状态入册三问：①有转移且每转移能写出触发者吗（无→不是状态机）；②删掉能从源状态机重算吗（能→派生投影，禁存储转移）；③只有值域与校验吗（是→字段，流转裁决归某台机或删）。执法面（WP-133 生成链化后）：三机值域三源一致→gen-value-domains --check（derivation-sync 纳保——服务端枚举源≡openapi 三段≡前端钉子键集）；任务派生①加产活＋聚合入口在册→upload-task-status-liveness.test.cjs（域认领测试）。",
+      "guide": null,
+      "register_entry": "docs/plans/problem-register.md#PR-136",
+      "verification_evidence": null,
+      "metrics": null,
+      "last_updated": "2026-11-06",
+      "note": "2026-10-28 开域（STATE-LAYERING-001 批1；PR-136 两处同开——本笔补注册表行，批1 首提交漏此行即『存在≠生效』同族病，Master 指正）。｜2026-11-06 WP-133 子项①（ADR-015 副本→生成器）：值域活性门禁 check-state-liveness 退役——三源一致面改 gen-value-domains 生成器承接（服务端枚举源为真身，openapi 三段 enum 为定点投影，前端钉子键集 --check 对账、文案仍手写；本行 generator=gen:value-domains 即 derivation-sync 纳保行），加产活面＋聚合入口在册面迁 upload-task-status-liveness.test.cjs。退出路径：生成器链回归手写门禁＝重立契（本行 generator 置回 null＋quality-gates 重新登记）。",
+      "generator": "gen:value-domains"
+    },
+    {
+      "id": "discipline-kit",
+      "name": "复用纪律工具包",
+      "status": "candidate",
+      "authority": "discipline-kit/",
+      "contract": "docs/adr/ADR-018-复用纪律工具化-机制账本切分与自消费形态.md",
+      "gate": "npm run check:domain-registry",
+      "register_entry": "docs/plans/problem-register.md#PR-287",
+      "note": "；WP-140（2026-11-07）：复用机制领域机制层外迁为自包含子包（schema/通用块/门禁/playbook/skill），本仓库 file: 自消费，别名 check:domain-registry 同名义零感切换；账本层（登记簿/台账/合同）不进包（ADR-018 切分线）。candidate 裸登记合法，推进走 playbook 生命周期。",
+      "last_updated": "2026-11-07"
+    }
+  ]
+}

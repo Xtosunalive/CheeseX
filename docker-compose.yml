@@ -1,0 +1,22 @@
+# cheeseh docker-compose
+# 用法：cp .env.example .env && docker-compose up
+# 或自定义 vault 路径：VAULT_PATH=/your/obsidian/vault docker-compose up
+version: "3.8"
+services:
+  app:
+    build: .
+    ports:
+      - "18083:18083"
+    env_file:
+      - .env
+    environment:
+      - API_HOST=0.0.0.0
+      - VAULT_PATH=${VAULT_PATH:-/vault}
+    volumes:
+      - ${VAULT_PATH:-./vault-data}:/vault
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:18083/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s

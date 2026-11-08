@@ -1,0 +1,10 @@
+schema_version: 1
+last_updated: "2026-10-30"
+fields:
+  - {name: title, label: 标题, type: string, required: 是, scope: [article], layer: 内容属性, value_domain: {source: free}}
+  - {name: product, label: 产品, type: enum, required: 是, scope: [article], layer: 业务属性, value_domain: {source: architecture_projection, resolve: {op: product_closure}, note: A03 闭合集=architecture_projection.product+product_aliases 键}}
+  - {name: version, label: 适用版本, type: enum, required: 是, scope: [article], layer: 业务属性, value_domain: {source: versions, resolve: {op: version_registry}, note: versions.yaml 产品版本注册表}}
+  - {name: module, label: 产品模块, type: list, required: 是, scope: [article], layer: 业务属性, value_domain: {source: modules, resolve: {op: keys}, normalize: {wikilink_strip: true}}}
+  - {name: article_type, label: 知识文章类型, type: enum, required: 是, scope: [article], layer: 业务属性, value_domain: {source: article_types}}
+  - {name: doc-type, label: 文档类型, type: enum, required: 是, scope: [article], layer: 业务属性, value_domain: {source: doc_types}}
+  - {name: category-path, label: 知识域目录, type: string, required: 是, scope: [article], layer: 业务属性, value_domain: {source: free}}

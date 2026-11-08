@@ -1,0 +1,365 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "contracts/defect-shapes.schema.json",
+  "title": "defect-shapes 缺陷形状族登记册",
+  "description": "把 2026-10-31《同型缺陷判据与确认清单》的形状谓词落成在册数据对象。只登记不实现：families（同族＝同一事实的多份手写副本，逐族记权威源／普查口径／计数天花板／执法面指针／四要素豁免）。判据原文住 shape_source，本册只回指编号不复制句式——执法件若抄一份判据原文即自犯 P6。additionalProperties:false：未知字段即非法（防手抄位复活形态）",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "registry_version",
+    "description",
+    "shape_source",
+    "families"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "registry_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "description": {
+      "type": "string"
+    },
+    "shape_source": {
+      "type": "string",
+      "description": "判据原文所在文档（shape 编号的回指目标，门禁逐字核对 `| **P6** |` 行在场"
+    },
+    "families": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/family"
+      }
+    }
+  },
+  "definitions": {
+    "family": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "shape",
+        "fact",
+        "owner",
+        "canonical_source",
+        "census",
+        "enforced_by",
+        "ceiling",
+        "status",
+        "gate"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^P\\d+-F\\d+$"
+        },
+        "shape": {
+          "type": "string",
+          "pattern": "^P\\d+$",
+          "description": "判据文档 §一 的形状谓词编号——必须能在原文里逐字定位该行"
+        },
+        "fact": {
+          "type": "string",
+          "description": "这一族抄的是哪一份事实（一句话）"
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1,
+          "description": "族无主即红——辖区归属（照 dev-log 角色名）"
+        },
+        "canonical_source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "file",
+            "note"
+          ],
+          "properties": {
+            "file": {
+              "type": "string",
+              "description": "权威源文件（门禁验其在场）"
+            },
+            "note": {
+              "type": "string",
+              "minLength": 8
+            }
+          }
+        },
+        "census": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "kind"
+          ],
+          "properties": {
+            "kind": {
+              "enum": [
+                "scan",
+                "readout"
+              ]
+            },
+            "roots": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "file_pattern": {
+              "type": "string"
+            },
+            "exclude_files": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "exclude_patterns": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "scan_comments": {
+              "type": "boolean"
+            },
+            "patterns": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/pattern"
+              }
+            },
+            "join": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "sources",
+                "value_pattern",
+                "forms",
+                "lens_limits"
+              ],
+              "description": "副本判据的第二维（D1／PR-216）：字面量须同时满足「值在契约在册」＋「处于登记过的位置形」才算实例——把「读权威源的住址」与「代码自己的权威定义」判在债外。声明即改口径，census_params_hash 随之变化、基线必须同批重算",
+              "properties": {
+                "sources": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "在册值来源（精确路径或 dir/*.ext 单层通配）"
+                },
+                "value_pattern": {
+                  "type": "string",
+                  "minLength": 4,
+                  "description": "什么算一条在册声明（契约叶子字符串须逐字匹配本正则）"
+                },
+                "forms": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "enum": [
+                      "collection_member",
+                      "comparison_operand",
+                      "alias_data_member"
+                    ]
+                  },
+                  "description": "位置维白名单：collection_member＝数组/对象字面量成员位（代码自持清单），comparison_operand＝相等比较右值（清单值被当判据），alias_data_member＝值抄在声明器绑定上、该绑定（含其改名链）被用作成员或比较操作数（第三刀 PR-218：按字面量位反查绑定，一行多声明与别名再起别名都入形；同名遮蔽按作用域解析到具体绑定，里层同名者赢，故不再把无关键记到字面量头上；只喂读盘调用的仍属住址不入）；三形须全登（反证轮 WP-086 A3：契约单方收窄 forms 即静默把一类形放回债外）"
+                },
+                "lens_limits": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "enum": [
+                      "assignment_only_no_list_use",
+                      "comment_or_template_prose",
+                      "concatenated_or_multiline_path",
+                      "method_argument_membership",
+                      "cross_file_alias",
+                      "non_declarator_binding",
+                      "use_before_declarator"
+                    ]
+                  },
+                  "description": "镜头自认「不入形」的类别全集（第三刀，PR-218；第七类由 WP-089 反证轮 A3② 实测补入）——forms 说看得见什么，本键说承认看不见什么。七类须全登（与执法件 JOIN_LIMITS 镜像钉，漏声明一类即红），读数行随之打印「不入形L类·第G代·下界」：此前「读数＝已入镜头的债额下界」只写在族 note 散文里，实算与天花板逐字相等容易被读成「账已清到项」。摘掉某类须真把镜头做到覆盖它，同批升 lens_generation 并重算基线。类别方向不一：多数为漏报，non_declarator_binding 一形若解析不周也会造成误报（反证轮 A3① 实测推翻本件原「宁漏不误」自称，箭头参数遮蔽已补进解析）"
+                },
+                "lens_generation": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "判据代数——改执法件谓词（本件代码）导致读数语义变化时，必须同批把本号 ＋1；只改代码不升声明＝--write 拒收（反证轮 WP-088 B2：删基线本体哈希字段曾是 A1 的免检钥匙）"
+                },
+                "self_key_excludes": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 2
+                  },
+                  "description": "PR-216 A5：自述键黑名单（契约说出自己的键——$id/roots/canonical_source 等）不构成对代码的立法；同串只在自述键下出现＝代码自己的权威定义非抄本"
+                },
+                "authority_exemptions": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": [
+                      "file",
+                      "value",
+                      "why",
+                      "register"
+                    ],
+                    "properties": {
+                      "file": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "string"
+                      },
+                      "why": {
+                        "type": "string",
+                        "minLength": 10
+                      },
+                      "register": {
+                        "type": "string",
+                        "pattern": "^PR-[0-9]+$"
+                      }
+                    }
+                  },
+                  "description": "PR-216 A5：两份权威名录同串异义的署名豁免——四要素＋空转即摘（meta-guard 执法）"
+                }
+              }
+            },
+            "script": {
+              "type": "string",
+              "description": "readout 用：执法面自己的脚本路径（不抄谓词，只取其读数）"
+            },
+            "parse": {
+              "type": "string",
+              "description": "readout 用：从读数里取捕获组的正则（捕获组 1＝实例数）"
+            }
+          }
+        },
+        "enforced_by": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "gate",
+            "face"
+          ],
+          "properties": {
+            "gate": {
+              "type": "string",
+              "minLength": 1
+            },
+            "face": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        "ceiling": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "计数天花板——只减不增；抬高须在 PR 里写明理由"
+        },
+        "status": {
+          "enum": [
+            "gated",
+            "ungated"
+          ],
+          "description": "声称 gated 而三条件不齐即红（不得声称已收净）"
+        },
+        "gate": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "default_deny",
+            "exemption_ratchet",
+            "destruction_proof"
+          ],
+          "properties": {
+            "default_deny": {
+              "type": "boolean"
+            },
+            "exemption_ratchet": {
+              "type": "boolean"
+            },
+            "destruction_proof": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "test_file",
+                "case"
+              ],
+              "properties": {
+                "test_file": {
+                  "type": "string"
+                },
+                "case": {
+                  "type": "string",
+                  "minLength": 6,
+                  "description": "用例名原文——门禁核对测试件里确有其名（故意写坏必须精确报 文件:行 的那一条）"
+                }
+              }
+            }
+          }
+        },
+        "exemptions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "file",
+              "reason",
+              "owner",
+              "expiresAt",
+              "reviewCondition"
+            ],
+            "properties": {
+              "file": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "minLength": 8
+              },
+              "owner": {
+                "type": "string",
+                "minLength": 1
+              },
+              "expiresAt": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              "reviewCondition": {
+                "type": "string",
+                "minLength": 4
+              }
+            }
+          }
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "pattern": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "label",
+        "re"
+      ],
+      "properties": {
+        "label": {
+          "type": "string",
+          "minLength": 4
+        },
+        "re": {
+          "type": "string",
+          "minLength": 4
+        }
+      }
+    }
+  }
+}

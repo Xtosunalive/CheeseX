@@ -1,0 +1,66 @@
+{
+  "$schema": "./article-lifecycle.schema.json",
+  "schema_version": 1,
+  "$comment": "文章生命周期路径角色单源（TALOS file-rules 同构；Master 2026-10-15 裁「一篇＝标准文章×1＋原文归档×1」）。与 vault-write-destinations 分层：彼管写通道合法落点（能不能写），本契约管生命周期角色（何时存在/谁清理/稳态份数）。消费方：server/shared/article-lifecycle-paths.cjs（运行时派生）＋ check:article-lifecycle（静态门禁——server 侧禁止裸拼本表路径族）。Python 侧（vault-runtime）路径迁移为后续波次，不在本表执法面。 mutability 字段（SPEC-028）：read-only-evidence 落点由 vault-io 强制 wx+0o444（非排他写/覆写 fail-closed 拒绝）；human-editable 零写限制。",
+  "roles": [
+    {
+      "id": "draft",
+      "root": "知识库/raw/drafts",
+      "submission_dir": "知识库/raw/drafts/投稿",
+      "steady_state_copies": 0,
+      "retire_on": "promote 成功即清（失败恢复草稿）",
+      "note": "过渡态：投稿/本地草稿。写者=article-workflow 上传与外部草稿",
+      "mutability": "human-editable"
+    },
+    {
+      "id": "standard-working",
+      "root": "知识库/raw/precleaned",
+      "steady_state_copies": 0,
+      "retire_on": "发布成功后退场（SPEC-013 收敛目标；发布前它就是「标准化成功的那份」）",
+      "note": "标准化成功的工作态。写者=promote-article；重标准化从 source-archive 原文重跑",
+      "mutability": "human-editable"
+    },
+    {
+      "id": "standard-formal",
+      "root": "知识库/wiki/articles",
+      "steady_state_copies": 1,
+      "retire_on": "文章退役动作（事务性沿 source_file 链全清）",
+      "note": "标准文章最终形态（发布代次，<域>/<articleId>/<内容哈希>.md——域=category-path 首段；落位唯一驱动＝审批 publish→snapshot，SPEC-030 派生②〔2026-10-28 PD-2 修订〕）",
+      "mutability": "read-only-evidence"
+    },
+    {
+      "id": "source-archive",
+      "root": "知识库/raw/archive",
+      "steady_state_copies": 1,
+      "retire_on": "文章退役动作（随链清理；归档不是删除——source_file 锚点）",
+      "note": "唯一原文归档：content-addressed（<sha256>-原名.md），按来源分 lane（投稿/本地草稿）。Python 侧产品分桶二次归档已退役（双哈希伪影根除）（PR-138 登记：promote-article.py 保留 legacy 产品分桶回退分支——source_file 未走 Node 归档锚的手工草稿可达；主链两 lane 不变）",
+      "mutability": "read-only-evidence"
+    }
+  ],
+  "transitions": [
+    {
+      "from": "draft",
+      "to": "standard-working",
+      "action": "promote",
+      "note": "投稿稿提升（标准化前置搬迁）；原文随迁 source-archive"
+    },
+    {
+      "from": "standard-working",
+      "to": "standard-formal",
+      "action": "publish",
+      "note": "审批发布（SPEC-030 派②：落位唯一驱动＝审批 publish→snapshot）"
+    },
+    {
+      "from": "draft",
+      "to": "source-archive",
+      "action": "archive",
+      "note": "promote 随迁原文归档"
+    },
+    {
+      "from": "standard-working",
+      "to": "source-archive",
+      "action": "retire",
+      "note": "退役动作随链清理"
+    }
+  ]
+}

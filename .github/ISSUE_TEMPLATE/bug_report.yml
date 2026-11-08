@@ -1,0 +1,50 @@
+name: Bug 报告
+description: 报告可复现的缺陷
+title: "[Bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: 提 issue 前请先搜过现有 Issues，避免重复。
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 问题描述
+      description: 实际发生了什么，期望发生什么
+      placeholder: 实际行为……期望行为……
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: 复现步骤
+      placeholder: |
+        1. 进入 '...'
+        2. 点击 '...'
+        3. 看到报错 '...'
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: 版本 / 提交
+      description: 正在使用的 release 版本或 commit 哈希
+    validations:
+      required: false
+  - type: dropdown
+    id: os
+    attributes:
+      label: 操作系统
+      options:
+        - macOS
+        - Windows
+        - Linux
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: 日志 / 截图
+      description: 粘贴相关日志（注意脱敏，不要贴 .env 原文）
+    validations:
+      required: false

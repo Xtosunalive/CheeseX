@@ -1,0 +1,178 @@
+{
+  "_meta": {
+    "status": "frozen（Master 2026-11-04 批示「签收」——17 节点/16 边全数签收；争议边 E-EDGE-018 采「应然含」口径：源文档字段式连线属实，抽取缺口另立 PR-242 修抽取器，基线 R=0.9375 即缺口提醒）",
+    "sealed_input": "input/（build-e2e-vault.mjs 产物洁净快照，2026-11-04 封存；节点 id 含时间戳成分故必须用本快照，不得重建后比对）",
+    "derivation": "真值从源文档与配置独立枚举（非抄管线输出）：内容边＝文章 frontmatter product/version（×2 篇）＋实体页类型化 wikilink；结构边＝产品注册表 HAS_VERSION＋版图配置挂靠；结构节点＝TheSchema 域树＋版图卡＋团队缺省；2026-11-04 修正：首版真值误按旧库快照（含 e2e 跑残留文章 doc-article-e2e-测试文章-1793749969520）枚举，首跑 eval 点名缺节点后按密封 input/ 复核——该文章不在夹具内，删 1 节点 2 边（修正记录留账，真值账可审计）",
+    "known_disputes": [
+      "E-EDGE-018 已裁（2026-11-04 Master「签收」）：应然含——依赖::wikilink 字段式连线管线未产出＝抽取缺口，立案 PR-242；基线 R_edges=0.9375 为缺口的常设提醒，抽取器修复后升至 1"
+    ]
+  },
+  "nodes": [
+    {
+      "id": "ops",
+      "origin": "structural（TheSchema 域树一级）"
+    },
+    {
+      "id": "ops:maintain",
+      "origin": "structural（域树二级，category-path 首选域）"
+    },
+    {
+      "id": "e2e-complete-component",
+      "origin": "content（wiki/entities/e2e-complete-component.md：architecture-node-id）"
+    },
+    {
+      "id": "entity-e2e-incomplete-component",
+      "origin": "content（wiki/entities/e2e-incomplete-component.md：architecture-node-id 加 entity- 前缀——抽取器对缺身份实体派生身份，前缀规则属抽取器口径）"
+    },
+    {
+      "id": "doc-article-e2e-candidate-001",
+      "origin": "content（raw/precleaned/e2e-candidate-article.md：article_id）"
+    },
+    {
+      "id": "product-e2eproduct",
+      "origin": "structural（产品注册表 E2eProduct）"
+    },
+    {
+      "id": "version-e2eproduct-1-0-0",
+      "origin": "structural（产品版本 1.0.0）"
+    },
+    {
+      "id": "team-unassigned",
+      "origin": "structural（团队缺省待分配）"
+    },
+    {
+      "id": "plate:business:content-collaboration",
+      "origin": "structural（版图卡）"
+    },
+    {
+      "id": "plate:business:search-discovery",
+      "origin": "structural（版图卡）"
+    },
+    {
+      "id": "plate:business:security-compliance",
+      "origin": "structural（版图卡）"
+    },
+    {
+      "id": "plate:business:data-storage",
+      "origin": "structural（版图卡）"
+    },
+    {
+      "id": "plate:business:integration-gateway",
+      "origin": "structural（版图卡）"
+    },
+    {
+      "id": "plate:business:observability-ops",
+      "origin": "structural（版图卡）"
+    },
+    {
+      "id": "plate:business:ai-intelligence",
+      "origin": "structural（版图卡）"
+    },
+    {
+      "id": "plate:publication:e2eproduct-用户手册",
+      "origin": "structural（文档版图卡：doc-type 用户手册）"
+    },
+    {
+      "id": "plate:component:e2eproduct-e2e-module-排错指南",
+      "origin": "structural（文档版图卡：module＋article_type）"
+    }
+  ],
+  "edges": [
+    {
+      "from": "doc-article-e2e-candidate-001",
+      "to": "product-e2eproduct",
+      "relationType": "APPLIES_TO",
+      "origin": "content（文章 frontmatter product）"
+    },
+    {
+      "from": "doc-article-e2e-candidate-001",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "origin": "content（frontmatter product＋version）"
+    },
+    {
+      "from": "e2e-complete-component",
+      "to": "entity-e2e-incomplete-component",
+      "relationType": "DEPENDS_ON",
+      "origin": "content（实体页 依赖::[[…]] 字段式类型化 wikilink）——known_disputes E-EDGE-018，管线 2026-11-04 实跑未产出——签收裁定（2026-11-04）：应然含，缺口＝PR-242"
+    },
+    {
+      "from": "product-e2eproduct",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "HAS_VERSION",
+      "origin": "structural（产品注册表）"
+    },
+    {
+      "from": "plate:business:content-collaboration",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural（版图挂靠）"
+    },
+    {
+      "from": "plate:business:content-collaboration",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:business:search-discovery",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:business:security-compliance",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:business:data-storage",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:business:integration-gateway",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:business:observability-ops",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:business:ai-intelligence",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:publication:e2eproduct-用户手册",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:publication:e2eproduct-用户手册",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:component:e2eproduct-e2e-module-排错指南",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "origin": "structural"
+    },
+    {
+      "from": "plate:component:e2eproduct-e2e-module-排错指南",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "origin": "structural"
+    }
+  ]
+}

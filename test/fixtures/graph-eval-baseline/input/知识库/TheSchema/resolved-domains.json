@@ -1,0 +1,158 @@
+{
+  "$comment": "派生物标记：本文件由 scripts/quality/project-resolved-domains.mjs 从 fields.yaml 结构化配方（SPEC-020）生成——禁止手改。配方增删改请改 fields.yaml 后重跑 npm run project:resolved-domains（写路径已联动重生成）。漂移由第 32 号门禁 derivation-sync 在提交/CI 时拦截。",
+  "schema_version": 1,
+  "byField": [
+    {
+      "name": "title",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "module",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "product",
+      "scope": [
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "article_type",
+      "scope": [
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "doc-type",
+      "scope": [
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "version",
+      "scope": [
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "category-path",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_layer",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_category",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_subdomain",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "建议",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "tags",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "status",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    }
+  ]
+}

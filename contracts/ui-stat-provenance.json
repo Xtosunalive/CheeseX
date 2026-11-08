@@ -1,0 +1,178 @@
+{
+  "$schema": "./ui-stat-provenance.schema.json",
+  "schema_version": 1,
+  "title": "前端统计点可溯源映射（视图→来源 API）",
+  "description": "多视角对账模式⑥单源：每个向用户展示 Statistic 的视图，登记其数据取自哪次真实后端调用（apiSources，人写的规范半）；sourceApis 为派生面（npm run gen:ui-stat-provenance 生成，手抄退役，漂移由 check:derivation-sync 拦）。检查器核对覆盖完整与口径可查。",
+  "views": [
+    {
+      "view": "entity-compliance",
+      "file": "src/features/entity-compliance/SummaryBar.tsx",
+      "statCount": 6,
+      "apiSources": [
+        "src/features/entity-compliance/entity-compliance-api.ts#fetchEntityCompliance"
+      ],
+      "sourceApis": [
+        "/api/entity/check"
+      ],
+      "note": "entity-compliance-api"
+    },
+    {
+      "view": "data-dashboard",
+      "file": "src/features/data-dashboard/DataDashboardView.tsx",
+      "statCount": 2,
+      "apiSources": [
+        "src/features/dashboard/dashboard-api.ts#fetchTopology"
+      ],
+      "sourceApis": [
+        "/api/dashboard/topology"
+      ],
+      "note": "lib/topology-store → dashboard-api"
+    },
+    {
+      "view": "admission",
+      "file": "src/features/admission/AdmissionView.tsx",
+      "statCount": 3,
+      "apiSources": [
+        "src/features/admission/admission-api.ts#fetchCanvasAdmission"
+      ],
+      "sourceApis": [
+        "/api/kg/canvas-admission"
+      ],
+      "note": "admission-store → admission-api"
+    },
+    {
+      "view": "admission-entity-registry",
+      "file": "src/features/admission/EntityRegistryTable.tsx",
+      "statCount": 1,
+      "apiSources": [
+        "src/features/admission/admission-api.ts#fetchCanvasAdmission",
+        "src/features/dashboard/dashboard-api.ts#fetchTopology"
+      ],
+      "sourceApis": [
+        "/api/dashboard/topology",
+        "/api/kg/canvas-admission"
+      ],
+      "note": "admission-store（注册表行实取 topology-store.admittedNodes＋canvas-admission 权威面）"
+    },
+    {
+      "view": "article-workflow",
+      "file": "src/features/article-workflow/ArticleWorkflowView.tsx",
+      "statCount": 2,
+      "apiSources": [
+        "src/features/article-workflow/article-workflow-api.ts#fetchPrecleanedArticles",
+        "src/features/article-workflow/article-workflow-api.ts#fetchArticleUploads"
+      ],
+      "sourceApis": [
+        "/api/articles/precleaned",
+        "/api/articles/uploads"
+      ],
+      "note": "article-workflow-api"
+    },
+    {
+      "view": "architecture-version",
+      "file": "src/features/architecture-version/ArchitectureVersionView.tsx",
+      "statCount": 1,
+      "apiSources": [
+        "src/features/architecture-version/architecture-version-api.ts#fetchProductVersions"
+      ],
+      "sourceApis": [
+        "/api/kg/product-versions"
+      ],
+      "note": "architecture-version-api"
+    },
+    {
+      "view": "dashboard",
+      "file": "src/features/dashboard/DashboardView.tsx",
+      "statCount": 5,
+      "apiSources": [
+        "src/features/dashboard/dashboard-api.ts#fetchTopology",
+        "src/features/admission/admission-api.ts#fetchCanvasAdmission",
+        "src/features/review/review-api.ts#fetchPendingReview",
+        "src/features/property-gov/property-api.ts#fetchCheckResults"
+      ],
+      "sourceApis": [
+        "/api/dashboard/topology",
+        "/api/kg/canvas-admission",
+        "/api/kg/pending-review",
+        "/api/property/check"
+      ],
+      "note": "topology-store＋review-data-store＋property-data-store＋admission-store"
+    },
+    {
+      "view": "gap-engine",
+      "file": "src/features/gap-engine/GapEngineView.tsx",
+      "statCount": 1,
+      "apiSources": [
+        "src/features/dashboard/dashboard-api.ts#fetchTopology"
+      ],
+      "sourceApis": [
+        "/api/dashboard/topology"
+      ],
+      "note": "lib/topology-store"
+    },
+    {
+      "view": "review",
+      "file": "src/features/review/ReviewView.tsx",
+      "statCount": 1,
+      "apiSources": [
+        "src/features/review/review-api.ts#fetchPendingReview",
+        "src/features/review/inference-conflict-api.ts#fetchConflicts"
+      ],
+      "sourceApis": [
+        "/api/kg/inference-conflicts",
+        "/api/kg/pending-review"
+      ],
+      "note": "review-data-store → review-api"
+    },
+    {
+      "view": "document-inventory",
+      "file": "src/features/document-inventory/DocumentInventoryView.tsx",
+      "statCount": 1,
+      "apiSources": [
+        "src/features/document-inventory/document-inventory-api.ts#searchDocuments",
+        "src/features/document-inventory/document-inventory-api.ts#searchArticleCandidates",
+        "src/features/document-inventory/document-inventory-api.ts#fetchDocument"
+      ],
+      "sourceApis": [
+        "/api/articles/candidates/search",
+        "/api/documents/search",
+        "/api/documents/{documentId}"
+      ],
+      "note": "document-inventory-api"
+    },
+    {
+      "view": "property-check-results",
+      "file": "src/features/property-gov/CheckResultsPanel.tsx",
+      "statCount": 4,
+      "apiSources": [
+        "src/features/property-gov/property-api.ts#fetchCheckResults"
+      ],
+      "sourceApis": [
+        "/api/property/check"
+      ],
+      "note": "property-store → property-api"
+    },
+    {
+      "view": "property-manifest-list",
+      "file": "src/features/property-gov/ManifestListPanel.tsx",
+      "statCount": 11,
+      "apiSources": [
+        "src/features/property-gov/property-api.ts#fetchArticleManifests"
+      ],
+      "sourceApis": [
+        "/api/kg/query"
+      ],
+      "note": "property-api"
+    }
+  ],
+  "excluded": [
+    {
+      "file": "src/features/theme-preview/ThemePreviewView.tsx",
+      "reason": "主题预览演示页，Statistic 为写死样例数字，不接任何后端接口，非真实数据"
+    },
+    {
+      "file": "src/components/statistic/Statistic.tsx",
+      "reason": "Statistic 组件定义本身，非统计展示点"
+    }
+  ]
+}

@@ -1,0 +1,57 @@
+domains:
+  arch: 架构
+
+arch_categories:
+- 终端
+- 服务
+- 存储
+- 基础设施
+- 安全
+- 板块
+- 概念
+- 其他
+- 产品
+- 版本
+- 域
+- 文档
+
+architecture_projection:
+  product: FixtureProduct
+  version: 1.0.0
+  category_aliases:
+    terminal: 终端
+    client: 终端
+    gateway: 服务
+    backend: 服务
+    service: 服务
+    microservice: 服务
+    database: 存储
+    db: 存储
+    storage: 存储
+    infra: 基础设施
+    infrastructure: 基础设施
+    platform: 基础设施
+    security: 安全
+    auth: 安全
+    板块: 板块
+    概念: 概念
+    其他: 其他
+    产品: 产品
+    版本: 版本
+    域: 域
+    文档: 文档
+  projected_relation_types:
+  - DEPENDS_ON
+  - STORES_IN
+  - INDEXES
+  - BACKS_UP
+  - ENCRYPTS
+  - CONNECTS_TO
+  wikilink_type_labels:
+    依赖: DEPENDS_ON
+    连接: CONNECTS_TO
+    存储: STORES_IN
+    备份: BACKS_UP
+    索引: INDEXES
+    加密: ENCRYPTS
+    关联: RELATED

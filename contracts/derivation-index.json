@@ -1,0 +1,149 @@
+{
+  "$schema": "./rules-lifecycle.schema.json",
+  "$comment": "派生行为指针（第 1 步分层索引之三）。2026-10-08 勘误：方案原文称『8 条派生行为』经全库实扫，问题处理域的实际派生单源为 anomaly-handling-mode.cjs 的 deriveIssueHandling（分型主单源）+ anomaly-workbench-service.cjs 的 blockedActions（阻断动作派生）两个纯函数族；方案所记『8 条』未在仓内找到成文清单（TALOS 侧与 cheeseh docs 均无『8 条派生』字样），按实际单源登记 8 个派生面（deriveIssueHandling 本体 + 三集合 + blockedActions + handling 枚举翻译 + 文案单源）。审计模式将逐项核验单源文件存在性与前端另写检测。",
+  "derivation-index": {
+    "derivations": [
+      {
+        "derivationId": "issue-handling-mode",
+        "what": "处置模式分型：按 (relationCandidate, proposedAction.type, issueKind) 三元判定 note/fix/adjudicate/operate——读时派生单源",
+        "source": "server/services/governance/anomaly-handling-mode.cjs#deriveIssueHandling(:12-19)",
+        "sourceIssueKinds": [
+          "relation_conflict",
+          "missing_field",
+          "missing_entity",
+          "version_scope",
+          "article_association",
+          "wild_tag",
+          "pipeline_failure",
+          "release_publication_failure",
+          "standardization_warning",
+          "stale_source",
+          "missing_lineage",
+          "unrecognized_entity"
+        ],
+        "consumers": [
+          "server/services/anomaly/anomaly-workbench-service.cjs:67#normalizeIssue（服务端调用单源）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts#HANDLING_LABELS（前端只翻译不另写判定）"
+        ]
+      },
+      {
+        "derivationId": "issue-handling-adjudicate-actions",
+        "what": "adjudicate 动作集合（relation-candidate-review / inference-review）",
+        "source": "server/services/governance/anomaly-handling-mode.cjs#ADJUDICATE_ACTIONS(:6)",
+        "sourceIssueKinds": [
+          "relation_conflict"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:97（review/conflicts 跳转承载）"
+        ]
+      },
+      {
+        "derivationId": "issue-handling-fix-actions",
+        "what": "fix 动作集合（entity-repair/entity-relation-repair/derived-graph-repair/article-association/article-association-reload/schema-tag-adjudicate）",
+        "source": "server/services/governance/anomaly-handling-mode.cjs#FIX_ACTIONS(:9)",
+        "sourceIssueKinds": [
+          "missing_field",
+          "missing_entity",
+          "version_scope",
+          "article_association",
+          "wild_tag"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts#inPageAction 登记表",
+          "src/features/anomaly-workbench/anomaly-action-registry.ts"
+        ]
+      },
+      {
+        "derivationId": "issue-handling-operate-kinds",
+        "what": "operate 类型集合（pipeline_failure / release_publication_failure）",
+        "source": "server/services/governance/anomaly-handling-mode.cjs#OPERATE_KINDS(:10)",
+        "sourceIssueKinds": [
+          "pipeline_failure",
+          "release_publication_failure"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:101/:126（操作面跳转/专用面板）"
+        ]
+      },
+      {
+        "derivationId": "issue-blocked-actions",
+        "what": "阻断动作派生：publish_graph 等动作在哪些 issueKind 下被禁止",
+        "source": "server/services/anomaly/anomaly-workbench-service.cjs#blockedActions(:39-49)",
+        "sourceIssueKinds": [
+          "relation_conflict",
+          "unrecognized_entity",
+          "missing_entity",
+          "missing_lineage",
+          "article_association",
+          "pipeline_failure",
+          "release_publication_failure",
+          "standardization_warning",
+          "wild_tag"
+        ],
+        "consumers": [
+          "前端经 API 下发 blockedActions 字段消费（AnomalyWorkbenchView/AnomalyActionToolbar）"
+        ]
+      },
+      {
+        "derivationId": "handling-labels",
+        "what": "处置模式中文文案单源（note/fix/adjudicate/operate → 标签与分组提示）",
+        "source": "src/features/anomaly-workbench/anomaly-workbench-copy.ts#HANDLING_LABELS(:24)+HANDLING_GROUP_HINTS(:35)",
+        "sourceIssueKinds": [
+          "relation_conflict",
+          "missing_field",
+          "missing_entity",
+          "version_scope",
+          "article_association",
+          "wild_tag",
+          "pipeline_failure",
+          "release_publication_failure",
+          "standardization_warning",
+          "stale_source",
+          "missing_lineage",
+          "unrecognized_entity"
+        ],
+        "consumers": [
+          "AnomalyIssueList/AnomalyWorkbenchView/AnomalyPeekPanel（文案消费面）"
+        ]
+      },
+      {
+        "derivationId": "kind-family-color",
+        "what": "问题类型家族色（13 类 issueKind → chip/dot 色对）",
+        "source": "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY",
+        "sourceIssueKinds": [
+          "missing_field",
+          "unrecognized_entity",
+          "relation_conflict",
+          "article_association",
+          "version_scope",
+          "stale_source",
+          "missing_entity",
+          "missing_lineage",
+          "pipeline_failure",
+          "standardization_warning",
+          "release_publication_failure",
+          "wild_tag"
+        ],
+        "consumers": [
+          "AnomalyIssueList 行内芯片+色点",
+          "AnomalyWorkbenchView 侧栏家族色"
+        ]
+      },
+      {
+        "derivationId": "graph-quality-family",
+        "what": "图质量族归类（6 类 issueKind → 图质量分组文案）",
+        "source": "src/features/anomaly-workbench/anomaly-workbench-copy.ts:84#graphQualityKinds",
+        "sourceIssueKinds": [
+          "relation_conflict",
+          "unrecognized_entity",
+          "missing_entity",
+          "missing_lineage",
+          "article_association"
+        ],
+        "consumers": [
+          "AnomalyWorkbenchView 家族分组展示"
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "$schema": "./dictionary-lifecycle.schema.json",
+  "schema_version": 1,
+  "$comment": "字典卡族生命周期迁移边定义表——唯一真身（卡族）。同形先例：article-lifecycle.json（WP-066）→ ontology-lifecycle.json（WP-068/ADR-017）→ 本表（WP-115／PR-259 处置批 #4，Master 2026-11-05 批准进 building）。迁移语义照抄 ADR-017 §二律文表——同一家律、同一套边：retired 不可原地复活、任意跨态跳跃一律拒绝、越词表在册值禁一步直入缺省态（后两条为律文硬编，改表放松不了，形状谓词＋用例双钉）。取值域五态单源住 contracts/object-meta-model.json#layers.status.enums.lifecycle_status，本表不重列。首条原则（B1=b 事故背书，与 AGENTS.md「治理动作退出路径强制」同源）：任何治理阻断态的进入，其退出路径必须与本表同批立法——冻结怎么解冻无判据，即两个各自合法的治理决定叠加成不可逆死锁。存在制：未来若出现字典卡写 API，必须消费本表判定迁移合法性（fail-closed，不得旁路）；现写路径＝工作包 git 提交，咽喉＝check-object-dictionary 提交时面（HEAD↔暂存迁移边逐卡判定）。代码内出现第二份允许清单即违规。",
+  "defaultStatus": "approved",
+  "terminalFrom": "retired",
+  "transitions": [
+    { "from": "draft", "to": "submitted", "note": "提交评审" },
+    { "from": "submitted", "to": "approved", "note": "批准生效；TR3 可编辑必要条件由传导面另行执法（同一咽喉、不同判据）" },
+    { "from": "submitted", "to": "draft", "note": "退回草稿，不留退役痕迹" },
+    { "from": "approved", "to": "reserved", "note": "登记预留位，进入即退出活消费面" },
+    { "from": "approved", "to": "retired", "note": "退役：必须带 retirement.reason 与同类当时 approved 的 replaced_by（TR6 同咽喉执法）" },
+    { "from": "reserved", "to": "approved", "note": "预留兑现回现役" }
+  ],
+  "explicitlyDenied": [
+    { "from": "retired", "to": "approved", "reason": "退役不可原地复活（ADR-017 §二 同裁）；恢复的正当路径＝新建卡，或经 ADR-014 §5.2 替代链在读侧归一，不改写历史" },
+    { "from": "reserved", "to": "retired", "reason": "预留件从未进入活消费，退役语义不适用；撤销走删除流程" }
+  ],
+  "cardSections": [
+    { "key": "core_objects", "shape": "array" }
+  ]
+}

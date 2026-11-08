@@ -1,0 +1,455 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "规则生命周期治理 schema（2026-10-08 第 0 步，来源：规则生命周期治理方案）。四份索引/映射文件的合法性防呆。铁律：①索引只存指针+豁免，禁止复制内容（第四本账防线）；②任何落盘文件不含 status 字段——status 由审计脚本每次现算；③豁免四要素强制（reason/owner/expiresAt/reviewCondition），无期限的『裁决中』=永久黑洞，禁止；④幽灵类型的豁免 expiresAt 即『补生产者/摘下游消费』二选一死线。消费者：scripts/quality/check-rules-lifecycle.mjs——校验索引与映射文件结构，audit 模式做层间映射完整性对账。 布局说明：四文件布局：每个 contracts/*.json 文件恰好承载顶层四个段之一（文件名=段名映射由审计脚本按固定文件名装载执法，缺文件即 read 失败）——故顶层 required 留空，段内约束各自严格。",
+  "title": "RulesLifecycle",
+  "type": "object",
+  "required": [],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "rules-index": {
+      "type": "object",
+      "description": "22 条规则声明指针（对应 contracts/entity-readiness-rules.json 的 rules[].id）。台账行在审计时内存组装，不落盘。",
+      "required": [
+        "source",
+        "rules"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "规则声明唯一事实源的仓库相对路径",
+          "pattern": "^contracts/"
+        },
+        "rules": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "ruleId",
+              "type",
+              "severity",
+              "source",
+              "signal",
+              "enforcement",
+              "closure"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "ruleId": {
+                "type": "string",
+                "pattern": "^[FB][0-9]+[bc]?$"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "hard"
+                ],
+                "description": "索引先只建硬契约；软契约（P5 shadow 位）与流程契约（problem-register 既有体系）暂无实例不建索引"
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warn",
+                  "info"
+                ]
+              },
+              "source": {
+                "type": "string",
+                "description": "声明位置指针：文件路径#rules[N].id 形态"
+              },
+              "signal": {
+                "type": "object",
+                "description": "信号定义指针（检查如何实现）",
+                "required": [
+                  "check",
+                  "engine"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "check": {
+                    "type": "string",
+                    "description": "check 名（required/kebabcase/unique-id…）"
+                  },
+                  "engine": {
+                    "type": "string",
+                    "description": "引擎实现位置指针：文件路径（声明式引擎 schema 段/复合段或 body 段）",
+                    "pattern": "^server/"
+                  }
+                }
+              },
+              "enforcement": {
+                "type": "object",
+                "description": "执法绑定：哪些写入门执行此规则（与契约 gates 声明一致）",
+                "required": [
+                  "gates"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "gates": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "gate id 清单；空数组=无执法绑定，error 级须有豁免才合法"
+                  }
+                }
+              },
+              "closure": {
+                "type": "object",
+                "description": "闭环出口：issueKind 出口 / PURE_BLOCK / 豁免",
+                "required": [
+                  "exit"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "exit": {
+                    "oneOf": [
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "issueKind"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "kind": {
+                            "const": "issue",
+                            "description": "出口=进问题列表（collector 产出 issueKind）"
+                          },
+                          "issueKind": {
+                            "type": "string",
+                            "pattern": "^[a-z_]+$"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "kind": {
+                            "const": "PURE_BLOCK",
+                            "description": "纯拦截规则：拦住即止不进问题列表（合法闭环）"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "surface"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "kind": {
+                            "const": "diagnostic",
+                            "description": "纯提醒规则：读时诊断出口（合规页展示），不进问题列表、不拦写（合法闭环；isWorkbenchIssueFinding 排除 B01/B03 的形态）"
+                          },
+                          "surface": {
+                            "type": "string",
+                            "description": "展示面指针（读时诊断出口位置）"
+                          }
+                        }
+                      },
+                      {
+                        "type": "object",
+                        "required": [
+                          "kind",
+                          "exemption"
+                        ],
+                        "additionalProperties": false,
+                        "properties": {
+                          "kind": {
+                            "const": "exempt",
+                            "description": "豁免：缺环登记理由（四要素保证合法性）"
+                          },
+                          "exemption": {
+                            "$ref": "#/$defs/exemption"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              },
+              "dimension": {
+                "type": "string",
+                "enum": [
+                  "completeness",
+                  "uniqueness",
+                  "validity",
+                  "consistency",
+                  "referential-integrity",
+                  "timeliness"
+                ],
+                "description": "DAMA 维度（对外术语主索引；同 entity-readiness-rules.schema.json）"
+              }
+            }
+          }
+        }
+      }
+    },
+    "issue-kind-index": {
+      "type": "object",
+      "description": "13 类检查器出口指针。",
+      "required": [
+        "enumSource",
+        "kinds"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enumSource": {
+          "type": "object",
+          "description": "issueKind 枚举的事实源位置",
+          "required": [
+            "openapi",
+            "runtime"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "openapi": {
+              "type": "string",
+              "pattern": "^contracts/"
+            },
+            "runtime": {
+              "type": "string",
+              "pattern": "^server/"
+            }
+          }
+        },
+        "kinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "issueKind",
+              "producer",
+              "consumers"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "issueKind": {
+                "type": "string",
+                "pattern": "^[a-z_]+$"
+              },
+              "producer": {
+                "type": "array",
+                "description": "生产者位置指针（采集链 push 该 issueKind 的文件:行）；空数组=幽灵类型，须挂豁免",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "consumers": {
+                "type": "array",
+                "description": "前端消费面指针；stage-0-5 拦截类无前端消费属正常",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "exemption": {
+                "description": "幽灵类型豁免（expiresAt=补生产者/摘消费二选一死线）",
+                "$ref": "#/$defs/exemption"
+              }
+            }
+          }
+        }
+      }
+    },
+    "derivation-index": {
+      "type": "object",
+      "description": "派生行为指针（各单源文件位置）。前端消费该派生时必须引用单源，禁止另写。",
+      "required": [
+        "derivations"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "derivations": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "derivationId",
+              "what",
+              "source"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "derivationId": {
+                "type": "string",
+                "description": "派生行为短名（kebab-case）"
+              },
+              "what": {
+                "type": "string",
+                "description": "派生什么（一句话）"
+              },
+              "source": {
+                "type": "string",
+                "description": "单源文件位置指针（server/ 或 src/ 下）"
+              },
+              "sourceIssueKinds": {
+                "type": "array",
+                "description": "来源 issueKind 清单（派生的上游信号）；空=待裁",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-z_]+$"
+                }
+              },
+              "consumers": {
+                "type": "array",
+                "description": "消费方位置指针（应引用单源而非另写）",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "rule-issue-derivation-map": {
+      "type": "object",
+      "description": "层间多对多映射（含 PURE_BLOCK 与豁免行）。行结构即方案定义的台账行（除 status 外）。",
+      "required": [
+        "rows"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "ruleId",
+              "type",
+              "severity",
+              "source",
+              "signal",
+              "stage",
+              "enforcement",
+              "exit"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "ruleId": {
+                "type": "string",
+                "pattern": "^[FB][0-9]+[bc]?$"
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "hard"
+                ]
+              },
+              "severity": {
+                "type": "string",
+                "enum": [
+                  "error",
+                  "warn",
+                  "info"
+                ]
+              },
+              "source": {
+                "type": "string",
+                "description": "规则声明指针"
+              },
+              "signal": {
+                "type": "string",
+                "description": "信号实现指针（引擎位置）"
+              },
+              "stage": {
+                "type": "string",
+                "description": "生命周期阶段标注（write-gate/read-diagnostic/pipeline 等）"
+              },
+              "enforcement": {
+                "type": "string",
+                "description": "执法绑定描述：gate id 清单或 none"
+              },
+              "exit": {
+                "type": "string",
+                "description": "出口：issueKind / PURE_BLOCK / DIAGNOSTIC(展示面) / NO_EXIT",
+                "anyOf": [
+                  {
+                    "pattern": "^[a-z_]+$"
+                  },
+                  {
+                    "enum": [
+                      "PURE_BLOCK",
+                      "NO_EXIT"
+                    ]
+                  },
+                  {
+                    "pattern": "^DIAGNOSTIC:"
+                  }
+                ]
+              },
+              "derivation": {
+                "type": "string",
+                "description": "处置派生单源指针（有则填）"
+              },
+              "exemption": {
+                "description": "缺环豁免（四要素；无豁免则缺环=非法缺口）",
+                "$ref": "#/$defs/exemption"
+              },
+              "dimension": {
+                "type": "string",
+                "enum": [
+                  "completeness",
+                  "uniqueness",
+                  "validity",
+                  "consistency",
+                  "referential-integrity",
+                  "timeliness"
+                ],
+                "description": "DAMA 维度（对外术语主索引；同 entity-readiness-rules.schema.json）"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "exemption": {
+      "type": "object",
+      "description": "豁免四要素（对齐 known-gate-failures.json 纪律：有主有期有追踪，过期即 fail）",
+      "required": [
+        "reason",
+        "owner",
+        "expiresAt",
+        "reviewCondition"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "owner": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expiresAt": {
+          "type": "string",
+          "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "reviewCondition": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

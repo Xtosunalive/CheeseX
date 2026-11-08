@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-21",
+  "description": "操作者角色登记表（PR-085 第 3 步 · ADR-010 决策 7 · 裁项 5）：服务端唯一角色事实源——授权绝不来自请求参数。词表：submit（投稿，创建候选）｜review（审核：异常处置/关系裁决/标准化/审批）｜publish（发布：审批 publish 操作）｜admin（管理：schema 写族准入）。defaults.authenticated=所有已认证主体保底角色（首期口径：投稿开放）；operators 登记额外角色。localSingleUser 自带全角色（现状等价），本表另显式登记 local-architect 以便多用户过渡期同 id 收敛。",
+  "defaults": { "authenticated": ["submit"] },
+  "operators": [
+    { "operatorId": "local-architect", "roles": ["submit", "review", "publish", "admin"], "note": "本机单用户（localSingleUser 全角色＝现状）；显式登记备查" }
+  ]
+}

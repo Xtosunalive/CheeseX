@@ -1,0 +1,57 @@
+modules:
+  e2e-module:
+    description: E2E vault module used by entity compliance tests.
+
+layers:
+  - id: external
+    label: 外部系统
+    color: slate
+    layout: right-panel
+  - id: gateway
+    label: 接入网关
+    color: amber
+    layout: central
+  - id: service
+    label: 业务服务
+    color: blue
+    layout: left-panel
+  - id: foundation
+    label: 基础设施
+    color: stone
+    layout: left-panel
+
+lifecycle:
+  status: [制定中, 有效, 已归档]
+  default_status: 制定中
+
+domains:
+  ops: 运维
+
+subdomains:
+  ops: [maintain]
+
+article_types: [排错指南]
+doc_types: [用户手册]
+
+architecture_projection:
+  product: E2eProduct
+  version: 1.0.0
+  projected_relation_types:
+    - DEPENDS_ON
+    - DOCUMENTS
+    - APPLIES_TO
+    - BELONGS_TO
+    - ASSOCIATED_WITH
+    - REFERENCES
+    - HAS_SYMPTOM
+  wikilink_type_labels:
+    依赖: DEPENDS_ON
+
+arch_categories:
+  - 应用组件
+  - 服务
+  - 概念
+  - 子域
+
+concept_types:
+  - symptom

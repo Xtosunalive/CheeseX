@@ -1,0 +1,35 @@
+{
+  "generated_by": "npm run check:defect-shapes -- --write",
+  "generator": "scripts/quality/check-defect-shapes.mjs",
+  "census_params_hash": "6abab90f4944bf37",
+  "checker_source_hash": "0b5f453bc7b0c253",
+  "families": {
+    "P6-F1": {
+      "count": 1,
+      "fingerprints": []
+    },
+    "P6-F2": {
+      "count": 5,
+      "fingerprints": []
+    },
+    "P6-F3": {
+      "count": 1,
+      "lexical_count": 173,
+      "fingerprints": [
+        "afbb0b994916ff41c0a9"
+      ]
+    },
+    "P6-F4": {
+      "count": 1,
+      "fingerprints": [
+        "e433266842f039538732"
+      ]
+    },
+    "P6-F5": {
+      "count": 1,
+      "fingerprints": [
+        "4b64e6c6d9d73aa48256"
+      ]
+    }
+  }
+}

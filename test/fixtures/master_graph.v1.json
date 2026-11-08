@@ -1,0 +1,87 @@
+{
+  "_format_version": "1.0",
+  "_vault_extract_applied_at": "2026-07-09T00:00:00",
+  "ontology": {
+    "node_types": {},
+    "relation_types": {}
+  },
+  "nodes": [
+    {
+      "id": "comp-gateway",
+      "label": "API Gateway",
+      "sublabel": "",
+      "category": "服务",
+      "labels": ["ArchitectureComponent"],
+      "properties": {
+        "file_path": "wiki/entities/comp-gateway.md",
+        "is_active": true
+      }
+    },
+    {
+      "id": "comp-auth",
+      "label": "Auth Service",
+      "sublabel": "",
+      "category": "服务",
+      "labels": ["ArchitectureComponent"],
+      "properties": {
+        "file_path": "wiki/entities/comp-auth.md",
+        "is_active": true
+      }
+    },
+    {
+      "id": "mod-shared",
+      "label": "Shared Lib",
+      "sublabel": "",
+      "category": "模块",
+      "labels": ["Module"],
+      "properties": {}
+    },
+    {
+      "id": "domain-core",
+      "label": "核心域",
+      "category": "域",
+      "labels": ["BusinessDomain"],
+      "properties": { "name": "核心域" }
+    },
+    {
+      "id": "doc-readme",
+      "label": "README",
+      "category": "文档",
+      "labels": ["Document"],
+      "properties": {}
+    }
+  ],
+  "connections": [
+    {
+      "from": "comp-gateway",
+      "to": "comp-auth",
+      "relationType": "DEPENDS_ON",
+      "label": "认证依赖",
+      "sourceFile": "wiki/entities/comp-gateway.md",
+      "lineNumber": 12,
+      "evidenceHash": "abc123",
+      "properties": { "reviewStatus": "approved" },
+      "edgeId": "comp-gateway|comp-auth|DEPENDS_ON|12|abc123"
+    },
+    {
+      "from": "comp-auth",
+      "to": "mod-shared",
+      "relationType": "DEPENDS_ON",
+      "label": "",
+      "sourceFile": "",
+      "properties": {},
+      "edgeId": "comp-auth|mod-shared|||"
+    },
+    {
+      "from": "mod-shared",
+      "to": "domain-core",
+      "relationType": "BELONGS_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {},
+      "edgeId": "mod-shared|domain-core|||"
+    }
+  ],
+  "pendingReview": [],
+  "unresolvedWikilinks": []
+}

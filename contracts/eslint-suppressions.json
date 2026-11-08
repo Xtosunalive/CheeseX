@@ -1,0 +1,27 @@
+{
+  "src/features/dashboard/dashboard-api.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/features/gap-engine/gap-api.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/features/property-gov/property-api.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/edge-api.ts": {
+    "no-restricted-syntax": {
+      "count": 1
+    }
+  },
+  "src/lib/pipeline-api.ts": {
+    "no-restricted-syntax": {
+      "count": 4
+    }
+  }
+}

@@ -1,0 +1,11 @@
+# subjects.yaml — 主体注册表（ADR-009 D2）
+# 多主体词表挂载关系的唯一事实源。主体层文件住 subjects/<id>/enums.yaml（可段子集契约）。
+# 合层读：readEnumsForSubject(vault, subject)——默认视角（无 subject）零破坏。
+schema_version: 1
+last_updated: 2026-10-18
+subjects:
+  - id: anyshare
+    name: AnyShare
+    status: paused
+    archived_from: 知识库/TheSchema/history/enums-legacy-archive-manifest.json
+    mounted_at: null

@@ -1,0 +1,243 @@
+{
+  "$comment": "实体规则单源（2026-09-12 第一性原理重写，ADR068。旧版备份：归档/规则系统重写-20260911/）。每条规则=一段人话：检查什么(check)、多严重(severity)、错了怎么说(message)、空值怎么说(emptyMessage+onEmpty)、在哪几道门执行(gates)。severity 三级：error=拦写；warn=提醒不拦；info=仅展示。onEmpty 缺省=空值放行不提醒。message 中 {x} 由引擎插值（actual/expected/since/until/subdomain/count/targets/labels/index）。fields 段是字段展示名单源，前端派生：hint=字段填写要求（缺失实体模板 CREATE 分支随 finding 下发，消除路由内手写 hints 字典这份第二源；取值一律优先引用本文件 rules 段的 emptyMessage/message，不得另起文案）。⚠ 刻意不再登记 label：字段中文名的唯一来源是 shared/field-labels.mjs 的实体域字典（contracts 目录下的配置前端读不到，当不了前后端共用落点），缺失实体模板（entity-compliance-routes.cjs）与声明式引擎（entity-compliance-declarative-engine.cjs 的 finding.label）都从那里取；contracts/entity-readiness-rules.schema.json 里 fields 子对象 additionalProperties:false 且已移除 label 声明——谁再把中文名写回本段会立刻报错。这是反回潮的立法，不是漏写。article 段是文章域元信息单源（裁决 P0-1 方案乙）：required 清单 + 字段→枚举键映射，供 article-compliance-service（诊断）与 entity-repair-service 写路径（校验）共同派生，消除「必填 8 项 / 枚举映射 5 对」两份硬编码。article.fields 是文章域补齐表单**表单形状**的单源（control=控件类型、required=必填、optionsKey=选项枚举键，键序即渲染顺序），供 article-workflow-service（补齐表单 articleFields）派生；字段中文名不在本文件——唯一来源是 shared/field-labels.mjs 的文章域字典（article-compliance-service 的 A01-A10 finding.label 与 article-workflow-service 的 label 都从那里取，前后端共用一份），因为 contracts 目录下的配置前端读不到（当不了共用落点）。它与顶层 fields 段（实体域）是两个域、各自独立的单源——同名不同义字段各自保留本域叫法，禁止跨域统一。 【warn 设计声明（2026-10-08 附带裁决）】warn=提醒类：不挂写入门禁、出问题列表（field 非空的 warn finding 经 isWorkbenchIssueFinding 放行进工作台——实况有价值：提醒可见），F04/F05/F11/F17 属此形态；B01/B03 例外（advisory 无可执行动作，显式排除出工作台仅合规页展示）。｜2026-10-27 降档（Master「做就做彻底」）：F 族 19 条字段校验迁出本契约→代码内声明（server/services/entity-compliance/field-rule-declarations.cjs，口径逐字节不变）；本契约只留真规则（B 族正文关系检查）——台账 23→4，severity 翻换仪式随 F 族退役（史上 0 次使用）。",
+  "article": {
+    "required": [
+      "article_id",
+      "article_type",
+      "category-path",
+      "doc-type",
+      "module",
+      "product",
+      "title",
+      "version"
+    ],
+    "enumFields": {
+      "product": "products",
+      "module": "moduleNames",
+      "article_type": "articleTypes",
+      "doc-type": "docTypes",
+      "arch_layer": "archLayers",
+      "arch_category": "archCategories"
+    },
+    "fields": {
+      "$comment": "文章域补齐表单**表单形状**唯一事实源：control=控件类型、required=是否必填、optionsKey=选项枚举键；键序即补齐表单渲染顺序（与 article-workflow 历史硬编码一致，勿重排）。⚠ 中文名不在本文件——唯一来源是 shared/field-labels.mjs 的文章域字典（contracts 目录下的配置前端读不到，当不了前后端共用落点）；本段只描述表单形状（控件/必填/选项键）与渲染顺序。消费方：article-workflow-service（补齐表单 articleFields：中文名取 shared、形状取本段）与 article-compliance-service（A01-A10 诊断 finding.label：中文名取 shared）。仅声明了 control 的字段才是 Web 可补齐字段——article_id（promote 自动生成且已有值禁改名）与 body（不开 Web 编辑，2026-09-05 架构师拍板）不是表单字段，故不声明 control，只占位登记。",
+      "title": {
+        "control": "text",
+        "required": true
+      },
+      "article_id": {},
+      "product": {
+        "control": "select",
+        "required": true,
+        "optionsKey": "products"
+      },
+      "version": {
+        "control": "select",
+        "required": true,
+        "optionsKey": "versions"
+      },
+      "module": {
+        "control": "select",
+        "required": true,
+        "optionsKey": "modules"
+      },
+      "article_type": {
+        "control": "select",
+        "required": true,
+        "optionsKey": "articleTypes"
+      },
+      "doc-type": {
+        "control": "select",
+        "required": true,
+        "optionsKey": "docTypes"
+      },
+      "category-path": {
+        "control": "aggregate",
+        "required": true,
+        "optionsKey": "categoryPaths"
+      },
+      "arch_layer": {
+        "control": "select",
+        "required": false,
+        "optionsKey": "archLayers"
+      },
+      "arch_category": {
+        "control": "select",
+        "required": false,
+        "optionsKey": "archCategories"
+      },
+      "tags": {
+        "control": "array",
+        "required": true
+      },
+      "body": {}
+    },
+    "$comment": "Master 2026-10-29 裁定：arch_layer/arch_category 文章侧非必填（required=false，继承式取值方向另案）——补齐入口保留为可选建议项"
+  },
+  "fields": {
+    "title": {
+      "hint": "实体名称（title）是必填字段"
+    },
+    "architecture-node-id": {
+      "hint": "组件身份由系统在创建时铸造，全库唯一，创建后不可修改",
+      "system": true,
+      "control": "readonly-system",
+      "managedBy": "server"
+    },
+    "arch_component": {
+      "hint": "激活为架构组件必须显式设为 true"
+    },
+    "arch_layer": {
+      "hint": "建议填写架构分层（arch_layer）"
+    },
+    "arch_category": {
+      "hint": "建议填写实体类别（arch_category）"
+    },
+    "arch_subdomain": {
+      "hint": "建议填写子域（arch_subdomain）"
+    },
+    "arch_since": {
+      "hint": "语义版本，例如 7.0.0.0"
+    },
+    "arch_until": {
+      "hint": "语义版本，例如 8.0.0.0；长期有效可留空"
+    },
+    "arch_version_overrides": {
+      "hint": "JSON 数组，例如 [{\"version\":\"7.0.0.0\",\"arch_layer\":\"service\"}]"
+    },
+    "module": {
+      "hint": "建议填写产品模块（module）"
+    },
+    "status": {
+      "hint": "生命周期状态——系统托管只读（审批状态机驱动迁移）",
+      "system": true,
+      "control": "readonly-system",
+      "managedBy": "server"
+    },
+    "date": {
+      "hint": "创建日期——系统托管只读（首次创建生成，永续保留）",
+      "system": true,
+      "control": "readonly-system",
+      "managedBy": "server"
+    },
+    "updated": {
+      "hint": "最后更新时间——系统托管只读（每次落盘服务端 UTC 时间戳）",
+      "system": true,
+      "control": "readonly-system",
+      "managedBy": "server"
+    },
+    "tags": {
+      "hint": "从受管标签中选择；多个标签使用列表保存"
+    }
+  },
+  "rules": [
+    {
+      "id": "B01",
+      "field": "类型化架构关系",
+      "group": "body",
+      "check": "typed-wikilink-count",
+      "severity": "warn",
+      "message": "类型化架构关系缺少关系类型",
+      "gates": [],
+      "dimension": "validity"
+    },
+    {
+      "id": "B02",
+      "field": "wikilink 目标",
+      "group": "body",
+      "check": "resolve-target",
+      "severity": "warn",
+      "message": "{count} 个 wikilink 目标无法解析：{targets}",
+      "gates": [],
+      "dimension": "referential-integrity"
+    },
+    {
+      "id": "B03",
+      "field": "文档引用",
+      "group": "body",
+      "check": "ref-exists",
+      "severity": "warn",
+      "message": "未声明文档引用关系（typed 关系计数为 0）",
+      "gates": [],
+      "dimension": "completeness"
+    },
+    {
+      "id": "B04",
+      "field": "wikilink 类型合法性",
+      "group": "body",
+      "check": "known-labels",
+      "severity": "error",
+      "message": "{count} 个未知关系类型：{labels}（须为 ontology.yaml 已注册类型）",
+      "gates": [
+        "entity-repair.apply-create",
+        "entity-repair.preview-edit",
+        "pipeline.stage-0-5"
+      ],
+      "dimension": "referential-integrity"
+    }
+  ],
+  "statusMachine": {
+    "$comment": "status 字段审批状态机（2026-10-08 字段托管功能）：四受控值+迁移合法性单源。迁移由既有问题处理状态机事件驱动（confirm 链路 verified→在线 / reject→退役 / reopen 修复重提→灰度），不新增审批界面与端点。服务端写路径校验非法迁移拒绝落盘。",
+    "values": [
+      "灰度",
+      "在线",
+      "退役",
+      "已驳回"
+    ],
+    "default": "灰度",
+    "transitions": {
+      "创建": [
+        "灰度"
+      ],
+      "灰度": [
+        "在线",
+        "退役"
+      ],
+      "在线": [
+        "退役"
+      ],
+      "退役": [
+        "灰度"
+      ],
+      "已驳回": [
+        "灰度"
+      ]
+    },
+    "transitionGates": {
+      "灰度→在线": "审批通过（账本 status=verified）且 entity/article-compliance error=0",
+      "灰度→退役": "审批驳回（reject 决策落账）",
+      "在线→退役": "人工下线路径（保留）",
+      "退役→灰度": "修复重新提交（reopen 流）"
+    }
+  },
+  "entityGrowthTemplate": {
+    "description": "article-grown 实体出生正文骨架（声明式——引擎读表生成，改结构不改代码；五件套借镜 dictionary-of-ai-coding，2026-10-09 Master 批）",
+    "sections": [
+      {
+        "id": "mechanism",
+        "title": "机制",
+        "placeholder": "{name} 是从文章提及生长出的实体。（一句话定义待补：它是什么、为什么存在。）"
+      },
+      {
+        "id": "surfaces",
+        "title": "Surfaces as（表现症状）",
+        "placeholder": "（留空待填：这个概念在文章中以什么形态现身——读者认出自己场景的地方。）"
+      },
+      {
+        "id": "diagnostic",
+        "title": "Diagnostic test（可判别测试）",
+        "placeholder": "（留空待填：怎样判定一处的提及属于/不属于这个概念。）"
+      },
+      {
+        "id": "avoid",
+        "title": "Avoid（防误用边界）",
+        "placeholder": "（留空待填：不要把这个词用于哪些相近情形——别名管名字不漂，本节管用法不漂。）"
+      },
+      {
+        "id": "usage",
+        "title": "Usage（使用实录）",
+        "sources": true
+      }
+    ]
+  }
+}

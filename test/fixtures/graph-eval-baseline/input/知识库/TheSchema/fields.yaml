@@ -1,0 +1,87 @@
+schema_version: 1
+fields:
+  - name: title
+    label: 显示名
+    type: string
+    required: 是
+    scope: [entity, article]
+    layer: 内容属性
+    description: E2E 夹具字典（最小集——覆盖三消费锚点字段）。
+  - name: module
+    label: 模块
+    type: list
+    required: 是
+    scope: [entity, article]
+    layer: 业务属性
+    description: 模块匹配名列表。
+  - name: product
+    label: 产品
+    type: enum
+    required: 是
+    scope: [article]
+    layer: 业务属性
+    description: 文章所属产品。
+  - name: article_type
+    label: 文章类型
+    type: enum
+    required: 是
+    scope: [article]
+    layer: 内容属性
+    description: 标准文章类型。
+  - name: doc-type
+    label: 文档类型
+    type: enum
+    required: 是
+    scope: [article]
+    layer: 内容属性
+    aliases: [doc_type]
+    description: 文档形态类型。
+  - name: version
+    label: 产品版本
+    type: enum
+    required: 是
+    scope: [article]
+    layer: 业务属性
+    description: 文章针对的产品版本。
+  - name: category-path
+    label: 分类路径
+    type: string
+    required: 是
+    scope: [entity, article]
+    layer: 内容属性
+    description: 三段式分类路径。
+  - name: arch_layer
+    label: 架构层级
+    type: enum
+    required: 是
+    scope: [entity, article]
+    layer: 业务属性
+    description: 架构层。
+  - name: arch_category
+    label: 业务分类
+    type: enum
+    required: 是
+    scope: [entity, article]
+    layer: 业务属性
+    description: 业务分类。
+  - name: arch_subdomain
+    label: 子域
+    type: enum
+    required: 建议
+    scope: [entity, article]
+    layer: 业务属性
+    description: 技术子域。
+  - name: tags
+    label: 标签
+    type: list
+    required: 否
+    scope: [entity, article]
+    layer: 内容属性
+    description: 检索标签。
+  - name: status
+    label: 状态
+    type: enum
+    required: 是
+    scope: [entity, article]
+    layer: 管理属性
+    description: 页面/文档生命周期状态。

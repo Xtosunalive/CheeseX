@@ -1,0 +1,472 @@
+schema_version: 1
+decisions:
+  - decisionId: 2422228c-53df-4d80-93c0-9eb005133d58
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds: []
+    candidateSourcePath: 知识库/raw/precleaned/a.md
+    candidateSourceHash: sha256:8ee7a7041c2824c891b8418d440ef7037de16fc2ac9226f0ac28d9f10f29a402
+    decidedAt: 2026-07-18T00:00:00.000Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/a.md
+        contentHash: sha256:8ee7a7041c2824c891b8418d440ef7037de16fc2ac9226f0ac28d9f10f29a402
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:bcafc61e53fa84a16abf8592d9b01f85e95e8cf9fb45cce23a8e74e8bfd3b397
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 2422228c-53df-4d80-93c0-9eb005133d58
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-07-18T00:00:00.000Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-07-18T00:00:00.000Z
+        changedFields: []
+  - decisionId: 80946d4d-1add-40f8-b21c-f20ebae1a130
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds: []
+    candidateSourcePath: 知识库/raw/precleaned/a.md
+    candidateSourceHash: sha256:3fafc3db8ebad05c80c9c0db72fd01da2c598c1c31529f367c4cdfd6f89a9cc5
+    decidedAt: 2026-07-18T00:00:00.000Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/a.md
+        contentHash: sha256:3fafc3db8ebad05c80c9c0db72fd01da2c598c1c31529f367c4cdfd6f89a9cc5
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:afc941026f31991c9ba48365bdc41623fc13fdcc4f35e36b2176b91b8e39912c
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 80946d4d-1add-40f8-b21c-f20ebae1a130
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-07-18T00:00:00.000Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-07-18T00:00:00.000Z
+        changedFields: []
+  - decisionId: 07a9930e-7d99-4610-a060-c6e00a06bd8f
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds: []
+    candidateSourcePath: 知识库/raw/precleaned/a.md
+    candidateSourceHash: sha256:20891bce189d20feac72162fc8cbd7b749b2e9a59d632a4fd6e6ef93530ed16c
+    decidedAt: 2026-07-18T00:00:00.000Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/a.md
+        contentHash: sha256:20891bce189d20feac72162fc8cbd7b749b2e9a59d632a4fd6e6ef93530ed16c
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:1510659fb720547399dba2d69d291ddc1fe741f3d7acfed1b5053c6353cfd21a
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 07a9930e-7d99-4610-a060-c6e00a06bd8f
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-07-18T00:00:00.000Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-07-18T00:00:00.000Z
+        changedFields: []
+  - decisionId: 4d02d9cc-4367-4925-bd2f-65cd23042ef7
+    articleId: ART-1
+    action: add
+    componentIds:
+      - gateway
+    versionIds:
+      - version-anyshare-7-0
+    candidateSourcePath: 知识库/raw/precleaned/guide.md
+    candidateSourceHash: sha256:bd2ed38dad3cb152aa0056ca937b126e30998c50175b09dd99916723622539d5
+    decidedAt: 2026-07-27T00:00:00.000Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/guide.md
+        contentHash: sha256:bd2ed38dad3cb152aa0056ca937b126e30998c50175b09dd99916723622539d5
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:b6dda28bf7f82d7beade2d99a655e85fac9d4f609ec866097010eb98ee89845f
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 4d02d9cc-4367-4925-bd2f-65cd23042ef7
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-07-27T00:00:00.000Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-07-27T00:00:00.000Z
+        changedFields: []
+  - decisionId: 518ad5af-f584-4fd5-8360-b6c795430df0
+    articleId: ART-1
+    action: add
+    componentIds:
+      - gateway
+    versionIds:
+      - version-anyshare-7-0
+    candidateSourcePath: 知识库/raw/precleaned/guide.md
+    candidateSourceHash: sha256:70a2903c715325662ce394cac91bf7a6480b3025c359d42abdadda380b1a873e
+    decidedAt: 2026-07-27T00:00:00.000Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/guide.md
+        contentHash: sha256:70a2903c715325662ce394cac91bf7a6480b3025c359d42abdadda380b1a873e
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:2bff3609771f328f1ab4d96aa18bdc17c6e90b8e1da955fcec5f40de36a8c4fb
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 518ad5af-f584-4fd5-8360-b6c795430df0
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-07-27T00:00:00.000Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-07-27T00:00:00.000Z
+        changedFields: []
+  - decisionId: 715f68b7-c421-42be-aaa3-fe007517e84c
+    articleId: ART-1
+    action: add
+    componentIds:
+      - gateway
+    versionIds:
+      - version-anyshare-7-0
+    candidateSourcePath: 知识库/raw/precleaned/guide.md
+    candidateSourceHash: sha256:17a2459ade54983de621bf81a1fa7741bb05308df60c20cccc1c86ddea717c0d
+    decidedAt: 2026-07-27T00:00:00.000Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/guide.md
+        contentHash: sha256:17a2459ade54983de621bf81a1fa7741bb05308df60c20cccc1c86ddea717c0d
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:c55bb88fc56b875a6a066fde2aa215aa434f37c870dcf314fbc729ff4eac5174
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 715f68b7-c421-42be-aaa3-fe007517e84c
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-07-27T00:00:00.000Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-07-27T00:00:00.000Z
+        changedFields: []
+  - decisionId: dcd125e0-726e-461f-952f-9eb11a5a7435
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds: []
+    candidateSourcePath: 知识库/raw/precleaned/guide.md
+    candidateSourceHash: sha256:c76fbfee8833b97e56c3a41d43ebe3083107177d57aee7873944a59fccb02fd0
+    decidedAt: 2026-10-19T05:31:07.043Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/guide.md
+        contentHash: sha256:c76fbfee8833b97e56c3a41d43ebe3083107177d57aee7873944a59fccb02fd0
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:f77dbd928bff2381226cf4dcc0ab92e2a1b1b5d24f04ccc13d65465b9db6a0dc
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: dcd125e0-726e-461f-952f-9eb11a5a7435
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-10-19T05:31:07.043Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-10-19T05:31:07.043Z
+        changedFields: []
+  - decisionId: 15f91257-58ec-42d5-948b-d101b0a726cd
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds:
+      - version-anyshare-7-0
+    candidateSourcePath: 知识库/raw/precleaned/a.md
+    candidateSourceHash: sha256:f47d0adb07a60ed9283b90589707928d0d116492a9e7b754dc56fb1f097c845e
+    decidedAt: 2026-10-19T05:31:07.055Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/a.md
+        contentHash: sha256:f47d0adb07a60ed9283b90589707928d0d116492a9e7b754dc56fb1f097c845e
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:8c761c9cf98986aafdb152f66d23e089c739bb4e7013b24b7ca84132acc62316
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 15f91257-58ec-42d5-948b-d101b0a726cd
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-10-19T05:31:07.055Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-10-19T05:31:07.055Z
+        changedFields: []
+  - decisionId: 9cacfee6-d498-436b-8fd6-5e9b9c852b63
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds: []
+    candidateSourcePath: 知识库/raw/precleaned/guide.md
+    candidateSourceHash: sha256:c50b87e57230b614f744f2093bddfb2a5104aa45fb68618f1f3d8164ff823bd0
+    decidedAt: 2026-10-19T05:31:25.085Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/guide.md
+        contentHash: sha256:c50b87e57230b614f744f2093bddfb2a5104aa45fb68618f1f3d8164ff823bd0
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:c64bf91f048b1d4c5f5bc074c8dfa434eebecc6d38b11f42a3b4dbb3edf82596
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 9cacfee6-d498-436b-8fd6-5e9b9c852b63
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-10-19T05:31:25.085Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-10-19T05:31:25.085Z
+        changedFields: []
+  - decisionId: 00752550-2d59-460c-8f2d-c0a0ceee4b85
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds:
+      - version-anyshare-7-0
+    candidateSourcePath: 知识库/raw/precleaned/a.md
+    candidateSourceHash: sha256:7bd5fb2b3f3eb2494dba5251947265d2f6e9f63133a30d5f74d3467f33678547
+    decidedAt: 2026-10-19T05:31:25.096Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/a.md
+        contentHash: sha256:7bd5fb2b3f3eb2494dba5251947265d2f6e9f63133a30d5f74d3467f33678547
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:ea29a3307ca2449ab72590594e2f5227dd9e494270ae27114aa20cf24c228100
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 00752550-2d59-460c-8f2d-c0a0ceee4b85
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-10-19T05:31:25.096Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-10-19T05:31:25.096Z
+        changedFields: []
+  - decisionId: f9dfff94-a67c-4ae9-acde-cf3ed8f81ec7
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds: []
+    candidateSourcePath: 知识库/raw/precleaned/guide.md
+    candidateSourceHash: sha256:e0abb32170cadde2c8883882d7fe54950f395e23b1fa37dbf2b4ca2db83e4baf
+    decidedAt: 2026-10-19T05:31:39.373Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/guide.md
+        contentHash: sha256:e0abb32170cadde2c8883882d7fe54950f395e23b1fa37dbf2b4ca2db83e4baf
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:41e0cd18f0328b9570f3807255000b320f3b0e2ac7ab6a282ee2fb0fa3715ab2
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: f9dfff94-a67c-4ae9-acde-cf3ed8f81ec7
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-10-19T05:31:39.373Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-10-19T05:31:39.373Z
+        changedFields: []
+  - decisionId: 8fc635de-b9d1-421a-adf9-c496dfbae21c
+    articleId: ART-1
+    action: replace
+    componentIds:
+      - gateway
+    versionIds:
+      - version-anyshare-7-0
+    candidateSourcePath: 知识库/raw/precleaned/a.md
+    candidateSourceHash: sha256:a5841d98c2bd797e162c6673a62db7c2dda120f30cc42a6508148aec91f299fa
+    decidedAt: 2026-10-19T05:31:39.389Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/a.md
+        contentHash: sha256:a5841d98c2bd797e162c6673a62db7c2dda120f30cc42a6508148aec91f299fa
+        lineNumber: null
+        coordinate: article:ART-1
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:2c47b8b037088498bfbbbd11c31f905bf907b08ffb3b30ee625665ac7b73a116
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: "7"
+      decision:
+        decisionId: 8fc635de-b9d1-421a-adf9-c496dfbae21c
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-10-19T05:31:39.389Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-10-19T05:31:39.389Z
+        changedFields: []
+  - decisionId: 25b798bc-8cca-4b8b-9563-4263472c12c9
+    articleId: 沟通壁垒-数据到信息到知识
+    action: replace
+    componentIds:
+      - arch
+    versionIds:
+      - version-anyshare-7-0-6-7
+    candidateSourcePath: 知识库/raw/precleaned/沟通壁垒-数据到信息到知识.md
+    candidateSourceHash: sha256:cd52ae9c3bcdc42241f1d41fea87758be098a3d9484700b394dbe41f73321441
+    decidedAt: 2026-09-11T20:38:45.686Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/沟通壁垒-数据到信息到知识.md
+        contentHash: sha256:cd52ae9c3bcdc42241f1d41fea87758be098a3d9484700b394dbe41f73321441
+        lineNumber: null
+        coordinate: article:沟通壁垒-数据到信息到知识
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:7f3f62462ef131224961c6fe9b39ed3f63110a6b69971c3fa1f7bde9f34c854b
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: 7.0.6.7
+      decision:
+        decisionId: 25b798bc-8cca-4b8b-9563-4263472c12c9
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-09-11T20:38:45.686Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-09-11T20:38:45.686Z
+        changedFields: []
+  - decisionId: b4be8fc5-2bd0-4204-828d-991b149945c5
+    articleId: 沟通壁垒-数据到信息到知识
+    action: replace
+    componentIds:
+      - tt-t
+    versionIds:
+      - version-anyshare-7-0-6-7
+    candidateSourcePath: 知识库/raw/precleaned/沟通壁垒-数据到信息到知识.md
+    candidateSourceHash: sha256:0cc861dae576aac1f14f5ebc7a41da789ef5f4c2df8ea2266fd52b7aa4eaf5ab
+    decidedAt: 2026-10-08T21:21:58.629Z
+    operatorId: local-architect
+    lineage:
+      source:
+        kind: vault-document
+        path: 知识库/raw/precleaned/沟通壁垒-数据到信息到知识.md
+        contentHash: sha256:0cc861dae576aac1f14f5ebc7a41da789ef5f4c2df8ea2266fd52b7aa4eaf5ab
+        lineNumber: null
+        coordinate: article:沟通壁垒-数据到信息到知识
+      rule:
+        ruleId: article-association.manual-override
+        ruleRevision: sha256:18ad174c868570ed34426e3daab010acd3eb9eaa7af5c6ff1305eb3657d60b86
+        reasonCode: MANUAL_ASSOCIATION_OVERRIDE
+      scope:
+        product: AnyShare
+        version: 7.0.6.7
+      decision:
+        decisionId: b4be8fc5-2bd0-4204-828d-991b149945c5
+        operatorId: local-architect
+        kind: manual
+        decidedAt: 2026-10-08T21:21:58.629Z
+      freshness:
+        status: fresh
+        checkedAt: 2026-10-08T21:21:58.629Z
+        changedFields: []

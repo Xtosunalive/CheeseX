@@ -1,0 +1,15 @@
+# Redocly 配置（WP-159，重立案自 2db05d4c 原合同）：
+# 仅硬拦引用解析错误，其余规则警告——存量契约的规则面问题按合同 non_goals 不修只降级。
+# 降级清单非拍脑袋：2026-11-09 对现契约裸 lint 实测的六条错误级规则
+# （security-defined 111 / no-illogical-composition-keywords 73 / struct 12 /
+#   no-unused-components 3 / no-ambiguous-paths 1 / info-license 1）。
+# 引用解析（$ref 悬空）不在此列，始终硬错——api-docs:lint 以此守住契约结构完整。
+extends:
+  - recommended
+rules:
+  security-defined: warn
+  no-illogical-composition-keywords: warn
+  struct: warn
+  no-unused-components: warn
+  no-ambiguous-paths: warn
+  info-license: warn

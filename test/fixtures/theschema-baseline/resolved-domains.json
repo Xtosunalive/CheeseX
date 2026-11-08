@@ -1,0 +1,417 @@
+{
+  "$comment": "派生物标记：本文件由 scripts/quality/project-resolved-domains.mjs 从 fields.yaml 结构化配方（SPEC-020）生成——禁止手改。配方增删改请改 fields.yaml 后重跑 npm run project:resolved-domains（写路径已联动重生成）。漂移由第 32 号门禁 derivation-sync 在提交/CI 时拦截。",
+  "schema_version": 1,
+  "byField": [
+    {
+      "name": "title",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "tags",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "否",
+      "values": [],
+      "aliasMap": {},
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "category-path",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": [
+        {
+          "source": "domains",
+          "values": [
+            "ref",
+            "ops",
+            "concept",
+            "product",
+            "meta",
+            "arch",
+            "tech"
+          ]
+        },
+        {
+          "source": "subdomains",
+          "scoped": {
+            "ref": [
+              "overview"
+            ],
+            "ops": [
+              "maintain"
+            ],
+            "concept": [
+              "method"
+            ],
+            "product": [
+              "general"
+            ],
+            "meta": [
+              "doc"
+            ],
+            "arch": [
+              "architecture"
+            ],
+            "tech": [
+              "api"
+            ]
+          }
+        },
+        {
+          "op": "free_slug"
+        }
+      ]
+    },
+    {
+      "name": "impact_level",
+      "scope": [
+        "entity"
+      ],
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "is_core",
+      "scope": [
+        "entity"
+      ],
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "article_type",
+      "scope": [
+        "article"
+      ],
+      "required": "是",
+      "values": [
+        "排错指南",
+        "常见问题",
+        "标准问答",
+        "场景规范",
+        "巡检方案",
+        "方案设计",
+        "升级经验",
+        "最佳实践",
+        "产品简介"
+      ],
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "doc-type",
+      "scope": [
+        "article"
+      ],
+      "required": "是",
+      "values": [
+        "用户手册",
+        "部署指南",
+        "配置手册",
+        "运维手册",
+        "技术文档",
+        "测试报告",
+        "导航索引",
+        "巡检手册"
+      ],
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "validation_status",
+      "scope": [
+        "article"
+      ],
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "validation_override",
+      "scope": [
+        "article"
+      ],
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "architecture-node-id",
+      "scope": [
+        "entity"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_layer",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "建议",
+      "values": [
+        "gateway",
+        "foundation",
+        "data-lake",
+        "cloud-native",
+        "service",
+        "open",
+        "application",
+        "external",
+        "crosscutting"
+      ],
+      "aliasMap": {},
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_category",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "建议",
+      "values": [],
+      "aliasMap": {},
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_subdomain",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "建议",
+      "values": [
+        "overview",
+        "maintain",
+        "method",
+        "doc",
+        "architecture",
+        "api",
+        "general"
+      ],
+      "aliasMap": {},
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_since",
+      "scope": [
+        "entity"
+      ],
+      "required": "建议",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_until",
+      "scope": [
+        "entity"
+      ],
+      "required": "建议",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_version_overrides",
+      "scope": [
+        "entity"
+      ],
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "module",
+      "scope": [
+        "entity",
+        "article"
+      ],
+      "required": "是",
+      "values": [],
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": true,
+      "composite": null
+    },
+    {
+      "name": "arch_component",
+      "scope": [
+        "entity"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_status",
+      "scope": [
+        "entity"
+      ],
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "product",
+      "scope": [
+        "article"
+      ],
+      "required": "是",
+      "values": [
+        "通用"
+      ],
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "version",
+      "scope": [
+        "article"
+      ],
+      "required": "是",
+      "values": [],
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "status",
+      "scope": [
+        "entity"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "status",
+      "scope": [
+        "article"
+      ],
+      "required": "否",
+      "values": [
+        "灰度",
+        "在线",
+        "退役",
+        "已驳回"
+      ],
+      "aliasMap": null,
+      "default": "灰度",
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "date",
+      "scope": [
+        "entity"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "updated",
+      "scope": [
+        "entity"
+      ],
+      "required": "建议",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "review-cycle",
+      "scope": [
+        "entity"
+      ],
+      "required": "建议",
+      "values": [
+        "30d",
+        "90d",
+        "180d",
+        "365d",
+        "never"
+      ],
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    }
+  ]
+}

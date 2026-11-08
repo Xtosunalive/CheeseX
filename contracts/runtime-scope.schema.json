@@ -1,0 +1,539 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "contracts/runtime-scope.schema.json",
+  "title": "runtime-scope 作用域契约",
+  "description": "复用域 runtime-scope 权威源的形状。只登记不实现：variables（作用域变量全集）／resolvers（两侧登记解析器）／launch_chains（全部起链与其钉入子集）／violations（现存违约清单，供迁移波次与门禁反向对账消费）。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "$schema",
+    "registry_version",
+    "description",
+    "rules",
+    "variables",
+    "resolvers",
+    "launch_chains",
+    "violations"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "registry_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "rules": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "single_resolver",
+        "no_implicit_fallback_on_write",
+        "launch_pins_full_set",
+        "service_scope_proof"
+      ],
+      "properties": {
+        "single_resolver": {
+          "type": "string",
+          "minLength": 1
+        },
+        "no_implicit_fallback_on_write": {
+          "type": "string",
+          "minLength": 1
+        },
+        "launch_pins_full_set": {
+          "type": "string",
+          "minLength": 1
+        },
+        "service_scope_proof": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "variables": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "side",
+          "purpose",
+          "write_sensitive",
+          "fallback",
+          "resolver"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]+$"
+          },
+          "side": {
+            "enum": [
+              "node",
+              "python",
+              "both"
+            ]
+          },
+          "purpose": {
+            "type": "string",
+            "minLength": 1
+          },
+          "write_sensitive": {
+            "type": "boolean"
+          },
+          "fallback": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "resolver": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "governed_by": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "single_resolver",
+                "no_implicit_fallback_on_write",
+                "launch_pins_full_set",
+                "service_scope_proof"
+              ]
+            },
+            "description": "本变量归哪条规则管（回指键；面⑨据『写敏感且未 fail_closed ⇒ 必须有对应署名例外』判定）"
+          }
+        }
+      }
+    },
+    "resolvers": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "side",
+          "file",
+          "lines",
+          "variables"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$"
+          },
+          "side": {
+            "enum": [
+              "node",
+              "python"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "lines": {
+            "type": "string",
+            "pattern": "^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$"
+          },
+          "variables": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "note": {
+            "type": "string"
+          },
+          "probe": {
+            "type": "object",
+            "required": [
+              "file",
+              "contains"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "缺席即拒实现所在文件（仓内相对路径，门禁⑨面验存在性）"
+              },
+              "contains": {
+                "type": "string",
+                "minLength": 6,
+                "description": "该实现报错原文片段——门禁⑨面逐字核对确实出现在所指文件（可核事实，非自填处置布尔）"
+              }
+            }
+          }
+        }
+      }
+    },
+    "launch_chains": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "file",
+          "lines",
+          "builder",
+          "pins",
+          "missing"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+$"
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "lines": {
+            "type": "string",
+            "pattern": "^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$"
+          },
+          "builder": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pins": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "missing": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "violations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "id",
+          "kind",
+          "file",
+          "lines",
+          "variable",
+          "detail",
+          "register"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^V[0-9]{2}$"
+          },
+          "kind": {
+            "enum": [
+              "hardcoded_repo_path",
+              "default_repo_fallback",
+              "empty_string_fallback",
+              "implicit_fallback_on_write",
+              "default_endpoint_no_scope_proof",
+              "launch_pins_subset",
+              "registered_writer_outside_gateway"
+            ]
+          },
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "lines": {
+            "type": "string",
+            "pattern": "^[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*$"
+          },
+          "variable": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "detail": {
+            "type": "string",
+            "minLength": 1
+          },
+          "register": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string",
+              "pattern": "^PR-[0-9]{3}$"
+            }
+          },
+          "resolved_in": {
+            "type": "string"
+          },
+          "ban": {
+            "type": "string",
+            "minLength": 3,
+            "description": "面① 回退复查的禁模式原文（WP-085：探针从契约派生，代码不再手抄）——已结清的违约登记本字段即进回退复查面"
+          },
+          "probe_reason": {
+            "type": "string",
+            "minLength": 4,
+            "description": "该禁模式为何禁（报错原文引用）"
+          }
+        }
+      }
+    },
+    "write_primitive_allow": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "file",
+          "side",
+          "reason"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "side": {
+            "enum": [
+              "node",
+              "python"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "spawn_sites_allow": {
+      "type": "array",
+      "description": "WP-069 §3.2 ⑥面：child_process 拉起位点豁免单（起链文件之外）——每条必须带 reason（meta-guard）；空转即红（棘轮只减不增）",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "file",
+          "reason"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "env_reads_allow": {
+      "type": "array",
+      "description": "WP-069 §3.2 ⑦面：作用域变量 process.env 点名读写豁免单（登记 resolver 之外）——vars 须 ∈ variables，每条必须带 reason；空转即红",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "file",
+          "vars",
+          "reason"
+        ],
+        "properties": {
+          "file": {
+            "type": "string",
+            "minLength": 1
+          },
+          "vars": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "string"
+            }
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "write_fallback_exceptions": {
+      "type": "array",
+      "description": "写路径回落例外署名清单（面⑨执法；rules.no_implicit_fallback_on_write 的唯一出口）——每条须指认所偏离的规则、给出理由、挂登记 PR。棘轮：只减不增；对应变量若已 fail_closed 而条目未摘＝空转即红。",
+      "items": {
+        "type": "object",
+        "required": [
+          "variable",
+          "resolver",
+          "departs_from",
+          "reason",
+          "register"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "variable": {
+            "type": "string",
+            "description": "被豁免的作用域变量 id（须在 variables[] 存在）"
+          },
+          "resolver": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "该变量的登记解析器 id（与 variables[].resolver 一致）"
+          },
+          "departs_from": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "single_resolver",
+                "no_implicit_fallback_on_write",
+                "launch_pins_full_set",
+                "service_scope_proof"
+              ]
+            },
+            "minItems": 1,
+            "description": "所偏离的 rules 键（回指键——规则与登记行之间的连接由此建立）"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 10,
+            "description": "为何此处允许回落（须可核，空白不算理由）＋第二刀去向"
+          },
+          "register": {
+            "pattern": "^PR-\\d+$",
+            "description": "登记该例外的编号，须在问题登记簿可定位"
+          }
+        }
+      }
+    },
+    "rule_implementations": {
+      "type": "object",
+      "required": [
+        "single_resolver",
+        "no_implicit_fallback_on_write",
+        "launch_pins_full_set",
+        "service_scope_proof"
+      ],
+      "additionalProperties": false,
+      "description": "四条规则的实施件登记表（PR-211/WP-082）——键必须与 rules 同集（面⑨ 双向对账），值为 [{file, note}]；把「规则→人工翻译件」的隐式关系变成可静态核对的在册事实：文件不存在即红，规则无实施件即红",
+      "properties": {
+        "single_resolver": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "实施件路径（存在性由面⑨ 验）"
+              },
+              "note": {
+                "type": "string",
+                "minLength": 8,
+                "description": "该件如何实施本规则（空白不算理由）"
+              }
+            }
+          }
+        },
+        "no_implicit_fallback_on_write": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "实施件路径（存在性由面⑨ 验）"
+              },
+              "note": {
+                "type": "string",
+                "minLength": 8,
+                "description": "该件如何实施本规则（空白不算理由）"
+              }
+            }
+          }
+        },
+        "launch_pins_full_set": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "实施件路径（存在性由面⑨ 验）"
+              },
+              "note": {
+                "type": "string",
+                "minLength": 8,
+                "description": "该件如何实施本规则（空白不算理由）"
+              }
+            }
+          }
+        },
+        "service_scope_proof": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "file",
+              "note"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "实施件路径（存在性由面⑨ 验）"
+              },
+              "note": {
+                "type": "string",
+                "minLength": 8,
+                "description": "该件如何实施本规则（空白不算理由）"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

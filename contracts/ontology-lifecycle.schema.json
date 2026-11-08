@@ -1,0 +1,113 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ontology-lifecycle",
+  "description": "本体元素生命周期迁移边定义表 schema（ADR-017 §二 律文的机器形状）。取值域不住本表——五态单源 contracts/object-meta-model.json#layers.status.enums.lifecycle_status，本 schema 亦不重列五态（防第二份取值域）。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "defaultStatus",
+    "terminalFrom",
+    "transitions",
+    "elementSections"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "defaultStatus": {
+      "type": "string",
+      "minLength": 1,
+      "description": "无 lifecycle_status 的在册元素按此值参与判定（存量零回填，ADR-014 §三）"
+    },
+    "transitions": {
+      "type": "array",
+      "minItems": 1,
+      "description": "允许的迁移边——守卫允许集由此派生，代码内不得另抄一份（ADR-017 §二 判定语义 2）",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "minLength": 1
+          },
+          "to": {
+            "type": "string",
+            "minLength": 1
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "explicitlyDenied": {
+      "type": "array",
+      "description": "明令禁止的边，逐条记因；与 transitions 相交即语义冲突（回归用例执法）",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "reason"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "from": {
+            "type": "string",
+            "minLength": 1
+          },
+          "to": {
+            "type": "string",
+            "minLength": 1
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "elementSections": {
+      "type": "array",
+      "minItems": 1,
+      "description": "受迁移守卫接管的本体段；shape＝在册形态（map 以键为元素 id，array 以元素 id 字段为键）",
+      "items": {
+        "type": "object",
+        "required": [
+          "key",
+          "shape"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "shape": {
+            "enum": [
+              "map",
+              "array"
+            ]
+          }
+        }
+      }
+    },
+    "terminalFrom": {
+      "type": "string",
+      "minLength": 1,
+      "description": "终态态别（ADR-017 §二 7）——守卫据此拒一切从该态迁出的边；表内不得出现以它为 from 的 transitions 边（回归用例断言），故改表不能放松终态执法"
+    }
+  }
+}

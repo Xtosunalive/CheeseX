@@ -1,0 +1,285 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseh.local/contracts/enums.schema.json",
+  "title": "enums.yaml 形态单一事实源",
+  "description": "知识库 TheSchema/enums.yaml 的顶层结构契约。读侧 server/shared/enums-loader.cjs 与写侧 schema-write-service.cjs 共用本文件——形态判定只有这一份（PR-052）。口径：仅 x-lenientPaths 列出的路径接受标量字符串（读侧 Ajv coerceTypes 无损转成数组），其余数组位一律严格，脏形态局部降级不抛错。",
+  "x-lenientPaths": [
+    "/tag_aliases"
+  ],
+  "x-lenientScalarTypes": [
+    "string"
+  ],
+  "type": "object",
+  "definitions": {
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categoryList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stringMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "subdomainEntry": {
+      "type": "object",
+      "description": "子域词条（ADR-008 D1 对象形态）：id=子域标识（枚举值本体），label=人读名（目标态必填，棘轮补齐），description=语义说明（选填）。",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "subdomainList": {
+      "type": "array",
+      "description": "子域词条列表（双形态迁移期）：裸标量=legacy（读侧归一为 {id}），对象=目标态。",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "$ref": "#/definitions/subdomainEntry"
+          }
+        ]
+      }
+    }
+  },
+  "properties": {
+    "domains": {
+      "type": "object",
+      "description": "一级业务域：键=域 id，值=中文名。值容忍 null——YAML 空值（键后无内容）解析为 null，既有测试 fixture 与存量数据均存在此形态，域的存在性判定按键而非值。",
+      "additionalProperties": {
+        "type": [
+          "string",
+          "null"
+        ]
+      }
+    },
+    "subdomains": {
+      "type": "object",
+      "description": "二级子域：键=一级域 id，值=该域下的子域词条（ADR-008 D1 双形态：标量 legacy｜{id,label?,description?} 对象）。值容忍 null（YAML 空值即预留位，域存在性按键判定）。",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/subdomainList"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "arch_categories": {
+      "$ref": "#/definitions/categoryList",
+      "description": "架构类别全局表（ADR-006：矩阵非空时为保底影子写，权威源是 subdomain_constraints）"
+    },
+    "article_types": {
+      "$ref": "#/definitions/stringList"
+    },
+    "doc_types": {
+      "$ref": "#/definitions/stringList"
+    },
+    "tags": {
+      "type": "object",
+      "description": "正式标签分组表：键=分组名，值=该组标签串",
+      "additionalProperties": {
+        "$ref": "#/definitions/stringList"
+      }
+    },
+    "tag_aliases": {
+      "type": "object",
+      "description": "野生标签别名表：键=野生标签，值=其归属正式标签的串。读侧对标量值做 coerce（PR-049 事故防线：标量别名不应致全站瘫）。",
+      "additionalProperties": {
+        "$ref": "#/definitions/stringList"
+      }
+    },
+    "disabled_tags": {
+      "$ref": "#/definitions/stringList"
+    },
+    "subdomain_constraints": {
+      "type": "object",
+      "description": "子域→架构类别授权矩阵（ADR-006 唯一权威源）。value 形态严格：allowed_categories 必须是串，非串由读侧局部降级（脏策略整节点丢弃），不做标量补全。（ADR-006 修订A 2026-10-29：矩阵双写入通道——矩阵页手工配置＋实体生长写入〔建实体时刻立新类别，幂等追加 allowed_categories〕；派生单向不变）",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "domain_id": {
+            "type": "string"
+          },
+          "allowed_categories": {
+            "$ref": "#/definitions/categoryList"
+          }
+        },
+        "required": [
+          "allowed_categories"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "#/definitions/stringList"
+        },
+        "review_cycle": {
+          "$ref": "#/definitions/stringList"
+        },
+        "default_status": {
+          "type": "string"
+        },
+        "legacy_status_map": {
+          "type": "object",
+          "description": "旧值→四值映射（WP-049 余量批：存量迁移词表单源——制定中→灰度/有效→在线/已归档→退役；消费方经 server/shared/status-domain.cjs，禁手抄第二份）",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "layers": {
+      "type": "array",
+      "description": "架构层表（ADR008 D39：arch_layers 由本键派生，勿另维护）",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "layout": {
+            "type": "string",
+            "enum": [
+              "central",
+              "left-panel",
+              "right-panel"
+            ]
+          },
+          "entity_layer": {
+            "type": "boolean"
+          },
+          "domain_id": {
+            "type": "string"
+          },
+          "allowed_categories": {
+            "$ref": "#/definitions/categoryList"
+          },
+          "allowed_dependencies": {
+            "$ref": "#/definitions/stringList"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": true
+      }
+    },
+    "modules": {
+      "type": "object",
+      "description": "模块注册表：键=模块名，值=模块定义",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "subdomain": {
+            "type": "string"
+          },
+          "parent_id": {
+            "type": "string"
+          },
+          "system": {
+            "type": "string"
+          },
+          "since": {
+            "type": "string"
+          },
+          "until": {
+            "type": "string"
+          },
+          "products": {
+            "$ref": "#/definitions/stringList"
+          },
+          "label": {
+            "type": "string",
+            "description": "模块人读名（ADR-008 D1 可选语义键）"
+          },
+          "description": {
+            "type": "string",
+            "description": "模块语义说明（选填）"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "architecture_projection": {
+      "type": "object",
+      "properties": {
+        "product": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "product_aliases": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "layer_aliases": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "category_aliases": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "subdomain_aliases": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "projected_relation_types": {
+          "$ref": "#/definitions/stringList"
+        },
+        "wikilink_type_labels": {
+          "$ref": "#/definitions/stringMap"
+        }
+      },
+      "additionalProperties": true
+    },
+    "category_map": {
+      "$ref": "#/definitions/stringMap",
+      "description": "类别→英文标识映射（实测存在；loader 不消费，放行以免误伤真实库）"
+    },
+    "subdomain_layer_map": {
+      "$ref": "#/definitions/stringMap",
+      "description": "子域→架构层别名映射（实测存在；loader 不消费，放行以免误伤真实库）"
+    },
+    "categories": {
+      "type": "array",
+      "description": "类别名声明单（WP-064：矩阵勾选框选项源——声明宿主，与 arch_categories 派生视图分离；B1=b 冻结对象是派生视图非本段）",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,45 @@
+{
+  "$comment": "TheSchema 形态收口注册表（PR-053）：每份 TheSchema yaml 一行注册——name → contracts 下的 schema 文件。读侧（server/shared/theschema-loader.cjs）与 Python 侧（scripts/vault-runtime/schema_loader.py）都从这里取唯一形态源。新增 yaml 接入成本 = 补一份 schema 文件 + 在 documents 里加一行。",
+  "documents": {
+    "enums": {
+      "schema": "enums.schema.json",
+      "description": "枚举/词表/架构投影（PR-052 首个收口实例；A 口径：仅 /tag_aliases 宽容）"
+    },
+    "article_associations": {
+      "schema": "theschema.article_associations.schema.json",
+      "description": "文章关联审计账本（append-only decisions）"
+    },
+    "dependencies": {
+      "schema": "theschema.dependencies.schema.json",
+      "description": "版本范围依赖规则"
+    },
+    "ontology": {
+      "schema": "theschema.ontology.schema.json",
+      "description": "本体：节点类型/关系类型（含能力七字段与断言策略）/推理规则/约束"
+    },
+    "versions": {
+      "schema": "theschema.versions.schema.json",
+      "description": "产品版本注册表（G1+G5 产品身份唯一权威源）"
+    },
+    "fields": {
+      "schema": "theschema.fields.schema.json",
+      "description": "frontmatter 字段数据字典（ADR-008 D2——实体/文章字段唯一机器源；entity-frontmatter-schema.md 为其派生投影）"
+    },
+    "subjects": {
+      "schema": "theschema.subjects.schema.json",
+      "description": "主体注册表（ADR-009 D2——挂载关系唯一事实源）"
+    },
+    "subject-enums": {
+      "schema": "theschema.subject-enums.schema.json",
+      "description": "主体层词表可段子集（ADR-009 D1——subjects/<id>/enums.yaml 形态契约；layers 元层专属被拒）"
+    },
+    "relations": {
+      "schema": "theschema.relations.schema.json",
+      "description": "人工/治理关系实例账（EDGE-RELATION-GOV-001 对象本体批——ADR-012 D1 裁决落地；端点=字典 canonical_name、type∈relation_types、身份=source|target|type 幂等覆盖；机器边不进本文件）"
+    },
+    "entity-aliases": {
+      "schema": "entity-aliases.schema.json",
+      "description": "实体别名映射（WP-054 E-A 出生注册：别名→canonical；休眠读点 schema.py 的信封扩面件——仓内文件现缺，缺件软语义保持）"
+    }
+  }
+}

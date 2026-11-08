@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseh.local/contracts/theschema.relations.schema.json",
+  "title": "TheSchema relations（人工/治理关系实例）",
+  "description": "EDGE-RELATION-GOV-001 对象本体批（ADR-012 D1 裁决落地，Master 2026-10-24）：关系对象独立①类源——治理语义关系的实例账。端点＝对象字典 canonical_name（写服务校验在册）；type∈ontology.yaml relation_types 注册表（写服务对账，本契约只管结构——同 fields 值域引用模式）；身份＝source|target|type（同身份只存一条，幂等覆盖）。机器边不进本文件（管线→master_graph→②类投影）。写通道：PUT /api/schema/relations / schema-write-client（三要件：repoWrite 原子写＋git 历史快照＋revision 乐观锁）。SPEC-027 扩展：endpoint_domain=graph 行为图谱边置信度覆盖载荷（双载荷同账本，D1 记档扩展）。",
+  "x-lenientPaths": [],
+  "type": "object",
+  "required": [
+    "relations"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "relations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source",
+          "target",
+          "type",
+          "asserted_by",
+          "asserted_at"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "description": "出链端点＝对象字典 canonical_name"
+          },
+          "target": {
+            "type": "string",
+            "minLength": 1,
+            "description": "入链端点＝对象字典 canonical_name"
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1,
+            "description": "∈ ontology.yaml relation_types（含并 入的五治理语义类型 derivation/usage/reference/co_editing/containment）"
+          },
+          "note": {
+            "type": "string",
+            "description": "人读注记（选填）"
+          },
+          "asserted_by": {
+            "type": "string",
+            "enum": [
+              "human",
+              "rule"
+            ],
+            "description": "裁定者：human＝库主经页面/写客户端；rule＝规则产物（预留）"
+          },
+          "asserted_at": {
+            "type": "string",
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "description": "裁定日期 YYYY-MM-DD"
+          },
+          "confidence_band": {
+            "type": "string",
+            "enum": [
+              "high",
+              "medium",
+              "low"
+            ],
+            "description": "SPEC-027 C6：人判档位（可选，裁定 A——人不填数）；仅 endpoint_domain=graph 行使用＝图谱边置信度覆盖"
+          },
+          "endpoint_domain": {
+            "type": "string",
+            "enum": [
+              "dictionary",
+              "graph"
+            ],
+            "description": "端点域（缺省＝dictionary）：dictionary＝对象字典 canonical_name；graph＝图谱节点 id（SPEC-027 C11 图域校验变体——覆盖行专用）"
+          }
+        }
+      }
+    }
+  }
+}

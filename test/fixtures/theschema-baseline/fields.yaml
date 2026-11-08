@@ -1,0 +1,352 @@
+# fields.yaml — frontmatter 字段数据字典（ADR-008 D2）
+# 唯一机器源：实体/文章 frontmatter 字段的名称/类型/必填/作用域/值域/别名收口。
+# entity-frontmatter-schema.md 为本文件派生投影（scripts/quality/project-frontmatter-schema.mjs 生成，禁手改）。
+# 对账门禁：npm run check:fields-registry（server 消费的字段名 ⊆ 本表声明集）。
+schema_version: 1
+last_updated: 2026-10-29
+fields:
+  - name: title
+    label: 显示名
+    type: string
+    required: 是
+    scope:
+      - entity
+      - article
+    layer: 内容属性
+    description: 文档标题；实体侧对应语义架构 SA label。
+    value_domain:
+      source: free
+      note: 自由标题文本（PR-156 刀四：显式声明 free——字典页与门禁不再显示为空值域）
+  - name: tags
+    label: 标签
+    type: list
+    required: 否
+    scope:
+      - entity
+      - article
+    layer: 内容属性
+    value_domain:
+      source: tags
+      resolve:
+        op: tags_union
+      normalize:
+        aliases: tag_aliases
+      note: 正式标签=各分组扁平并集-disabled_tags；别名经 tag_aliases 归一
+    description: 检索标签（行内数组/块列表/标量三种写法均可，解析口径同 G1'）。
+  - name: category-path
+    label: 分类路径
+    type: string
+    required: 是
+    scope:
+      - entity
+      - article
+    layer: 内容属性
+    value_domain:
+      source: free
+      composite:
+        - source: domains
+          resolve:
+            op: keys
+        - source: subdomains
+          resolve:
+            op: ids
+          scoped_by: previous
+        - resolve:
+            op: free_slug
+      note: domain:subdomain:topic 三段式——domain/subdomain 为 enums 闭合枚举，topic 自由小写 ASCII
+        slug；禁历史排错口径 troubleshoot
+    description: 标准文档分类路径（PR-046 契约，validate-article.py 单一语义）；文章侧必填、实体侧建议。
+  - name: impact_level
+    label: 影响面等级
+    type: string
+    required: 否
+    scope:
+      - entity
+    layer: 内容属性
+    value_domain:
+      source: free
+    description: 检索索引影响面权重辅助字段。
+  - name: is_core
+    label: 核心标记
+    type: bool
+    required: 否
+    scope:
+      - entity
+    layer: 内容属性
+    value_domain:
+      source: free
+    description: 是否核心实体（影响面权重）。
+  - name: article_type
+    label: 文章类型
+    type: enum
+    required: 是
+    scope:
+      - article
+    layer: 内容属性
+    value_domain:
+      source: article_types
+      resolve:
+        op: values
+    description: 标准文章类型（排错指南/常见问题/方案设计等 9 值）。
+  - name: doc-type
+    label: 文档类型
+    type: enum
+    required: 是
+    scope:
+      - article
+    layer: 内容属性
+    value_domain:
+      source: doc_types
+      resolve:
+        op: values
+    aliases:
+      - doc_type
+    description: 文档形态类型（用户手册/部署指南等 8 值）；下划线写法为兼容写法。
+  - name: validation_status
+    label: 机器校验戳
+    type: enum
+    required: 否
+    scope:
+      - article
+    layer: 管理属性
+    value_domain:
+      source: free
+      note: 校验章机制自有值集（passed/failed 由 validation stamp 系统写，非人选——PR-156 刀四注记豁免）
+    description: 最近一次机器校验结果的持久戳（SPEC-030
+      机③——三机中唯一落文件者，证据随文件走）。值域＝passed/warnings/failed 三值，由统一校验客户端
+      validate-article --stamp 整体重盖（article-validator-lib 单源）；值域属校验器语义不入 enums
+      词表（词表走写单门供页面管理，校验器固有三值不属该面）。
+  - name: validation_override
+    label: 校验豁免标记
+    type: bool
+    required: 否
+    scope:
+      - article
+    layer: 管理属性
+    value_domain:
+      source: free
+    description: 机器校验 failed 的人工显式豁免（SPEC-030 机③——独立布尔不合成枚举值，保住「豁免对应哪次失败」的对应关系）；true
+      时 promote/confirm 两道闸门放行，决策留痕 decisions.jsonl。
+  - name: architecture-node-id
+    label: 架构节点 ID
+    type: string
+    required: 是
+    scope:
+      - entity
+    layer: 业务属性
+    value_domain:
+      source: free
+      note: 全 vault 不可重复；对应 SA id
+    aliases:
+      - architecture_node_id
+    description: 全局唯一组件 ID；连字符写法为作者侧主写法，下划线写法工具链可读可写。
+  - name: arch_layer
+    label: 架构层级
+    type: enum
+    required: 建议
+    scope:
+      - entity
+      - article
+    layer: 业务属性
+    value_domain:
+      source: layers
+      resolve:
+        op: ids
+        filter: entity_usable
+      normalize:
+        aliases: architecture_projection.layer_aliases
+      note: 正式值=layers[].id 且 entity_layer!=false（plate 排除）；别名经 layer_aliases 归一
+    description: 组件所处架构层；文章 frontmatter 同名字段的使用计入词表画像。（Master 2026-10-29
+      裁定：文章侧非必填——架构归类值走继承式取值，不逐篇手写；实体侧执法暂维持现状，继承机制另案）
+  - name: arch_category
+    label: 业务分类
+    type: enum
+    required: 建议
+    scope:
+      - entity
+      - article
+    layer: 业务属性
+    value_domain:
+      source: arch_categories
+      resolve:
+        op: matrix_union_fallback
+      normalize:
+        aliases: architecture_projection.category_aliases
+      note: 派生视图——subdomain_policies 并集优先（ADR-006）；别名经 category_aliases 归一
+    description: 业务分类（终端/服务/存储/基础设施/安全等）。（Master 2026-10-29
+      裁定：文章侧非必填——架构归类值走继承式取值，不逐篇手写；实体侧执法暂维持现状，继承机制另案）
+  - name: arch_subdomain
+    label: 子域
+    type: enum
+    required: 建议
+    scope:
+      - entity
+      - article
+    layer: 业务属性
+    value_domain:
+      source: subdomains
+      resolve:
+        op: ids
+      normalize:
+        aliases: architecture_projection.subdomain_aliases
+      note: 子域词条 id（ADR-008 D1 对象形态）；别名经 subdomain_aliases 归一
+    description: 组件所属技术子域。
+  - name: arch_since
+    label: 起始版本
+    type: string
+    required: 建议
+    scope:
+      - entity
+    layer: 业务属性
+    value_domain:
+      source: free
+      note: 由人定义，不自动推断
+    description: 此组件从哪个版本开始存在（如 7.0.0）。
+  - name: arch_until
+    label: 废止版本
+    type: string
+    required: 建议
+    scope:
+      - entity
+    layer: 业务属性
+    value_domain:
+      source: free
+      note: 默认空串=当前版本生效，由人更新
+    description: 此组件在哪个版本后废弃。
+  - name: arch_version_overrides
+    label: 版本差异覆盖
+    type: list
+    required: 否
+    scope:
+      - entity
+    layer: 业务属性
+    value_domain:
+      source: free
+    description: 版本间属性差异列表。
+  - name: module
+    label: 模块
+    type: list
+    required: 是
+    scope:
+      - entity
+      - article
+    layer: 业务属性
+    value_domain:
+      source: modules
+      resolve:
+        op: keys
+      normalize:
+        wikilink_strip: true
+      note: 正式值=modules 键；wikilink 引用剥离（[[主模块]]→主模块）
+    description: 所属模块匹配名列表；文章侧必填、实体侧建议。
+  - name: arch_component
+    label: 架构组件标记
+    type: bool
+    required: 是
+    scope:
+      - entity
+    layer: 业务属性
+    value_domain:
+      source: free
+    description: true=此 entity 是架构组件。
+  - name: arch_status
+    label: 架构状态
+    type: string
+    required: 否
+    scope:
+      - entity
+    layer: 业务属性
+    value_domain:
+      source: free
+    description: 组件架构生命周期状态（业务属性表成员）。
+  - name: product
+    label: 产品
+    type: enum
+    required: 是
+    scope:
+      - article
+    layer: 业务属性
+    value_domain:
+      source: architecture_projection
+      resolve:
+        op: product_closure
+      note: A03 闭合集=architecture_projection.product+product_aliases 键；versions.yaml
+        reserved_products 可引用
+    description: 文章所属产品。
+  - name: version
+    label: 产品版本
+    type: enum
+    required: 是
+    scope:
+      - article
+    layer: 业务属性
+    value_domain:
+      source: versions
+      resolve:
+        op: version_registry
+      note: versions.yaml 产品版本注册表（G1+G5 唯一权威源）
+    description: 文章针对的产品版本。
+  - name: status
+    label: 页面状态（实体）
+    type: enum
+    required: 是
+    scope:
+      - entity
+    layer: 管理属性
+    value_domain:
+      source: free
+      note: Obsidian 页面状态三值：有效/已归档/制定中（与文章侧文档生命周期 status 分立）
+    description: 实体 Obsidian 页面状态。
+  - name: status
+    label: 文档生命周期状态（文章）
+    type: enum
+    required: 否
+    scope:
+      - article
+    layer: 管理属性
+    value_domain:
+      source: lifecycle
+      segment: lifecycle.status
+      resolve:
+        op: values
+      default:
+        from: lifecycle.default_status
+        fallback: first
+      note: 默认值=lifecycle.default_status（缺省回落首项）
+    description: 文章文档生命周期（灰度/在线/退役/已驳回）；新建缺省灰度。
+  - name: date
+    label: 创建日期
+    type: date
+    required: 是
+    scope:
+      - entity
+    layer: 管理属性
+    value_domain:
+      source: free
+      note: YYYY-MM-DD
+    description: 创建日期。
+  - name: updated
+    label: 更新日期
+    type: date
+    required: 建议
+    scope:
+      - entity
+    layer: 管理属性
+    value_domain:
+      source: free
+      note: YYYY-MM-DD；SA 顶层 updatedAt 取所有组件最大值
+    description: 最后更新日期。
+  - name: review-cycle
+    label: 审查周期
+    type: enum
+    required: 建议
+    scope:
+      - entity
+    layer: 管理属性
+    value_domain:
+      source: lifecycle
+      segment: lifecycle.review_cycle
+      resolve:
+        op: values
+      note: 30d/90d/180d/365d/never
+    description: 审查调度周期（时效过滤消费）。

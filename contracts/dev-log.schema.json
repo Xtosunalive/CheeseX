@@ -1,0 +1,238 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://anyshare-architect.dev/contracts/dev-log.schema.json",
+  "title": "Dev Log Entry",
+  "description": "开发日志条目结构定义。记录「谁（owner）、按什么分类（cls）与授权级别（auth）、改了哪个目录区（zone）、哪些文件（files）、跑了什么命令（cmd）、结果如何（exit/duration_ms）」，用于派生项目进度。分类轴 W1–W5 与授权轴 none/confirm/accept 的枚举值在本 schema 内唯一定义一次，脚本与文档一律引用本文件，不得复制枚举。",
+  "$comment": "开发日志（本 schema）与运行时日志（server/shared/json-logger.cjs，落盘 .tmp/logs/runtime.jsonl）是两条正交链路：本 schema 只管开发动作与门禁结论条目，不复刻 json-logger 的 subsystem/trace_id 等运行时字段。additionalProperties 保持 true 的理由：落盘器强制注入 subsystem:\"devlog\"（server/shared/dev-log.cjs:295），该键刻意不纳入契约（它是 json-logger 的链路标记，不是事件语义），若收紧为 false 则每条落盘条目都会被判非法。seq 必须机器取号、禁止手写；此处引用 ADR051 属类比而非同一约束：ADR051:13 的撞号 4 次（#1194/#1195、#1204、#1211、#1174/#1176）讲的是 REQUIREMENTS.md 台账并行追加的手工取号协议，其结论只是「机器取号」，并不蕴含 dev-log 的 seq 跨文件全局唯一——dev-log 的编号域按 owner 分文件，见 properties.seq.description，不得据此把全局唯一不变量写回门禁。",
+  "type": "object",
+  "required": [
+    "seq",
+    "ts",
+    "source",
+    "cls",
+    "auth",
+    "owner",
+    "zone",
+    "files",
+    "event",
+    "level"
+  ],
+  "additionalProperties": true,
+  "if": {
+    "properties": {
+      "event": {
+        "const": "dev.zone.verified"
+      }
+    },
+    "required": ["event"]
+  },
+  "then": {
+    "required": [
+      "zoneType",
+      "checkLocation",
+      "inputContract",
+      "outputContract",
+      "zoneBehavior",
+      "failCondition",
+      "evidence",
+      "conclusion"
+    ],
+    "properties": {
+      "zoneType": {
+        "type": "string",
+        "enum": ["code", "rule", "gate"],
+        "description": "辖区类型（问题处理流程，三选一；混合辖区须拆分为多个任务，决策卡第 3 项裁 B）。code=代码辖区 / rule=规则辖区 / gate=门禁辖区。"
+      },
+      "checkLocation": {
+        "type": "string",
+        "minLength": 1,
+        "description": "核实位置（如 OWNER_ZONE_PREFIXES 全表 34-73 行）。"
+      },
+      "inputContract": {
+        "type": "string",
+        "minLength": 1,
+        "description": "输入契约（核实所依据的接口/数据结构原文）。"
+      },
+      "outputContract": {
+        "type": "string",
+        "minLength": 1,
+        "description": "输出契约（本辖区对外暴露的接口/数据结构原文）。"
+      },
+      "zoneBehavior": {
+        "type": "string",
+        "minLength": 1,
+        "description": "本辖区行为（辖区当前如何运转）。"
+      },
+      "failCondition": {
+        "type": "string",
+        "minLength": 1,
+        "description": "出问题条件（什么场景下本辖区会出此类问题）。"
+      },
+      "evidence": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "description": "证据（文件:行号 列表；命令执行证据复用顶层 cmd/exit/duration_ms）。"
+      },
+      "conclusion": {
+        "type": "string",
+        "enum": ["clean", "issue", "cross_zone"],
+        "description": "结论：clean=无问题 / issue=有问题 / cross_zone=需跨辖区比对。"
+      }
+    }
+  },
+  "properties": {
+    "seq": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "条目序号。作用域 = 该 owner 的台账：台账就是该 owner 的条目文件 docs/dev-log/entries/<owner>.jsonl 这一个文件（owner 与台账一一对应，一个 owner 一本台账），不分片、不轮转、不删历史。不同 owner 的台账各自从 1 开始、互不相关，两个 owner 各有 seq=1 是合法且预期的，跨台账不构成冲突。同一台账内必须唯一且连续（恰为 1..N、不跳号），由机器按「当前可见最大 seq + 1」生成，禁止手写；空台账首条为 1。台账不得轮转、不得删除历史：append-only 不可回收，maxFiles 式的旧分片删除会销毁台账历史，与不可变语义冲突。为何不是全局号：本仓并行是 worktree 隔离的，每个 worktree 各持一份 entries 快照，写时刻不存在所有 worktree 都看得见的全局计数器（锁文件亦在本地），故「写时刻的全局连续号」构造上不可得；而「合并点机器重编号」与 append-only 不可变冲突——重编号等于改写已落盘历史。ADR051 的关系：ADR051:13 处理的是 REQUIREMENTS.md 台账并行追加的条目号撞号（#1194/#1195、#1204、#1211、#1174/#1176），结论是「取号必须机器生成、禁止手写」，从未主张 dev-log 的 seq 跨台账全局唯一；ADR051:15「隔离与取号是环境构造属性」在本形态下的更强满足就是「一个台账恰好一个写者」，由按 owner 一文件一台账天然得到，无需 N 个写者去抢一把全局计数器。未决前提（勿当成已保证）：上述「同一台账内唯一且连续」以「同一 owner 同时只在一个 worktree 写入」为前提；若同一 owner 在两个 worktree 并行写入，两侧各自从 1 起，合并后同一台账内会出现重复 seq 与两段 1..N（entries 未被 .gitignore 排除，确会被合并）。该情形须由写者调度或合并步骤另行裁决，本契约不承诺跨 worktree 合并后的唯一性与连续性。故任何校验 seq 不变量的消费方必须按条目文件分组判定（台账即该 owner 的单一 <owner>.jsonl，故按文件 ≡ 按台账），不得把全量条目并成一个全局编号域。"
+    },
+    "ts": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}(\\.\\d+)?(Z|[+-]\\d{2}:\\d{2})$",
+      "description": "事件发生时刻，ISO8601 时间戳（RFC3339，如 2026-09-12T10:30:00.000Z）。由落盘器以 new Date().toISOString() 补齐，调用方不可覆盖。pattern 是本字段的唯一断言；本契约刻意不声明 format：ajv v7+ 已把 formats 拆到 ajv-formats 包，而本仓 package.json 只声明 ajv ^8.20.0、未声明 ajv-formats（它仅被其他包的传递依赖偶然带入 node_modules，随时可能消失）；门禁 check-dev-log.mjs:366-375 对「schema 声明了 format 且 ajv-formats 不可用」是 fail-closed，会推 dev_log_format_keyword_unverifiable。即声明 format 会让门禁在依赖变动后突然变红、且报错与真因无关。故只用 pattern 自足表达（实测 ts='昨天下午' 仍被拦下），不依赖任何未声明依赖。"
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "dev",
+        "gate"
+      ],
+      "description": "条目来源。dev=开发动作（改码/跑脚本）；gate=门禁结果（quality gate / acceptance 结论）。"
+    },
+    "cls": {
+      "type": "string",
+      "enum": [
+        "W1",
+        "W2",
+        "W3",
+        "W4",
+        "W5"
+      ],
+      "x-work-class-terms": [
+        "W1 纯表面",
+        "W2 运维",
+        "W2 纯运维",
+        "W3 调研",
+        "W3 只读调研",
+        "W4 标准开发",
+        "W5 重型任务"
+      ],
+      "description": "分类轴（W = work class），与授权轴正交。W1=纯表面（文案/样式/展示层，无逻辑语义变化）；W2=运维（构建、依赖、脚本、配置、环境）；W3=调研（只读勘察，产出结论不改产品代码，files 常为空数组）；W4=标准开发（常规功能/修复，单域内可控改动）；W5=重型任务（跨层重构、契约变更、数据迁移、架构调整）。本枚举是 W1–W5 的唯一定义，其它文件请引用本 schema。x-work-class-terms 是任务级别词表锚点（#1870）：带 W 码前缀的中文词条（W码 + 空格 + 中文名），供 check:wordlist-projections 对账——规则镜像 triggers/exclusions 与 AGENTS.md 任务分级路由表中出现的任务级别词必须按本表登记（同码同形或同码变体）；「W2 纯运维」「W3 只读调研」为登记变体，历史词形「L0 纯表面」已退役（W1 即原 L0）。"
+    },
+    "auth": {
+      "type": "string",
+      "enum": [
+        "none",
+        "confirm",
+        "accept"
+      ],
+      "description": "授权轴（已与本技能 human_gate 合并），与分类轴正交。none=免确认（可直接执行，事后留痕）；confirm=动作前确认（执行前须向用户报备并获准）；accept=人工收货（执行后须由用户验收/签收才闭环）。本枚举是授权轴的唯一定义，其它文件请引用本 schema。为何用语义值而非 L1–L3 编号：本仓 L 已是三义——contracts/mental-model-index.json:8 有 L1–L4「权威分层」，REQUIREMENTS.md 有延后的 L3 术语表决策，src/index.css:206/214 用 L2/L3 标字号档位；编号轴在人工阅读层必然混线，语义值彻底消解，且组合键 W4-confirm 比 W4-L2 自解释得多。补充规则正文级证据：AGENTS.md:45-48 约束四层（L1 执行层/L2 交付层/L3 业务层/L4 运行时执法层）与 AGENTS.md:129 变更档（L0 纯表面）均为规则正文内的 L 轴，auth 不得再占用同一词形；docs/terminology-spec.md（唯一业务语义权威源）内无 L1–L3 授权轴定义，故 L1–L3 无权威出处。"
+    },
+    "req": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^#\\d+$",
+      "description": "关联的 REQUIREMENTS.md 开发编号，形如 #1862（井号 + 数字）。未绑定需求台账时为 null。为何可空而非可空串：落盘器 server/shared/dev-log.cjs 的 nullable() 对 undefined 一律返回 null，且 req 键无条件写入，故未绑定时落盘值是 null 而非省略、更非空串；落盘器的 REQ_PATTERN 由本 schema 的 properties.req.pattern 派生（server/shared/dev-log.cjs:19 起，不保留副本），写入侧对不匹配值先抛错，故 req:\"\" 这条路径在生产侧不可达。pattern 仅约束字符串，对 null 不生效，故 null 与 #1862 均合法、\"\" 与 \"1862\" 均非法，与落盘器行为逐项对齐。"
+    },
+    "owner": {
+      "type": "string",
+      "enum": [
+        "domain-core-engineer",
+        "feature-module-engineer",
+        "ui-component-engineer",
+        "server-api-engineer",
+        "quality-gate-engineer",
+        "progress-synthesizer",
+        "team-lead",
+        "guard-captain"
+      ],
+      "description": "动作归属角色。domain-core-engineer=领域内核；feature-module-engineer=功能模块；ui-component-engineer=UI 组件；server-api-engineer=服务端/API；quality-gate-engineer=质量门禁；progress-synthesizer=进度合成；team-lead=主理人。；guard-captain=秦执队（门禁治理：注册/启停/健康度/冲突仲裁）"
+    },
+    "zone": {
+      "type": "string",
+      "minLength": 1,
+      "description": "代码所在目录区，仓库相对路径且以斜杠结尾（如 server/routes/、src/features/review/、contracts/）。"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "本次动作修改的具体文件（仓库相对路径）。允许为空数组——纯调研（W3）或只跑命令不改码的动作即为 []。"
+    },
+    "cmd": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "本次执行的命令原文（如 npm run check:contracts、node scripts/x.mjs）。未执行命令时为 null——落盘器的 nullable() 对 undefined 返回 null 且 cmd 键无条件写入，故\"未执行\"落盘为 null 而非省略字段。"
+    },
+    "exit": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "description": "命令退出码。0=成功；非 0=失败；null=未执行命令或退出码不可得。"
+    },
+    "duration_ms": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "description": "耗时（毫秒）；null=未计量。"
+    },
+    "event": {
+      "type": "string",
+      "minLength": 1,
+      "description": "事件名，点分命名空间（如 release.build.completed、check.api-contract、contract.dev-log.created）。约定后缀：.started/.completed/.failed 表示同一动作的生命期。"
+    },
+    "level": {
+      "type": "string",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error"
+      ],
+      "description": "条目的严重程度，与 json-logger 的 pino level 同构，便于两条日志链路并排查看。"
+    },
+    "summary": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2000,
+      "description": "任务语义总结（#1883）：该任务在角色辖区具体完成了什么、对应功能模块发生了什么变化。仅 dev.task.summarized 事件使用；null=非总结事件。写入时机铁律：①任务收口时（该 req 最后一笔提交后、宣布完成前）由执行角色本人写——记忆最新鲜；②解监理巡检发现活跃 req 无总结→总览出待办兜底；③禁止任务中途写（未定型的总结是噪音）。总结是原始内容非派生物，落台账即事实源（append-only，一次定稿不改写）。"
+    },
+    "modules": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "string"
+      },
+      "description": "本次任务影响的功能模块清单（#1883，与 summary 配套）：如 ['质量门禁链','git钩子','Vault投影']。粒度=功能模块名（人读），非文件路径（文件在 files）。"
+    },
+    "reopened_of": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^#\\d+$",
+      "description": "假解决追溯（#1885）：本事件是「复现修复」时，指向原任务编号。仅 dev.task.reopened 事件携带；null=非返工事件。闭环语义：原任务标了 summarized 后问题复现 → 解监理巡检记 dev.task.regressed（问题管理表联动）→ 总监派发 → 责任角色做返工修复并落 dev.task.reopened（带 reopened_of=原 req + rework_note）→ 原任务语义层自动显示返工链。"
+    },
+    "rework_note": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "maxLength": 2000,
+      "description": "返工说明（#1885，与 reopened_of 配套）：为什么上次算假解决（根因误判/覆盖不全/回归引入）、这次修了什么。仅 dev.task.reopened 事件携带。"
+    }
+  }
+}

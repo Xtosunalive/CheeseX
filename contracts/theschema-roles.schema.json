@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "theschema-roles.schema.json",
+  "title": "TheSchema 数据角色注册表——枚举单源（TALOS file-rules.schema.json 同构）",
+  "$comment": "四轴＋consumer kind 枚举单源在此（2026-10-23 Master 批准迁 schema——前值硬编码于 check-data-roles.mjs，偏离 TALOS『枚举定义在 schema、registry 纯数据』模式；对照实证 ~/talos-1 file-rules.schema.json role/writer/persistence/retention 全在 schema）。check:data-roles ⑧⑨⑨b⑨c 从本文件读枚举执法——改枚举先改这里，脚本零枚举字面量。条目整体形状校验仍在 check 既有逻辑（本文件现阶段只承载枚举单源面，完整 JSON Schema 形状后续需要再扩）。",
+  "type": "object",
+  "properties": {
+    "role": {
+      "enum": ["source", "derived", "evidence"]
+    },
+    "writer": {
+      "enum": ["human", "system", "append-only"]
+    },
+    "persistence": {
+      "enum": ["tracked", "local-only"]
+    },
+    "retention": {
+      "enum": ["current", "project-lifetime", "archive", "local"]
+    },
+    "consumer_kind": {
+      "enum": ["repo", "vault", "frontend"]
+    }
+  }
+}

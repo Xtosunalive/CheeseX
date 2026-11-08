@@ -1,0 +1,173 @@
+/* ── 表格组件 preset（P0 · 决策卡 §7.3）──
+ * L3 组件类层首件：@layer components，由 index.css 顶部 @import。
+ * 类内规则＝契约 §2「组件类层细则」：禁色值字面值/裸 z/裸时长/裸字重/底座可表达裸尺寸；
+ * 间距/尺寸/颜色/阴影/圆角/字号/层级一律 var() 引用 L0-L2；纯布局几何例外。
+ * 数值溯源＝antd 参考仓（决策卡 §八读码对照表）；密度三档＝antd large/middle/small。
+ * 消费对账：本文件 var() 消费计入 check-theme-vocab CSS 通道（W0-3 检查⑥）。 */
+@layer components {
+  .data-table {
+    border-radius: var(--table-radius);
+    border: 1px solid var(--color-border-thin);
+    background: var(--color-surface-card);
+    overflow: hidden;
+  }
+
+  .data-table__scroll {
+    overflow-x: auto;
+  }
+
+  .data-table__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--table-font-size);
+    line-height: var(--table-line-height);
+  }
+
+  .data-table__thead {
+  }
+
+  .data-table__th {
+    background: var(--color-surface-alter);
+    @apply font-semibold;
+    color: var(--color-text-main);
+    text-align: left;
+    padding: var(--table-cell-py) var(--table-cell-px);
+    border-bottom: 1px solid var(--color-border-soft);
+  }
+
+  /* 表头吸顶＝选配（stickyHeader prop；P1 起非默认——仅滚动容器/页面内需要时开） */
+  .data-table--sticky .data-table__th {
+    position: sticky;
+    top: 0;
+    z-index: var(--table-sticky-z);
+  }
+
+  /* 选择列宽收口（rowSelection 列）——几何走 antd 口径：宽度 32、内距与数据列一致
+     （8/8 对称，32−8×2＝16 恰容 16px 勾选框；此前 padding-right:0 使勾选框贴右边框，2026-10-16 antd 对照批修正） */
+  .data-table__th--selection,
+  .data-table__cell--selection {
+    width: var(--table-selection-width);
+  }
+
+  /* 展开钮列收窄——同批修正：撤销 padding-left:0，内距与数据列一致（antd expand 列同几何） */
+  .data-table__cell--toggle {
+    width: var(--table-toolbar-height);
+  }
+
+  .data-table__row {
+    border-bottom: 1px solid var(--color-border-soft);
+    transition: background-color var(--duration-fast) ease;
+  }
+
+  .data-table__row:hover {
+    background: var(--color-surface-alter);
+  }
+
+  .data-table__td {
+    padding: var(--table-cell-py) var(--table-cell-px);
+  }
+
+  .data-table__toolbar {
+    display: flex;
+    align-items: center;
+    gap: var(--table-action-gap);
+    min-height: var(--table-toolbar-height);
+    padding: 0 var(--table-cell-px) var(--table-cell-py);
+  }
+
+  .data-table__meta {
+    color: var(--color-text-hint);
+    font-size: var(--text-kg-xs);
+    padding: var(--table-cell-py) var(--table-cell-px);
+  }
+
+  .data-table__state {
+    padding: var(--table-state-padding);
+    text-align: center;
+    color: var(--color-text-sub);
+  }
+
+  .data-table__pagination {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    min-height: var(--table-pagination-height);
+    padding: var(--table-cell-py) var(--table-cell-px);
+  }
+
+  /* 选择列（P1 rowSelection 落点：antd selectionColumnWidth） */
+  .data-table__cell--selection {
+    width: var(--table-selection-width);
+  }
+
+  /* 密度三档：组件根选择器重定义无后缀密度词（契约 §2 L2 档位覆盖规则） */
+  .data-table[data-density="lg"] {
+    --table-cell-py: var(--table-cell-py-lg);
+    --table-cell-px: var(--table-cell-px-lg);
+  }
+
+  .data-table[data-density="md"] {
+    --table-cell-py: var(--table-cell-py-md);
+    --table-cell-px: var(--table-cell-px-md);
+  }
+
+  .data-table[data-density="sm"] {
+    --table-cell-py: var(--table-cell-py-sm);
+    --table-cell-px: var(--table-cell-px-sm);
+  }
+
+  /* 固定列（antd fixed.ts 几何；角格层级＝sticky+1 相对值） */
+  .data-table__cell--fixed-left,
+  .data-table__cell--fixed-right {
+    position: sticky;
+    background: var(--color-surface-card);
+    z-index: var(--table-sticky-z);
+  }
+
+  .data-table__cell--fixed-left {
+    box-shadow: var(--table-fixed-shadow-left);
+  }
+
+  .data-table__cell--fixed-right {
+    box-shadow: var(--table-fixed-shadow-right);
+  }
+
+  .data-table__th.data-table__cell--fixed-left,
+  .data-table__th.data-table__cell--fixed-right {
+    z-index: var(--table-sticky-corner-z);
+  }
+
+  .data-table__row .data-table__cell--fixed-left,
+  .data-table__row .data-table__cell--fixed-right {
+    background: var(--color-surface-card);
+  }
+
+  .data-table__row:hover .data-table__cell--fixed-left,
+  .data-table__row:hover .data-table__cell--fixed-right {
+    background: var(--color-surface-alter);
+  }
+
+  /* 可展开行容器（展开底＝浅底表面） */
+  .data-table__expanded {
+    background: var(--color-surface-root);
+  }
+
+  .data-table__expanded > td {
+    padding: var(--table-cell-py) var(--table-cell-px);
+  }
+
+  /* 可排序列头整格悬停高亮（antd th[column-has-sorters]:hover 同构；2026-10-16 antd 对照批二修） */
+  .data-table__th:has(> button):hover {
+    background: var(--color-surface-hover);
+  }
+
+  /* 键盘可达（行点击场景） */
+  .data-table__row--interactive {
+    cursor: pointer;
+  }
+
+  .data-table__row--interactive:focus-visible {
+    outline: 2px solid var(--color-border-focus);
+    outline-offset: -2px;
+  }
+}

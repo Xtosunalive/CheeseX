@@ -1,0 +1,177 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseh.local/contracts/theschema.subject-enums.schema.json",
+  "title": "TheSchema subjects/<id>/enums.yaml — 主体层词表（ADR-009 D1 可段子集）",
+  "description": "主体特有词表：仅可主体化段（subdomains/modules/tags 族/arch_categories/subdomain_layer_map/architecture_projection）。layers/domains/lifecycle/article_types/doc_types 为元层专属——additionalProperties:false 拒之（fail-closed，防主体层私改画布骨架）。全段可选（空主体层合法）。词条形态与元层同治（ADR-008 D1 对象化）。",
+  "type": "object",
+  "properties": {
+    "subdomains": {
+      "type": "object",
+      "description": "主体层可段（ADR-009 D3）——二级子域：键=一级域 id，值=该域下的子域词条（ADR-008 D1 双形态：标量 legacy｜{id,label?,description?} 对象）。值容忍 null（YAML 空值即预留位，域存在性按键判定）。",
+      "additionalProperties": {
+        "anyOf": [
+          {
+            "$ref": "#/definitions/subdomainList"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      }
+    },
+    "modules": {
+      "type": "object",
+      "description": "主体层可段（ADR-009 D3）——模块注册表：键=模块名，值=模块定义",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "subdomain": {
+            "type": "string"
+          },
+          "parent_id": {
+            "type": "string"
+          },
+          "system": {
+            "type": "string"
+          },
+          "since": {
+            "type": "string"
+          },
+          "until": {
+            "type": "string"
+          },
+          "products": {
+            "$ref": "#/definitions/stringList"
+          },
+          "label": {
+            "type": "string",
+            "description": "模块人读名（ADR-008 D1 可选语义键）"
+          },
+          "description": {
+            "type": "string",
+            "description": "模块语义说明（选填）"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "tags": {
+      "type": "object",
+      "description": "主体层可段（ADR-009 D3）——正式标签分组表：键=分组名，值=该组标签串",
+      "additionalProperties": {
+        "$ref": "#/definitions/stringList"
+      }
+    },
+    "tag_aliases": {
+      "type": "object",
+      "description": "主体层可段（ADR-009 D3）——野生标签别名表：键=野生标签，值=其归属正式标签的串。读侧对标量值做 coerce（PR-049 事故防线：标量别名不应致全站瘫）。",
+      "additionalProperties": {
+        "$ref": "#/definitions/stringList"
+      }
+    },
+    "disabled_tags": {
+      "$ref": "#/definitions/stringList",
+      "description": "主体层可段（ADR-009 D3）——"
+    },
+    "arch_categories": {
+      "$ref": "#/definitions/categoryList",
+      "description": "主体层可段（ADR-009 D3）——架构类别全局表（ADR-006：矩阵非空时为保底影子写，权威源是 subdomain_constraints）"
+    },
+    "subdomain_layer_map": {
+      "$ref": "#/definitions/stringMap",
+      "description": "主体层可段（ADR-009 D3）——子域→架构层别名映射（实测存在；loader 不消费，放行以免误伤真实库）"
+    },
+    "architecture_projection": {
+      "type": "object",
+      "properties": {
+        "product": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        },
+        "product_aliases": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "layer_aliases": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "category_aliases": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "subdomain_aliases": {
+          "$ref": "#/definitions/stringMap"
+        },
+        "projected_relation_types": {
+          "$ref": "#/definitions/stringList"
+        },
+        "wikilink_type_labels": {
+          "$ref": "#/definitions/stringMap"
+        }
+      },
+      "additionalProperties": true,
+      "description": "主体层可段（ADR-009 D3）——"
+    }
+  },
+  "additionalProperties": false,
+  "x-lenientPaths": [
+    "/tag_aliases"
+  ],
+  "x-lenientScalarTypes": [
+    "string"
+  ],
+  "definitions": {
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categoryList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stringMap": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "subdomainEntry": {
+      "type": "object",
+      "description": "子域词条（ADR-008 D1 对象形态）：id=子域标识（枚举值本体），label=人读名（目标态必填，棘轮补齐），description=语义说明（选填）。",
+      "required": [
+        "id"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "subdomainList": {
+      "type": "array",
+      "description": "子域词条列表（双形态迁移期）：裸标量=legacy（读侧归一为 {id}），对象=目标态。",
+      "items": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "$ref": "#/definitions/subdomainEntry"
+          }
+        ]
+      }
+    }
+  }
+}

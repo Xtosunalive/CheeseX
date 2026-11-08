@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseh.local/contracts/theschema.versions.schema.json",
+  "title": "versions.yaml 形态单一事实源",
+  "description": "知识库 TheSchema/versions.yaml（G1+G5 产品身份/版本注册表唯一权威源）的顶层结构契约。读侧 version-registry-reader.cjs 与写侧 version-registry-service.cjs 共用本文件（PR-053）。口径：全严格——重复 id/别名检测、released 不可变、快照哈希格式等语义由 version-contract.cjs validateVersionRegistry 负责（不重复执法）；形态层不设 required 以免与语义层双标准。",
+  "x-lenientPaths": [],
+  "type": "object",
+  "definitions": {
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "versionEntry": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "label": { "type": "string" },
+        "status": { "type": "string" },
+        "release_date": { "type": ["string", "null"] },
+        "aliases": { "$ref": "#/definitions/stringList" },
+        "snapshot": { "type": ["object", "null"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "number",
+      "description": "注册表结构版本；写侧固定写 1（语义层 UNSUPPORTED_SCHEMA_VERSION 执法）"
+    },
+    "reserved_products": {
+      "type": ["array", "null"],
+      "description": "保留产品键（跨产品/非特定产品占位，modules[].products 可引用，抽取器不为其建 Product 节点——PR-020 批5）。YAML 空值解析为 null，合法。",
+      "items": { "type": "string" }
+    },
+    "products": {
+      "type": "object",
+      "description": "产品注册表：键=产品 RAW 键（大小写敏感，归一别名单源在 enums.yaml architecture_projection.product_aliases），值=产品定义",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "versions": {
+            "type": "array",
+            "items": { "$ref": "#/definitions/versionEntry" }
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

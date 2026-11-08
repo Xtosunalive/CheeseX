@@ -1,0 +1,147 @@
+{
+  "$schema": "./rules-lifecycle.schema.json",
+  "$comment": "13 类检查器出口指针（第 1 步分层索引之二）。生产者=采集链 push 该 issueKind 的文件:行（2026-10-08 实扫核定）；消费面=前端消费位置。幽灵判据（方案决定 2）：消费−产出=幽灵。注意 anomaly-workbench-service.cjs:10 ISSUE_KINDS 与 openapi enum 双登记（契约-运行时一致由 check-action-routing 看守完备性）。",
+  "issue-kind-index": {
+    "enumSource": {
+      "openapi": "contracts/http-api.openapi.json#components.schemas.AnomalyIssue.issueKind.enum(13)",
+      "runtime": "server/services/anomaly/anomaly-workbench-service.cjs:10#ISSUE_KINDS"
+    },
+    "kinds": [
+      {
+        "issueKind": "missing_field",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:90-91#entityFindingIssues（实体 finding 通用出口：F01-F16 大部分规则违规皆落此处）",
+          "server/services/governance/anomaly-issue-collector.cjs:269#missing_entity 文章实体缺失（proposedAction.type=entity-repair）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:46（in-page entity-repair + handoff sourceKey）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts#issueKindLabel/issueExplanation",
+          "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY",
+          "src/features/anomaly-workbench/anomaly-action-registry.ts"
+        ]
+      },
+      {
+        "issueKind": "unrecognized_entity",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:91-92#entityFindingIssues（finding.field 空且 ruleId 非 F 开头时）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:73（in-page relation-repair）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts:84#graphQualityKinds（图质量族）",
+          "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY"
+        ]
+      },
+      {
+        "issueKind": "relation_conflict",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:61#candidateIssue（实体链：B02/B04 违规经 unresolvedLinks/unknownRelations——2026-10-08 审计发现键名错配，实体侧轨道死代码；文章/推理链活跃）",
+          "server/services/governance/anomaly-issue-collector.cjs:168#inferenceCandidateIssue（推理冲突链：活跃）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:97（handoff review/conflicts）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts:84#graphQualityKinds",
+          "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY"
+        ]
+      },
+      {
+        "issueKind": "article_association",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:138#articleCandidateIssue（文章未关联架构组件）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:93（handoff article-associations?articleId）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts:84#graphQualityKinds",
+          "src/features/anomaly-workbench/body 消费面——anomaly-article-groups.ts#文章粒度分组"
+        ]
+      },
+      {
+        "issueKind": "version_scope",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:90#entityFindingIssues（arch_since/arch_until/arch_version_overrides 三字段违规）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:67（in-page entity-repair）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts#issueKindLabel",
+          "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY"
+        ]
+      },
+      {
+        "issueKind": "stale_source",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:206#decisions stale 检查（文章关联来源已变化）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:112（exempt：历史审计状态，无可执行动作）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts#issueKindLabel",
+          "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY"
+        ]
+      },
+      {
+        "issueKind": "missing_entity",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:269#checkDocumentModuleEntity 判定（文章 module 无对应实体）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:53（in-page entity-repair + handoff create=1&title 一键补齐）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts:84#graphQualityKinds",
+          "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY"
+        ]
+      },
+      {
+        "issueKind": "missing_lineage",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:343#graphProvenanceService.collectMissingRelationLineage（已通过关系缺可信来源链）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:81（handoff publish；DerivedGraphRepairPanel 四步流承载）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts:154#isDerivedGraphRepairIssue",
+          "src/features/anomaly-workbench/components/DerivedGraphRepairPanel.tsx"
+        ]
+      },
+      {
+        "issueKind": "pipeline_failure",
+        "producer": [
+          "server/services/anomaly/anomaly-workbench-service.cjs:92#pipelineFailureIssue（管道失败持久 issue）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:101（handoff property/checks）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts#issueKindLabel",
+          "src/features/anomaly-workbench/components/AnomalyDecisionPanel.tsx（三态说明）"
+        ]
+      },
+      {
+        "issueKind": "standardization_warning",
+        "producer": [
+          "server/services/admission/standardization-warning-issues.cjs:25#collectStandardizationWarningIssues（标准化非阻断提示）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:118（note：非阻断提示，不产生按钮——2026-10-06 Master 裁决）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts:133#issueExplanation",
+          "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY"
+        ]
+      },
+      {
+        "issueKind": "release_publication_failure",
+        "producer": [
+          "server/services/release-governance/release-publisher-service.cjs:81#issueKind 字面量（发布失败持久 issue）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:126（in-page：AnomalyDecisionPanel 专用面板，关闭/重开）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts#issueKindLabel",
+          "src/features/anomaly-workbench/components/AnomalyDecisionPanel.tsx:22-46"
+        ]
+      },
+      {
+        "issueKind": "wild_tag",
+        "producer": [
+          "server/services/governance/anomaly-issue-collector.cjs:331#野生标签发现（G1' #1840 实时扫描，一值一 issue）"
+        ],
+        "consumers": [
+          "src/features/anomaly-workbench/action-routing.ts:102（handoff schema?tab=discovery）",
+          "src/features/anomaly-workbench/anomaly-workbench-copy.ts#issueKindLabel",
+          "src/features/anomaly-workbench/components/AnomalyIssueList.tsx:52#KIND_FAMILY"
+        ]
+      }
+    ]
+  }
+}

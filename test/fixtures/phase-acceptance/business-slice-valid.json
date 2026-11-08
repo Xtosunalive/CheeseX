@@ -1,0 +1,45 @@
+{
+  "$schema": "../../../contracts/phase-acceptance.schema.json",
+  "phase": "fixture-slice",
+  "kind": "business-slice",
+  "stream": "fixture-stream",
+  "sequence": 0,
+  "title": "Fixture Business Slice",
+  "status": "IN_PROGRESS",
+  "scenarioIds": [],
+  "capabilityIds": [],
+  "preImplementationEvidence": "test/fixtures/phase-acceptance/business-slice-preflight.json",
+  "requiredProofs": [
+    "acceptance-manifest",
+    "preimplementation-failure",
+    "clean-verifier",
+    "file-boundary",
+    "boundary-negative-tests",
+    "release-wiring"
+  ],
+  "riskProfile": "architecture",
+  "authorities": [
+    "docs/adr/ADR009-architecture-relation-capability-matrix.md"
+  ],
+  "allowedFiles": [
+    "docs/plans/fixture-phase.md"
+  ],
+  "requiredArtifacts": [],
+  "productionConsumers": [],
+  "profiles": ["architecture"],
+  "negativeTests": [
+    {
+      "description": "Missing preflight is rejected",
+      "expectedBehavior": "manifest validation fails"
+    }
+  ],
+  "environments": {
+    "requiresRealVault": false,
+    "vaultRealpath": "none",
+    "backupRoot": "none"
+  },
+  "manualCheckpoints": [],
+  "allowedVaultMutations": [],
+  "forbiddenMutations": [],
+  "expectedOutputs": ["fixture output"]
+}

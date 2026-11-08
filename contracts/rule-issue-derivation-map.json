@@ -1,0 +1,56 @@
+{
+  "$schema": "./rules-lifecycle.schema.json",
+  "$comment": "规则→出口→派生 层间多对多映射（第 1 步映射矩阵）。行结构=方案台账行（不含 status——审计现算）。豁免理由与 rules-lifecycle-index.json 同源登记，此处不复制豁免正文（存指针），仅保留断点标记。注意 rules-index 段的 closure.exit 已含豁免四要素，本映射只记层间连线。｜2026-10-27 降档：F 族 19 行迁出（口径随 registry 收缩）。",
+  "rule-issue-derivation-map": {
+    "rows": [
+      {
+        "ruleId": "B01",
+        "type": "hard",
+        "severity": "warn",
+        "source": "contracts/entity-readiness-rules.json#rules[18]",
+        "signal": "server/services/entity-compliance/entity-compliance-declarative-engine.cjs#runBodyDiagnostics(:284)",
+        "stage": "read-diagnostic",
+        "enforcement": "none（advisory 设计使然）",
+        "exit": "DIAGNOSTIC:合规页展示（isWorkbenchIssueFinding 显式排除 B01/B03）",
+        "derivation": "无（纯提醒，无处置派生）",
+        "dimension": "validity"
+      },
+      {
+        "ruleId": "B02",
+        "type": "hard",
+        "severity": "warn",
+        "source": "contracts/entity-readiness-rules.json#rules[19]",
+        "signal": "server/services/entity-compliance/entity-compliance-declarative-engine.cjs#runBodyDiagnostics(:292)",
+        "stage": "read-diagnostic",
+        "enforcement": "none（warn）——裁决4修复后：unresolved 目标走 relation_conflict 轨道；别名命中走善意提示（warn 级轻提醒）",
+        "exit": "missing_field",
+        "derivation": "server/services/governance/anomaly-handling-mode.cjs#deriveIssueHandling→fix(entity-relation-repair)",
+        "dimension": "referential-integrity"
+      },
+      {
+        "ruleId": "B03",
+        "type": "hard",
+        "severity": "warn",
+        "source": "contracts/entity-readiness-rules.json#rules[20]",
+        "signal": "server/services/entity-compliance/entity-compliance-declarative-engine.cjs#runBodyDiagnostics(:298)",
+        "stage": "read-diagnostic",
+        "enforcement": "none（advisory 设计使然）",
+        "exit": "DIAGNOSTIC:合规页展示（isWorkbenchIssueFinding 显式排除）",
+        "derivation": "无（纯提醒）",
+        "dimension": "completeness"
+      },
+      {
+        "ruleId": "B04",
+        "type": "hard",
+        "severity": "error",
+        "source": "contracts/entity-readiness-rules.json#rules[21]",
+        "signal": "server/services/entity-compliance/entity-compliance-declarative-engine.cjs#runBodyDiagnostics(:301)",
+        "stage": "write-gate+read-diagnostic+pipeline",
+        "enforcement": "entity-repair.apply-create + entity-repair.preview-edit + pipeline.stage-0-5——实际落点注记：同 B02 键名错配，豁免见 rules-lifecycle-index.json#B04",
+        "exit": "missing_field",
+        "derivation": "server/services/governance/anomaly-handling-mode.cjs#deriveIssueHandling→fix(entity-relation-repair)",
+        "dimension": "referential-integrity"
+      }
+    ]
+  }
+}

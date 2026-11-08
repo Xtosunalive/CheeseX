@@ -1,0 +1,31 @@
+{
+  "phase": "fixture-missing",
+  "title": "Missing Artifact Fixture",
+  "status": "IN_PROGRESS",
+  "authorities": [
+    "docs/adr/ADR009-architecture-relation-capability-matrix.md"
+  ],
+  "allowedFiles": [
+    "docs/plans/missing-fixture.md"
+  ],
+  "requiredArtifacts": [
+    "docs/nonexistent-artifact-that-does-not-exist.md"
+  ],
+  "productionConsumers": [],
+  "profiles": ["architecture"],
+  "negativeTests": [
+    {
+      "description": "Missing artifact should fail",
+      "expectedBehavior": "artifacts_valid=failed"
+    }
+  ],
+  "environments": {
+    "requiresRealVault": false,
+    "vaultRealpath": "none",
+    "backupRoot": "none"
+  },
+  "manualCheckpoints": [],
+  "allowedVaultMutations": [],
+  "forbiddenMutations": [],
+  "expectedOutputs": ["missing output"]
+}

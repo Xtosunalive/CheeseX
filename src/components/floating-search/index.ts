@@ -1,0 +1,1 @@
+export { FloatingSearch } from "./FloatingSearch";

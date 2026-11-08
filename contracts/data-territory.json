@@ -1,0 +1,91 @@
+{
+  "$comment": "册外领地角色声明（数据域治理批 A7）——theschema-roles.json 只覆盖 data/theschema/**；本文件把活跃册外领地的角色说清（事实源/投影/流水/内容/可再生），供人查与后续治理引用。**只声明、不加严门禁**（A7 裁定：改版图 ≠ 都要纳入 strict 门禁）。执法面仅一条：check:data-roles ⑧ 面校验本文件在册可解析（存在性＋形状），不校验领地内容。改判角色先改本文件。关联裁决：PR-091（实体 frontmatter 执法边界）、PR-089（账本角色）。 四轴注记：领地必填 persistence/retention（D1/D2，Master 2026-10-23『补』）——册外文件无门禁，声明即全部。",
+  "schema_version": 1,
+  "territories": [
+    {
+      "id": "repo-runtime-dbs",
+      "classification": "运行态",
+      "paths": [
+        "data/master_graph.db",
+        "data/derived-index.db",
+        "data/runtime-state.db",
+        "data/telemetry.db"
+      ],
+      "roles": {
+        "master_graph.db": "投影·可重建（实体图缓存）",
+        "derived-index.db": "投影·可重建",
+        "runtime-state.db": "运行状态（重启可重放重建）",
+        "telemetry.db": "遥测·可丢弃（telemetry-store 自述）"
+      },
+      "note": "sqlite 同族含 -wal/-shm 边车文件；不进版本树",
+      "persistence": "local-only",
+      "retention": "local"
+    },
+    {
+      "id": "governance-mirror",
+      "classification": "只读镜像",
+      "paths": [
+        "data/governance/decisions-mirror.jsonl"
+      ],
+      "authority": "vault .ledger/decisions.jsonl（唯一事实源）；镜像由 decisions-mirror 三时机刷新",
+      "persistence": "local-only",
+      "retention": "local"
+    },
+    {
+      "id": "vault-anyshare",
+      "classification": "事实源与流水",
+      "paths": [
+        ".ledger/decisions.jsonl",
+        ".ledger/state-journal.jsonl",
+        ".ledger/channel-write-log.jsonl"
+      ],
+      "roles": {
+        ".ledger/decisions.jsonl": "⑤类决策流水·唯一事实源",
+        ".ledger/state-journal.jsonl": "③态耐久性流水（丢库不丢账，boot 重放重建）",
+        ".ledger/channel-write-log.jsonl": "⑤类通道写日志（路径＋内容哈希归属取证）"
+      },
+      "persistence": "local-only",
+      "retention": "project-lifetime"
+    },
+    {
+      "id": "vault-content",
+      "classification": "内容域（非 schema）",
+      "paths": [
+        "知识库/raw/**",
+        "知识库/wiki/entities/**"
+      ],
+      "roles": {
+        "知识库/raw/**": "文章正文内容",
+        "知识库/wiki/entities/**": "实体词条＋frontmatter（entity-growth/entity-parent 经 vault-io 写）"
+      },
+      "note": "实体 frontmatter 对 schema 值域的引用一致性执法主体待 PR-091 裁决",
+      "persistence": "local-only",
+      "retention": "project-lifetime"
+    },
+    {
+      "id": "taxonomy-observation-ledger",
+      "classification": "观察账本（机器写·append-only）",
+      "paths": [
+        "data/taxonomy-observations.jsonl"
+      ],
+      "roles": {
+        "data/taxonomy-observations.jsonl": "check-taxonomy-growth 每轮观察记录（按 vault 归账）——数据到达即落账并在门禁输出 delta；PR-088 施工：Master 2026-10-21 裁定「功能常驻，数据需要的时候能被发现」，不设日期/阈值判据，何时立契由人看账本数字裁"
+      },
+      "note": "丢失=观察历史丢失（功能下轮自动重建基线，首见时间重计）；不进版本树（同运行库族）；测试/夹具经 TAXONOMY_OBSERVATIONS_FILE 钉扎隔离",
+      "persistence": "local-only",
+      "retention": "current"
+    },
+    {
+      "id": "repo-backups",
+      "classification": "可再生",
+      "paths": [
+        "data/backups/"
+      ],
+      "roles": {
+        "data/backups/": "SPEC-012 WP-A 写前备份（backup-store）——可由 git 历史重建"
+      },
+      "persistence": "local-only",
+      "retention": "archive"
+    }
+  ]
+}

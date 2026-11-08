@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "2026-07-28T00:03:00.000Z",
+  "batches": [
+    {
+      "batchId": "retirement-fixture-batch",
+      "kind": "article_retirement",
+      "status": "published",
+      "createdAt": "2026-07-28T00:00:00.000Z",
+      "calculationStartedAt": "2026-07-28T00:01:00.000Z",
+      "calculatedAt": "2026-07-28T00:02:00.000Z",
+      "publishedAt": "2026-07-28T00:03:00.000Z",
+      "retirementSummary": {
+        "articleIds": ["retired-article"],
+        "totalImpacted": 0
+      },
+      "preview": {
+        "noOp": true,
+        "noOpReason": "retirement_already_absent",
+        "changes": { "nodes": 0, "relations": 0 }
+      },
+      "blockers": []
+    }
+  ]
+}

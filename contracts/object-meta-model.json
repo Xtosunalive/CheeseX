@@ -1,0 +1,393 @@
+{
+  "$comment": "业务对象元模型（Master 2026-10-23 框架裁决：类问题收敛——五层骨架×业界对应物，停止平铺打补丁）。本文件是 contracts/object-dictionary.json 的字段归属与扩展规则唯一框架源：字典卡片字段必须归入本模型六层之一；扩展按 extension_rules 三条走，禁止再向卡片平铺加无层字段。业界对应：DataHub（Entity/URN/Key Aspect＋Entity Type×subTypes＋@Relationship＋Aspect 扩展判定）、OpenMetadata（id/name/fullyQualifiedName/displayName 分离＋typed relationships：Containment/Ownership/Usage/Derivation）、ISO/IEC 11179（Part 3 属性四组＋Registration Status×Administrative Status 双状态机）、smart-data-dico（Stereotype 亚型机制——分配即带上元数据语义、不改顶层类型、role-gated 状态流 draft→submitted→approved）、Apache Atlas（Classification 可附加治理标签，独立于 Entity Type）。。上游律文：docs/adr/ADR-014-轻量化可执行本体元模型.md（六层框架×生命周期取值域）＋docs/adr/ADR-017-本体元素生命周期状态化转移.md（迁移边律文·本体族同形先例）——PR-259 处置批补 JSON→律文双向引用（回溯卫生项）",
+  "schema_version": 1,
+  "created": "2026-10-23",
+  "layers": {
+    "identity": {
+      "answers": "我是谁（与显示名分离的稳定标识）",
+      "fields": [
+        "object_id",
+        "canonical_name"
+      ],
+      "principles": [
+        "object_id＝URN 式稳定标识：不嵌入段名结构等易变信息（DataHub URN 原则；W3C Cool URIs）——段重组不引起 id 变",
+        "id 与显示名分离：canonical_name 承担显示/检索（SKOS skos:prefLabel 语义，每语言唯一）",
+        "存量债已清（2026-10-23 N6 裁决执行）：现役 object_id 已全量迁移为 UUID 不透明 id（urn 式稳定标识落地——段重组不再引起 id 变）；旧段名合成 id→UUID 映射机器可查（contracts/object-dictionary.json appendix.id_migration），历史文档/裁决原文中的旧 id 以映射表对齐",
+        "对象身份唯一性＝域声明＋写门执法职责（声明族 unique-* → 写门 409 点名持有者，server/services/entity-compliance/field-rule-declarations.cjs）；元模型是框架，不持唯一性索引——下场执法即第二权威（ADR-015）（PR-259 #1）"
+      ],
+      "standard_refs": [
+        "DataHub Entity＋URN＋Key Aspect（Key 字段严格限定 String/Enum）",
+        "OpenMetadata id(UUID)/name/fullyQualifiedName/displayName 四分离",
+        "W3C Cool URIs",
+        "SKOS prefLabel"
+      ]
+    },
+    "ontology": {
+      "answers": "我是什么类（顶层类型 × 亚型，两维度并存）",
+      "fields": [
+        "object_kind",
+        "subtype"
+      ],
+      "enums": {
+        "object_kind": [
+          {
+            "value": "business_object",
+            "meaning": "业务对象——业务内容本体（词表/字段/本体），人直接经营，变更随业务生长"
+          },
+          {
+            "value": "config_object",
+            "meaning": "配置对象——机制配置（投影/约束/版本富化），生命周期、变更频率、权限模型与业务对象不同，按类分治"
+          },
+          {
+            "value": "ledger",
+            "meaning": "账本——追加式记录，只增不改"
+          },
+          {
+            "value": "document",
+            "meaning": "文档——人写治理/叙述文档，文件系统维护，不进配置页导航"
+          },
+          {
+            "value": "runtime_view",
+            "meaning": "运行时视图——查询时动态计算、不持有持久化存储的派生对象类型；本体论地位是『查询的产物』而非『独立存在的实体』（Master 2026-10-23 批准定义；DataHub/OpenMetadata 运行时视图同构惯例——就是个标记『无持久化存储、数据现算』的类型标签，不发明更复杂概念）"
+          }
+        ],
+        "subtype": [
+          {
+            "value": "value_domain",
+            "meaning": "字段值域——某字段合法取值集合（受控词表；smart-data-dico Value Object/Reference Data 同构）"
+          }
+        ]
+      },
+      "principles": [
+        "顶层类型与亚型不是二选一（DataHub Entity Type × subTypes Aspect；smart-data-dico Stereotype）：加 subtype 不改变 object_kind、不翻转、不新增顶层类",
+        "subtype=value_domain＝字段值域（smart-data-dico Value Object/Reference Data 同构）：该对象是某些 frontmatter 字段的合法取值集合——2026-10-23 裁定 taxonomy=config_object＋subtype value_domain，其余词表卡同样挂 subtype 不翻顶层类",
+        "subtype 可_null：未定型不强挂"
+      ],
+      "standard_refs": [
+        "DataHub subTypes Aspect",
+        "smart-data-dico Stereotype（Aggregate Root/Value Object/Reference Data 等预定义，分配自动填充元数据语义）"
+      ]
+    },
+    "characteristics": {
+      "answers": "我长什么样（特征按 ISO 11179 Part 3 四组归属）",
+      "groups": {
+        "identification": [
+          "object_id",
+          "canonical_name"
+        ],
+        "definition": [
+          "definition",
+          "definition_evidence",
+          "canonical_name_evidence",
+          "aliases",
+          "technical_refs",
+          "notes"
+        ],
+        "representation": [
+          "data_domain",
+          "role",
+          "writer",
+          "editable",
+          "subtype",
+          "future_split"
+        ],
+        "administrative": [
+          "authority_source",
+          "write_path",
+          "object_kind_note",
+          "edited_by_tab",
+          "sub_key"
+        ]
+      },
+      "principles": [
+        "特征字段必须归入四组之一（Identification/Definition/Representation/Administrative），新特征先定组再落字段",
+        "技术引用与用户叫法分离：aliases＝用户叫法，technical_refs＝技术引用（物理段名/消费字段名/代码内派生名/写命令名/规则名）——检索匹配只吃 aliases"
+      ],
+      "standard_refs": [
+        "ISO/IEC 11179-3 Basic Attributes（Identification 6 项/Definition/Relational/Representation 7 项/Administrative 4 项）",
+        "smart-data-dico 属性类型与约束"
+      ]
+    },
+    "relationships": {
+      "answers": "我和谁有什么关系（类型化关系边，双向可遍历）",
+      "implementation": "双层形态（EDGE-RELATION-GOV-001，2026-10-24 Master 批准修订）：① 持久关系对象——独立对象承载关系事实，与节点平级、有稳定身份/证据/审批归属（object_kind 待裁决 D1：建议 config_object；数据住址与域归属随 D1 一并裁决——见 docs/spec/SPEC-026 §七）；② 派生 edge 投影——②类 derived-index 行级表 graph_nodes/edges（boot 重建＋变更挂钩；可重建、删库零损失、不占 object_kind；域=derived-index-data 扩域）。cards[].relationships.edges[]：{type, to, note?} 保留为卡片人读视图——存量不手工清洗，投影读取时 canonicalize 归一",
+      "edge_contract": {
+        "fields": {
+          "edge_id": "稳定身份＝source|target|relation_type|source_file|line_number|evidence_hash（复用 stableEdgeId，server/shared/edge-identity.cjs——不重写）",
+          "source_id": "出链节点 id（图节点：14 类实体统一抽象）",
+          "target_id": "入链节点 id",
+          "relation_type": "开放枚举＝两个既有单源的并集：本层 edge_type 五值（治理语义边）∪ ontology.yaml relation_types 注册表（机器边唯一词表源，含 SHACL domain/range 与断言政策；extract_graph.py 为生产者非词表源，wikilink_type_labels 为触发词典）——两源各守其位，本契约不复制词表清单、不造第三套（EDGE-RELATION-GOV-001 §3.6）",
+          "source_file": "证据：源文件路径（机器边可空）",
+          "line_number": "证据：行号（机器边可空）",
+          "evidence_hash": "证据：内容哈希（机器边可空）",
+          "review_status": "approved | pending | rejected（对齐 contracts/http-api.openapi.json#/components/schemas/ReviewStatus）",
+          "properties": "扩展属性对象（含 reviewStatus 投影等）"
+        },
+        "naming": "持久层与 API 层统一 snake_case：edge_id/source_id/target_id/relation_type；不再新增 from/to 混用（存量 alias 回退链只读不改，收敛随阶段 4 退役）"
+      },
+      "enums": {
+        "edge_type": [
+          {
+            "value": "derivation",
+            "meaning": "派生——本对象由目标派生（或反向）"
+          },
+          {
+            "value": "usage",
+            "meaning": "被消费——门禁/校验器/管线读它"
+          },
+          {
+            "value": "reference",
+            "meaning": "值域引用——本对象是某些字段的合法值域"
+          },
+          {
+            "value": "co_editing",
+            "meaning": "共编——同段多页签编辑"
+          },
+          {
+            "value": "containment",
+            "meaning": "包含——主体层挂载等包含关系（预留）"
+          }
+        ]
+      },
+      "type_semantics": {
+        "derivation": "派生（OpenMetadata Derivation/lineage；DataHub 可遍历边）——derives_from/derived_by",
+        "usage": "被谁消费（OpenMetadata Usage）——referenced_by（门禁/校验器/管线）；分工声明（2026-10-23 Master 批准）：机器账＝contracts/theschema-roles.json 的 consumers/referenced_by（TALOS 单 registry 账同构——本边不与机器账对账），字典 usage 边定位为人读语义描述",
+        "reference": "值域引用（Reference）——本对象作为哪些字段的合法值域（→ fields 字段字典）",
+        "co_editing": "共编（Co-editing）——co_edited_by_tabs 同段多页签",
+        "containment": "包含（OpenMetadata Containment）——预留：主体层挂载等包含关系"
+      },
+      "standard_refs": [
+        "DataHub @Relationship（Aspect 内外键属性＋注解，双向 walkable）",
+        "OpenMetadata typed relationships（Containment/Ownership/Usage/Derivation）"
+      ]
+    },
+    "status": {
+      "answers": "我处在什么状态（两条正交状态机，不是布尔标志堆）",
+      "fields": [
+        "quality_status",
+        "lifecycle_status"
+      ],
+      "enums": {
+        "quality_status": [
+          {
+            "value": "incomplete",
+            "meaning": "不完整——证据缺或名未定（有实无名/名实不符待重审）"
+          },
+          {
+            "value": "recorded",
+            "meaning": "已登记——AI 提名带证据在册，待 Master 确认"
+          },
+          {
+            "value": "certified",
+            "meaning": "已认证——Master 确认（转换 role-gated：AI 提名=recorded，Master 批=certified）"
+          }
+        ],
+        "lifecycle_status": [
+          {
+            "value": "draft",
+            "meaning": "草稿——起草中未提交"
+          },
+          {
+            "value": "submitted",
+            "meaning": "已提交——待审批"
+          },
+          {
+            "value": "approved",
+            "meaning": "在役——正常存在（默认态）"
+          },
+          {
+            "value": "reserved",
+            "meaning": "预留位——登记在册、物理允许缺失"
+          },
+          {
+            "value": "retired",
+            "meaning": "退役——保留历史、不再使用"
+          }
+        ]
+      },
+      "principles": [
+        "质量成熟度（ISO 11179 Registration Status 同构：Incomplete→Recorded→Certified，终态另有 Retired 归 lifecycle）与生命周期位置（Administrative Status 同构）正交——替代原 naming_status（混两维度）与 segment_status（只表达 lifecycle 一维）",
+        "转换 role-gated（smart-data-dico editors submit/admins approve 同构）：AI 提名=recorded，Master 确认=certified；reserved=预留位（物理允许缺失）；retired=退役",
+        "迁移映射：naming_status confirmed→certified／proposed→recorded／needs_decision→incomplete；segment_status reserved→lifecycle_status reserved，未标→approved",
+        "修订并发控制＝各域写服务 OCC 职责（SOURCE_CHANGED 409；ADR-014 §6.1：不建全局第二把锁）；元模型不设 revision 字段——显式不收编即闭环，防顺手补字段暗改上游（PR-259 #2）",
+        "字典卡族生命周期迁移边表住 contracts/dictionary-lifecycle.json（族专用单源，同形先例 article／ontology／rules 三族）——元模型不复制边清单（引而不抄）；迁移合法性按边判定、谁迁的走既有审计（ADR-017 §二.4 判定与审计分离）（PR-259 #4）"
+      ],
+      "standard_refs": [
+        "ISO/IEC 11179 Registration Status（Incomplete/Recorded/Certified/Standardized/Retired）× Administrative Status",
+        "smart-data-dico status lifecycle（draft→submitted→approved/returned，role-gated）"
+      ]
+    },
+    "governance_tags": {
+      "answers": "我现在被怎么治理（可附加标签，非对象固有属性，不进身份层）",
+      "fields": [
+        "governance_tags"
+      ],
+      "known_tags": [
+        "confidence",
+        "transitional"
+      ],
+      "principles": [
+        "治理标签可附加可撤销（Apache Atlas Classification 同构：ClassificationDef 声明可附加范围，独立于 Entity Type）——身份字段只回答『我是谁』，治理标签回答『我怎么被治理』",
+        "confidence（AI 抽取置信度 high/medium/low）与 transitional（过渡态标记）归此层，不再平铺卡片顶层"
+      ],
+      "standard_refs": [
+        "Apache Atlas Classification（可附加治理标签）"
+      ]
+    }
+  },
+  "extension_rules": [
+    "① 新属性 → 归入现有层的新字段（DataHub 判定：现有 Aspect 装得下就不新建 Entity——特征字段先进 characteristics 四组）",
+    "② 新类型标签 → 新 subtype 值（smart-data-dico：Stereotype 扩展不改顶层类型、不破坏 identity）",
+    "③ 现有层与亚型都装不下 → 才开新层或新顶层类（DataHub fork-vs-extend；须先修订本模型并过 Master）"
+  ],
+  "field_ownership": {
+    "$comment": "字典卡片全部现役字段的层归属索引（机器校验面：卡片出现未登记字段即红）；fields=字段级语义条目（2026-10-27 批 B 档治理粒度：字段正名/说明单源，首批「产品版本」对象）",
+    "identity": [
+      "object_id",
+      "canonical_name"
+    ],
+    "ontology": [
+      "object_kind",
+      "subtype",
+      "object_kind_note"
+    ],
+    "characteristics": [
+      "definition",
+      "definition_evidence",
+      "canonical_name_evidence",
+      "aliases",
+      "technical_refs",
+      "data_domain",
+      "role",
+      "writer",
+      "editable",
+      "future_split",
+      "authority_source",
+      "write_path",
+      "edited_by_tab",
+      "notes",
+      "sub_key",
+      "fields"
+    ],
+    "relationships": [
+      "relationships"
+    ],
+    "status": [
+      "quality_status",
+      "lifecycle_status",
+      "retirement"
+    ],
+    "governance_tags": [
+      "governance_tags"
+    ]
+  },
+  "machine_read_policy": {
+    "$comment": "读侧纪律（TALOS documents.default_machine_read 同构，2026-10-23 Master 批准补）：消费方按通道读，越通道即违规——页面与检索不得吃技术引用，技术定位不得依赖显示名。枚举值 meaning 逐值释义同批补齐（TALOS status-values 式）。。写侧座次（PR-259 #5，读写对称补全）：写通道唯一＝命令入口（ADR-016）＋write-gate 缺省 fail-closed（server/shared/write-gate-policy.cjs）＋SPEC-046 八环；判据清单不复制进元模型（引而不抄）",
+    "channels": {
+      "tab_label_derivation": {
+        "read": [
+          "canonical_name",
+          "aliases"
+        ],
+        "forbidden": [
+          "technical_refs"
+        ],
+        "consumer": "页面工作包 TAB_LABELS／导航派生"
+      },
+      "search_matching": {
+        "read": [
+          "canonical_name",
+          "aliases"
+        ],
+        "forbidden": [
+          "technical_refs"
+        ],
+        "consumer": "检索/匹配"
+      },
+      "technical_resolution": {
+        "read": [
+          "object_id",
+          "technical_refs"
+        ],
+        "forbidden": [],
+        "consumer": "代码/门禁/管线定位"
+      }
+    }
+  },
+  "transduction_rules": {
+    "$comment": "跨层传导规则（2026-10-23：R2/R5 Master 批准直落＝TR1/TR2；R1 随 B6=a 裁决落地＝TR3；R6 与 B6 同批落地＝TR4——transitional 卡面定形为 governance_tags.transitional 布尔键〔与 confidence 同构〕；R3 已随 runtime_view 扩枚举落地＝TR5（Master 2026-10-23）；R4 已由既有执法覆盖不立）。声明单源在此——check-object-dictionary 传导面按 type 分发解释，参数从本块读取不硬编码；未知 type 即红（fail-closed：元模型加规则而无执法面属假绿）。",
+    "rules": [
+      {
+        "id": "TR1",
+        "type": "boundary_depends_converged_implies_determined",
+        "statement": "边界条 depends_on 非空且引用的 master_items 全部 ruled/closed ⇒ 该边界 status 不得为 needs_decision（裁决联动翻态——裁决齐了边界态必须跟上）",
+        "settled_status": [
+          "ruled",
+          "closed"
+        ],
+        "pending_status": "needs_decision",
+        "evidence_ref": "docs/plans/传导规则修正稿-对象元模型-2026-10-23.md R2"
+      },
+      {
+        "id": "TR2",
+        "type": "reference_edge_implies_subtype",
+        "statement": "卡片 relationships.edges 含 type=reference（值域引用边）⇒ subtype=value_domain。只锁 subtype 不碰 object_kind——2026-10-23 Master 裁定『挂 subtype 不翻顶层类』",
+        "edge_type": "reference",
+        "subtype": "value_domain",
+        "evidence_ref": "docs/plans/传导规则修正稿-对象元模型-2026-10-23.md R5"
+      },
+      {
+        "id": "TR3",
+        "type": "editable_true_requires",
+        "statement": "editable=true 的必要条件：data_domain=L1 且 lifecycle_status=approved（可编辑的必是源层现役对象——L2 派生/L3 运行时聚合/预留位一律不可直改；等价于层级⇒不可编辑＋预留⇒不可编辑）。B6=a（Master 2026-10-23）裁决落地；editable 同批转必填、13 卡回填、『L1（预留）』注记洗净。字段级可改性＝域声明职责（immutable 声明→写门 422 rule=immutable→能力位，单源 server/services/entity-compliance/field-rule-declarations.cjs）；对象级 editable（本条）管「这张卡能不能直改」，两层语义正交、互相指认（PR-259 #0）",
+        "requires": {
+          "data_domain": "L1",
+          "lifecycle_status": "approved"
+        },
+        "evidence_ref": "docs/plans/传导规则修正稿-对象元模型-2026-10-23.md R1；contracts/object-dictionary.json pending_decisions B6"
+      },
+      {
+        "id": "TR4",
+        "type": "lifecycle_forbids_tag",
+        "statement": "lifecycle_status=retired（终态）⇒ governance_tags.transitional 不得为 true（过渡标签不进终态——retired 是定论不是过渡）。transitional 卡面形态定形：governance_tags.transitional 布尔键，与 confidence 同构（B6 同批，Master 2026-10-23）",
+        "forbidden_when_lifecycle": "retired",
+        "tag": "transitional",
+        "evidence_ref": "docs/plans/传导规则修正稿-对象元模型-2026-10-23.md R6"
+      },
+      {
+        "id": "TR5",
+        "type": "runtime_view_implies_non_source",
+        "statement": "object_kind=runtime_view（查询产物，无持久化存储）⇒ role 不得为 source（源数据改它=改事实——运行时现算对象不是事实载体）。R3 兑现（Master 2026-10-23 批准扩枚举同批落地）",
+        "kind": "runtime_view",
+        "forbidden_role": "source",
+        "evidence_ref": "docs/plans/传导规则修正稿-对象元模型-2026-10-23.md R3；contracts/object-dictionary.json discovery 卡（Master 批准定义）"
+      },
+      {
+        "id": "TR6",
+        "type": "retired_requires_replacement_seat",
+        "statement": "lifecycle_status=retired ⇒ retirement.reason 与 retirement.replaced_by 非空，且 replaced_by 指向同 object_kind、approved、非自指的现存卡（ADR-014 §5.2 的字典卡族落点对应，WP-115）。迁移边合法性另住 contracts/dictionary-lifecycle.json（族专用单源）——本条只管退役三件套座次。事后清空 reason、改动 replaced_by 指向同样拒（历史锚点，ADR-017 §二.9 同构）。",
+        "seat": {
+          "field": "retirement",
+          "target": {
+            "field": "replaced_by",
+            "kind_field": "object_kind",
+            "status_field": "lifecycle_status",
+            "status_value": "approved",
+            "self": false
+          },
+          "subfields": [
+            {
+              "name": "reason",
+              "type": "string"
+            },
+            {
+              "name": "replaced_by",
+              "type": "string"
+            }
+          ]
+        },
+        "evidence_ref": "docs/plans/本体对账结论-PR-259-五组与可改性-2026-11-05.md #3；ADR-014 §5.2；PR-259"
+      }
+    ]
+  }
+}

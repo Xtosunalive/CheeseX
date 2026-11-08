@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "article-lifecycle",
+  "description": "文章生命周期路径角色契约 schema（PR-060 拆表形态：行内字段机器执法）",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "roles"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "roles": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "root",
+          "steady_state_copies",
+          "retire_on",
+          "note",
+          "mutability"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "enum": [
+              "draft",
+              "standard-working",
+              "standard-formal",
+              "source-archive"
+            ]
+          },
+          "root": {
+            "type": "string",
+            "pattern": "^知识库/(raw/(drafts|precleaned|archive)|wiki/articles)$"
+          },
+          "submission_dir": {
+            "type": "string",
+            "pattern": "^知识库/raw/drafts/[^/]+$"
+          },
+          "steady_state_copies": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "retire_on": {
+            "type": "string",
+            "minLength": 1
+          },
+          "note": {
+            "type": "string"
+          },
+          "mutability": {
+            "$ref": "#/definitions/mutability"
+          }
+        }
+      }
+    },
+    "transitions": {
+      "type": "array",
+      "description": "生命周期转移边定义（WP-066 立法）：from/to＝角色 id，action＝具名动作",
+      "items": {
+        "type": "object",
+        "required": [
+          "from",
+          "to",
+          "action"
+        ],
+        "properties": {
+          "from": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "action": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "definitions": {
+    "mutability": {
+      "description": "可变性档（SPEC-028 单源；其他契约引用本定义禁另抄）：read-only-evidence=写一次只读（wx+0o444，机器执法）/append-only=只追加账本（本表仅定义预留）/human-editable=人可改本体（原子写＋乐观锁，零新限制）",
+      "enum": [
+        "read-only-evidence",
+        "append-only",
+        "human-editable"
+      ]
+    }
+  }
+}

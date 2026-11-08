@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "Node→Python 词表载荷信封（WP-049／SPEC-044 C2，ADR-016 §四-2 裁决「装载收进同一宿主」）。信封是跨进程数据形态的出生即账契约：envelope_version 不匹配＝拒绝消费不得回落自读；source_fingerprint 是来源收据（sha256 of raw yaml，ADR-015：收据不是权威，接收方不重算权威）；files 内每件的业务形态由 contracts/theschema.registry.json 登记的各 schema 单源管辖，本契约不复制第二份。三态语义：值形态在序列化下保持原样（\"\" 保空串、[] 保空数组、缺键保持缺键）——接收方必须区分，禁止归一吞并（实证清单 P3 病根）。",
+  "type": "object",
+  "required": ["envelope_version", "source_fingerprint", "generated_at", "files"],
+  "additionalProperties": false,
+  "properties": {
+    "envelope_version": {
+      "const": 1
+    },
+    "source_fingerprint": {
+      "type": "object",
+      "description": "逐件 sha256 指纹（仅收录 present 件；missing 件不出现键）",
+      "additionalProperties": {
+        "type": "string",
+        "pattern": "^[0-9a-f]{64}$"
+      }
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "degraded": {
+      "type": "object",
+      "description": "装载点形态降级收据（WP-049 L3）：逐件脏节点路径段——path 点拼接仅供人读，pathParts 为机器可逆段（含点 ID 不被切碎）。消费面据此重建 invalid 标记（如 ontology_relation_lifecycle 的产出闸），缺省＝无降级",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": ["path", "pathParts"],
+          "properties": {
+            "path": { "type": "string" },
+            "pathParts": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "object",
+      "description": "逐件已装载词表数据（业务形态归 theschema.registry.json 各 schema 管辖）",
+      "additionalProperties": true
+    }
+  }
+}

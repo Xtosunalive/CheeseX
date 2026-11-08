@@ -1,0 +1,127 @@
+domains:
+  ref: 参考资料
+  ops: 运维操作
+  concept: 概念
+  product: 产品
+  meta: 元数据
+  arch: 架构
+  tech: 技术域
+subdomains:
+  ref:
+    - id: overview
+      label: 总览
+  ops:
+    - id: maintain
+      label: 维护
+  concept:
+    - id: method
+      label: 方法论
+  meta:
+    - id: doc
+      label: 文档
+  arch:
+    - id: architecture
+      label: 架构
+  tech:
+    - id: api
+      label: 应用程序接口
+  product:
+    - id: general
+      label: 通用
+article_types:
+  - 排错指南
+  - 常见问题
+  - 标准问答
+  - 场景规范
+  - 巡检方案
+  - 方案设计
+  - 升级经验
+  - 最佳实践
+  - 产品简介
+doc_types:
+  - 用户手册
+  - 部署指南
+  - 配置手册
+  - 运维手册
+  - 技术文档
+  - 测试报告
+  - 导航索引
+  - 巡检手册
+tags: {}
+lifecycle:
+  review_cycle:
+    - 30d
+    - 90d
+    - 180d
+    - 365d
+    - never
+  status:
+    - 灰度
+    - 在线
+    - 退役
+    - 已驳回
+  default_status: 灰度
+arch_categories: []
+layers:
+  - id: gateway
+    label: 网关与安全边界
+    color: slate
+    layout: central
+  - id: foundation
+    label: 基础支撑层
+    color: indigo
+    layout: central
+  - id: data-lake
+    label: 内容数据湖
+    color: amber
+    layout: central
+  - id: cloud-native
+    label: 云原生基础设施
+    color: slate
+    layout: central
+  - id: service
+    label: 核心服务层
+    color: cyan
+    layout: central
+  - id: open
+    label: 开放接口层
+    color: indigo
+    layout: central
+  - id: application
+    label: 一体化应用层
+    color: teal
+    layout: central
+  - id: external
+    label: 外部系统与集成
+    color: gray
+    layout: left-panel
+  - id: crosscutting
+    label: 横切能力与安全
+    color: rose
+    layout: right-panel
+architecture_projection:
+  product: ''
+  version: ''
+  product_aliases: {}
+  layer_aliases: {}
+  category_aliases: {}
+  subdomain_aliases: {}
+  projected_relation_types:
+    - DEPENDS_ON
+    - STORES_IN
+    - INDEXES
+    - BACKS_UP
+    - ENCRYPTS
+    - CONNECTS_TO
+  wikilink_type_labels:
+    依赖: DEPENDS_ON
+    连接: CONNECTS_TO
+    存储: STORES_IN
+    备份: BACKS_UP
+    索引: INDEXES
+    加密: ENCRYPTS
+    关联: RELATED
+category_map: {}
+modules: {}
+subdomain_layer_map: {}
+tag_aliases: {}

@@ -1,0 +1,29 @@
+{
+  "phase": "fixture-scope",
+  "title": "Out Of Scope Fixture",
+  "status": "IN_PROGRESS",
+  "authorities": [
+    "docs/adr/ADR009-architecture-relation-capability-matrix.md"
+  ],
+  "allowedFiles": [
+    "docs/plans/scope-fixture.md"
+  ],
+  "requiredArtifacts": [],
+  "productionConsumers": [],
+  "profiles": ["architecture"],
+  "negativeTests": [
+    {
+      "description": "Out-of-scope file should fail boundary check",
+      "expectedBehavior": "file_boundary_valid=failed"
+    }
+  ],
+  "environments": {
+    "requiresRealVault": false,
+    "vaultRealpath": "none",
+    "backupRoot": "none"
+  },
+  "manualCheckpoints": [],
+  "allowedVaultMutations": [],
+  "forbiddenMutations": [],
+  "expectedOutputs": ["scope output"]
+}

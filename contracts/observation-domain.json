@@ -1,0 +1,6 @@
+{
+  "$comment": "SPEC-012 WP-B：④类观测痕迹已迁 telemetry.db（data/）——本声明语义从「观测域合法落点与排除域」翻转为反向断言「vault 内禁止落观测痕迹」。三消费方处置：watcher 监听忽略/reconcile 漂移排除保留为过渡兼容（WP-J 退役）；check:vault-observation-exit 门禁执法本断言（dir 在 vault 出现即红）。ledgerDomain 字段保留作迁移落账域先例（health: 提交）。",
+  "dir": ".ledger/health",
+  "ledgerDomain": "health",
+  "forbidden": true
+}

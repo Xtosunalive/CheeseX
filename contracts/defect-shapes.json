@@ -1,0 +1,391 @@
+{
+  "$schema": "./defect-shapes.schema.json",
+  "registry_version": 2,
+  "description": "缺陷形状族登记册（P6 试点第一族，WP-083）。一族＝「同一份事实被手写抄在多处」的一个具体实例面：记权威源、普查口径、计数天花板、执法面指针与四要素豁免。判据原文住 shape_source（只回指编号，不复制句式）。本册不判「某条 PR 修没修」，判「这一族还剩多少副本、内容变没变、谁声称已上闸」。",
+  "shape_source": "docs/plans/同型缺陷判据与确认清单-2026-10-31.md",
+  "families": [
+    {
+      "id": "P6-F1",
+      "shape": "P6",
+      "fact": "TheSchema 的写入该走哪条通道（vault 通道还是仓内通道）——PR-202 病灶：主源翻回仓内后服务侧仍各自自判，恒走 vault 通道被目的地执法拦成 500",
+      "owner": "quality-gate-engineer",
+      "canonical_source": {
+        "file": "server/shared/theschema-write.cjs",
+        "note": "唯一门（WP-079，Master 裁定「全都要唯一门」）——通道选择只在此处发生一次；服务侧不得自判，门外直写即红"
+      },
+      "census": {
+        "kind": "readout",
+        "script": "scripts/quality/check-schema-writers.mjs",
+        "parse": "channel_throat=.*?命中 (\\d+)"
+      },
+      "enforced_by": {
+        "gate": "schema-writers",
+        "face": "⑩"
+      },
+      "ceiling": 1,
+      "status": "gated",
+      "gate": {
+        "default_deny": true,
+        "exemption_ratchet": true,
+        "destruction_proof": {
+          "test_file": "scripts/quality/__tests__/theschema-writer-scan.test.mjs",
+          "case": "面⑩ 谓词 A：直连仓内通道的模块即红，咽喉与通道本体不红"
+        }
+      },
+      "note": "读数取执法面自己的「命中」数（含在册豁免的命中），不另抄谓词——抄即自犯本族所执法的形状。天花板 1＝entity-repair-service 那条带理由豁免的命中，只减不增；豁免名单由面⑩ 自持（THROAT_EXEMPT），本册不复列"
+    },
+    {
+      "id": "P6-F2",
+      "shape": "P6",
+      "fact": "写敏感作用域变量「缺席即拒还是允许回落」这份处置——曾以 fail_closed 手抄 26 处存在，与规则原文互斥而门禁全绿（PR-203 的形状因，PR-207/211 所记）",
+      "owner": "quality-gate-engineer",
+      "canonical_source": {
+        "file": "contracts/runtime-scope.json",
+        "note": "权威＝本文件 rules.no_implicit_fallback_on_write 原文＋各登记解析器的实现；处置不再是可自填的位（WP-082 已把 26 处手抄位归零）"
+      },
+      "census": {
+        "kind": "readout",
+        "script": "scripts/quality/check-runtime-scope.mjs",
+        "parse": "fallback_exceptions=(\\d+)"
+      },
+      "enforced_by": {
+        "gate": "runtime-scope",
+        "face": "⑨"
+      },
+      "ceiling": 5,
+      "status": "gated",
+      "gate": {
+        "default_deny": true,
+        "exemption_ratchet": true,
+        "destruction_proof": {
+          "test_file": "scripts/quality/__tests__/check-runtime-scope.test.mjs",
+          "case": "面⑨ 反例③：废字段回潮即红（fail_closed 不许复活，两侧都拦）"
+        }
+      },
+      "note": "读数 fallback_exceptions＝走署名例外道的写敏感变量条数，即「实现免检」的余量（现册 KB_VAULT／KB_DATA_DIR／THESCHEMA_DIR／API_BASE／PIPELINE_TRAJECTORIES_DIR）——须被读成「五处免检」而不是「五项合规」；天花板 5 只减不增，每压下一条即 PR-211 第三刀的进展入账。2026-11-03 WP-089/PR-213 抬升 4→5：第 5 条不是新增免检实现——同一条实现（merge-inferred 轨迹写）从探针道（假 fail-closed 证据）改署名例外道（真话：SPEC-025 C5 轨迹失败不阻断、运行期后果档③），净效果＝面⑨ 读数不再高估证据强度；改道方向由 check-runtime-scope.test.mjs 两条新断言钉死（例外 register=PR-213＋解析器行不得回挂探针），例外与探针并存即红「例外空转」"
+    },
+    {
+      "id": "P6-F3",
+      "shape": "P6",
+      "fact": "执法清单本身被手抄：checker 各自揣一份仓内路径清单／名单，权威源变了不回灌（PR-208 剩余半边，人读口径 21/49）",
+      "owner": "quality-gate-engineer",
+      "canonical_source": {
+        "file": "contracts/quality-gates.json",
+        "note": "清单类事实的应住地＝各自契约文件（quality-gates／runtime-scope／data-domains…）；checker 该读契约，不该把契约里的住址再抄一份进自己文件头"
+      },
+      "census": {
+        "kind": "scan",
+        "roots": [
+          "scripts/quality"
+        ],
+        "file_pattern": "^scripts/quality/.+\\.mjs$",
+        "scan_comments": true,
+        "exclude_files": [
+          "scripts/quality/check-defect-shapes.mjs"
+        ],
+        "patterns": [
+          {
+            "label": "checker 自持的仓内路径字面量",
+            "re": "[\"'`](?:server|scripts|src|contracts|data|docs)/[A-Za-z0-9_@./+-]*[A-Za-z0-9_.-][\"'`]"
+          }
+        ],
+        "join": {
+          "sources": [
+            "contracts/*.json"
+          ],
+          "value_pattern": "^(?:server|scripts|src|contracts|data|docs)/[A-Za-z0-9_@./+-]*[A-Za-z0-9_.-]$",
+          "forms": [
+            "collection_member",
+            "comparison_operand",
+            "alias_data_member"
+          ],
+          "lens_limits": [
+            "assignment_only_no_list_use",
+            "comment_or_template_prose",
+            "concatenated_or_multiline_path",
+            "method_argument_membership",
+            "cross_file_alias",
+            "non_declarator_binding",
+            "use_before_declarator"
+          ],
+          "lens_generation": 11,
+          "self_key_excludes": [
+            "$id",
+            "$schema",
+            "$comment",
+            "generator",
+            "roots",
+            "canonical_source",
+            "census"
+          ],
+          "authority_exemptions": [
+            {
+              "file": "scripts/quality/shared/dev-log-ledger.mjs",
+              "value": "src/lib/navigation.ts",
+              "why": "辖区归属权威视图（AGENTS §四：OWNER_ZONE_PREFIXES＝机器合规权威，dev-log-roles.mjs＝人读身份唯一事实源，键集三向一致由 dev-log-roles.test 机器核）——本行是辖区前缀权威定义本身，与两域表/门册的 authority 名册「同串异义」（它说领域权威，我说目录归属），字面相等非抄本（PR-216 A5 裁决，Master 2026-11-03「都按推荐办」）",
+              "register": "PR-216"
+            },
+            {
+              "file": "scripts/quality/shared/dev-log-ledger.mjs",
+              "value": "src/lib/request-status.ts",
+              "why": "辖区归属权威视图（AGENTS §四：OWNER_ZONE_PREFIXES＝机器合规权威，dev-log-roles.mjs＝人读身份唯一事实源，键集三向一致由 dev-log-roles.test 机器核）——本行是辖区前缀权威定义本身，与两域表/门册的 authority 名册「同串异义」（它说领域权威，我说目录归属），字面相等非抄本（PR-216 A5 裁决，Master 2026-11-03「都按推荐办」）",
+              "register": "PR-216"
+            },
+            {
+              "file": "scripts/quality/shared/dev-log-ledger.mjs",
+              "value": "src/lib/schema-shape.ts",
+              "why": "辖区归属权威视图（AGENTS §四：OWNER_ZONE_PREFIXES＝机器合规权威，dev-log-roles.mjs＝人读身份唯一事实源，键集三向一致由 dev-log-roles.test 机器核）——本行是辖区前缀权威定义本身，与两域表/门册的 authority 名册「同串异义」（它说领域权威，我说目录归属），字面相等非抄本（PR-216 A5 裁决，Master 2026-11-03「都按推荐办」）",
+              "register": "PR-216"
+            },
+            {
+              "file": "scripts/quality/shared/dev-log-ledger.mjs",
+              "value": "src/lib/table-url.ts",
+              "why": "辖区归属权威视图（AGENTS §四：OWNER_ZONE_PREFIXES＝机器合规权威，dev-log-roles.mjs＝人读身份唯一事实源，键集三向一致由 dev-log-roles.test 机器核）——本行是辖区前缀权威定义本身，与两域表/门册的 authority 名册「同串异义」（它说领域权威，我说目录归属），字面相等非抄本（PR-216 A5 裁决，Master 2026-11-03「都按推荐办」）",
+              "register": "PR-216"
+            },
+            {
+              "file": "scripts/quality/shared/dev-log-ledger.mjs",
+              "value": "contracts/http-api.openapi.json",
+              "why": "辖区归属权威视图（AGENTS §四：OWNER_ZONE_PREFIXES＝机器合规权威，dev-log-roles.mjs＝人读身份唯一事实源，键集三向一致由 dev-log-roles.test 机器核）——本行是辖区前缀权威定义本身，与两域表/门册的 authority 名册「同串异义」（它说领域权威，我说目录归属），字面相等非抄本（PR-216 A5 裁决，Master 2026-11-03「都按推荐办」）",
+              "register": "PR-216"
+            },
+            {
+              "file": "scripts/quality/shared/dev-log-ledger.mjs",
+              "value": "contracts/quality-gates.json",
+              "why": "辖区归属权威视图（AGENTS §四：OWNER_ZONE_PREFIXES＝机器合规权威，dev-log-roles.mjs＝人读身份唯一事实源，键集三向一致由 dev-log-roles.test 机器核）——本行是辖区前缀权威定义本身，与两域表/门册的 authority 名册「同串异义」（它说领域权威，我说目录归属），字面相等非抄本（PR-216 A5 裁决，Master 2026-11-03「都按推荐办」）",
+              "register": "PR-216"
+            },
+            {
+              "file": "scripts/quality/shared/dev-log-ledger.mjs",
+              "value": "src/index.css",
+              "why": "辖区归属权威视图（AGENTS §四：OWNER_ZONE_PREFIXES＝机器合规权威，dev-log-roles.mjs＝人读身份唯一事实源，键集三向一致由 dev-log-roles.test 机器核）——本行是辖区前缀权威定义本身，与两域表/门册的 authority 名册「同串异义」（它说领域权威，我说目录归属），字面相等非抄本（PR-216 A5 裁决，Master 2026-11-03「都按推荐办」）",
+              "register": "PR-216"
+            },
+            {
+              "file": "scripts/quality/check-data-roles.mjs",
+              "value": "data/theschema/enums.yaml",
+              "why": "查询谓词：在 theschema-roles entries 内按 file 主键检索 enums 段——字面量是检索参数不是第二份名单——同串异义非抄本（PR-208 清债第二批定性，Master 2026-11-04「开」授权批）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/shared/null-segment-guard.mjs",
+              "value": "data/theschema/enums.yaml",
+              "why": "同上：collectNullSegments 按契约 file 主键查段集（纯函数收 registry 参数）——同串异义非抄本（PR-208 清债第二批定性，Master 2026-11-04「开」授权批）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/check-frozen-artifact-throat.mjs",
+              "value": "server/shared/frozen-artifact-reader.cjs",
+              "why": "THROAT 槽位名单＝本门执法对象；quality-gates commitScope 是「改该文件跑本门」的触发范围——两登记册同串异义——同串异义非抄本（PR-208 清债第二批定性，Master 2026-11-04「开」授权批）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/check-frozen-artifact-throat.mjs",
+              "value": "server/shared/persistence/graph-artifact-ingest.cjs",
+              "why": "同上（INGEST）——同串异义非抄本（PR-208 清债第二批定性，Master 2026-11-04「开」授权批）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/wp-derive.mjs",
+              "value": "contracts/http-api.openapi.json",
+              "why": "EXTRA_ZONES＝zone 词表权威（本件即立法处）；quality-gates commitScope／reuse-domains authority 是各自的引用——同串异义——同串异义非抄本（PR-208 清债第二批定性，Master 2026-11-04「开」授权批）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/wp-derive.mjs",
+              "value": "contracts/retired-routes.json",
+              "why": "同上（retired-routes zone）——同串异义非抄本（PR-208 清债第二批定性，Master 2026-11-04「开」授权批）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/wp-derive.mjs",
+              "value": "contracts/quality-gates.json",
+              "why": "同上（quality-gates zone vs gate-governance 域行 authority）——同串异义非抄本（PR-208 清债第二批定性，Master 2026-11-04「开」授权批）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/wp-derive.mjs",
+              "value": "contracts/object-meta-model.json",
+              "why": "同上（contracts-core zone 通配外的精确件）——同串异义非抄本（PR-208 清债第二批定性，Master 2026-11-04「开」授权批）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/shared/theschema-writer-scan.mjs",
+              "value": "server/shared/repo-schema-io.cjs",
+              "why": "通道判定合法集（these 文件自身出现写调用即合法，通道族由 theschema-write.cjs 架构定义）——与 runtime-scope write_primitive_allow（写原语持有登记，含非通道件）同值而立法不同，派生即发生语义耦合（实测误伤 check-schema-writers 全量面红）。同串异义非抄本（PR-208 清债第二批定性）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/shared/theschema-writer-scan.mjs",
+              "value": "server/shared/vault-io.cjs",
+              "why": "通道判定合法集（these 文件自身出现写调用即合法，通道族由 theschema-write.cjs 架构定义）——与 runtime-scope write_primitive_allow（写原语持有登记，含非通道件）同值而立法不同，派生即发生语义耦合（实测误伤 check-schema-writers 全量面红）。同串异义非抄本（PR-208 清债第二批定性）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/shared/theschema-writer-scan.mjs",
+              "value": "server/shared/repo-file-io.cjs",
+              "why": "通道判定合法集（these 文件自身出现写调用即合法，通道族由 theschema-write.cjs 架构定义）——与 runtime-scope write_primitive_allow（写原语持有登记，含非通道件）同值而立法不同，派生即发生语义耦合（实测误伤 check-schema-writers 全量面红）。同串异义非抄本（PR-208 清债第二批定性）",
+              "register": "PR-208"
+            },
+            {
+              "file": "scripts/quality/check-runtime-scope.mjs",
+              "value": "scripts/vault-runtime/article-validator-lib.cjs",
+              "why": "面⑩装载唯一性允许清单本体（WP-116 批1 存在制断言，SPEC-083 §二.0 单列——名单外新发现生产侧残留，后续批收口，收口后本条空转即摘）——与 runtime-scope.json writers『校验暂存写』登记同串异义非抄本",
+              "register": "PR-259"
+            },
+            {
+              "file": "scripts/quality/check-runtime-scope.mjs",
+              "value": "scripts/quality/check-taxonomy-growth.mjs",
+              "why": "面⑩允许清单门禁侧单列（SPEC-083 §二.0：执法面自身配置，随 ADR-016 §三『执法面配置亦须单源』先例另列不混计）——与 runtime-scope.json writers『派生投影/工具产物』登记同串异义非抄本",
+              "register": "PR-259"
+            },
+            {
+              "file": "scripts/quality/check-runtime-scope.mjs",
+              "value": "scripts/quality/wp-derive.mjs",
+              "why": "面⑩允许清单工具侧行式判别（计划文件列表项 vs 分隔线，非 frontmatter 装载——假阳性登记，行改即摘）——与 quality-gates.json 起链登记／runtime-scope.json writers『派生投影』同串异义非抄本",
+              "register": "PR-259"
+            },
+            {
+              "file": "scripts/quality/wp-derive.mjs",
+              "value": "contracts/object-dictionary.json",
+              "why": "EXTRA_ZONES contracts-core 域行＝zone 词表权威（本件即立法处，PR-208 同族 object-meta-model.json 豁免先例）；字面入镜系并行会话批（WP-115，原号 WP-112，提交链自引 PR-254 处置批）在 quality-gates.json 落约该住址使同串相交——同串异义非抄本（它说门禁目标登记，我说辖区路径映射）",
+              "register": "PR-254"
+            },
+            {
+              "file": "scripts/quality/wp-derive.mjs",
+              "value": "data/theschema/fields.yaml",
+              "why": "LEGISLATIVE_SURFACES＝R9 立法对账触发面权威（WP-114 R9 规则——触及立法面自动派生本体对账义务，合并 12fcb407，提交链自引 PR-254 处置·开工面半边；本件即立法处）；字面入镜系并行身份铸造批新码与 theschema-roles 既有在册值同串相交——同串异义非抄本（它说 schema 角色登记，我说立法对账触发面）",
+              "register": "PR-254"
+            },
+            {
+              "file": "scripts/quality/check-runtime-scope.mjs",
+              "value": "scripts/vault-runtime/human_edit_guard.py",
+              "why": "WP-117 批 3 py 签名族 PY_DOC_READ_ALLOW 允许清单本体字面（写护栏自读面登记）——执法面自身配置与契约同串异义，PR-208 同族先例",
+              "register": "PR-254"
+            },
+            {
+              "file": "scripts/quality/check-vocab-envelope-coverage.mjs",
+              "value": "scripts/vault-py/graph/extract_graph.py",
+              "why": "词表信封消费方登记清单（WP-138 R1 新门禁②面）——该路径在 runtime-scope.json 的在册语义＝py_doc_allow 文档读面（写者面），本清单语义＝信封取数消费方（docs=dependencies/ontology/article_associations 映射）：同串异义非抄本；消费方-词表件映射是语义知识（谁用哪些 docs 不可由 import 扫描派生），权威源化随本门禁自身演化批处理",
+              "register": "PR-277"
+            },
+            {
+              "file": "scripts/quality/check-merge-reconcile.mjs",
+              "value": "docs/plans/problem-register.md",
+              "why": "登记簿路径的原始权威＝问题登记簿惯例（两 checker 先于 discipline-kit 存在，各自执法自身辖区）；contracts/discipline.config.json 的 register_file 是 WP-142 消费方声明（M1 修复）——同串异义非抄本（PR-208 署名豁免先例，Master 2026-11-07 接管批）（批次归属 WP-143 接管批；register 单号口径）",
+              "register": "PR-292"
+            },
+            {
+              "file": "scripts/quality/check-runtime-scope.mjs",
+              "value": "docs/plans/problem-register.md",
+              "why": "登记簿路径的原始权威＝问题登记簿惯例（两 checker 先于 discipline-kit 存在，各自执法自身辖区）；contracts/discipline.config.json 的 register_file 是 WP-142 消费方声明（M1 修复）——同串异义非抄本（PR-208 署名豁免先例，Master 2026-11-07 接管批）（批次归属 WP-143 接管批；register 单号口径）",
+              "register": "PR-292"
+            }
+          ]
+        }
+      },
+      "enforced_by": {
+        "gate": "defect-shapes",
+        "face": "①"
+      },
+      "ceiling": 1,
+      "status": "gated",
+      "gate": {
+        "default_deny": true,
+        "exemption_ratchet": true,
+        "destruction_proof": {
+          "test_file": "scripts/quality/__tests__/check-defect-shapes.test.mjs",
+          "case": "破坏实验 D1：注入一条契约在册的清单成员——恰报一条并点名代码行与契约出处"
+        }
+      },
+      "exemptions": [
+        {
+          "file": "scripts/quality/check-defect-shapes.mjs",
+          "reason": "执法件自身——普查口径的正则与本文件排除清单都是自指面，自扫即假红（照 check-runtime-scope.mjs 的 EXEMPT 同款理由：门禁自身含禁模式探针文本）",
+          "owner": "quality-gate-engineer",
+          "expiresAt": "2026-12-31",
+          "reviewCondition": "D1 判据（清单成员位／相等比较位 × 契约在册值）下本文件 raw 命中 1 条＝写基线时 generator 字段自名本件路径——该条一旦改由契约派生（raw 归零）即摘本排除；到期未摘亦红。反证轮 2026-11-03 指出排除面原本零问责，现须与 exemptions 同条目挂钩"
+        }
+      ],
+      "note": "本族的「闸」＝内容指纹＋天花板（新副本默认红），不是清零承诺。反证轮（2026-11-03）后口径已拓宽两处：①普查面从 check-*.mjs 扩到 scripts/quality/**.mjs（含 shared/，此前漏扫 58 处）；②注释行了纳入扫描（此前 `//` 文件头写一份清单即绕开——本件自己的头部注释就有路径，是活样本）。实测记录：拓宽前 101 处／23 文件，拓宽后 171 处／34 文件（含注释单独测＝101→101，即注释里本就没货，拓宽不增噪声）。仍存的假阴性如实标：字符串拼接成的路径、跨行拆开的模板串、尾斜杠目录前缀以外的非字面量形态不在词法镜头内；假阳性＝指向权威源的单点住址（fs.readFileSync(path.join(ROOT, \"contracts/x.json\"))）也被计入。逐条压数＝把清单改为从契约读取，即 PR-208 剩余半边的进度入账面 ｜ 2026-11-03 夜 WP-084 第一处真消灭：check-vocab-load-port 的手抄违规基线（15 条／上限合计 33）搬进 contracts/vocab-load-baseline.json 生成物并配 --write，本族实算 171→158（-13）。同时把 171 的构成量清并如实写进账面——清单成员形 98 处（其中如 dev-log-ledger 的辖区映射是该事实的权威定义，不是副本）、函数参数形 73 处（readFileSync(path.join(ROOT, …)) 这类「读权威源的住址」＝谓词假阳性）。故本族读数须读作「词法可见的抄本候选」而非债额；已定性的真副本四处＝wp-derive 契约名单 6／check-rules-lifecycle 服务清单 4／check-runtime-scope REGRESSION_PROBES 7（与同文件 violations[] 重复）／check-wave0 文件清单 7。 ｜ WP-085 第二处真消灭：check-runtime-scope 的面① 探针（V01/V02/V05 的 file/ban/why 手抄）改由契约 violations[].ban 派生，实算 154（上一读 158）。 ｜ D1（WP-086，2026-11-03 深夜）判据换形：一条实例须同时满足两维——①值维：该字面量逐字等于某个 contracts/*.json 的叶子字符串值（census.join.sources 声明来源，value_pattern 定形，执法件读契约原文，不读任何翻译件）；②位维：字面量位于数组/对象**字面量成员位**（代码自持一份清单）或**相等比较右值**（清单值被当判据），由词法栈取最内层开括号判定，块花括号／下标方括号／正则字面量／字符串内容不入成员位。换形前后实测同一词法面拆开（2026-11-03，本树实跑）：词法全量 157 条＝值不在任何契约 87（＝代码自己的权威定义或契约未立法的住址）＋值在册但位不入镜头 37＋值在册且位入镜头 33；37 的构成按行读＝调用参数位 20（readFileSync(path.join(ROOT, \"contracts/x.json\")) 这类读权威源的住址）＋单值赋值常量 13（const REGISTRY_REL = \"contracts/quality-gates.json\" 型）＋模板串散文 4（.has(\"…\") 方法实参 1 含在内）；排除本件自指面 1 条后读数＝32／12 文件，每条同点名「代码 文件:行 ＋ 声明它的契约」。故本族读数从「词法可见的抄本候选」升为「代码清单/比较位与契约在册值的重合数」，读法＝已入镜头的债额下界（非债额全量：下述四条假阴性在下界之外，未纳入即不声称已清），天花板 154→32 同批收紧。同批并立反证轮（WP-086）三条防线：①基线加记 lexical_count＝同一 patterns 摘掉 join 的词法面影子读数——债额下降而词法面一字未动即红，且 --write 直接拒写；A1 实测「只删契约里一条在册值」可把 32 洗成 31、diff 全在 contracts/、守护测试仍全绿，此路已堵（真清偿那侧不受影响：代码清一条，词法面随之下移，收账照走）。②value_pattern 形同恒真即红（拿四串散文与命令自证伪）＋未锚定（须 ^…$）即红；A3 实测 ^.*$ 令值维静默退化而账面纹丝不动。③forms 只许全集，契约单方收窄即红；A3 实测砍掉 comparison_operand 后 --write＋压天花板即可 ok，现由本件判据拦住，不再只剩测试件一把锁。残余两面如实标：假阳性＝契约的自我描述值（各 *.schema.json 的 $id、生成物基线的 generator 字段、本族自己的 census.script）也被当成在册声明，故三处「checker 自名本文件」仍在计数（check-vocab-load-port:45/190、check-runtime-scope:373）；另一类假阳性＝同一串在不同语义里各说各话——dev-log-ledger 的辖区归属表 7 条（占读数 22%）撞上 quality-gates/reuse-domains 的门禁目标登记，check-runtime-scope:30 的 scripts/quality 撞上本族 census.roots，皆纯因字面相等入册。「哪些契约键算立法」（限定 sources 到 address/authority 类语义键）是判据语义裁决，未经 Master 裁定不擅自收窄，登记为 PR-216 待决项；假阴性＝①单值赋值常量（与读住址常量在词法层不可分，需数据流才判得动，本判据不判；现场 13 处已由反证轮逐条点名）②注释/模板串散文里的清单（词法栈不认散文为执法位——@inputs 文件头那类属文档面，另族处理）③拼接与跨行拆开的路径④方法实参形的成员测试（.has(\"…\")）。四条留作 F3 后续刀，登记不入本批。 ｜ 第二刀（WP-088，2026-11-03 深夜）位置维补第三形 alias_data_member：值抄在单值赋值常量上、真正当清单用的位置写的是名字（const T = \"server/…\"; new Set([T])）——同文件内该别名出现在**数组/集合字面量成员位或相等比较操作数位**才算副本，只被读盘调用消费的仍属住址放过；对象属性值（where: T 这类错误消息字段）也不算，真树实测它会把消息字段误判成清单（check-register-coverage.mjs:156）。净入册 3 条＝check-frozen-artifact-throat 的 THROAT／INGEST（SLOT_READ_ALLOWLIST = new Set([THROAT, INGEST])）与 check-empty-state-semantics 的 GUIDANCE_ASSEMBLY_POINT；读数 32→35，天花板随之抬到 35——抬的理由是镜头变宽把此前漏报的真抄本入册，不是新增债（代码与契约一字未动，改的只有判据），「只减不增」不适用口径变更，但口径变更必须可检：见下。同批补一条本会话自己踩到的洗路＝只改执法件谓词（不动契约 census）同样能让读数下降且 census_params_hash 不变，A1 拦不住；现基线另记 checker_source_hash（本件源码哈希），本体或契约任一变动即算口径漂移：漂移时 A1 让路（改判据本就会变读数，用 A1 拦等于把正当窄化也判成洗账），但批级必红逼同批收账并写明方向（窄化＝漏报面扩大，宽化＝读数上升需抬天花板）；本体哈希缺失同样按漂移处理——删字段不是免检通道。残余两面新增：①跨文件导出的别名（dev-log-ledger 的 SCHEMA_RELPATH 在本文件零引用，消费方在别处）不在镜头内，需模块级数据流；②别名改名后传递／解构后使用仍看不见。 ｜ 反证轮 WP-088（独立只读复核，沙箱 /tmp/wp088-rt，真树与施工树零写入）三补三余：补一＝本批第一版把 A1 的让路条件写成「契约哈希或本体哈希任一变动」，复核者实测这条**正好把 A1 变成可拔的钥匙**——删掉基线里 checker_source_hash 一个字段＋删掉契约里一行在册值，--write 即通过，35 洗成 34 且账面全绿；已改回「让路只认契约 census 声明的口径变更」，本体哈希缺失或不符改为独立的批级红，并在 --write 面加第二道闸：只改本件代码而不升该族 census.join.lens_generation＝拒收（改判据必须留声明）。补二＝A1 的语义在测试件钉住（lensDrift:false 时空降必红；本体哈希与词法面读数须在基线在场；lens_generation 须在契约在场）。补三＝别名形的两类形状经实测确认后如实标漏报：一行两常量（const T=\"…\", U=\"…\"）与别名再起别名（const V=T; new Set([V])）——decl 锚整行，两者暂不入形；名池是文件级的，同名遮蔽（别处的局部 T 被当成员）存在误报可能，暂以「同文件同定义名」为界。未闭余量：判据代数只声明在契约，若同一批把 JOIN_FORMS 与契约 forms 一起砍并升 lens_generation、同批降 ceiling，机器只能让它绿——那是**公开改判据**，约束来自签收与人审，不假装机器能拦语义；因此 (a) forms 与 JOIN_FORMS 的全集一致仍由 scanFamilyDefinitions 钉（砍一边即红），(b) 每一次 lens_generation 变化都必须在登记簿有条目交代方向。 ｜ 第三刀（WP-089，2026-11-03 深夜，PR-218 修复批）别名形换两处近似：①声明锚从「整行单值赋值正则」改为「按字面量起始位反查它绑在哪个声明器绑定上」——`const A = 路径一, B = 路径二;` 一行多声明各算一处（此前整行不匹配＝现象①整类漏）；②别名不再只认一层，沿 `NAME2 = NAME1` 的改名边反向传播到不动点——`const A = 路径; const V = A; new Set([V])` 入形（此前＝现象②漏）；③名池从「文件级名字集合」改为「绑定处解析」：每处清单成员/比较操作数的标识符用法按作用域链解析到具体绑定（绑定须在该用法的作用域链上且声明先于用法，取最里层、同层取最近），成员用法解析到里层同名局部变量时，模块级那条字面量记不上功——现象④的同名遮蔽误报就此消失，且反向可判：把里层改名后同一成员用法的的确确指向模块级字面量时照样入册。本刀同时把「下界」升为机器可见面：census.join.lens_limits 六类全集在册（assignment_only_no_list_use 单值赋值不入清单／comment_or_template_prose 注释与模板串散文／concatenated_or_multiline_path 拼接与跨行／method_argument_membership 方法实参形／cross_file_alias 跨文件导出别名／non_declarator_binding 非声明器绑定形＝解构·箭头参数·var 提升·对既有变量的重新赋值），执法件与本件 JOIN_LIMITS 镜像钉（漏声明一类即红，与 forms 同构），读数行随之打印「不入形L类·下界」——此前这句限定词只住在本 note 的散文里，实算 35 与天花板 35 逐字相等，按 35 排期会低估 PR-208 剩余半边。实测（本树实跑，开工前与换形后各一次）：①②两类在 scripts/quality 当日新增 0 处、④在当日 35 条中零实存遮蔽，故读数 35 与指纹逐字节未变、天花板不抬，基线只随 census_params_hash（新增 lens_limits 与 lens_generation 2→3）与本体哈希重算；现场存量注：不入清单的单值赋值常量 13 处（PR-216 反证轮 A2 逐条点名）、cross_file_alias 当日一处＝scripts/quality/shared/dev-log-ledger.mjs 的 SCHEMA_RELPATH（本文件零引用、消费方在别处，正解是把该清单改为从契约读取＝消灭实例，非再宽镜头，留后续批）。未闭两面如实标：①遮蔽解析只认声明器绑定与 function/catch 括号名单形，解构／箭头参数／var 提升／重新赋值仍可让无关键记到字面量头上（已列为 lens_limits 一类，宁漏不误）；②镜头变宽与类别声明是同一批做的——若日后只加形不补类，或只删类不加形，两类漂移都由 lens_generation 与本体哈希两条红承载，机器拦得住声明、拦不住语义，方向仍须登记簿与签收交代（承 WP-088 的同一余量）。 ｜ 反证轮回件（WP-089 独立只读复核，沙箱 /tmp/wp089-rt @ 首刀提交 70f18dda，两棵源树零写入）三补一转：补一＝箭头参数遮蔽实测为**假阳性**（`(A) => [A]` 里的 A 未被认成绑定，成员用法记到模块级字面量头上），本件原写「非声明器绑定认不全、宁漏不误」是被实测推翻的自称——现把箭头参数（含无括号单参）补进绑定登记，参数绑定无初值字面量故不参与入账；解构形参数仍不认，继续留在 non_declarator_binding。补二＝传播的跳数上限 pass<12 是写死的硬限制（长链静默断链），改为队列推到不动点。补三＝新立第七类 use_before_declarator：用法写在绑定之前（`export function f(){ return new Set([A]) }` 之后才 `const A = 路径`）被时序规则判不可见而漏记——复核实测真树 84 件里 23 处此形状、涉在册值 0 条＝当日无实弹，故本批如实声明为边界而非现修（修需真作用域/提升语义）。读数行的分母随之带判据代数：`[在册值M·词法面K·不入形L类·第G代·下界]`，本批因这个口径事件把 lens_generation 由 3 升 4。转＝复核者实测「只改契约不碰代码」能把读数洗小（value_pattern 去掉 docs|data → 35→31；sources 收窄到单文件 → 16/16 且全绿），因为 A1 让路条件认 paramsDrift 即让，而契约侧改 sources/value_pattern 本身就是 params 变更，不需要升 lens_generation、也不动本体哈希——这推翻本族 note 原写的「机器能逼声明」；该缺口不是本批能补齐的形状（需「口径变更必须成代、且代须可核」的新装置），另立 PR-219 承接，本批只在 note 与门册如实标未堵。 ｜ 反证轮回件第二项（同批）：遮蔽解析补「含糊即让」——本名在文件里有两处及以上引入点（声明器绑定·`function f(A)`·`catch (e)`·`(A) =>`·`A =>` 参数表）时一律拒绝记功，因为词法层判不出成员用法指向哪一个绑定；方向选「漏记不记错」（漏记属 non_declarator_binding 已声明边界，记错＝假阳性会虚增债额）。实测本批这一步在真树零代价：换形前后读数 35 与指纹逐字节仍相同。此为第三个口径事件，lens_generation 4→5。仍未堵的相反一面：只改契约（收窄 join.sources／value_pattern）仍能把读数洗小且 A1 因 paramsDrift 让路——由 PR-219 承接。 ｜ 让路面收窄（同批第三个口径事件，第 6 代）：拒绝记功只用于「参数表与其他引入点撞名」这一档（词法层定不了作用域）；纯声明器多处的同名仍交作用域链解析（里层赢）——否则会把本批 #38 已能判对的块级遮蔽一起拒掉，白丢真债。反证轮 E 变异（改为模块级优先）在收窄后重新落红，证明作用域链这一档在承重；收窄前后真树读数 35 与指纹逐字节仍相同。 ｜ 第 7 代＝删冗余判：让路原在两处判（用法名一处、解析到的绑定名一处），后者覆盖前者，撤线变异分不出差别——只留绑定处那一道。行为等价：读数 35 与指纹逐字节仍相同。 ｜ 2026-11-03 WP-090（PR-216 A5 裁决，Master「都按推荐办」）：join 增 self_key_excludes（$id/$schema/$comment/generator/roots/canonical_source/census——「契约说出自己」的键不构成对代码的立法）＋authority_exemptions 七条署名豁免（dev-log-ledger 辖区前缀表＝机器合规权威视图，与两域表 authority 名册同串异义非抄本）；与第三刀判据合流后代数升第 8 代，实算与天花板以合并树重算入基线。。2026-11-04 WP-098（PR-208 清债第一批，Master「开」）：check-navigation×3＋check-interaction-state×1 的手抄目标改经 shared/reuse-domain-refs.mjs 现场读契约（navigation 域 authority＋writers；新增共享件为 PR-215 单源纪律件）——真清偿 26→22，天花板同批收紧，代数 8→10（本体＋口径双变更在案）。2026-11-04 WP-099（PR-208 清债第二批，Master「继续」）：派生 9 处（empty-state 组装点←error-copy.guide／writer-scan 通道名单←write_primitive_allow／runtime-scope EXEMPT 键←resolvers＋self-path×2／vocab 自路径×3／rules-lifecycle collector←release-artifact authority——新增共享件沿用 WP-098 的 reuse-domain-refs）＋语义豁免 13 条入 authority_exemptions（查询谓词×2／boot 豁免集／commitScope 同串异义×2／wave0 方案卡巡检×3／EXTRA_ZONES zone 词表×4／自身测试件配对×1，register=PR-208 四要素齐、空转即摘）——读数 22→1（余 1 条=本件 census.script 自名，self_key_excludes 不含 census.script 键下的自指——见第 11 代 note 保留项），天花板同批收紧 22→1 ｜ 2026-11-05 WP-116 批1 P6 债额收账（task/wp113-doc-load）：批1 面⑩装载唯一性存在制断言（4c140f01）在 check-runtime-scope.mjs 头部立 LOAD_PORT_ALLOW 允许清单 7 条（SPEC-083 §二.4 判据单源 SPLIT_SIGS/LOAD_PORT_ALLOW），其中 3 条与契约在册值字面相等——article-validator-lib.cjs（runtime-scope.json writers『校验暂存写』）／check-taxonomy-growth.mjs（同 writers『派生投影/工具产物』）／wp-derive.mjs（quality-gates.json 起链登记＋同 writers）——语义各说各话＝执法面自身配置（SPEC-083 §二.0 门禁侧单列不混计，ADR-016 §三『执法面配置亦须单源』先例），按 PR-208/PR-216 先例机制入 authority_exemptions 三条（register=PR-259＝本批登记链，四要素齐、空转即摘）。任务书预判形态逐类实测对账：a）docField/docFieldClosedSet 调用点键变量——八址迁移全落 server/（普查 roots 外）且调用实参位不在 forms 三形内，censusScan 实测 0 命中，无需加 lens_limits 类别（该机制声明的是镜头看不见的类；此三条镜头看得见、按同串异义收账，走署名豁免才是等价机制）；b）null 原型 hasOwn 显式分支（WP-050 先例形态）——同理不在镜头内 0 命中；c）真新债 0 条。读数 4→1（余 1 条＝check-rules-lifecycle.mjs:83 契约不可读回退字面，WP-099 收账余量保持），天花板 1 不动；lens_generation 11 不动、本体哈希不变（镜头一字未改可证——census_params_hash 变更仅由 authority_exemptions 引起，A1 让路系契约声明口径变更的设计路径，非洗账：读数下降全部有逐条署名豁免背书）。"
+    },
+    {
+      "id": "P6-F4",
+      "shape": "P6",
+      "fact": "「一条豁免须带哪几项」这份清单（reason／owner／expiresAt／reviewCondition）",
+      "owner": "quality-gate-engineer",
+      "canonical_source": {
+        "file": "scripts/quality/shared/exemption-fields.mjs",
+        "note": "唯一定义处＝本件，消费方一律 import。权威实例本身计入普查（不做排除、不设豁免）——留一条匿名让渡正是反证轮第④条批评的形状；出现第二份即计数 2 > ceiling 1，新指纹与膨胀两条都红"
+      },
+      "census": {
+        "kind": "scan",
+        "roots": [
+          "scripts/quality"
+        ],
+        "file_pattern": "^scripts/quality/.+\\.mjs$",
+        "scan_comments": true,
+        "patterns": [
+          {
+            "label": "豁免四要素清单字面量",
+            "re": "\\[\\s*\"reason\",\\s*\"owner\",\\s*\"expiresAt\",\\s*\"reviewCondition\"\\s*\\]"
+          }
+        ]
+      },
+      "enforced_by": {
+        "gate": "defect-shapes",
+        "face": "①"
+      },
+      "ceiling": 1,
+      "status": "gated",
+      "gate": {
+        "default_deny": true,
+        "exemption_ratchet": true,
+        "destruction_proof": {
+          "test_file": "scripts/quality/__tests__/check-defect-shapes.test.mjs",
+          "case": "回件⑥：共享常量的第二份字面量必须红——四要素清单与扫描扩展名各只许一处"
+        }
+      },
+      "note": "PR-215 收敛产物：四要素数组此前在 check-defect-shapes／check-error-codes／check-rules-lifecycle 三处各抄，扩展名集合在 check-runtime-scope 与 check-defect-shapes 两处并存——现各剩 1 处（shared 定义件）。本族不判语义一致性（各件判定强度按自身语义保留，统一口径仍挂 PR-215 待决项），只判「不许出现第二份可抄的字面量」"
+    },
+    {
+      "id": "P6-F5",
+      "shape": "P6",
+      "fact": "门禁扫描面包含哪些源文件扩展名",
+      "owner": "quality-gate-engineer",
+      "canonical_source": {
+        "file": "scripts/quality/shared/scan-extensions.mjs",
+        "note": "唯一定义处＝本件，消费方一律 import。权威实例本身计入普查（不做排除、不设豁免）——留一条匿名让渡正是反证轮第④条批评的形状；出现第二份即计数 2 > ceiling 1，新指纹与膨胀两条都红"
+      },
+      "census": {
+        "kind": "scan",
+        "roots": [
+          "scripts/quality"
+        ],
+        "file_pattern": "^scripts/quality/.+\\.mjs$",
+        "scan_comments": true,
+        "patterns": [
+          {
+            "label": "扫描扩展名集合字面量",
+            "re": "new Set\\(\\[\"\\.mjs\", \"\\.js\", \"\\.cjs\", \"\\.py\"\\]\\)"
+          }
+        ]
+      },
+      "enforced_by": {
+        "gate": "defect-shapes",
+        "face": "①"
+      },
+      "ceiling": 1,
+      "status": "gated",
+      "gate": {
+        "default_deny": true,
+        "exemption_ratchet": true,
+        "destruction_proof": {
+          "test_file": "scripts/quality/__tests__/check-defect-shapes.test.mjs",
+          "case": "回件⑥：共享常量的第二份字面量必须红——四要素清单与扫描扩展名各只许一处"
+        }
+      },
+      "note": "PR-215 收敛产物：四要素数组此前在 check-defect-shapes／check-error-codes／check-rules-lifecycle 三处各抄，扩展名集合在 check-runtime-scope 与 check-defect-shapes 两处并存——现各剩 1 处（shared 定义件）。本族不判语义一致性（各件判定强度按自身语义保留，统一口径仍挂 PR-215 待决项），只判「不许出现第二份可抄的字面量」"
+    }
+  ]
+}

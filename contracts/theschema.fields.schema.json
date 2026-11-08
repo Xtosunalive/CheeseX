@@ -1,0 +1,219 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseh.local/contracts/theschema.fields.schema.json",
+  "title": "TheSchema fields.yaml — frontmatter 字段数据字典（ADR-008 D2）",
+  "description": "实体/文章 frontmatter 字段的唯一机器源：字段名/标签/类型/必填/作用域/值域指向/别名收口/描述。entity-frontmatter-schema.md 为其只读派生投影（禁止手改投影）。对账门禁 check:fields-registry 执法「server 消费的字段名 ⊆ 本表声明集」。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "fields"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "fields": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/field"
+      }
+    },
+    "last_updated": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "valueDomainResolve": {
+      "type": "object",
+      "required": [
+        "op"
+      ],
+      "properties": {
+        "op": {
+          "enum": [
+            "values",
+            "keys",
+            "ids",
+            "tags_union",
+            "matrix_union_fallback",
+            "product_closure",
+            "version_registry",
+            "free_slug"
+          ],
+          "description": "集合操作（SPEC-020 封闭集，从 12 个真实配方归纳）：values=列表段直取；keys=对象段取键；ids=词条表取 id 并集；tags_union=各分组并集−disabled_tags；matrix_union_fallback=ADR-006 派生视图（矩阵空回落）；product_closure=A03 闭合集；version_registry=G1+G5 注册表；free_slug=自由小写 ASCII slug（composite 末段用）"
+        },
+        "filter": {
+          "enum": [
+            "entity_usable"
+          ],
+          "description": "词条过滤谓词（封闭命名谓词，非表达式）：entity_usable=保留 entity_layer!==false 的层（arch_layer 用）"
+        }
+      },
+      "additionalProperties": false
+    },
+    "field": {
+      "type": "object",
+      "required": [
+        "name",
+        "label",
+        "type",
+        "required",
+        "scope",
+        "layer"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "description": "frontmatter 字段名（作者侧主写法；兼容别名在 aliases 收口）"
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "人读名"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "enum",
+            "list",
+            "bool",
+            "date",
+            "map"
+          ],
+          "description": "字段类型（enum=值域受控；map=键值对象）"
+        },
+        "required": {
+          "type": "string",
+          "enum": [
+            "是",
+            "否",
+            "建议"
+          ],
+          "description": "必填强度（对齐 entity-frontmatter-schema.md 既有口径）"
+        },
+        "scope": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "entity",
+              "article"
+            ]
+          },
+          "description": "作用域：实体 frontmatter / 文章 frontmatter"
+        },
+        "layer": {
+          "enum": [
+            "管理属性",
+            "业务属性",
+            "内容属性"
+          ],
+          "description": "三层分类（属性三层分类表口径：管理=生命周期控制/业务=架构图渲染与拓扑/内容=搜索标签辅助）"
+        },
+        "value_domain": {
+          "type": "object",
+          "required": [
+            "source"
+          ],
+          "properties": {
+            "source": {
+              "type": "string",
+              "description": "值域来源：enums 段名（如 layers/lifecycle.status）、versions（跨文件指向 versions.yaml）或 free（自由文本）"
+            },
+            "segment": {
+              "type": "string",
+              "description": "子段路径（如 lifecycle.status）"
+            },
+            "resolve": {
+              "$ref": "#/$defs/valueDomainResolve",
+              "description": "集合操作（SPEC-020 封闭 op 集，单 op/字段）——配方数据化，机器可执行"
+            },
+            "normalize": {
+              "type": "object",
+              "properties": {
+                "aliases": {
+                  "type": "string",
+                  "description": "别名归一表段（enums 侧，如 layer_aliases）——进入集合前的写法归一"
+                },
+                "wikilink_strip": {
+                  "type": "boolean",
+                  "description": "[[X]]→X 剥离（module 用）"
+                }
+              },
+              "additionalProperties": false
+            },
+            "default": {
+              "type": "object",
+              "properties": {
+                "from": {
+                  "type": "string",
+                  "description": "缺省值来源段（如 lifecycle.default_status）"
+                },
+                "fallback": {
+                  "enum": [
+                    "first"
+                  ],
+                  "description": "来源缺省时的回落：first=集合首项"
+                }
+              },
+              "required": [
+                "from"
+              ],
+              "additionalProperties": false
+            },
+            "composite": {
+              "type": "array",
+              "minItems": 2,
+              "description": "混合域分段声明（category-path 三段式：闭合段×2＋自由段，后段可 scoped_by: previous 随前段收窄——PR-046 单一语义）",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "source": {
+                    "type": "string",
+                    "description": "闭合段来源（free_slug 段省略 source）"
+                  },
+                  "resolve": {
+                    "$ref": "#/$defs/valueDomainResolve"
+                  },
+                  "scoped_by": {
+                    "enum": [
+                      "previous"
+                    ],
+                    "description": "随前一段的取值收窄（如 subdomain 随 domain）"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "note": {
+              "type": "string",
+              "description": "人读注释（纯说明，不参与机器语义——SPEC-020 后改 note 不改行为）"
+            }
+          },
+          "additionalProperties": false
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "兼容写法收口（如 architecture_node_id 是 architecture-node-id 的兼容写法）"
+        },
+        "description": {
+          "type": "string",
+          "description": "字段语义说明"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "x-lenientPaths": [],
+  "x-lenientScalarTypes": []
+}

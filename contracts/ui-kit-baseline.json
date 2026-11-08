@@ -1,0 +1,320 @@
+{
+  "$comment": "ui-kit 域原生 <button>/<input> 棘轮基线（check:ui-kit 执法；机器生成——改动一律 `node scripts/quality/check-ui-kit.mjs --write` 重算，禁手改）。规则：①基线外文件出现原生标签即红（新代码必须用 @/components/ui/button 与 ui/input）②基线内文件分标签计数只减不增③全部标签归零的条目必须缩减（重算即可）。豁免 ui/（基础件自身）与 aria/（侧栏专属皮肤，PR-070）。",
+  "generated_at": "2026-11-07",
+  "total": {
+    "button": 208,
+    "input": 69
+  },
+  "files": {
+    "src/components/app-shell/AppErrorBoundary.tsx": {
+      "button": 1
+    },
+    "src/components/app-shell/EntityHubDrawer.tsx": {
+      "button": 2
+    },
+    "src/components/app-shell/mode-toggle.tsx": {
+      "button": 2
+    },
+    "src/components/app-shell/sidebar-primitives.tsx": {
+      "button": 4
+    },
+    "src/components/app-sidebar/AppSidebar.tsx": {
+      "button": 1
+    },
+    "src/components/architecture-projection/ArchitectureProjectionEvidence.tsx": {
+      "button": 3
+    },
+    "src/components/architecture-projection/ArchitectureProjectionMobile.tsx": {
+      "button": 2
+    },
+    "src/components/architecture-projection/ArchitectureProjectionToolbar.tsx": {
+      "button": 7
+    },
+    "src/components/data-table/DataTable.tsx": {
+      "button": 2
+    },
+    "src/components/data-table/EditableCell.tsx": {
+      "input": 1
+    },
+    "src/components/entity-repair/AutocompleteField.tsx": {
+      "button": 1,
+      "input": 1
+    },
+    "src/components/entity-repair/DateField.tsx": {
+      "button": 2
+    },
+    "src/components/entity-repair/RepairFieldEditor.tsx": {
+      "input": 2
+    },
+    "src/components/entity-repair/TokenInput.tsx": {
+      "button": 1,
+      "input": 1
+    },
+    "src/components/filter-select/FilterSelect.tsx": {
+      "button": 3,
+      "input": 1
+    },
+    "src/components/floating-search/FloatingSearch.tsx": {
+      "button": 1
+    },
+    "src/components/internal-tabs/InternalTabs.tsx": {
+      "button": 1
+    },
+    "src/components/obsidian/ObsidianLink.tsx": {
+      "button": 1
+    },
+    "src/components/page-header/PageHeader.tsx": {
+      "button": 3
+    },
+    "src/components/pipeline/GlobalPipelineControl.tsx": {
+      "button": 1
+    },
+    "src/components/pipeline/PipelinePanel.tsx": {
+      "button": 5
+    },
+    "src/components/pool-panel/BooleanPoolRow.tsx": {
+      "input": 1
+    },
+    "src/components/pool-panel/PoolShell.tsx": {
+      "button": 3
+    },
+    "src/components/side-panel/SidePanel.tsx": {
+      "button": 1
+    },
+    "src/components/table-pagination/TablePagination.tsx": {
+      "button": 2
+    },
+    "src/components/table-sort-header/TableSortHeader.tsx": {
+      "button": 1
+    },
+    "src/components/topology-state-gate/TopologyStateGate.tsx": {
+      "button": 1
+    },
+    "src/features/admission/ArticleDrawer.tsx": {
+      "button": 1
+    },
+    "src/features/admission/EntityRegistryTable.tsx": {
+      "button": 6,
+      "input": 1
+    },
+    "src/features/anomaly-workbench/AnomalyWorkbenchView.tsx": {
+      "button": 9,
+      "input": 2
+    },
+    "src/features/anomaly-workbench/components/AnomalyActionPreview.tsx": {
+      "button": 1
+    },
+    "src/features/anomaly-workbench/components/AnomalyEntityRepairDrawer.tsx": {
+      "button": 1
+    },
+    "src/features/anomaly-workbench/components/AnomalyGateNotice.tsx": {
+      "button": 1
+    },
+    "src/features/anomaly-workbench/components/AnomalyIssueForm.tsx": {
+      "button": 1
+    },
+    "src/features/anomaly-workbench/components/AnomalyIssueList.tsx": {
+      "button": 2,
+      "input": 1
+    },
+    "src/features/anomaly-workbench/components/AnomalyPeekPanel.tsx": {
+      "button": 1
+    },
+    "src/features/anomaly-workbench/components/AnomalyResolutionForm.tsx": {
+      "button": 1,
+      "input": 5
+    },
+    "src/features/anomaly-workbench/components/AnomalySourceTable.tsx": {
+      "input": 1
+    },
+    "src/features/approval-workbench/ApprovalWorkbench.tsx": {
+      "input": 1
+    },
+    "src/features/architecture-version/ArchitectureVersionView.tsx": {
+      "button": 2
+    },
+    "src/features/architecture-version/components/VersionComparePanel.tsx": {
+      "button": 1
+    },
+    "src/features/article-associations/components/AssociationDecisionPanel.tsx": {
+      "button": 3
+    },
+    "src/features/article-workflow/components/ArticleUploadDock.tsx": {
+      "input": 1
+    },
+    "src/features/article-workflow/components/UploadHistoryPanel.tsx": {
+      "button": 1
+    },
+    "src/features/dashboard/DashboardView.tsx": {
+      "button": 1
+    },
+    "src/features/data-dashboard/components/relation-library-tab/RelationLibraryTab.tsx": {
+      "button": 2
+    },
+    "src/features/data-dashboard/EntityDetailPanel.tsx": {
+      "button": 3
+    },
+    "src/features/document-inventory/components/ArticlePanorama.tsx": {
+      "button": 1
+    },
+    "src/features/document-inventory/components/CardNav.tsx": {
+      "button": 1
+    },
+    "src/features/document-inventory/components/DocumentResultCard.tsx": {
+      "button": 4
+    },
+    "src/features/document-inventory/components/DocumentSearchBar.tsx": {
+      "button": 1,
+      "input": 2
+    },
+    "src/features/document-inventory/components/FilterChipBar.tsx": {
+      "button": 1
+    },
+    "src/features/document-inventory/DocumentInventoryView.tsx": {
+      "button": 2
+    },
+    "src/features/entity-compliance/ComplianceGroupSection.tsx": {
+      "button": 1
+    },
+    "src/features/entity-compliance/EntityComplianceCard.tsx": {
+      "button": 4
+    },
+    "src/features/entity-compliance/EntityComplianceToolbar.tsx": {
+      "button": 2
+    },
+    "src/features/entity-compliance/EntityComplianceView.tsx": {
+      "button": 1
+    },
+    "src/features/entity-compliance/EntityRepairDrawer.tsx": {
+      "button": 7
+    },
+    "src/features/entity-compliance/RelationRepairPanel.tsx": {
+      "input": 2
+    },
+    "src/features/gap-engine/GovernanceTodoTab.tsx": {
+      "button": 5
+    },
+    "src/features/impact-analysis/components/ImpactAnalysisPanel.tsx": {
+      "button": 2,
+      "input": 4
+    },
+    "src/features/impact-analysis/components/ImpactHopGroup.tsx": {
+      "button": 2
+    },
+    "src/features/impact-analysis/components/ImpactPathGraph.tsx": {
+      "button": 2
+    },
+    "src/features/impact-analysis/components/relation-overview/RelationOverview.tsx": {
+      "button": 1
+    },
+    "src/features/property-gov/CheckResultsPanel.tsx": {
+      "button": 2
+    },
+    "src/features/property-gov/ComponentCheckDetail.tsx": {
+      "button": 4
+    },
+    "src/features/property-gov/FormatArtifactCard.tsx": {
+      "button": 1
+    },
+    "src/features/property-gov/property-gov-ui.tsx": {
+      "button": 1
+    },
+    "src/features/review/AuditLogPanel.tsx": {
+      "button": 2
+    },
+    "src/features/review/components/InferenceConflictPanel.tsx": {
+      "button": 2
+    },
+    "src/features/review/EdgeReviewPanel.tsx": {
+      "button": 2
+    },
+    "src/features/schema-manager/components/AssertionPolicyEditor.tsx": {
+      "button": 2
+    },
+    "src/features/schema-manager/components/DependencyImpactPreview.tsx": {
+      "button": 1
+    },
+    "src/features/schema-manager/components/ModuleRegistryEditor.tsx": {
+      "button": 1,
+      "input": 1
+    },
+    "src/features/schema-manager/components/RelationConstraintMatrix.tsx": {
+      "button": 1
+    },
+    "src/features/schema-manager/components/SubdomainChangePreviewDialog.tsx": {
+      "button": 2
+    },
+    "src/features/schema-manager/components/TaxonomyListEditor.tsx": {
+      "button": 1,
+      "input": 1
+    },
+    "src/features/schema-manager/DependencyRulesEditor.tsx": {
+      "button": 9,
+      "input": 1
+    },
+    "src/features/schema-manager/DocumentTaxonomyEditor.tsx": {
+      "button": 1
+    },
+    "src/features/schema-manager/DomainSubdomainEditor.tsx": {
+      "button": 15,
+      "input": 9
+    },
+    "src/features/schema-manager/EntityGrowthCards.tsx": {
+      "button": 1
+    },
+    "src/features/schema-manager/FieldGraphPanel.tsx": {
+      "button": 2
+    },
+    "src/features/schema-manager/FieldsEditor.tsx": {
+      "button": 3,
+      "input": 2
+    },
+    "src/features/schema-manager/LayerEditor.tsx": {
+      "button": 1,
+      "input": 2
+    },
+    "src/features/schema-manager/OntologyEditor.tsx": {
+      "button": 5,
+      "input": 14
+    },
+    "src/features/schema-manager/RelationsEditor.tsx": {
+      "input": 1
+    },
+    "src/features/schema-manager/RulesChannelSection.tsx": {
+      "button": 2,
+      "input": 1
+    },
+    "src/features/schema-manager/SchemaDiscoveryTab.tsx": {
+      "button": 2,
+      "input": 1
+    },
+    "src/features/schema-manager/SchemaHistoryEditor.tsx": {
+      "button": 1
+    },
+    "src/features/schema-manager/SchemaManagerView.tsx": {
+      "button": 3
+    },
+    "src/features/schema-manager/SkeletonSidebar.tsx": {
+      "button": 3,
+      "input": 2
+    },
+    "src/features/schema-manager/TagEditor.tsx": {
+      "button": 2,
+      "input": 1
+    },
+    "src/features/schema-manager/TagGovernanceEditor.tsx": {
+      "button": 5,
+      "input": 3
+    },
+    "src/features/schema-manager/VersionRegistryEditor.tsx": {
+      "button": 4,
+      "input": 2
+    },
+    "src/features/schema-manager/VocabularyProfileSection.tsx": {
+      "input": 1
+    },
+    "src/features/theme-preview/ThemePreviewView.tsx": {
+      "button": 2
+    }
+  }
+}

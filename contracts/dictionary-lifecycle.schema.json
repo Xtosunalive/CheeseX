@@ -1,0 +1,79 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "dictionary-lifecycle",
+  "description": "字典卡族生命周期迁移边定义表 schema（ADR-017 §二 律文的机器形状，卡族同形落点——WP-115/PR-259 处置批）。取值域不住本表——五态单源 contracts/object-meta-model.json#layers.status.enums.lifecycle_status，本 schema 亦不重列五态（防第二份取值域）。",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "defaultStatus",
+    "terminalFrom",
+    "transitions",
+    "explicitlyDenied",
+    "cardSections"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "defaultStatus": {
+      "type": "string",
+      "minLength": 1,
+      "description": "无 lifecycle_status 的在册卡按此值参与判定（存量零回填，ADR-014 §三）"
+    },
+    "terminalFrom": {
+      "type": "string",
+      "minLength": 1,
+      "description": "终态：从该态迁出任何值一律拒绝（律文硬编，改表放松不了——ADR-017 §二 判定语义 2 同构）"
+    },
+    "transitions": {
+      "type": "array",
+      "minItems": 1,
+      "description": "允许的迁移边——提交时咽喉判定允许集由此派生，代码内不得另抄一份（存在制）",
+      "items": {
+        "type": "object",
+        "required": ["from", "to"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "type": "string", "minLength": 1 },
+          "to": { "type": "string", "minLength": 1 },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "explicitlyDenied": {
+      "type": "array",
+      "description": "明令禁止边——独立于允许集显式在册（读表人不用从 absence 反推；ADR-017 同构）",
+      "items": {
+        "type": "object",
+        "required": ["from", "to", "reason"],
+        "additionalProperties": false,
+        "properties": {
+          "from": { "type": "string", "minLength": 1 },
+          "to": { "type": "string", "minLength": 1 },
+          "reason": { "type": "string", "minLength": 1 }
+        }
+      }
+    },
+    "cardSections": {
+      "type": "array",
+      "minItems": 1,
+      "description": "本表执法的卡族段（object-dictionary.json 内承载卡的段——键＋形状）",
+      "items": {
+        "type": "object",
+        "required": ["key", "shape"],
+        "additionalProperties": false,
+        "properties": {
+          "key": { "type": "string", "minLength": 1 },
+          "shape": { "enum": ["map", "array"] }
+        }
+      }
+    }
+  }
+}

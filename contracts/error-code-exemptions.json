@@ -1,0 +1,1263 @@
+{
+  "$comment": "错误码基线豁免（2026-10-08 第 3 步回炉；PR-206 扩车道 2026-11-03）：check-error-codes 的唯一豁免事实源，四要素结构化（原 Set 内联名单迁移）。语义对齐 known-gate-failures.json：有主有期有追踪，过期即 fail。清零后整体删除本文件并还原脚本为纯增量防御。车道分工（PR-206②）：unregistered＝外发欠账（会达 HTTP 响应、待登记契约）；internalSignals＝进程内信号（不达 HTTP 边界，机器面三硬判＝非契约枚举∧无 error_code 直写∧不出现在 server/routes/**，命中即红须升外发道）——内部信号不占用欠账基线读数，但同样四要素＋到期复审。",
+  "unregistered": [
+    {
+      "code": "ANOMALY_EVIDENCE_REQUIRED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ANOMALY_LEDGER_CORRUPT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ANOMALY_LEDGER_WRITE_FAILED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ANOMALY_PREVIEW_REQUIRED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_ADMISSION_BLOCKED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/article-workflow/article-admission-policy.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_ASSOCIATION_SAVE_NOT_CONFIGURED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/article-association-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_MANIFEST_SOURCE_EXCLUDED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/article-workflow/article-manifest-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_SNAPSHOT_CONFLICT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/article-workflow/article-workflow-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_SOURCE_NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/article-workflow/article-association-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "CHANGE_PREVIEW_REQUIRED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/enums-change-preview-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "CHANGE_PREVIEW_STALE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/enums-change-preview-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "CONFLICT_NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-conflict-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "CONFLICT_SOURCE_CHANGED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-conflict-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "CONFLICT_STORE_CORRUPT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-conflict-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "CONFLICT_STORE_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/inference-conflict-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "DUPLICATE_DOCUMENT_ID",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/document-source-scanner.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "DEPENDENCY_REASONING_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/main.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "DEV_LOG_INVALID_FIELD",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/shared/dev-log.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "DOCUMENT_INDEX_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/kg-routes.cjs；server/services/projection/document-inventory-service.cjs；server/services/projection/document-source-scanner.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "DOCUMENT_NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/document-inventory-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ENUMS_PORT_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/version-registry-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "FORBIDDEN",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/release-runtime-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "FORMAL_ARTICLE_IDENTITY_INVALID",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/article-workflow/article-association-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "FORMAL_ARTICLE_ID_REQUIRED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/document-identity.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "FORMAL_AUDIT_ARTIFACT_INVALID",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/article-workflow/article-association-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "FORMAL_CONSUMER_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/main.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "FORMAT_VERSION_MISMATCH",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/master-graph-service.cjs；server/services/projection/semantic-architecture-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "GOVERNANCE_LEDGER_CORRUPT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/governance/governance-action-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "GRAPH_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/kg-routes.cjs；server/services/inference/inference-engine.cjs；server/services/projection/impact-analysis-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ILLEGAL_TRANSITION",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/pipeline-run-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INDEX_REBUILD_IN_PROGRESS",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/document-inventory-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_ADMISSION_MANIFEST",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/pipeline-run-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_ALIAS_TARGET",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_ANOMALY",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_ANOMALY_SOURCE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_CATEGORY",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_CONFLICT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-conflict-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_CONFLICT_STORE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-conflict-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_DECISION_LINEAGE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/shared/decision-lineage.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_DISCOVERY_DOMAIN",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_DISCOVERY_GROUP",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_DISCOVERY_PATCH",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_DOCUMENT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/document-source-scanner.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_DOCUMENT_IDENTITY",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/document-identity.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_FRESHNESS_INPUT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/source-freshness-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_JSON",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/release-runtime-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_ONTOLOGY",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-engine.cjs；server/services/inference/inference-ontology.cjs；server/shared/relation-capability-selector.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_PIPELINE_PURPOSE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/pipeline-run-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_PRODUCT_ALIASES",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/version-registry-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_QUERY",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/architecture-version-routes.cjs；server/routes/inference-conflict-routes.cjs；server/routes/kg-routes.cjs；server/services/article-workflow/article-manifest-service.cjs；server/services/inference/inference-engine.cjs；server/services/projection/architecture-version-service.cjs；server/services/projection/document-inventory-service.cjs；server/services/projection/impact-analysis-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_REASONING_RULE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-rule-conflicts.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_REGISTRY",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/impact-analysis-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_REVIEW",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-conflict-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_SNAPSHOT_ID",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/enums-write-service.cjs；server/services/schema-manager/schema-history-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_STAGING_VAULT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/pipeline-run-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_VERSION_PATH",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/version-registry-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_VERSION_SNAPSHOT_PATH",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/architecture-version-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "LEGACY_ARTICLE_APPROVAL_GONE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/article-workflow-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "MISSING_CHILD_ID",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/ontology-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "MISSING_PATCH",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/ontology-routes.cjs；server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "NODE_NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/document-inventory-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/main.cjs；server/routes/anomaly-workbench-routes.cjs；server/routes/dashboard-routes.cjs；server/routes/kg-routes.cjs；server/routes/pending-review-routes.cjs；server/routes/property-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "OBSIDIAN_OPEN_FAILED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/obsidian-open-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "OPERATOR_CONTEXT_NOT_CONFIGURED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "PERSISTENT_ISSUE_REQUIRED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "PIPELINE_CANCEL_FAILED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/pipeline-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "PIPELINE_NOT_RUNNING",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/pipeline-run-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "PREVIEW_NOT_REQUIRED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/enums-change-preview-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "PREVIEW_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/dependencies-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "PROPOSAL_EDIT_NOT_AVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/entity-compliance/entity-repair-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RELATION_CANDIDATE_REQUIRED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RELATION_CAPABILITY_INCOMPLETE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/shared/relation-capability-selector.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RELATION_REJECTION_REASON_REQUIRED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/anomaly/anomaly-workbench-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RELEASE_INDEX_IMMUTABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/kg-routes.cjs；server/services/projection/document-inventory-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "REPAIR_APPLY_NOT_CONFIGURED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/entity-compliance-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RULES_CONFLICT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-rule-conflicts.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SCHEMA_BACKUP_FAILED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SCHEMA_CANDIDATE_INVALID",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SCHEMA_CONFIG_ERROR",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/kg-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SCHEMA_FILE_MISSING",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SCHEMA_PARSE_ERROR",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SCHEMA_VALUE_CONFLICT",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SCHEMA_WRITE_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/dependencies-routes.cjs；server/routes/enums-routes.cjs；server/routes/ontology-routes.cjs；server/routes/schema-discovery-routes.cjs；server/routes/version-registry-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SEED_NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/inference/inference-engine.cjs；server/services/projection/impact-analysis-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SERVICE_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/kg-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SNAPSHOT_INVALID",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/enums-write-service.cjs；server/services/schema-manager/schema-history-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SNAPSHOT_NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/enums-write-service.cjs；server/services/schema-manager/schema-history-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SOURCE_MISSING",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/entity-compliance-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SOURCE_NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/entity-compliance/entity-repair-service.cjs；server/services/pipeline/obsidian-open-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "UNSAFE_FRONTMATTER",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/shared/yaml-frontmatter.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "UPLOAD_STORE_INVALID",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/article-workflow/article-workflow-store.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "VERSION_PROJECTION_FAILED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/version-registry-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "VERSION_PROJECTOR_NOT_FOUND",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/version-registry-service.cjs；server/services/projection/architecture-version-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "VERSION_REGISTRY_PORT_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/schema-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "VERSION_REGISTRY_UNAVAILABLE",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/projection/architecture-version-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "VERSION_WRITE_FAILED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/pipeline/version-registry-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "YAML_PARSE_FAILED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/routes/enums-routes.cjs；server/routes/ontology-routes.cjs；server/services/schema-manager/dependencies-write-service.cjs；server/services/schema-manager/enums-write-service.cjs；server/services/schema-manager/ontology-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "YAML_WRITE_FAILED",
+      "reason": "存量欠账：服务端实际抛出但契约未登记（throw 点 server/services/schema-manager/enums-write-service.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "DRAFT_NOT_FOUND",
+      "reason": "存量欠账：经无枚举 ApiError 响应面返回（无掩蔽面），workflowError 工厂面补齐后浮出（PR-167）；throw 点 server/services/article-workflow/",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "article 族 404/503/413 错误响应面若立枚举 schema 随批清除"
+    },
+    {
+      "code": "TASK_NOT_FOUND",
+      "reason": "存量欠账：经无枚举 ApiError 响应面返回（无掩蔽面），workflowError 工厂面补齐后浮出（PR-167）；throw 点 server/services/article-workflow/",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "article 族 404/503/413 错误响应面若立枚举 schema 随批清除"
+    },
+    {
+      "code": "VALIDATOR_NOT_FOUND",
+      "reason": "存量欠账：经无枚举 ApiError 响应面返回（无掩蔽面），workflowError 工厂面补齐后浮出（PR-167）；throw 点 server/services/article-workflow/",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "article 族 404/503/413 错误响应面若立枚举 schema 随批清除"
+    },
+    {
+      "code": "PROMOTER_NOT_FOUND",
+      "reason": "存量欠账：经无枚举 ApiError 响应面返回（无掩蔽面），workflowError 工厂面补齐后浮出（PR-167）；throw 点 server/services/article-workflow/",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "article 族 404/503/413 错误响应面若立枚举 schema 随批清除"
+    },
+    {
+      "code": "UPLOAD_TOO_LARGE",
+      "reason": "存量欠账：经无枚举 ApiError 响应面返回（无掩蔽面），workflowError 工厂面补齐后浮出（PR-167）；throw 点 server/services/article-workflow/",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "article 族 404/503/413 错误响应面若立枚举 schema 随批清除"
+    },
+    {
+      "code": "ARTIFACT_NOT_FOUND",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "BUILDER_UNAVAILABLE",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "BUILD_FAILED",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "CURRENT_POINTER_INVALID",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "CURRENT_POINTER_MISMATCH",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "CURRENT_RELEASE_INVALID",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "DUPLICATE_ARTIFACT",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "ENTITY_NOT_FOUND",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "ENTITY_REVISION_CONFLICT",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "INVALID_ARTIFACT_CONTENT",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "INVALID_ARTIFACT_PATH",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "INVALID_DECISION",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "INVALID_DECISION_INPUT",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "INVALID_RELEASE_ID",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "INVALID_SOURCE_COMMIT",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "INVALID_STRUCTURED_DECISION",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "NOT_IN_PINNED_CONTEXT",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "NO_CURRENT_RELEASE",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "NO_FRONTMATTER",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "PUBLISH_BUSY",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELATION_TYPE_UNREGISTERED",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_ARTIFACT_HASH_MISMATCH",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_ARTIFACT_INVALID",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_IDENTITY_INVALID",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_INPUT_MISMATCH",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_MANIFEST_ORPHAN",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_NOT_FOUND",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_PROJECTION_IDENTITY_INVALID",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_READER_REQUIRED",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_RESTORE_INVALID",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "RELEASE_RESTORE_NOT_FOUND",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "SEMANTIC_PROJECTION_NOT_FOUND",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "SEMANTIC_PROJECTION_SELECTION_REQUIRED",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "SNAPSHOT_INPUT_INVALID",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    },
+    {
+      "code": "UNKNOWN_OPERATION",
+      "reason": "存量普查欠账：check-error-codes 绑定工厂面补齐（PR-108/167/168 批）后浮出——多为 release-governance/artifact 族；未逐码并入契约枚举前先入册对账（入册≠合规化，见 reviewCondition）",
+      "owner": "team-lead",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "掩蔽面深审（哪些码实际落在有枚举响应面＝真掩蔽）＋逐族并入契约或维持 ApiError 面声明——随 release-governance 族契约对账批清理"
+    }
+  ],
+  "deadEnum": [
+    {
+      "code": "APPROVAL_EVIDENCE_STALE",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_FORMAL_IDENTITY_AMBIGUOUS",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_NOT_STANDARDIZED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_STANDARDIZATION_BLOCKED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ARTICLE_VALIDATION_FAILED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "CYCLE_DETECTED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "DUPLICATE_ARTICLE_ID",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "EDGE_NOT_FOUND",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "FIELD_NOT_ALLOWED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "FIELD_VALUE_INVALID",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "reason": "死枚举：契约登记无服务端抛点（扫描有命中：server/routes/kg-routes.cjs；server/routes/sync-routes.cjs）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "INVALID_RELEASE_ARTIFACT",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "NON_ENTITY_TARGET",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "REASONING_CONFLICT_UNRESOLVED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RELATION_REVIEW_BLOCKED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RELEASE_ARTIFACT_MISSING",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RELEASE_DOCUMENT_INDEX_INVALID",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "RELEASE_ID_LOCKED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SELF_REFERENCE",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SNAPSHOT_HASH_MISMATCH",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "STATE_TRANSITION_FORBIDDEN",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "SYNC_PULL_RETIRED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "UNKNOWN_PARENT",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "UNSAFE_BODY_PATCH",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "UNSUPPORTED_FILE_TYPE",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "VERSION_PROJECTION_MISSING",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "WORKING_ARTIFACT_READ_FAILED",
+      "reason": "死枚举：契约登记无服务端抛点（零抛点——多为共享 schema 引用/python 管道侧/已退役留档）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "迁移分批清理后复核"
+    },
+    {
+      "code": "ANOMALY_STATE_TRANSITION_FORBIDDEN",
+      "reason": "w4 新立契约（状态迁移禁例响应）无抛点——会话间门禁兜底，实现落地日移出",
+      "owner": "w4-refocus 后续批次",
+      "expires": "2026-11-09",
+      "expiresAt": "2026-11-09",
+      "reviewCondition": "w4 后续批次落地抛点后移出；到期未实现则契约撤码"
+    },
+    {
+      "code": "SOURCE_ARCHIVE_MISSING",
+      "reason": "workflowError=bindErrorFactory 别名，pattern 不识别（PR-108 盲区）——真实抛点在 article-draft-workflow.cjs（:47/:54/:58）；门禁纳别名后回炉",
+      "owner": "server-api-engineer",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "PR-108 复批后回炉"
+    },
+    {
+      "code": "SOURCE_PATH_OUTSIDE_VAULT",
+      "reason": "workflowError=bindErrorFactory 别名，pattern 不识别（PR-108 盲区）——真实抛点在 article-draft-workflow.cjs（:47/:54/:58）；门禁纳别名后回炉",
+      "owner": "server-api-engineer",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "PR-108 复批后回炉"
+    },
+    {
+      "code": "SOURCE_FILE_NOT_FOUND",
+      "reason": "workflowError=bindErrorFactory 别名，pattern 不识别（PR-108 盲区）——真实抛点在 article-draft-workflow.cjs（:47/:54/:58）；门禁纳别名后回炉",
+      "owner": "server-api-engineer",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "PR-108 复批后回炉"
+    },
+    {
+      "code": "DRAFT_ALREADY_EXISTS",
+      "reason": "upload 服务层经 workflowError 工厂抛（article-workflow-service.cjs:84）——bindErrorFactory 别名 pattern 盲（PR-108 盲区）",
+      "owner": "server-api-engineer",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "PR-108 复批（别名工厂纳入 pattern）后回炉"
+    }
+  ],
+  "internalSignals": [
+    {
+      "code": "VAULT_REVISION_CONFLICT",
+      "reason": "内部通道码（PR-086 复核定性，2026-10-21）：vault-io 写前冲突信号；四个 HTTP 边界（entity-repair/article-association/article-workflow/entity-parent）均已重包为域码（SOURCE_CHANGED／ARTICLE_REVISION_CONFLICT／CONTENT_REVISION_CONFLICT／ENTITY_REVISION_CONFLICT，契约已登记）。若未来某 HTTP 写路径漏重包致裸码上线，修服务层重包，不登记本码入契约",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持内部码；若经 HTTP 以原码外发（服务层漏重包），修抛点/重包而非登记契约"
+    },
+    {
+      "code": "FROZEN_ARTIFACT_NOT_REGISTERED",
+      "reason": "内部读侧码（PR-086 复核定性，2026-10-21）：frozen-artifact-reader（PR-084 读侧咽喉）对未登记槽种的 fail-closed——运营性 500，修复面在注册表登记而非契约",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持内部码；若经 HTTP 以原码外发（服务层漏重包），修抛点/重包而非登记契约"
+    },
+    {
+      "code": "WORKING_JSON_INVALID",
+      "reason": "内部读侧码（PR-086 复核定性，2026-10-21）：工作工件快照 JSON 损坏的 fail-closed——运营性 500（工件重建即恢复），不入契约",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持内部码；若经 HTTP 以原码外发（服务层漏重包），修抛点/重包而非登记契约"
+    },
+    {
+      "code": "BODY_NOT_ALLOWED",
+      "reason": "内部映射码（PR-085 第 1 步）：http-app preValidation 抛出后经错误处理器统一映射为 400 VALIDATION_ERROR，从不以原码上线——check:error-codes 补面后可见，入 unregistered 基线防误报",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持内部码（映射为 VALIDATION_ERROR）；若未来直接外发须先登记目录单元"
+    },
+    {
+      "code": "BODY_REQUIRED",
+      "reason": "内部映射码（PR-085 第 1 步）：http-app preValidation 抛出后经错误处理器统一映射为 400 VALIDATION_ERROR，从不以原码上线——check:error-codes 补面后可见，入 unregistered 基线防误报",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持内部码（映射为 VALIDATION_ERROR）；若未来直接外发须先登记目录单元"
+    },
+    {
+      "code": "VAULT_REVISION_CREDENTIAL_REQUIRED",
+      "reason": "内部通道码（PR-086 复核定性，2026-10-21）：调用方未带 expectedContentHash 的程序性缺陷（PR-003 设计为必选凭据，status 500）——不是用户可处置状态，永不入契约；逃逸上线即修调用方",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持内部码；若经 HTTP 以原码外发（服务层漏重包），修抛点/重包而非登记契约"
+    },
+    {
+      "code": "VAULT_UNRESOLVED",
+      "reason": "CLI 通道码（PR-206 批随 .mjs 收面补录，2026-11-03）：TheSchema 统一写客户端（server/vault-runtime/schema-write-client.mjs，与 scripts/ 侧同体挂载）在 vault 未解析时的拒写输出——console.error JSON 的 code 字段，走 CLI 退出面不经 HTTP 响应（error_code），routes 层零引用。.mjs 收面（红队洞 8 加固）前该文件对收集器隐身",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持 CLI 拒写码；若写客户端被 HTTP 路由复用致原码外发，改抛点或重包而非登记契约"
+    },
+    {
+      "code": "UNKNOWN_OP",
+      "reason": "CLI 通道码（PR-206 批随 .mjs 收面补录，2026-11-03）：TheSchema 统一写客户端的用法错误输出（未知操作名→fail()→CLI 退出码 2），与 VAULT_UNRESOLVED 同文件同通道——console.error JSON 的 code 字段，不经 HTTP 响应（error_code），routes 层零引用；服务端另有独立在册码 UNKNOWN_OPERATION（approval-state-machine，勿混）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持 CLI 用法错误码；若写客户端被 HTTP 路由复用致原码外发，改抛点或重包而非登记契约"
+    },
+    {
+      "code": "FORMAL_RELEASE_IMMUTABLE",
+      "reason": "防御闸码（PR-205 改道后定性，2026-11-03）：main.cjs 只读 pinned 实例的 writeAuditRaw 覆写——save/removeDecision/removeDecisionsForArticle 已全部改道活 writer（Master 裁 A 支），该 409 无在世调用路径，属纵深防御闸；若未来经 pinned 实例重挂写出口，须升外发码入端点契约",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持防御闸；任何新写出口接回只读装配即触发真 409——届时改装配或登记契约，不许裸码上线"
+    }
+  ]
+}

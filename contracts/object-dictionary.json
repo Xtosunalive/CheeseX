@@ -1,0 +1,1519 @@
+{
+  "$comment": "业务对象字典（数据域治理第②层：对象是什么/正式叫什么/怎么定义/边界在哪）。定位：业务对象名/定义的唯一事实源（草稿态）——前端 TAB_LABELS 后续从本文件派生/对齐，不另抄一份。命名纪律：canonical_name/definition/对象边界是 Master 域（交接词 2026-10-23 §六.2），本文件只含 AI 从真实数据/文档抽取的候选，每条挂 文件:行号 证据＋置信度；证据冲突或缺失的 naming_status=needs_decision，进 pending_decisions。底层事实（role/writer/段/页签/写路径）从 contracts/theschema-roles.json（22 entries）与 contracts/data-territory.json 派生采信，不复制执法逻辑。写路径单门（SPEC-021）：写 enums/fields 一律经页面/API 或 scripts/vault-runtime/schema-write-client.mjs（显式 --vault），本文件不改变任何写路径。页面（第③层）不消费本草稿，等定稿后另立工作包。",
+  "schema_version": 1,
+  "dictionary_status": "master-confirmed",
+  "generated_at": "2026-10-23",
+  "baseline": "main @ c163cbbd",
+  "naming_policy": {
+    "ai_scope": "AI 只抽候选（canonical_name 候选=TAB_LABELS+各 .md 叫法；aliases=物理别名数据+文档叫法；definition=.md 开头/字段定义原文），不编造定稿；无既有叫法的对象 canonical_name 置空＋needs_decision，不合成新名（术语规范：不发明新词——Master 2026-10-23 指正）",
+    "standards_basis": "命名与标识方法论锚点：ISO/IEC 11179-5:2015（命名与标识原则；GB/T 18391.5—2009 等同采用）；ISO 704:2022＋ISO 1087:2019（术语工作与定义撰写）；SKOS prefLabel/altLabel（标签语义）；W3C Cool URIs（稳定标识实践）——逐形态对照见 standards_alignment",
+    "naming_status_values": {
+      "confirmed": "已有 Master 签收事实源（ADR/SPEC 文本或已裁决记录）",
+      "proposed": "高置信候选（证据明确、无冲突），待 Master 确认后升级 confirmed",
+      "needs_decision": "证据冲突或无既有叫法，候选仅供裁决参考"
+    },
+    "confidence_values": [
+      "high",
+      "medium",
+      "low"
+    ]
+  },
+  "core_objects": [
+    {
+      "object_id": "bd061091-c542-43a5-9fdb-fdb319f0b92f",
+      "edited_by_tab": "domains",
+      "canonical_name": "知识域/子域",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 批复『这 7 个都行』——候选名升 certified",
+        "src/features/schema-manager/schema-manager-types.ts:71（TAB_LABELS domains=知识域/子域——现状页面名，未治理前的事实叫法）"
+      ],
+      "aliases": [
+        {
+          "alias": "板块",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/KNOWLEDGE_SCENARIOS.md:24（板块（从哪来、放哪类运营域）——category-path 的 domain+subdomain）"
+        }
+      ],
+      "definition": "知识内容的运营域划分轴：category-path 的第一段 domain 与第二段 subdomain，决定一篇内容挂在知识库哪条导航板块下；域名单域结构属元层（concept 域不可增删）。",
+      "definition_evidence": [
+        "data/theschema/TheSchema.md:18（category-path 现为点分两段式 domain.subdomain，validate-article.py 强制）",
+        "data/theschema/KNOWLEDGE_SCENARIOS.md:24（板块=这类内容在知识库哪条导航轴下）",
+        "data/theschema/enums.yaml:1-7（domains 7 键：ref/ops/concept/product/meta/arch/tech）、:9-30（subdomains 按域挂词条）",
+        "src/features/schema-manager/ConceptVocabularyTab.tsx:8（域名单域锁定——concept 域不可增删（域结构属元层））"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/enums.yaml:1（domains 段）",
+        "data/theschema/enums.yaml:9（subdomains 段）",
+        "contracts/theschema-roles.json:57-63（domains + subdomains 段 → domains 页签）"
+      ],
+      "write_path": "页面 #/schema→domains 页签→PUT /api/schema/enums（server/routes/enums-routes.cjs:185，写前 POST /api/schema/enums/preview 预览）；非页面写者经 scripts/vault-runtime/schema-write-client.mjs（显式 --vault）；禁直写 yaml",
+      "relationships": {
+        "edges": [
+          {
+            "type": "reference",
+            "to": "f212819f-9a97-482f-9d46-4baa3775e474",
+            "note": "值域引用：category-path（fields.yaml:24-37——domain.subdomain 值域）"
+          },
+          {
+            "type": "usage",
+            "to": "validation-parity（contracts/theschema-roles.json:59-62）",
+            "note": "referenced_by"
+          },
+          {
+            "type": "usage",
+            "to": "validate-article 统一客户端（category-path 值域——SPEC-022 Node 单源）",
+            "note": "referenced_by"
+          },
+          {
+            "type": "co_editing",
+            "to": "concepts",
+            "note": "同段共编"
+          }
+        ]
+      },
+      "notes": "页签名『知识域/子域』与文档叫法『板块』并存——Master 定稿时择一为 canonical，另一降为 alias。",
+      "object_kind": "business_object",
+      "technical_refs": [
+        {
+          "alias": "category-path",
+          "kind": "消费字段名",
+          "evidence": "data/theschema/TheSchema.md:18（category-path 点分两段式 domain.subdomain，合法值来自本对象）"
+        }
+      ],
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "subtype": "value_domain",
+      "editable": true
+    },
+    {
+      "object_id": "0866f383-9128-415b-b119-d31c25163ec2",
+      "edited_by_tab": "layers",
+      "canonical_name": "架构分层",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 批复『这 7 个都行』——候选名升 certified",
+        "src/features/schema-manager/schema-manager-types.ts:72（TAB_LABELS layers=架构分层）"
+      ],
+      "aliases": [],
+      "definition": "架构图的纵向分层定义（id/label/color/layout 四元组），同时是实体 frontmatter 字段 arch_layer 的合法值域。",
+      "definition_evidence": [
+        "data/theschema/enums.yaml:65-101（9 条分层词条，含 label 中文显示名与画布 layout）",
+        "data/theschema/AI_CONCEPT.md:11（arch_layer 架构层级（10 个合法值）——注：文档记 10，现库 9 条，文档为 vault 期旧值）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/enums.yaml:65（layers 段）",
+        "contracts/theschema-roles.json:31-38（layers 段 → layers 页签）"
+      ],
+      "write_path": "页面 #/schema→layers 页签→PUT /api/schema/enums；非页面写者经 scripts/vault-runtime/schema-write-client.mjs；禁直写",
+      "relationships": {
+        "edges": [
+          {
+            "type": "reference",
+            "to": "f212819f-9a97-482f-9d46-4baa3775e474",
+            "note": "值域引用：arch_layer（fields.yaml:81-89）"
+          },
+          {
+            "type": "usage",
+            "to": "layer-ssot（contracts/theschema-roles.json:34-37）",
+            "note": "referenced_by"
+          },
+          {
+            "type": "usage",
+            "to": "validate-article 统一客户端（arch_layer 值域——SPEC-022 Node 单源）",
+            "note": "referenced_by"
+          }
+        ]
+      },
+      "notes": "AI_CONCEPT.md:11 记 10 个合法值为 vault 期旧账，现库 9 条——定义采『分层定义即 arch_layer 值域』，数量不写死。",
+      "object_kind": "business_object",
+      "technical_refs": [
+        {
+          "alias": "arch_layer 值域",
+          "kind": "消费字段名",
+          "evidence": "data/theschema/AI_CONCEPT.md:11（arch_layer=架构层级（10 个合法值））"
+        },
+        {
+          "alias": "archLayers",
+          "kind": "代码内派生名",
+          "evidence": "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:12（archLayers 已派生自 layers，ADR008 D39 先例）"
+        }
+      ],
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "subtype": "value_domain",
+      "editable": true
+    },
+    {
+      "object_id": "07955c25-6850-4906-b1c9-4c3ff36bb6e3",
+      "edited_by_tab": "categories",
+      "canonical_name": "实体类别",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 批复『这 7 个都行』——候选名升 certified",
+        "src/features/schema-manager/schema-manager-types.ts:73（TAB_LABELS categories=实体类别）"
+      ],
+      "aliases": [],
+      "definition": "实体的架构类别词表（arch_category 字段值域）。由分类矩阵自动生成：取各子域允许类别的并集；矩阵未配置时暂用本段保底值且此段只读，配置矩阵后自动跟随更新。",
+      "definition_evidence": [
+        "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:20-24（决策 1 arch_categories 退役为派生视图；决策 2 矩阵空/未配置→回退读 enums.arch_categories）",
+        "contracts/theschema-roles.json:40-47（段级 effective_role=derived-view＋derives_from=subdomain_constraints〔2026-10-23 更名后现文〕＋A5 回标说明）",
+        "data/theschema/enums.yaml:64（arch_categories: []——现空表）"
+      ],
+      "data_domain": "L2",
+      "role": "derived-view",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/enums.yaml:64（物理承载段）",
+        "contracts/theschema-roles.json:40-47（段级派生标记——①层既有登记）",
+        "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:19-24（accepted ADR——语义权威，决策段）"
+      ],
+      "write_path": "【B1=b 已裁决并执法（Master 2026-10-23）】只读——无写路径：PUT /api/schema/enums 拒收本段（403 DERIVED_SEGMENT_READ_ONLY，服务端段级守卫）；categories 页签只读展示。矩阵（subdomain_constraints）落地（B2/PR-093 触发条件）后本段纯派生。前态 fail-open（A5 回标仅标注不拦截）已清",
+      "relationships": {
+        "edges": [
+          {
+            "type": "reference",
+            "to": "f212819f-9a97-482f-9d46-4baa3775e474",
+            "note": "值域引用：arch_category（fields.yaml:89-97；派生视图）"
+          },
+          {
+            "type": "derivation",
+            "to": "subdomain_constraints（旧 subdomain_policies；allowed_categories 并集，矩阵未配置期反向回退保底）",
+            "note": "derives_from"
+          },
+          {
+            "type": "usage",
+            "to": "entity-readiness（contracts/theschema-roles.json:44-46）",
+            "note": "referenced_by"
+          }
+        ]
+      },
+      "notes": "边界定性见 boundary_determinations#arch-categories-derived（已 determined——B1/B2 均已裁，本体字段同步翻态）。定性已回填＝data_domain L2／role derived-view／editable false。 定性回填（Master 2026-10-23 复核指令：B1/B2 裁决后 deferred 解除）＝data_domain L2／role derived-view／editable false；注册表①层物理标记（theschema-roles.json:40-47）与此语义一致。ADR 文件名保留旧名（历史文件不改名），修订记录在文件内。",
+      "editable": false,
+      "object_kind": "business_object",
+      "technical_refs": [
+        {
+          "alias": "arch_category 值域",
+          "kind": "消费字段名",
+          "evidence": "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:14（F05 轴 arch_category（子域无关全局））"
+        },
+        {
+          "alias": "archCategories",
+          "kind": "代码内派生名",
+          "evidence": "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:21（archCategories = union(所有子域.allowed_categories)）"
+        }
+      ],
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "subtype": "value_domain"
+    },
+    {
+      "object_id": "6d704bce-150a-4217-85c0-1579999c7729",
+      "edited_by_tab": "categories",
+      "canonical_name": "子域约束",
+      "canonical_name_evidence": [
+        "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:58-60（修订记录：Master 2026-10-23 终裁『命名漂移按正确规范改、往标准上靠』——采纳约束族名，段名同步全链更名）",
+        "本库族谱：ontology.yaml:706 第四段 constraints（约束）即同族构件——本体四件套 类(node_types:1)/关系(relation_types:103)/推理规则(inference_rules:697)/约束(constraints:706)",
+        "标准出处：W3C OWL 类限制公理（owl:Restriction）；W3C SHACL constraint；域约束（domain constraint，数据库标准术语）——『约束』为标准词，正式名与段名均取约束族",
+        "备选：直译『子域策略』落选（会把 policies/constraint 漂移固化为正式名，裁决弃用）"
+      ],
+      "aliases": [
+        {
+          "alias": "子域类别约束",
+          "kind": "过程候选",
+          "evidence": "本字典 2026-10-23 前稿候选（只覆盖类别轴）；因对象兼含 allowed_dependencies，定稿收窄为『子域约束』"
+        }
+      ],
+      "definition": "实体合规约束矩阵：规定每个子域允许哪些实体类别与允许哪些依赖。配置后同时作为实体类别字段的取值来源与实体合规校验的数据源；是约束数据而非词表。当前尚未配置，实体类别取值暂用保底集合。",
+      "definition_evidence": [
+        "server/shared/schema-validators.cjs:128/156-158（矩阵形状：subdomain_constraints.<子域id>.allowed_categories / allowed_dependencies，值须 ⊆ arch_categories——2026-10-23 更名后校验消息）",
+        "server/shared/schema-validators.cjs:168（layers[].allowed_categories ⊆ arch_categories——分层词条也带类别约束，治理面共三层：全局派生视图＋按子域矩阵＋按层清单）",
+        "server/shared/value-domain-resolver.cjs:74（matrix → arch_category 字段值域，缺省 matrix_union_fallback）",
+        "server/services/entity-compliance/entity-compliance-service.cjs:59＋entity-compliance-declarative-engine.cjs:189（F05b 执法消费：ruleSet.subdomainPolicies[subdomain]）",
+        "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:14-24（唯一权威语义）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "contracts/theschema-roles.json:49-55（在册预留位——当前唯一权威承载，①层既有登记）",
+        "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:19-24（语义权威，决策段）"
+      ],
+      "write_path": "预留位：物理段不存在；落地后的写路径随 B2 裁决设计（categories 页签已在编辑面内透出 policies 状态，src/features/schema-manager/ConceptVocabularyTab.tsx:18 同款 optional 读）",
+      "relationships": {
+        "edges": [
+          {
+            "type": "derivation",
+            "to": "arch_categories（allowed_categories 并集派生视图）",
+            "note": "derived_by（反向）"
+          },
+          {
+            "type": "usage",
+            "to": "entity-readiness（contracts/theschema-roles.json:52-54）",
+            "note": "referenced_by"
+          }
+        ]
+      },
+      "notes": "Master 2026-10-23 终裁：命名漂移往标准靠——正式名『子域约束』＋段名全链更名 subdomain_constraints（覆盖 allowed_categories/allowed_dependencies 两类约束；前稿候选『子域类别约束』只覆盖类别轴，收窄为别名）。是否落地=B2（PR-093）；定性已回填 L1/source/reserved（Master 2026-10-23 复核指令：B2 裁预留即定性依据，deferred 解除）。ADR 文件名保留旧名 subdomain-policies（历史文件不改名），修订记录在文件内 :58-60。",
+      "object_kind": "config_object",
+      "technical_refs": [
+        {
+          "alias": "F05b 矩阵",
+          "kind": "规则名",
+          "evidence": "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:14（F05b arch_category×arch_subdomain error 级）"
+        }
+      ],
+      "quality_status": "certified",
+      "lifecycle_status": "reserved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "editable": false
+    },
+    {
+      "object_id": "8638b7d3-ec85-42f5-8116-7e5e93dd1173",
+      "edited_by_tab": "taxonomy",
+      "canonical_name": "文章字段值域",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 N5 重审定名『文章字段值域』——本质是三个枚举字段的合法取值集合，不是分类对象",
+        "裁决：Master 2026-10-26「1 拆」——module 移出本对象，独立『产品模块』页签/对象（本条为裁定证据）"
+      ],
+      "aliases": [
+        {
+          "alias": "体裁（article_type）",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/KNOWLEDGE_SCENARIOS.md:25（标准场景/体裁——读者拿这篇干什么）"
+        },
+        {
+          "alias": "载体（doc-type）",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/KNOWLEDGE_SCENARIOS.md:26（成品形态——这篇在哪套出版物里出现）"
+        },
+        {
+          "alias": "所属模块（modules）",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/SCHEMA.md:162（3.2 module — 所属模块）"
+        },
+        {
+          "alias": "文档分类",
+          "kind": "旧页签名",
+          "evidence": "src/features/schema-manager/schema-manager-types.ts:74（TAB_LABELS——只覆盖载体轴，弃用；前端更新随页面工作包）"
+        }
+      ],
+      "definition": "文章 frontmatter 两个枚举字段（article_type 体裁／doc-type 载体）的合法取值域集合——是值域集合，不是分类对象。模块挂靠注册表已独立成页签（注册表带层级、挂靠、版本区间等富结构，与纯值域不同质）。",
+      "definition_evidence": [
+        "data/theschema/KNOWLEDGE_SCENARIOS.md:24-26（三层不要混用：板块/体裁/成品形态三轴分工原文）",
+        "data/theschema/SCHEMA.md:162-182（module 所属模块、闭合枚举、module↔subdomain 正交维度说明）",
+        "data/theschema/DATA-DICTIONARY.md:212（article_type — 内容体裁）、:226（doc-type — 文档载体类型）",
+        "data/theschema/enums.yaml:31-39（article_types 9 值）、:41-49（doc_types 8 值）、:125（modules 段）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/enums.yaml:31（article_types 段）",
+        "data/theschema/enums.yaml:41（doc_types 段）",
+        "data/theschema/enums.yaml:125（modules 段）",
+        "contracts/theschema-roles.json:71-76（article_types + doc_types + modules 段 → taxonomy 页签）"
+      ],
+      "write_path": "页面 #/schema→taxonomy 页签→PUT /api/schema/enums；非页面写者经 scripts/vault-runtime/schema-write-client.mjs（modules-upsert / enums-set-modules，scripts/vault-runtime/schema-write-client.mjs:26-28）；禁直写",
+      "relationships": {
+        "edges": [
+          {
+            "type": "reference",
+            "to": "f212819f-9a97-482f-9d46-4baa3775e474",
+            "note": "值域引用：article_type（fields.yaml:54）/doc-type（:62）/module（:129）"
+          },
+          {
+            "type": "usage",
+            "to": "taxonomy-growth（contracts/theschema-roles.json:73-75）",
+            "note": "referenced_by"
+          }
+        ]
+      },
+      "notes": "Master 2026-10-23 定名『文章字段值域』并指令定性改写：值域集合非分类对象（definition 已改）。object_kind 留空待 value_domain 分叉。",
+      "object_kind": "config_object",
+      "object_kind_note": "Master 2026-10-23 框架裁定：config_object＋subtype value_domain 两维度同时成立（DataHub Type×subType / smart-data-dico Stereotype）——不需二选一、不新增顶层类、其余词表卡不翻转",
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "subtype": "value_domain",
+      "editable": true
+    },
+    {
+      "object_id": "67ad9163-b172-4207-bdc9-cd1abb4822f8",
+      "edited_by_tab": "tags",
+      "canonical_name": "标签词表",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 N5 重审定名『标签词表』（对象名替代动作名『标签维护』——tags 字段的受控词表本体）"
+      ],
+      "aliases": [
+        {
+          "alias": "柔性检索标签",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/SCHEMA.md:19（第三层：柔性检索标签 — tags 管横向聚合、场景标记、灵活搜索）"
+        }
+      ],
+      "definition": "柔性检索标签词表及其别名归一表：tags 按分组管横向聚合/场景标记（不替代 article_type、不重复存储已在业务字段表达的信息）；正式标签=各分组扁平并集减 disabled_tags，写入值经 tag_aliases 归一到正式标签。",
+      "definition_evidence": [
+        "data/theschema/SCHEMA.md:19（第三层职责原文）、:299（tags 不重复存储已在 product/module/version/article_type/doc-type 中表达的信息）",
+        "data/theschema/KNOWLEDGE_SCENARIOS.md:41（tags 只做横向检索补充，不替代 article_type）",
+        "data/theschema/fields.yaml:22（value_domain note：正式标签=各分组扁平并集-disabled_tags；别名经 tag_aliases 归一）",
+        "data/theschema/enums.yaml:50（tags: {}）、:127（tag_aliases: {}）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/enums.yaml:50（tags 段）",
+        "data/theschema/enums.yaml:127（tag_aliases 段）",
+        "contracts/theschema-roles.json:78-83（tags + tag_aliases 段 → tags 页签）"
+      ],
+      "write_path": "页面 #/schema→tags 页签→PUT /api/schema/enums；discovery 吸收通道 POST /api/schema/discovery/absorb（assignMode=formal/alias，schema-discovery-routes.cjs:248）；禁直写",
+      "relationships": {
+        "edges": [
+          {
+            "type": "reference",
+            "to": "f212819f-9a97-482f-9d46-4baa3775e474",
+            "note": "值域引用：tags（fields.yaml:16-23）"
+          },
+          {
+            "type": "usage",
+            "to": "taxonomy-growth（contracts/theschema-roles.json:80-82）",
+            "note": "referenced_by"
+          }
+        ]
+      },
+      "notes": "Master 2026-10-23 定名『标签词表』（原页签名『标签维护』为动作名弃用；前端 TAB_LABELS 更新随页面工作包）。object_kind 暂维持 business_object——值域分叉见 N5。 ｜pipeline：野生 tag 经 discovery 待沉淀→人在 tags 页签/absorb 裁定升正式或归别名；停用走 disabled_tags（预留）",
+      "object_kind": "business_object",
+      "technical_refs": [
+        {
+          "alias": "tag_aliases（别名归一表）",
+          "kind": "物理别名数据",
+          "evidence": "data/theschema/fields.yaml:22（normalize: { aliases: tag_aliases }——别名经 tag_aliases 归一）"
+        }
+      ],
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "subtype": "value_domain",
+      "editable": true
+    },
+    {
+      "object_id": "65ece684-3770-4cdd-b9a8-aa19bca38926",
+      "edited_by_tab": "tags",
+      "canonical_name": "停用标签",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 批复『这 7 个都行』——候选名升 certified",
+        "data/theschema/fields.yaml:22（正式标签=各分组扁平并集-disabled_tags——语义即停用扣除，中文名由语义合成，无既有叫法）"
+      ],
+      "aliases": [],
+      "definition": "已停用标签清单：从正式标签并集中扣除的值——存量内容保留可查，新内容不可再使用（标签停用动线的终点）。",
+      "definition_evidence": [
+        "data/theschema/fields.yaml:22（value_domain note 扣除式定义）",
+        "contracts/theschema-roles.json:85-91（status=reserved，edited_by_tab=tags）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "contracts/theschema-roles.json:85-91（在册预留位）",
+        "data/theschema/fields.yaml:22（语义权威——扣除式定义）"
+      ],
+      "write_path": "预留位：物理段不存在；落地后随 tags 页签（同段族）走 PUT /api/schema/enums",
+      "relationships": {
+        "edges": [
+          {
+            "type": "reference",
+            "to": "f212819f-9a97-482f-9d46-4baa3775e474",
+            "note": "值域引用：tags 值域的停用扣除位（fields.yaml:22 note）"
+          },
+          {
+            "type": "usage",
+            "to": "taxonomy-growth（contracts/theschema-roles.json:88-90）",
+            "note": "referenced_by"
+          }
+        ]
+      },
+      "notes": "预留段（A4 已标 status=reserved）；discovery 动线『停用』一环的承载位。",
+      "object_kind": "business_object",
+      "quality_status": "certified",
+      "lifecycle_status": "reserved",
+      "governance_tags": {
+        "confidence": "medium"
+      },
+      "subtype": "value_domain",
+      "editable": false
+    },
+    {
+      "object_id": "c54f6781-1669-4576-ba6e-c504c1b8f927",
+      "edited_by_tab": "ontology",
+      "canonical_name": "知识本体",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 N5 重审定名『知识本体』（覆盖 类/关系/推理规则/约束 四件套，直译 ontology——文档既有叫法，TheSchema.md:17『枚举值定义在 enums.yaml、ontology.yaml』）"
+      ],
+      "aliases": [
+        {
+          "alias": "本体（ontology）",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/TheSchema.md:17（枚举值定义在 enums.yaml、ontology.yaml）"
+        },
+        {
+          "alias": "实体与关系",
+          "kind": "旧页签名",
+          "evidence": "src/features/schema-manager/schema-manager-types.ts:77（TAB_LABELS——未覆盖 inference_rules/constraints，弃用；前端更新随页面工作包）"
+        }
+      ],
+      "definition": "知识本体定义：节点类型（System/Entity/Document…，各带允许关系表）、推理规则与约束——图谱抽取（extract_graph）与合规规则集（能力七字段+断言策略）的唯一来源。关系类型（21 种＝16 机器类型＋5 治理语义类型）自 2026-10-24 D3 裁定起独立成卡「关系类型」（本卡不再捆管类型段）。",
+      "definition_evidence": [
+        "data/theschema/ontology.yaml:1-30（node_types 词条：description/category/color/icon/allows_relations）",
+        "data/theschema/DATA-DICTIONARY.md:315/334（三、图节点类型；四、图边类型（15 种））",
+        "contracts/theschema-roles.json:129-144（ontology 段登记＋derives=合规规则集）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/ontology.yaml:1（node_types）、relation_types、inference_rules、constraints 四段",
+        "contracts/theschema-roles.json:136-141（四段并集 → ontology 页签）"
+      ],
+      "write_path": "页面 #/schema→ontology 页签→PUT /api/schema/ontology（server/routes/ontology-routes.cjs:50）；禁直写",
+      "relationships": {
+        "edges": [
+          {
+            "type": "derivation",
+            "to": "合规规则集（能力七字段+断言策略，contracts/theschema-roles.json:133-135 derives）",
+            "note": "derived_by（反向）"
+          },
+          {
+            "type": "containment",
+            "to": "关系类型（relation_types 段独立成卡——D3，Master 2026-10-24）",
+            "note": "contains"
+          }
+        ]
+      },
+      "notes": [
+        "Master 2026-10-23 定名『知识本体』（原页签名『实体与关系』覆盖面不足弃用，收为别名）。object_kind=business_object。 2026-10-24 D3：relation_types 段独立成卡「关系类型」（文件不拆段、事实源仍在 ontology.yaml）。"
+      ],
+      "object_kind": "business_object",
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "editable": true
+    },
+    {
+      "object_id": "4b05a42e-e9af-4bdf-8997-c53c8b25f28e",
+      "edited_by_tab": "dependencies",
+      "canonical_name": "依赖版本区间",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 N5 重审定名『依赖版本区间』（拓扑在 entity 页类型化 wikilink，本表只富化边的 since/until——名实对齐）"
+      ],
+      "aliases": [
+        {
+          "alias": "版本富化层",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/AI_CONCEPT.md:19-23（依赖关系两个独立维度：拓扑连线（类型化 wikilink 唯一来源）＋版本信息（YAML 富化 since/until））"
+        }
+      ],
+      "definition": "组件依赖关系的版本富化表：拓扑连线（谁和谁有关系）由 entity 页面类型化 wikilink 唯一定义，本表只富化 wikilink 边的 since/until 版本区间（YAML 优先，无 YAML 的边为无版本约束的骨架语义）。当前空表（拓扑全在 wikilink）。",
+      "definition_evidence": [
+        "data/theschema/AI_CONCEPT.md:19-23（两维度分工原文）",
+        "data/theschema/dependencies.yaml:1（dependencies: []——空表）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/dependencies.yaml:1（dependencies[] 段）",
+        "contracts/theschema-roles.json:145-158（dependencies[] → dependencies 页签）"
+      ],
+      "write_path": "页面 #/schema→dependencies 页签→PUT /api/schema/dependencies（server/routes/dependencies-routes.cjs:56，preview/validate/rollback 同文件）；禁直写",
+      "relationships": {
+        "edges": []
+      },
+      "notes": "Master 2026-10-23 定名『依赖版本区间』（原页签名『依赖规则』名实不符弃用；前端 TAB_LABELS 更新随页面工作包）。object_kind=config_object。 ｜boundary_note：对象边界不含拓扑连线（唯一来源在 vault 侧 entity 页 wikilink，册外领地——data-territory.json vault 内容域）；本表仅版本信息",
+      "object_kind": "config_object",
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "medium"
+      },
+      "editable": true
+    },
+    {
+      "object_id": "72a641da-dd78-45ca-9c19-eaed00a6d24c",
+      "edited_by_tab": "versions",
+      "canonical_name": "产品版本",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 批复『这 7 个都行』——候选名升 certified",
+        "src/features/schema-manager/schema-manager-types.ts:79（TAB_LABELS versions=产品版本）",
+        "data/theschema/DATA-DICTIONARY.md:203（version — 产品版本）"
+      ],
+      "aliases": [
+        {
+          "alias": "产品线注册表",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/versions.yaml:2（_comment：产品身份注册表（结构保留））"
+        }
+      ],
+      "definition": "产品线与其版本枚举的注册表：products=现役产品（version 字段取值来源），reserved_products=保留产品名（不可被自由文本占用）。当前结构保留态——AnyShare 条目随词表归档清空，待多主体机制就位后按主体重新注册。",
+      "definition_evidence": [
+        "data/theschema/versions.yaml:2-5（注册表自述＋现状）",
+        "data/theschema/DATA-DICTIONARY.md:172（product — 产品线）、:203（version — 产品版本）",
+        "data/theschema/SCHEMA.md:184（3.3 version — 产品版本，格式校验）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/versions.yaml:3（reserved_products）、:5（products）",
+        "contracts/theschema-roles.json:159-172（products + reserved_products → versions 页签）"
+      ],
+      "write_path": "页面 #/schema→versions 页签→PUT /api/schema/versions（server/routes/version-registry-routes.cjs:40，validate/freeze 同文件）；禁直写",
+      "relationships": {
+        "edges": [
+          {
+            "type": "reference",
+            "to": "f212819f-9a97-482f-9d46-4baa3775e474",
+            "note": "值域引用：product（fields.yaml:153）/version（:161）"
+          }
+        ]
+      },
+      "notes": "产品身份 vs 产品版本两个概念的权威源分置，是 versions 页签跨文件边界的核心事实。 ｜boundary_note：versions 页签同时写本对象与 architecture_projection（enums.yaml）——产品身份权威源在 architecture_projection.product/product_aliases，版本取值权威源在本表；见 boundary_determinations#versions-cross-file｜2026-10-27 批（Master「全都做」）：首批字段级条目入册——字段正名/说明单源自此出（B 档治理粒度开端：页签级✓对象级✓字段级自此批起）。",
+      "object_kind": "business_object",
+      "technical_refs": [
+        {
+          "alias": "products/reserved_products",
+          "kind": "物理段名",
+          "evidence": "data/theschema/versions.yaml:3-5"
+        }
+      ],
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "subtype": "value_domain",
+      "editable": true,
+      "fields": [
+        {
+          "field": "canonical_product",
+          "label": "主产品名（身份锚点）",
+          "description": "产品身份的权威名——别名与版本都归一到它；改名=换身份，仅允许从空态首次设定（renameSupported=false），别名随时可维护。",
+          "evidence": "data/theschema/enums.yaml architecture_projection.product"
+        },
+        {
+          "field": "product_aliases",
+          "label": "产品别名",
+          "description": "归一到主产品名的别名列（写入时自动映射 alias→主产品名）；用于同产品多写法归一。",
+          "evidence": "data/theschema/enums.yaml architecture_projection.product_aliases"
+        },
+        {
+          "field": "products",
+          "label": "产品版本注册表",
+          "description": "产品→版本清单（version 字段取值来源）；每条版本含 id/label/status(draft|released|deprecated)/release_date。",
+          "evidence": "data/theschema/versions.yaml products"
+        },
+        {
+          "field": "reserved_products",
+          "label": "保留产品名",
+          "description": "不可被自由文本占用的产品名预占位（防止内容字段误写未来产品名）。",
+          "evidence": "data/theschema/versions.yaml reserved_products"
+        }
+      ]
+    },
+    {
+      "object_id": "1242551d-e453-4e63-b21d-5715b86ab994",
+      "edited_by_tab": "versions",
+      "sub_key": "product、product_aliases",
+      "canonical_name": "图谱投影配置",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 定名『图谱投影配置』——第三类对象（既非产品主体亦非版本属性），三件事都是配置、非业务实体；别名保留『架构投影』",
+        "标准出处：投影（projection——数据库投影、CQRS 读模型投影）、映射（mapping——本体映射）、别名（aliases——schema.org alternateName／Wikidata aliases）均为标准术语，对应 data/theschema/enums.yaml:102-123 各子键",
+        "直译来源：段名 architecture_projection 直译＝架构投影（翻译来源非标准出处，按 Master 2026-10-23 复核口径拆开标注）；保留为别名"
+      ],
+      "aliases": [
+        {
+          "alias": "架构投影",
+          "kind": "段名直译",
+          "evidence": "段名直译（Master 2026-10-23 裁决保留为别名）"
+        }
+      ],
+      "definition": "图谱投影配置：三类配置的合并段（均为配置而非业务实体）。①文章 product 字段取值来源（product/product_aliases 闭合集）；②图谱抽取管线的启动配置（抽取脚本依赖 projection.product/version，现为空串——与实体域归档一致）；③写法归一翻译表（各轴别名与类型化 wikilink 中文前缀→英文关系类型）。概念上含两类：产品身份登记（未来可能由产品经理维护）与翻译表（写法归一规则，未来可能由知识工程师维护）；现合并管理，满足条件后可拆分。",
+      "definition_evidence": [
+        "data/theschema/fields.yaml:159（product 字段 value_domain: source=architecture_projection, op=product_closure——产品值域权威在此，不在 versions.yaml）",
+        "vault 知识库/.claude/scripts/extract_graph.py:395-419（projection.product/version is required——管线必填上下文）；validate_graph.py/validate-entity.py/pipeline-smoke.py 同源消费",
+        "data/theschema/enums.yaml:102-123（段全貌：product/version/product_aliases/layer_aliases/category_aliases/subdomain_aliases/projected_relation_types/wikilink_type_labels）",
+        "server/shared/value-domain-resolver.cjs:86（product_closure 解析实现）",
+        "docs/adr/ADR-009-多主体词表架构-元层与主体层分离.md:13（D3：产品身份部分列为可主体化段）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/enums.yaml:102（architecture_projection 段）",
+        "contracts/theschema-roles.json:93-97（子键级页签绑定）"
+      ],
+      "write_path": "页面 #/schema→versions 页签（产品身份编辑面）→PUT /api/schema/product-identity（server/routes/version-registry-routes.cjs:27 → writeArchitectureProjectionIdentity）；禁直写",
+      "relationships": {
+        "edges": []
+      },
+      "notes": "Master 2026-10-23 终裁：定名『图谱投影配置』（别名『架构投影』）、现在不拆、标记未来拆分候选（触发条件见 future_split）；object_kind=config_object（配置对象——生命周期/变更频率/权限模型与业务对象不同，按类分治）。 ｜boundary_note：与 products-reserved_products 同页签跨文件共编（boundary_determinations#versions-cross-file）",
+      "future_split": {
+        "status": "candidate",
+        "rule": "满足以下全部条件时重评是否拆分（Master 2026-10-23 裁决原文）",
+        "reevaluate_when": [
+          "① product/product_aliases 值域非空",
+          "② extract_graph.py 管线恢复运行",
+          "③ 两类内容的维护者分离（不同角色负责）"
+        ]
+      },
+      "object_kind": "config_object",
+      "technical_refs": [
+        {
+          "alias": "product identity（产品身份）",
+          "kind": "写命令名",
+          "evidence": "server/routes/version-registry-routes.cjs:27"
+        },
+        {
+          "alias": "architecture_projection",
+          "kind": "物理段名",
+          "evidence": "data/theschema/enums.yaml:102"
+        }
+      ],
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "medium"
+      },
+      "editable": true
+    },
+    {
+      "object_id": "f212819f-9a97-482f-9d46-4baa3775e474",
+      "edited_by_tab": "fields",
+      "canonical_name": "字段字典",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 批复『这 7 个都行』——候选名升 certified",
+        "src/features/schema-manager/schema-manager-types.ts:81（TAB_LABELS fields=字段字典）",
+        "data/theschema/fields.yaml:1（# fields.yaml — frontmatter 字段数据字典（ADR-008 D2）——文件头注自称）"
+      ],
+      "aliases": [
+        {
+          "alias": "frontmatter 字段数据字典",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/fields.yaml:1"
+        },
+        {
+          "alias": "DATA-DICTIONARY（人读版）",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/DATA-DICTIONARY.md:1（企业知识库数据字典——人读叙述版，机器源在 fields.yaml）"
+        }
+      ],
+      "definition": "实体/文章 frontmatter 字段的唯一机器源：字段名称/类型/必填/作用域/值域/别名的收口；服务端消费的字段名必须都在本表声明集内（由对账检查保证）。",
+      "definition_evidence": [
+        "data/theschema/fields.yaml:1-4（头注原文：唯一机器源＋派生投影＋对账门禁）",
+        "data/theschema/fields.yaml:7-37（fields[] 词条实例：name/label/type/required/scope/layer/value_domain/description）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/fields.yaml:7（fields[] 段）",
+        "contracts/theschema-roles.json:109-128（fields[] → fields 页签）"
+      ],
+      "write_path": "页面 #/schema→fields 页签→PUT /api/schema/fields（server/routes/fields-routes.cjs:24）；非页面写者经 scripts/vault-runtime/schema-write-client.mjs（fields-write，schema-write-client.mjs:29）；禁直写",
+      "relationships": {
+        "edges": [
+          {
+            "type": "derivation",
+            "to": "entity-frontmatter-schema.md（投影，generator=project:frontmatter-schema）",
+            "note": "derived_by（反向）"
+          },
+          {
+            "type": "derivation",
+            "to": "resolved-domains.json（配方，generator=project:resolved-domains）",
+            "note": "derived_by（反向）"
+          },
+          {
+            "type": "usage",
+            "to": "fields-registry（contracts/theschema-roles.json:118-122）",
+            "note": "referenced_by"
+          }
+        ]
+      },
+      "notes": "与 DATA-DICTIONARY.md 的关系：机器源（本表）vs 人读叙述版（.md）——字典附录 doc_type_files 已登记派生关系。",
+      "object_kind": "business_object",
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "editable": true
+    },
+    {
+      "object_id": "7a9e7361-d746-4d9f-a50d-05d22764ae8f",
+      "edited_by_tab": "concepts",
+      "sub_key": "subdomains.concept",
+      "canonical_name": "概念词表",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-23 批复『这 7 个都行』——候选名升 certified",
+        "src/features/schema-manager/schema-manager-types.ts:82（TAB_LABELS concepts=概念词表）",
+        "src/features/schema-manager/ConceptVocabularyTab.tsx:9（aria-label=概念词表编辑区）"
+      ],
+      "aliases": [
+        {
+          "alias": "概念域词表",
+          "kind": "文档叫法",
+          "evidence": "src/features/schema-manager/ConceptVocabularyTab.tsx:10（概念域词表——知识内容的概念分类（comparison/method 等））"
+        }
+      ],
+      "definition": "概念域（domains.concept）的子域词表：知识内容的概念分类词条（comparison/method 等）。复用知识域编辑面锁定 concept 域，读写链路与 domains 页签同一套（零新通道）；概念类型（ontology concept_types）的下钻管理后续增强另立。",
+      "definition_evidence": [
+        "src/features/schema-manager/ConceptVocabularyTab.tsx:1-10（组件头注＋页面说明原文）",
+        "contracts/theschema-roles.json:65-69（domains + subdomains 段 sub_key=subdomains.concept → concepts 页签）",
+        "data/theschema/enums.yaml:16-18（subdomains.concept 现有词条：method=方法论）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/enums.yaml:16（subdomains.concept 子键——物理承载）",
+        "contracts/theschema-roles.json:65-69（sub_key 级页签绑定——登记权威）"
+      ],
+      "write_path": "页面 #/schema→concepts 页签→PUT /api/schema/enums（与 domains 页签同一写通道）；禁直写",
+      "relationships": {
+        "edges": [
+          {
+            "type": "reference",
+            "to": "f212819f-9a97-482f-9d46-4baa3775e474",
+            "note": "值域引用：category-path 的子域段 subdomains.concept（fields.yaml:24-37 scoped_by）"
+          },
+          {
+            "type": "co_editing",
+            "to": "domains",
+            "note": "同段共编"
+          }
+        ]
+      },
+      "notes": "object_id 为本字典新增（02 无此 id）；沿用或改 id 待 Master 随定稿确认。 ｜boundary_note：实际落盘=enums.yaml domains+subdomains 段的 subdomains.concept 子键（boundary_determinations#concepts-subkey）；concept_types 为 reserved 幽灵段，非本对象",
+      "object_kind": "business_object",
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "subtype": "value_domain",
+      "editable": true
+    },
+    {
+      "object_id": "092cc25c-4d84-4af3-980a-14faae69f8dc",
+      "edited_by_tab": "discovery",
+      "canonical_name": "未收录值",
+      "canonical_name_evidence": [
+        "Master 2026-10-23 裁决：选定『未收录值』（否决原名『待沉淀标签』——名的主体是标签，实际内容是 layers/categories/subdomains/tags 四类值，src/features/schema-manager/schema-manager-types.ts:52）",
+        "标准出处：受控词表（controlled vocabulary，标准术语）之外的值，即 out-of-vocabulary（未登录词，NLP 标准术语）的对象化"
+      ],
+      "aliases": [
+        {
+          "alias": "待沉淀队列",
+          "kind": "文档叫法",
+          "evidence": "server/routes/schema-discovery-routes.cjs:28"
+        },
+        {
+          "alias": "野生值",
+          "kind": "文档叫法",
+          "evidence": "server/routes/schema-discovery-routes.cjs:97（实体侧 tags——野生值进待沉淀队列）"
+        }
+      ],
+      "definition": "运行时聚合（L3）的野生值队列：从文章/实体 frontmatter 现算不在受控集的 layers/categories/subdomains/tags 值（带出现次数），由人在配置页裁定——升为正式标签（须配 group）或归为别名（须配 aliasTarget），不自动吞。动线：待沉淀 → 正式/别名 → 停用（disabled_tags）。",
+      "definition_evidence": [
+        "server/routes/schema-discovery-routes.cjs:28（不自动吞原则）、:79-131（discoveryData 现算实现：buckets/counts/排序）、:167（返回 discovery/counts）",
+        "src/features/schema-manager/schema-manager-types.ts:52-63（FormalAbsorbRequest：field∈layers|categories|subdomains|tags，mode=formal，assignMode=formal|alias）"
+      ],
+      "data_domain": "L3",
+      "role": "runtime-aggregation（不在 contracts/theschema-roles.json 22 entries 内——无物理段，响应即弃）",
+      "writer": "system（现算聚合）＋human（经 absorb 裁定）",
+      "authority_source": [
+        "server/routes/schema-discovery-routes.cjs:79（discoveryData——运行时权威实现）"
+      ],
+      "write_path": "读：GET /api/schema/discovery（schema-discovery-routes.cjs:231）；裁定写回：POST /api/schema/discovery/absorb（:248 → schema-write-service.discoveryEdit）；无直写物理段（聚合不落盘）",
+      "relationships": {
+        "edges": [
+          {
+            "type": "derivation",
+            "to": "文章/实体 frontmatter 现算（vault 内容域，册外）",
+            "note": "derives_from"
+          }
+        ]
+      },
+      "notes": "对象覆盖面大于『标签』（absorb 的 field 也含 layers/categories/subdomains）——Master 2026-10-23 裁定『未收录值』，原名『待沉淀标签』名实不符已弃（前端 TAB_LABELS 更新随页面工作包）。 ｜pipeline：absorb 落点：tags/tag_aliases（assignMode formal|alias）；晋升事件记账 vocabulary-lineage entries",
+      "object_kind": "runtime_view",
+      "object_kind_note": "【已裁决 2026-10-23】扩枚举 runtime_view 批准——查询时动态计算、不持有持久化存储的派生对象（查询的产物，非独立实体）；此前建议文已兑现，note 留裁决痕",
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "editable": false
+    },
+    {
+      "object_id": "92bd5bd8-3cc4-4e00-a659-941fa7303a9e",
+      "edited_by_tab": "relations",
+      "canonical_name": "关系类型",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-24 D3 裁定「要做独立对象，边和其他对象又不一样」——关系类型自知识本体卡（四段捆包）拆出独立成卡（EDGE-RELATION-GOV-001 对象本体批）"
+      ],
+      "aliases": [
+        {
+          "alias": "边类型（edge type）",
+          "kind": "文档叫法",
+          "evidence": "contracts/object-meta-model.json relationships 层 edge_type 枚举名（治理语义五值 2026-10-24 前的旧家）"
+        }
+      ],
+      "technical_refs": [
+        "relation_types（data/theschema/ontology.yaml:103 段名——本卡事实源）",
+        "edge_type（元模型 relationships 层枚举名——五治理语义值已并入本注册表）"
+      ],
+      "definition": "图谱关系类型的唯一被治理注册表（机器抽取类型＋治理语义类型的统一词表源）：每类型带 SHACL domain/range（source_types/target_types）、断言政策（working_projection／formal_consumers 消费方白名单——正式读过滤的执法依据）。D3 裁定前为三套词表（元模型 edge_type 五值／管线 relationType／本体 relation_types 16 值），2026-10-24 起五治理语义值并入本注册表，三源收敛为一。",
+      "definition_evidence": [
+        "data/theschema/ontology.yaml:103（relation_types 段——16 机器类型＋2026-10-24 并入 derivation/usage/reference/co_editing/containment 五治理类型）",
+        "contracts/theschema.ontology.schema.json:40（relationType 结构：source_types/target_types domain/range＋assertion_policies.formal_consumers）",
+        "docs/plans/关系数据对象治理缺口立案.md:1（§3.6 三源实据——五值枚举／16 值注册表／触发词典值域 ⊆ 注册表；裁决：Master 2026-10-24 D3 独立对象）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/ontology.yaml:103（relation_types 段——唯一事实源；文件不拆段，卡片先行独立；页面编辑暂经 ontology 页签整文件写）"
+      ],
+      "write_path": "页面 #/schema→ontology 页签→PUT /api/schema/ontology（relation_types 段随整文件）；独立 relations 页签随前端批；禁直写",
+      "relationships": {
+        "edges": [
+          {
+            "type": "containment",
+            "to": "知识本体（data/theschema/ontology.yaml 四段同文件——段级独立对象化，文件不拆）",
+            "note": "contained_by（反向）"
+          }
+        ]
+      },
+      "notes": "D3 独立对象（Master 2026-10-24）。类型本身要治理（domain/range／断言政策／消费方白名单），故独立成卡；ADR-012 决策三的「并集开放枚举」过渡形态就此收敛为单一注册表。",
+      "object_kind": "business_object",
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "editable": true
+    },
+    {
+      "object_id": "b8edcd53-13ad-4a9c-97f0-9386fac854d5",
+      "edited_by_tab": "modules",
+      "canonical_name": "产品模块",
+      "canonical_name_evidence": [
+        "裁决：Master 2026-10-26「1 拆」——modules 自 taxonomy 拆独立页签（挂靠注册表与纯值域不同质）"
+      ],
+      "aliases": [
+        {
+          "alias": "所属模块（module）",
+          "kind": "文档叫法",
+          "evidence": "data/theschema/SCHEMA.md:162（3.2 module — 所属模块）"
+        }
+      ],
+      "definition": "产品模块挂靠注册表：文章/实体 module 字段的取值词条＋挂靠信息（父模块层级、子域挂靠、主系统节点、生效产品版本区间、适用产品）。抽取管线按 subdomain（晋升挂靠）与 system（module_system_map 挂接架构 System 节点）消费。",
+      "definition_evidence": [
+        "scripts/vault-runtime/schema_loader.py:234（module_subdomain_map／module_system_map 消费面）",
+        "data/theschema/SCHEMA.md:162（module 所属模块、闭合枚举）"
+      ],
+      "data_domain": "L1",
+      "role": "source",
+      "writer": "human",
+      "authority_source": [
+        "data/theschema/enums.yaml:125（modules 段）",
+        "contracts/theschema-roles.json:71-76（modules 段 → modules 页签，SCHEMA-IA-001 批10）"
+      ],
+      "write_path": "页面 #/schema→产品模块 页签→PUT /api/schema/enums（modules 节）；非页面写者经 scripts/vault-runtime/schema-write-client.mjs（modules-upsert，scripts/vault-runtime/schema-write-client.mjs:26-28）；禁直写",
+      "relationships": [
+        "module.subdomain → 知识域/子域 词表（挂靠）",
+        "module.system → 架构 System 节点（kebab 唯一）",
+        "module.since/until → 产品版本注册表（版本区间）"
+      ],
+      "notes": "六字段治理口径（Master 2026-10-26「2 按建议」批9 待裁落账）：全部人工治理词条、无系统预填——system（必填，主系统节点 kebab 如 ecms-cluster，全局唯一）；subdomain（必填，从知识域/子域 词表选取）；parent_id（选填，本注册表内层级上级，顶层空）；since/until（选填，生效产品版本区间 [含,不含)，空=开放）；products（选填，适用产品，逗号分隔）。",
+      "object_kind": "config_object",
+      "technical_refs": [
+        "server/services/schema-manager/enums-write-service.cjs",
+        "scripts/vault-py/graph/extract_graph.py（module_subdomain_map/module_system_map）"
+      ],
+      "quality_status": "certified",
+      "lifecycle_status": "approved",
+      "governance_tags": {
+        "confidence": "high"
+      },
+      "subtype": "value_domain",
+      "editable": true
+    }
+  ],
+  "appendix": {
+    "$comment": "非核心可编辑对象的登记分类（只登记，不建卡）——完整清单以 contracts/theschema-roles.json 22 entries 为准。",
+    "derived_l2": [
+      {
+        "object_id": "entity-frontmatter-schema",
+        "file": "data/theschema/entity-frontmatter-schema.md",
+        "derives_from": "fields.yaml",
+        "generator": "project:frontmatter-schema",
+        "evidence": "contracts/theschema-roles.json:201-208"
+      },
+      {
+        "object_id": "resolved-domains",
+        "file": "data/theschema/resolved-domains.json",
+        "derives_from": "fields.yaml 配方（SPEC-020）＋enums/versions 源数据",
+        "generator": "project:resolved-domains",
+        "evidence": "contracts/theschema-roles.json:329-338"
+      }
+    ],
+    "evidence_l4": [
+      {
+        "object_id": "enums/fields 快照",
+        "file": "data/theschema/history/**",
+        "role": "evidence",
+        "note": "git 即账（fs 快照仪式退役，快照读 git log --follow）；history 页签只读",
+        "evidence": "contracts/theschema-roles.json:210-225"
+      }
+    ],
+    "ledgers": [
+      {
+        "object_id": "entries",
+        "file": "data/theschema/vocabulary-lineage.json",
+        "role": "source",
+        "writer": "append-only",
+        "note": "词表晋升事件账本（recordGrowth 幂等追加）；B3 已 closed（PR-089 终裁）：source×append-only/system",
+        "evidence": "contracts/theschema-roles.json:227-242"
+      },
+      {
+        "object_id": "article_associations",
+        "file": "data/theschema/article_associations.yaml",
+        "role": "source",
+        "writer": "system",
+        "note": "发布流程决策账本（article-association-service 机器写，无页面编辑面）；B3 已 closed（PR-089 终裁）：source×append-only/system",
+        "evidence": "contracts/theschema-roles.json:244-252"
+      }
+    ],
+    "faceless_source_segments": [
+      {
+        "object_id": "category_map",
+        "file": "data/theschema/enums.yaml:124",
+        "consumption": "被册外消费：vault 管线 extract_graph.py 读作 tags→类别归一映射（空映射=直通）；仓内无功能消费方（2026-10-23 勘误：首判『无消费方』系仓内视角误判）",
+        "evidence": "contracts/theschema-roles.json:19-22；vault 知识库/.claude/scripts/extract_graph.py:74/119/132-136＋ensure-architecture-entity.py（vault 实测 2026-10-23）",
+        "redefinition": "Master 2026-10-23：野生类别沉淀字段（图谱生成时未命中预定义类别的值存此）——管线写入动线待管线工作包；现读侧『兜底映射』用法随重定义复核"
+      },
+      {
+        "object_id": "lifecycle",
+        "file": "data/theschema/enums.yaml:51-63",
+        "consumption": "被消费：fields-registry 配方段引用（lifecycle.status/review_cycle/default_status）＋schema-write-service",
+        "evidence": "contracts/theschema-roles.json:23-30",
+        "note": "真身=文章字段值域段（status/review-cycle 值域定义）——与文章字段值域对象同族；组件×版本状态在实体 arch_since/arch_until（非本段）",
+        "redefinition": "Master 2026-10-23 拆出 N3：活跃值域段保留现状（文章 status/review_cycle 取值单源，无争议）"
+      },
+      {
+        "object_id": "subdomain_layer_map",
+        "file": "data/theschema/enums.yaml:126",
+        "consumption": "被消费：subjects 合层读（readEnumsForSubject 合并 subject 覆盖）",
+        "evidence": "contracts/theschema-roles.json:14-18；server/shared/schema-config.cjs:57",
+        "redefinition": "Master 2026-10-23：可配置对象（子域→层归属推导表，页面配置后即被消费）——domains 页签编辑通道待⑤页面工作包，注册表 edited_by_tab 随实现接线"
+      },
+      {
+        "object_id": "subjects",
+        "file": "data/theschema/subjects.yaml:6",
+        "consumption": "被消费：fields-registry 主体对账面；主体层文件住 subjects/<id>/enums.yaml（可段子集契约，现 0 文件）；读 API 已有 GET /api/schema/subjects（subjects-routes.cjs:7），无页面",
+        "note": "多主体词表挂载关系的唯一事实源（ADR-009 D2，每主体一行 id/name/status/mounted_at；重挂载=置 mounted＋主体层文件落位）；只读查看入口=B4（查实后建议：页面不加，重挂载时随主体工作包）",
+        "evidence": "data/theschema/subjects.yaml:1-11；contracts/theschema-roles.json:173-200；docs/adr/ADR-009-多主体词表架构-元层与主体层分离.md D2/D3；server/routes/subjects-routes.cjs:7"
+      }
+    ],
+    "doc_type_files": [
+      {
+        "file": "data/theschema/AI_CONCEPT.md",
+        "title": "AnyShare 组件与依赖概念定义（AI 必读）",
+        "evidence": "contracts/theschema-roles.json:273-279"
+      },
+      {
+        "file": "data/theschema/DATA-DICTIONARY.md",
+        "title": "企业知识库数据字典（人读叙述版；机器源=fields.yaml）",
+        "derives_note": "与 fields 对象人读/机器源关系",
+        "evidence": "contracts/theschema-roles.json:281-287"
+      },
+      {
+        "file": "data/theschema/KNOWLEDGE_SCENARIOS.md",
+        "title": "标准场景规格（三层不要混用——taxonomy 三轴语义权威叙述）",
+        "evidence": "contracts/theschema-roles.json:289-295"
+      },
+      {
+        "file": "data/theschema/SCHEMA.md",
+        "title": "企业知识库 Schema（四层分类体系）",
+        "evidence": "contracts/theschema-roles.json:297-303"
+      },
+      {
+        "file": "data/theschema/TheSchema.md",
+        "title": "TheSchema — 知识库权威规则源",
+        "evidence": "contracts/theschema-roles.json:305-311"
+      },
+      {
+        "file": "data/theschema/entity-disambiguation.md",
+        "title": "Entity 名称消歧 — 当前落地方案",
+        "evidence": "contracts/theschema-roles.json:313-319"
+      },
+      {
+        "file": "data/theschema/entity-disambiguation-design.md",
+        "title": "Entity 名称消歧设计（规模触发参考）",
+        "evidence": "contracts/theschema-roles.json:321-327"
+      },
+      {
+        "file": "data/theschema/interaction-contracts.md",
+        "title": "三视图交互契约",
+        "evidence": "contracts/theschema-roles.json:340-346"
+      }
+    ],
+    "doc_type_files_policy": "9 个文档型 .md：role=source、writer=human、segments=0——在文件系统/编辑器维护，不进配置页导航；与配置对象的派生/叙述关系在各条 derives_note 注明。",
+    "id_migration": {
+      "migrated_at": "2026-10-23",
+      "reason": "N6 裁决执行：兑现元模型 identity 层 URN 原则（id 不嵌段名结构——N1 段名更名已实证 id 漂移风险）；影响面三通道实测零外部引用（vault 管线/前端/API），唯一机器消费者=门禁自身，纯内部重构",
+      "mapping": {
+        "domains-subdomains": "bd061091-c542-43a5-9fdb-fdb319f0b92f",
+        "layers": "0866f383-9128-415b-b119-d31c25163ec2",
+        "arch_categories": "07955c25-6850-4906-b1c9-4c3ff36bb6e3",
+        "subdomain_constraints": "6d704bce-150a-4217-85c0-1579999c7729",
+        "article_types-doc_types-modules": "8638b7d3-ec85-42f5-8116-7e5e93dd1173",
+        "tags-tag_aliases": "67ad9163-b172-4207-bdc9-cd1abb4822f8",
+        "disabled_tags": "65ece684-3770-4cdd-b9a8-aa19bca38926",
+        "node_types-relation_types-inference_rules-constraints": "c54f6781-1669-4576-ba6e-c504c1b8f927",
+        "dependencies": "4b05a42e-e9af-4bdf-8997-c53c8b25f28e",
+        "products-reserved_products": "72a641da-dd78-45ca-9c19-eaed00a6d24c",
+        "architecture_projection": "1242551d-e453-4e63-b21d-5715b86ab994",
+        "fields": "f212819f-9a97-482f-9d46-4baa3775e474",
+        "concept-vocabulary": "7a9e7361-d746-4d9f-a50d-05d22764ae8f",
+        "discovery-pending-tags": "092cc25c-4d84-4af3-980a-14faae69f8dc"
+      }
+    }
+  },
+  "standards_alignment": {
+    "$comment": "全形态×标准规范对照（Master 2026-10-23 提供标准清单后逐项对照）。verdict 值：align=相符（标准有直接对应物）；near=近对应（概念存在，形态为本库工程实现）；diff=形态差异（非违规，取舍已知）；none=无标准对应（纯工程治理形态）。标准以『标准号＋名称』为稳定键引用，不复制 URL 入库（防链接腐）。ISO/TS 14812、FIBO、CIDOC CRM 为参照实例（领域本体/持续维护形态）。",
+    "entries": [
+      {
+        "form": "canonical_name（唯一正式名）",
+        "standard": "SKOS skos:prefLabel（每语言唯一首选标签）；ISO/IEC 11179-5:2015 命名原则（GB/T 18391.5—2009 等同采用）",
+        "verdict": "align",
+        "note": "多候选→定稿收敛唯一，即 prefLabel 语义"
+      },
+      {
+        "form": "aliases（别名）",
+        "standard": "SKOS skos:altLabel；schema.org alternateName；Wikidata aliases；ISO 704:2022 同义词处理",
+        "verdict": "align",
+        "note": "物理别名数据（tag_aliases/product_aliases 等）同此形态"
+      },
+      {
+        "form": "definition（一句业务定义）",
+        "standard": "ISO 704:2022 定义撰写原则（内含定义＝属＋种差）；ISO 1087:2019 术语学基础",
+        "verdict": "near",
+        "note": "现稿简明可用；定稿时按『属＋种差』逐条校"
+      },
+      {
+        "form": "object_id（稳定技术标识）",
+        "standard": "ISO/IEC 11179-5:2015 标识原则；W3C Cool URIs；SKOS（URI 与标签分离）",
+        "verdict": "near",
+        "note": "已与显示名分离；但 id 为段名合成（domains-subdomains 式），嵌入结构信息——段重组即变（Cool URIs 警示情形）；定稿冻结后即稳定"
+      },
+      {
+        "form": "naming_status（confirmed/proposed/needs_decision）",
+        "standard": "ISO 11179 MDR 登记状态（Registration Status）思想",
+        "verdict": "near",
+        "note": "工程态，语义同登记成熟度"
+      },
+      {
+        "form": "authority_source（权威源 文件:行号）",
+        "standard": "ISO 11179 MDR 管理记录/责任方（stewardship）；FAIR 溯源",
+        "verdict": "near",
+        "note": ""
+      },
+      {
+        "form": "confidence（置信度）",
+        "standard": "—",
+        "verdict": "none",
+        "note": "工程自设，无标准对应"
+      },
+      {
+        "form": "受控词表闭合枚举（tags/article_types/doc_types/layers/domains/modules）",
+        "standard": "ISO 11179 值域（value domain，可枚举）；SKOS ConceptScheme",
+        "verdict": "align",
+        "note": ""
+      },
+      {
+        "form": "fields.yaml 字段字典（名/型/必填/作用域/值域/别名）",
+        "standard": "ISO/IEC 11179 数据元（data element）及其值域属性——全字典最强标准对应物；GB/T 18391 等同采用",
+        "verdict": "align",
+        "note": "fields.yaml 即 11179 意义上的数据元登记册"
+      },
+      {
+        "form": "名即 ID（中文枚举值兼作标识，如『排错指南』）",
+        "standard": "W3C Cool URIs（ID 不嵌易变信息）；SKOS（标识与标签分离）",
+        "verdict": "diff",
+        "note": "YAML 词表通行做法；代价＝改名即数据迁移；词条层已有 label 字段兜底——可接受取舍，定稿后冻结"
+      },
+      {
+        "form": "别名归一表（tag_aliases/product_aliases/各轴 aliases）",
+        "standard": "SKOS skos:altLabel；ISO 704:2022",
+        "verdict": "align",
+        "note": ""
+      },
+      {
+        "form": "value_domain 配方（tags_union/product_closure/ids/keys）",
+        "standard": "ISO 11179 值域派生关系；SHACL 动态值域（sh:in/sh:sparql）",
+        "verdict": "near",
+        "note": "标准有概念、无此配方 DSL——工程实现"
+      },
+      {
+        "form": "disabled_tags（停用）",
+        "standard": "owl:deprecated；ISO 11179 登记状态 retired",
+        "verdict": "near",
+        "note": "预留位落地时按 deprecated 语义实现"
+      },
+      {
+        "form": "discovery（未收录值现算队列）",
+        "standard": "out-of-vocabulary／未登录词（NLP 标准术语）；术语采集→收录流程（ISO 1087:2019 体系内的术语工作流程）",
+        "verdict": "near",
+        "note": "吸收动线＝词表收编（term admission）"
+      },
+      {
+        "form": "ontology.yaml 四件套（类/关系/推理规则/约束）",
+        "standard": "W3C OWL（Class/ObjectProperty）；规则＝SWRL/Datalog 族；约束＝SHACL",
+        "verdict": "align",
+        "note": "结构与 OWL＋SHACL 分工一致（node_types:1/relation_types:103/inference_rules:697/constraints:706）"
+      },
+      {
+        "form": "node_types 命名（System/Entity/Document 首字母大写名词短语）",
+        "standard": "CIDOC CRM 类命名约定（首字母大写名词短语，类前缀 E+数字）",
+        "verdict": "near",
+        "note": "名词短语一致；CIDOC 另有 E+数字稳定 ID 前缀，本库类名兼 ID（同『名即 ID』差异）"
+      },
+      {
+        "form": "relation_types 命名（DEPENDS_ON 大写常量式）",
+        "standard": "CIDOC CRM 属性命名约定（P+数字、小写动词短语 has type/carried out by）",
+        "verdict": "diff",
+        "note": "本库沿图数据库 EDGE_TYPE 常量惯例；两种皆有出处的选型，非违规；对外展示可用动词短语标签兜底"
+      },
+      {
+        "form": "subdomain_constraints（按子域限定类别/依赖取值；旧段名 subdomain_policies，2026-10-23 Master 裁决漂移修正更名）",
+        "standard": "W3C SHACL constraint；OWL owl:Restriction；ISO 11179 概念域↔值域关系",
+        "verdict": "align",
+        "note": "正式名『子域约束』＋段名同批更名（命名漂移按标准修正）"
+      },
+      {
+        "form": "architecture_projection（身份＋映射＋别名）",
+        "standard": "本体映射（ontology mapping/alignment）；SKOS mapping properties（exactMatch 等）；投影＝DB/CQRS 通用术语",
+        "verdict": "align",
+        "note": "候选名『投影/映射/别名』皆标准词"
+      },
+      {
+        "form": "category_map（tags→类别归一映射）",
+        "standard": "SKOS mapping properties／本体映射",
+        "verdict": "near",
+        "note": ""
+      },
+      {
+        "form": "arch_categories 派生视图（并集＋缺失回退）",
+        "standard": "数据库视图／OWL 推理闭包（entailment）；SHACL sh:in 可由矩阵导生",
+        "verdict": "near",
+        "note": "回退（fallback）机制为工程形态，无标准对应"
+      },
+      {
+        "form": "subjects 元层/主体层分离＋挂载注册表",
+        "standard": "SKOS 多 ConceptScheme；FIBO 模块化本体（Foundations/BE 分模块）；ISO 11179 多注册库",
+        "verdict": "align",
+        "note": "形态同『模块化词表＋模块注册表』"
+      },
+      {
+        "form": "append-only 账本（vocabulary-lineage/decisions/dev-log）",
+        "standard": "W3C PROV/PROV-O（entity/activity/derivation 溯源本体）；事件溯源",
+        "verdict": "near",
+        "note": "语义可映射 PROV（晋升事件=activity、词=entity）；jsonl 形态是工程实现"
+      },
+      {
+        "form": "history 快照（git 即账）",
+        "standard": "Memento（RFC 7089）时间版本思想",
+        "verdict": "near",
+        "note": ""
+      },
+      {
+        "form": "『YAML 词表＋git＋门禁』持续维护形态",
+        "standard": "ISO/TS 14812 ITS Vocabulary（OWL/TTL 形式化本体＋GitHub 持续维护）",
+        "verdict": "near",
+        "note": "同方向；差异＝未出 OWL/TTL 形式化层——需对外互操作时可从现词表派生"
+      },
+      {
+        "form": "册外领地声明（data-territory）/写路径单门/B-N 待裁决登记簿",
+        "standard": "—",
+        "verdict": "none",
+        "note": "纯治理工程形态，无标准对应；标准域内最近亲＝ISO 11179 MDR 的登记管理面"
+      },
+      {
+        "form": "relationships.derives_from（派生来源）",
+        "standard": "W3C PROV-O prov:wasDerivedFrom（溯源本体的派生关系）；OWL/RDFS 派生公理",
+        "verdict": "align",
+        "note": "arch_categories←subdomain_constraints 即 prov:wasDerivedFrom 语义"
+      },
+      {
+        "form": "relationships.referenced_by（引用/消费方）",
+        "standard": "ISO 11179 MDR 注册项关系属性；FAIR 使用溯源",
+        "verdict": "near",
+        "note": "工程登记形态，语义同使用登记"
+      },
+      {
+        "form": "relationships.co_edited_by_tabs／段-页签映射（sub_key）",
+        "standard": "—",
+        "verdict": "none",
+        "note": "页面治理工程形态，无标准对应"
+      }
+    ]
+  },
+  "boundary_determinations": [
+    {
+      "id": "arch-categories-derived",
+      "title": "arch_categories 物理 source、语义 derived",
+      "status": "determined",
+      "depends_on": [],
+      "pending_ref": "PR-093",
+      "determination": "【已证事实】物理在 enums.yaml（注册表①层登记 role=source），ADR-006 已接受语义=派生视图：值=subdomain_constraints（旧段名 subdomain_policies，2026-10-23 漂移修正更名）矩阵 allowed_categories 并集；矩阵未配置期回退读本段保底；A5 已落地 derivedDirectEdit 回标。【已裁定 2026-10-23】B1=b：缺失期禁止人直改、只读展示（执法随页面工作包，fail-open 缺口在 PR-093 追踪）；B2=矩阵继续预留、立案 PR-093 定落地触发条件——现冻结态：类别词表零写入口（值为空，无实际损失）。终态 data_domain/role 待矩阵落地后回填。",
+      "evidence": [
+        "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:20-24（决策 1/2/4）",
+        "contracts/theschema-roles.json:40-47（effective_role=derived-view＋derives_from＋A5 回标）",
+        "data/theschema/enums.yaml:64（现空表）"
+      ]
+    },
+    {
+      "id": "versions-cross-file",
+      "title": "versions 一个页签跨写两个文件",
+      "status": "determined",
+      "depends_on": [],
+      "determination": "versions 页签跨文件共编：产品版本取值写 versions.yaml（products+reserved_products，PUT /api/schema/versions），产品身份（叫什么/别名）写 enums.yaml architecture_projection 段 sub_key=product、product_aliases（PUT /api/schema/product-identity）。两概念权威源分置：版本取值权威源=versions.yaml；产品身份权威源=enums.architecture_projection。注册表以同段两行＋sub_key 表达，无页签漂移。",
+      "evidence": [
+        "contracts/theschema-roles.json:93-97（architecture_projection sub_key → versions 页签）＋:159-172（versions.yaml → versions 页签）",
+        "server/routes/version-registry-routes.cjs:27/40（两个写端点分置）"
+      ]
+    },
+    {
+      "id": "concepts-subkey",
+      "title": "concepts 页签实际编辑别人家的子键",
+      "status": "determined",
+      "depends_on": [],
+      "determination": "concepts 页签无独立物理段：实际落盘 enums.yaml domains+subdomains 段的子键 subdomains.concept（复用 domains 页签同一编辑面与写通道，锁定 concept 域）。concept_types 是 reserved 预留段（ontology 概念类型下钻管理后续增强另立），非本对象承载。注册表以 sub_key=subdomains.concept 的第二行显式表达段内页签分工。",
+      "evidence": [
+        "contracts/theschema-roles.json:65-69（sub_key 行）＋:99-103（concept_types status=reserved，edited_by_tab=null）",
+        "src/features/schema-manager/ConceptVocabularyTab.tsx:1-10（头注自述：管概念域（domains.concept）的子域词表；concept_types 后续增强另立）"
+      ]
+    },
+    {
+      "id": "faceless-l1-segments",
+      "title": "3 个 L1 段无编辑面（edited_by_tab=null）——已裁决重定性，实现接线随工作包",
+      "status": "determined",
+      "depends_on": [],
+      "determination": "消费事实（2026-10-23 二次勘察＋三次查证勘误）：lifecycle=文章字段值域段（fields.yaml:179 文章 status、:202 review-cycle 的 source: lifecycle 配方）——非『组件×版本状态』关系表（该数据在实体 arch_since/arch_until/arch_version_overrides，fields.yaml:105-121；Master 假想结构经查不成立，正确界面对象是实体编辑域非本配置页）；subdomain_layer_map 被 subjects 合层读消费（schema-config.cjs:57，主体层现 0 文件）；category_map 被册外消费（vault 管线 extract_graph.py:119-136 tags→类别归一，空映射=直通）。【已裁决 2026-10-23 N3】category_map＝图谱生成时野生类别沉淀字段（写入动线归管线工作包，走统一写客户端）；subdomain_layer_map＝可配置对象（domains 页签编辑通道归⑤页面工作包，注册表 edited_by_tab 随实现接线、不提前假声明）；lifecycle＝活跃值域段保留现状。三段受 null 段只读断言保护（A6）。",
+      "evidence": [
+        "contracts/theschema-roles.json:14-30（三段登记＋lifecycle referenced_by）",
+        "server/shared/schema-config.cjs:57（subdomain_layer_map 合层读）",
+        "vault 知识库/.claude/scripts/extract_graph.py:119-136（category_map 消费，册外）",
+        "data/theschema/fields.yaml:105-121（arch_since/arch_until/arch_version_overrides——组件×版本状态真承载）、:179/:202（lifecycle 为 status/review-cycle 值域源）"
+      ]
+    },
+    {
+      "id": "subjects-boundary",
+      "title": "subjects 边界（主体注册表＋主体层词表）",
+      "status": "determined",
+      "depends_on": [],
+      "pending_ref": "B4",
+      "determination": "subjects.yaml=主体注册表（subjects[]：id/name/status/archived_from/mounted_at），多主体词表挂载关系的唯一事实源（ADR-009 D2），无页签、被 fields-registry 主体对账面引用；subjects/<id>/enums.yaml=主体层词表（可段子集契约，注册表 segments=0，无页签）。合层读 readEnumsForSubject 现算合并（默认视角零破坏）。当前唯一主体 anyshare=paused（随词表归档）。是否需要只读查看入口=B4。",
+      "evidence": [
+        "data/theschema/subjects.yaml:1-11（注册表自述＋现值）",
+        "contracts/theschema-roles.json:173-200（两行登记）"
+      ]
+    },
+    {
+      "id": "discovery-runtime",
+      "title": "discovery 是 L3 运行时聚合，不在注册表",
+      "status": "determined",
+      "depends_on": [],
+      "determination": "discovery 非持久对象：GET /api/schema/discovery 从文章/实体 frontmatter 现算（响应即弃），不在注册表 22 entries 内、无物理段。人经 POST /api/schema/discovery/absorb 裁定（升正式/归别名），落点是受控词表（tags/tag_aliases 等）＋晋升事件账本（vocabulary-lineage）。动线：待沉淀 → 正式/别名 → 停用（disabled_tags 预留位）。",
+      "evidence": [
+        "server/routes/schema-discovery-routes.cjs:28/79-131/231/248（现算＋读写端点）",
+        "contracts/theschema-roles.json 全文无 discovery 条目（不在册——注册表只登记持久文件）"
+      ]
+    },
+    {
+      "id": "doc-type-md",
+      "title": "9 个文档型 .md 不进配置页导航",
+      "status": "determined",
+      "depends_on": [],
+      "determination": "8 个 .md（见 appendix.doc_type_files；原 9 件含 system-components.md——2026-11-04 PR-245 组件投影退役后删卡改 8）role=source、writer=human、segments=0：人写治理/叙述文档，在文件系统/编辑器维护，不进配置页导航（不以配置对象建卡）。派生关系显式注明：system-components.md→component-index.json；DATA-DICTIONARY.md 与 fields.yaml 为人读叙述版/机器源关系；TheSchema.md 自述『枚举值定义在 enums.yaml、ontology.yaml，本文件只引用不重复』。",
+      "evidence": [
+        "contracts/theschema-roles.json:254-347（9 条 .md 登记，segments 全空）",
+        "data/theschema/TheSchema.md:17（只引用不重复原文）"
+      ]
+    }
+  ],
+  "pending_decisions": {
+    "$comment": "B1–B5 沿用 2026-10-21 治理文档与交接词 §八编号，本工作包不施工、不单方面定；dictionary_items 为本草稿新产生的 needs_decision 项。全部待 Master 一次拍板。",
+    "master_items": [
+      {
+        "id": "B1",
+        "status": "ruled",
+        "ruling": "b（Master 2026-10-23）：派生源缺失期禁止人直改，只读展示。【已执法同批兑现】服务端：PUT /api/schema/enums 段级守卫拒收 categories/arch_categories（403 DERIVED_SEGMENT_READ_ONLY，写通道单点——统一写客户端无本段面实测）；前端：categories 页签恒只读＋说明条（预览增强归 IA 页面工作包）；注册表 edited_by_tab 归 null。fail-open 缺口关闭，PR-093 的 B1 追踪项销",
+        "item": "派生段 arch_categories 在派生源（subdomain_constraints，旧 subdomain_policies）缺失期是否允许人直改",
+        "options": {
+          "a": "允许＋标注（原 A5 现状：derivedDirectEdit 回标）",
+          "b": "禁止，只读展示（✓ 已裁）"
+        },
+        "impact": "categories 页签改只读＋预览，页面层新工作包",
+        "ai_suggestion": null,
+        "evidence": "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:20-24；contracts/theschema-roles.json:40-47"
+      },
+      {
+        "id": "B2",
+        "status": "ruled",
+        "ruling": "先立案（Master 2026-10-23）：矩阵继续预留、不现在配置；落地触发条件立案 PR-093（含 B1 执法缺口一并追踪）",
+        "item": "subdomain_constraints（旧 subdomain_policies）矩阵是否现在落地（落地后 arch_categories 纯派生）",
+        "options": {
+          "a": "立即落地",
+          "b": "继续预留＋立案定触发条件（✓ 已裁）"
+        },
+        "impact": "矩阵内容按 ADR-006 生长框架从库存量事实长出；触发条件成文前类别词表冻结（值为空无损失）",
+        "ai_suggestion": null,
+        "evidence": "docs/plans/problem-register.md PR-093；docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md:38 起（生长框架）"
+      },
+      {
+        "id": "B3",
+        "status": "closed",
+        "ruling": "销票——PR-089（Master 2026-10-21 采 TALOS 两轴）已终裁：账本=source 性质×append-only/system 写法，不新增 role=ledger。交接词（2026-10-23）挂为待裁系文档残留",
+        "item": "账本类角色定义（vocabulary-lineage / article_associations / decisions 镜像）",
+        "options": {
+          "a": "并入 derived",
+          "b": "新设 role=ledger"
+        },
+        "impact": "已由 PR-089 终态消化（theschema-roles.json:231/250 终态注释）",
+        "ai_suggestion": null,
+        "evidence": "contracts/theschema-roles.json:2（两轴正交·PR-089 裁决）、:231、:250"
+      },
+      {
+        "id": "B4",
+        "status": "ruled",
+        "ruling": "不加独立页签，主体重挂载时再评估（Master 2026-10-23）；主体数据已有展示通道——前端文件树消费 GET /api/schema/subjects（src/features/schema-manager/SchemaFileTree.tsx:27），现状 1 行 anyshare=paused、主体层 0 文件",
+        "item": "subjects.yaml（无页签）是否需要只读查看入口",
+        "options": {
+          "a": "要",
+          "b": "不要（✓ 已裁）"
+        },
+        "impact": "纯页面问题，但底层先裁『要不要』",
+        "ai_suggestion": null,
+        "evidence": "data/theschema/subjects.yaml:1-11；docs/adr/ADR-009-多主体词表架构-元层与主体层分离.md D2/D3；server/routes/subjects-routes.cjs:7；src/features/schema-manager/SchemaFileTree.tsx:27"
+      },
+      {
+        "id": "B5",
+        "status": "closed",
+        "ruling": "销票——PR-091 已裁并关账（2026-10-22）：执法方=实体写网关 entity-parent-service.validateParent（拒自引用/悬空父/非实体目标/成环，回归测试 4/4 绿）；schema 门禁不扩面。交接词挂为待裁系文档残留",
+        "item": "实体 frontmatter（parent_id）与 schema 引用一致性谁执法",
+        "options": {
+          "a": "entity-parent-service 自校验（✓ 已裁）",
+          "b": "纳入 schema 门禁面"
+        },
+        "impact": "已按「网关约束」口径关闭，回归固化在 entity-parent-service.test.cjs",
+        "ai_suggestion": null,
+        "evidence": "docs/plans/problem-register.md PR-091（关闭卡七字段齐备）；server/services/release-governance/entity-parent-service.cjs:1-11（@invariants）"
+      },
+      {
+        "id": "B6",
+        "status": "ruled",
+        "item": "数据域层级⇒可编辑性是否机械化（传导规则修正稿 R1，2026-10-23）：现口径为逐卡定性回填（arch 卡经 Master 2026-10-23 复核指令回填 data_domain/role/editable），机械规则（L2/L3/L4 ⇒ editable=false）改变『可编辑性由谁定』的执法性质。含两个前置子裁：①editable 是否转为必填字段（现 14 卡仅 1 卡声明，不转必填则机械规则空转）；②data_domain『L1（预留）』带注记实值是否拆为独立字段（机器解析脆弱）",
+        "options": {
+          "a": "机械化：两前置先行（editable 转必填＋注记拆字段），层级⇒false 入 transduction_rules 传导面",
+          "b": "维持逐卡定性回填，层级语义仅人读不机械化"
+        },
+        "impact": "选 a 牵连 14 卡 editable 补值回填批＋字段卫生；选 b 则 R1 不落传导面",
+        "ai_suggestion": null,
+        "evidence": "docs/plans/传导规则修正稿-对象元模型-2026-10-23.md R1（字段存在证据：editable 14 卡仅 1 卡声明；『L1（预留）』注记实值 disabled_tags 卡）；contracts/object-meta-model.json field_ownership representation 组（data_domain/editable 归属）",
+        "notes": "影响面报告（Master 2026-10-23 要求，实测 14 卡）：①editable 转必填可自动推导、零新增待裁——13 张未填卡全部可推：2 张 lifecycle_status=reserved（subdomain_constraints、disabled_tags）⇒ false，11 张 approved 活跃编辑面（10×L1＋1×L3 discovery）⇒ true；②lifecycle_status 字段已存在（14 卡必填、门禁执法），不用加字段——disabled_tags 卡已是 reserved，『L1（预留）』注记与该字段语义重复，拆字段＝洗掉注记归一 L1 即可",
+        "ruling": "a（Master 2026-10-23）：机械化——editable 转必填（14 卡回填：10×L1×approved⇒true；subdomain_constraints/disabled_tags reserved⇒false；discovery-pending-tags L3 运行时聚合⇒false——沉淀/停用动作写正式词表对象，聚合本身不可直改）＋『L1（预留）』注记洗净（data_domain 归一 L1，预留语义由 lifecycle_status=reserved 承载）；层级⇒不可编辑入 transduction_rules TR3（editable=true ⇒ L1×approved 必要条件式）；R6 同批落 TR4（retired 禁 transitional，transitional 卡面定形=governance_tags.transitional 布尔键，与 confidence 同构）"
+      }
+    ],
+    "dictionary_items": [
+      {
+        "id": "N1",
+        "item": "【已裁决 2026-10-23：命名漂移按正确规范改、往标准上靠】正式名『子域约束』＋段名全链更名 subdomain_constraints（旧 subdomain_policies；直译『子域策略』因固化漂移落选；ADR-006 修订记录＋注册表/契约/schema/前后端/测试同批更名）",
+        "related_object": "subdomain_constraints",
+        "status": "ruled"
+      },
+      {
+        "id": "N2",
+        "item": "【已裁决 2026-10-23】定名『图谱投影配置』（别名保留『架构投影』）；定性第三类对象＝投影配置（非业务实体），object_kind=config_object；现在不拆、标记未来拆分候选，触发条件＝①product/product_aliases 值域非空 ②extract_graph.py 管线恢复运行 ③两类内容维护者分离（全部满足才重评）",
+        "related_object": "architecture_projection",
+        "status": "ruled"
+      },
+      {
+        "id": "N3",
+        "item": "【已裁决 2026-10-23：Master 需求定义，现实现作废】①category_map＝图谱生成时野生类别的沉淀字段——未命中预定义类别的值存进该段（非此前实现的『label→类别兜底映射』）；②subdomain_layer_map＝可配置对象——归属推导表数据即可配置值，页面上配置后即被层轴推导消费（非无面只读账）；③lifecycle 拆出本项：活跃值域段（文章 status/review_cycle 值域）保留现状。实现归属：①管线写入动线（vault extract_graph，走统一写客户端）另立管线工作包；②domains 页签编辑通道＋API 归⑤页面工作包（注册表 edited_by_tab 接线随实现落地，不提前声明——防『注册表声称可编辑而无通道』假声明）。【2026-10-23 Master 反馈：现实现不是需求——三段（category_map/subdomain_layer_map/lifecycle）的正确需求定义待 Master 给出，下方 AI 建议基于错误理解，作废不采纳】无面三段补面/存废——2026-10-23 查证勘误（Master 提出组件×版本状态假想，经查不成立）：lifecycle 真身=文章字段值域段（status/review-cycle 两字段值域定义，fields.yaml:179/202 配方引用 source: lifecycle），非（组件×版本）关系表；『组件在某版本退役』的真承载=实体 frontmatter 的 arch_since/arch_until/arch_version_overrides（fields.yaml:105-121，人定义不自动推断），当前版本上下文来自图谱投影配置.version——若需『组件-版本状态管理界面』，编辑对象是实体字段（实体编辑域/页面工作包），非 schema 配置页。AI 建议：三段（category_map/subdomain_layer_map/lifecycle）仍均不补配置页参数面、均不退役（低频值域/有册外消费方）",
+        "related_boundary": "faceless-l1-segments",
+        "status": "ruled",
+        "related_object": "category_map, subdomain_layer_map, lifecycle"
+      },
+      {
+        "id": "N4",
+        "item": "concepts/discovery 两个新 object_id（concept-vocabulary / discovery-pending-tags）是否沿用（02 草稿无此二 id；02 的 33 对象以本字典 14 卡片+附录收编为准还是并存）",
+        "related_object": "concept-vocabulary, discovery-pending-tags",
+        "status": "closed"
+      },
+      {
+        "id": "N5",
+        "item": "【已关闭 2026-10-23】14/14 对象名经 Master 逐项裁定（4 项重审换名＋3 项前批＋7 项本批批复）——字典转正为业务对象名唯一事实源；前端 TAB_LABELS 派生对齐属页面工作包",
+        "related_object": "全部 core_objects",
+        "status": "closed"
+      },
+      {
+        "id": "N6",
+        "item": "【已裁决 2026-10-23（Master『处理N6』，按在册证据闭环）】迁移为不透明 id（UUID v4）——旧段名合成 id 全量换 UUID，映射入 appendix.id_migration；依据：零外部引用三通道实测＋identity 层 URN 原则兑现＋N1 段名更名实证漂移。object_id 存量债（元模型 identity 层 principle『存量债登记』条转正立案）：现役 14 卡 object_id 均为段名合成（domains-subdomains 式，02 草稿沿用），违反 identity 层 URN 原则（id 不嵌入段名结构等易变信息——段重组会引起 id 变）。已冻结不再变；待裁：是否迁移为不透明 id（迁移属身份层变更，牵连全部技术定位引用方——字典卡键、relationships.edges.to、注册表 derives_from 等）。不静默改，另行裁决。触发条件（定稿前置，2026-10-23 补）：①任何引起段名结构变化的工作包（段拆分/合并/更名——N1 的 subdomain_policies→subdomain_constraints 即实例）开工前必须先裁本项，否则卡 id 随段名静默漂移；②若裁迁不透明 id，宜在页面工作包开始消费 object_id（TAB_LABELS/导航派生）之前完成——外部消费一旦形成，迁移代价升档",
+        "related_object": "全部 core_objects（identity 层）",
+        "status": "ruled",
+        "notes": "影响面调查（Master 2026-10-23 要求，三通道实测）：①vault 管线——零引用（vault 全库 *.py grep 全部卡 id 零命中；extract_graph.py 等消费的是 yaml 段名非卡 id）；②前端 URL/代码——零引用（src/ 除测试外零命中；arch_categories 三处命中为同名 yaml 段语义——id 与段名同串是既有混淆点，非卡 id 引用）；③API 响应——零引用（server/ 无 dictionary 路由、无 object_id 字段消费）。唯一机器消费者＝check-object-dictionary 门禁自身。结论：当前纯仓内字典自用，迁移属纯内部重构（低档代价）；段名本身被大量消费与卡 id 无关（迁移不触碰段名消费方）"
+      },
+      {
+        "id": "D1",
+        "status": "ruled",
+        "item": "retention 轴（文件级保留政策）——TALOS file-rules 第四轴（current/project-lifetime/archive/local）对照暴露缺口：册外领地 backups/telemetry 等的保留政策无机器表达；选项 a 注册表补 retention 字段／b 维持领地声明不扩（来源：TALOS 勘察 sess_686a6301）",
+        "ruling": "补（Master 2026-10-23『1补』）——已落地：注册表/版图四轴（persistence×retention）必填＋枚举执法（check:data-roles ⑨b）；consumers 声明面（⑨c）并录首批已证册外消费方"
+      },
+      {
+        "id": "D2",
+        "status": "ruled",
+        "item": "persistence 轴（tracked/local-only，进不进版本控制）——data/*.db 等实际不进 git 的事实无声明；选项 a 补轴／b 维持（与 D1 同族可并裁）",
+        "ruling": "补（Master 2026-10-23『1补』）——已落地：注册表/版图四轴（persistence×retention）必填＋枚举执法（check:data-roles ⑨b）；consumers 声明面（⑨c）并录首批已证册外消费方"
+      },
+      {
+        "id": "D3",
+        "status": "ruled",
+        "item": "文件级 consumer 图——册外管线读仓内文件的消费关系无系统登记（category_map 勘误暴露的盲区：vault extract_graph.py:119-136 实读仓内段，仓内视角曾误判无消费方）；选项 a 注册表/字典加 consumer 声明面／b 对象级 usage 边够用",
+        "ruling": "补（Master 2026-10-23『1补』）——已落地：注册表/版图四轴（persistence×retention）必填＋枚举执法（check:data-roles ⑨b）；consumers 声明面（⑨c）并录首批已证册外消费方"
+      }
+    ]
+  }
+}

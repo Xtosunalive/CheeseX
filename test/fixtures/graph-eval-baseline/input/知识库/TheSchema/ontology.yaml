@@ -1,0 +1,687 @@
+node_types:
+  System:
+    description: 架构图中的系统/服务节点
+    category: 服务
+  Entity:
+    description: 知识库实体节点
+    category: 服务
+  Document:
+    description: 技术文档节点
+    category: 文档
+  Concept:
+    description: 抽象概念节点
+    category: 概念
+  BusinessDomain:
+    description: 业务域
+    category: 域
+  Subdomain:
+    description: 子域
+    category: 域
+  Product:
+    description: 产品
+    category: 产品
+  ProductVersion:
+    description: 产品版本
+    category: 版本
+  Module:
+    description: 模块分组节点
+    category: 服务
+  Plate:
+    description: 知识板块聚合节点
+    category: 板块
+
+relation_types:
+  # R1 — 7 reviewed (architecture_skeleton + candidate_enabled + projected)
+  DEPENDS_ON:
+    direction: A → B
+    weight_default: 1
+    description: A 运行时依赖 B（A→B 表示 A 依赖 B 才能运行）
+    label_cn: 依赖
+    source_types: [System]
+    target_types: [System]
+    semantic_role: architecture_skeleton
+    candidate_enabled: true
+    fact_encoding: typed_wikilink
+    projected: true
+    versionable: true
+    impact_propagation: reverse
+    legacy_policy: keep
+    assertion_policies:
+      - source_kind: typed_wikilink
+        producer: extract_graph.entity_typed_wikilink
+        decision_mode: reviewed
+        required_evidence: [source_revision, source_coordinate, target_identity]
+        formal_consumers: [topology, relation_search, impact_analysis]
+
+  # R2 — reviewed → projected (article_attachment + candidate_enabled → projected)
+  DOCUMENTS:
+    direction: A → B
+    weight_default: 0.8
+    description: 文档直接说明或记录目标
+    label_cn: 文档说明
+    source_types: [Document, Concept]
+    target_types: [System, Entity, Concept]
+    semantic_role: article_attachment
+    candidate_enabled: true
+    fact_encoding: article_association
+    projected: true
+    versionable: false
+    impact_propagation: none
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: article_association
+        producer: article-association-service.approved_association
+        decision_mode: inherit_source_approval
+        required_evidence: [source_revision, decision_id, target_identity]
+        formal_consumers: [article_search, relation_search]
+
+  # R3 — projected (weak_semantic, projected)
+  REFERENCES:
+    direction: 双向
+    weight_default: 0.8
+    description: 实体间显式 wikilink 引用关系
+    label_cn: 引用
+    source_types: [System, Document, Concept, Entity]
+    target_types: [System, Document, Concept, Entity]
+    semantic_role: weak_semantic
+    candidate_enabled: false
+    fact_encoding: wikilink
+    projected: true
+    versionable: false
+    impact_propagation: none
+    legacy_policy: keep
+    assertion_policies:
+      - source_kind: wikilink
+        producer: extract_graph.plain_wikilink
+        decision_mode: inherit_source_approval
+        required_evidence: [source_revision, source_coordinate]
+        formal_consumers: [relation_search, topology]
+
+  # R4 — derived (weak_semantic, NOT projected)
+  MENTIONS:
+    direction: A → B
+    weight_default: 0.2
+    description: 文档正文中文本提及了某个概念
+    label_cn: 提及
+    source_types: [Document]
+    target_types: [Concept]
+    semantic_role: weak_semantic
+    candidate_enabled: false
+    fact_encoding: derived
+    projected: false
+    versionable: false
+    impact_propagation: none
+    legacy_policy: keep
+    assertion_policies:
+      - source_kind: derived
+        producer: extract_graph.derived_mentions
+        decision_mode: derived_only
+        required_evidence: [source_revision, match_coordinate]
+        formal_consumers: []
+
+  # R5 — projected (category_navigation)
+  BELONGS_TO:
+    direction: A → B
+    weight_default: 0.8
+    description: 知识分类归属（文档→子域，子域→域）
+    label_cn: 归属
+    source_types: [Subdomain, Document, Entity, Concept, Module]
+    target_types: [BusinessDomain, Subdomain, Plate]
+    semantic_role: category_navigation
+    candidate_enabled: false
+    fact_encoding: category_path
+    projected: true
+    versionable: false
+    impact_propagation: none
+    legacy_policy: keep
+    assertion_policies:
+      - source_kind: category_path
+        producer: category-path-projection.classification
+        decision_mode: deterministic
+        required_evidence: [source_revision, category_path]
+        formal_consumers: [navigation, article_search]
+
+  # R6 — reviewed → projected (article_attachment + candidate_enabled → projected)
+  APPLIES_TO:
+    direction: A → B
+    weight_default: 0.8
+    description: 正式文章适用于某个产品及版本范围
+    label_cn: 适用于
+    source_types: [Document, Plate]
+    target_types: [Product, ProductVersion]
+    semantic_role: article_attachment
+    candidate_enabled: true
+    fact_encoding: article_association
+    projected: true
+    versionable: false
+    impact_propagation: none
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: article_association
+        producer: article-association-service.approved_association
+        decision_mode: inherit_source_approval
+        required_evidence: [source_revision, decision_id, target_identity]
+        formal_consumers: [article_search, version_filter]
+
+  # R7 — projected (category_navigation, version_registry)
+  HAS_VERSION:
+    direction: A → B
+    weight_default: 0.8
+    description: 产品拥有某个版本
+    label_cn: 拥有版本
+    source_types: [Product]
+    target_types: [ProductVersion]
+    semantic_role: category_navigation
+    candidate_enabled: false
+    fact_encoding: version_registry
+    projected: true
+    versionable: false
+    impact_propagation: none
+    legacy_policy: keep
+    assertion_policies:
+      - source_kind: version_registry
+        producer: version-registry.has_version
+        decision_mode: deterministic
+        required_evidence: [product_key, version_key]
+        formal_consumers: [version_navigation]
+
+  # R8 — projected (article_attachment, no candidate → projected from approved facts)
+  HAS_SYMPTOM:
+    direction: A → B
+    weight_default: 0.8
+    description: 排错文档描述了某个故障现象
+    label_cn: 现象
+    source_types: [Document]
+    target_types: [Concept]
+    semantic_role: article_attachment
+    candidate_enabled: false
+    fact_encoding: structured_property
+    projected: true
+    versionable: false
+    impact_propagation: none
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: structured_property
+        producer: structured-property.symptom_fact
+        decision_mode: inherit_source_approval
+        required_evidence: [source_revision, symptom_property]
+        formal_consumers: [symptom_search]
+
+  # R9 — delete
+  USES:
+    direction: A → B
+    weight_default: 0.8
+    description: 版本使用组件（已废弃，由产品坐标+组件生命周期替代）
+    label_cn: 使用
+    source_types: [ProductVersion]
+    target_types: [System]
+    semantic_role: historical_compat
+    candidate_enabled: false
+    fact_encoding: none
+    projected: false
+    versionable: false
+    impact_propagation: none
+    legacy_policy: delete
+    assertion_policies:
+      - source_kind: legacy_graph
+        producer: legacy.uses_emission
+        decision_mode: forbidden
+        required_evidence: []
+        formal_consumers: []
+
+  # R10 — reviewed (weak_semantic but candidate_enabled=true, fallback)
+  RELATED:
+    direction: A → B
+    weight_default: 0.3
+    description: 架构师确认的人工兜底知识关系
+    label_cn: 相关
+    source_types: [System, Entity, Document, Concept]
+    target_types: [System, Entity, Document, Concept]
+    semantic_role: weak_semantic
+    candidate_enabled: true
+    fact_encoding: typed_wikilink
+    projected: true
+    versionable: false
+    impact_propagation: none
+    legacy_policy: keep
+    assertion_policies:
+      - source_kind: typed_wikilink
+        producer: extract_graph.entity_typed_wikilink
+        decision_mode: reviewed
+        required_evidence: [source_revision, source_coordinate, target_identity]
+        formal_consumers: [relation_search, topology]
+
+  # R11 — reviewed (architecture_skeleton)
+  BACKS_UP:
+    direction: A → B
+    weight_default: 0.7
+    description: A 的数据或状态被备份到 B
+    label_cn: 备份于
+    source_types: [System]
+    target_types: [System]
+    semantic_role: architecture_skeleton
+    candidate_enabled: true
+    fact_encoding: typed_wikilink
+    projected: true
+    versionable: true
+    impact_propagation: reverse
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: typed_wikilink
+        producer: extract_graph.entity_typed_wikilink
+        decision_mode: reviewed
+        required_evidence: [source_revision, source_coordinate, target_identity]
+        formal_consumers: [topology, relation_search, impact_analysis]
+
+  # R12 — reviewed (architecture_skeleton)
+  STORES_IN:
+    direction: A → B
+    weight_default: 0.8
+    description: A 的持久业务数据存储在 B
+    label_cn: 存储于
+    source_types: [System]
+    target_types: [System]
+    semantic_role: architecture_skeleton
+    candidate_enabled: true
+    fact_encoding: typed_wikilink
+    projected: true
+    versionable: true
+    impact_propagation: reverse
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: typed_wikilink
+        producer: extract_graph.entity_typed_wikilink
+        decision_mode: reviewed
+        required_evidence: [source_revision, source_coordinate, target_identity]
+        formal_consumers: [topology, relation_search, impact_analysis]
+
+  # R13 — reviewed (architecture_skeleton)
+  CONNECTS_TO:
+    direction: A → B
+    weight_default: 0.7
+    description: A 主动建立到 B 的直接网络连接
+    label_cn: 连接到
+    source_types: [System]
+    target_types: [System]
+    semantic_role: architecture_skeleton
+    candidate_enabled: true
+    fact_encoding: typed_wikilink
+    projected: true
+    versionable: true
+    impact_propagation: forward_stop
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: typed_wikilink
+        producer: extract_graph.entity_typed_wikilink
+        decision_mode: reviewed
+        required_evidence: [source_revision, source_coordinate, target_identity]
+        formal_consumers: [topology, relation_search, impact_analysis]
+
+  # R14 — reviewed (architecture_skeleton)
+  INDEXES:
+    direction: A → B
+    weight_default: 0.8
+    description: A 为 B 的数据构建并维护可查询索引
+    label_cn: 索引于
+    source_types: [System]
+    target_types: [System]
+    semantic_role: architecture_skeleton
+    candidate_enabled: true
+    fact_encoding: typed_wikilink
+    projected: true
+    versionable: true
+    impact_propagation: reverse
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: typed_wikilink
+        producer: extract_graph.entity_typed_wikilink
+        decision_mode: reviewed
+        required_evidence: [source_revision, source_coordinate, target_identity]
+        formal_consumers: [topology, relation_search, impact_analysis]
+
+  # R15 — reviewed (architecture_skeleton)
+  ENCRYPTS:
+    direction: A → B
+    weight_default: 0.8
+    description: A 负责加密 B 所拥有或处理的数据
+    label_cn: 加密
+    source_types: [System]
+    target_types: [System]
+    semantic_role: architecture_skeleton
+    candidate_enabled: true
+    fact_encoding: typed_wikilink
+    projected: true
+    versionable: true
+    impact_propagation: reverse
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: typed_wikilink
+        producer: extract_graph.entity_typed_wikilink
+        decision_mode: reviewed
+        required_evidence: [source_revision, source_coordinate, target_identity]
+        formal_consumers: [topology, relation_search, impact_analysis]
+
+  # R16 — projected (category_navigation, derived from approved facts)
+  ASSOCIATED_WITH:
+    direction: A → B
+    weight_default: 0.8
+    description: 板块与产品/组件的聚合覆盖投影
+    label_cn: 关联板块
+    source_types: [Plate]
+    target_types: [Product, System, Module]
+    semantic_role: category_navigation
+    candidate_enabled: false
+    fact_encoding: derived
+    projected: true
+    versionable: false
+    impact_propagation: none
+    legacy_policy: migrate
+    assertion_policies:
+      - source_kind: derived
+        producer: plate-product-projection.association
+        decision_mode: deterministic
+        required_evidence: [source_revision, plate_coordinate]
+        formal_consumers: [navigation]
+# WP-048 Wave 1（ADR-014 §3.2/§6.1）：动作契约——W1-A 批 16 个动作。
+# http_route 与 OpenAPI 契约操作对账（action-registry 快照构建期执法）；executor 指向登记执行器
+# （server/shared/action-execution-factory.cjs 注册表，执行器实现＝既有 handler 逻辑原样迁入）；
+# required_roles 是已迁移端点角色绑定的唯一来源（与静态 ROUTE_ROLES 互斥对账）；
+# input_schema 只是指向契约 requestBody 的文档性指针——传输校验在 http-boundary，工厂不重复校验；
+# effects 声明后置核验（revision_present＝结果须携带非空 revision，仅对结果形状已实测的动作声明）；
+# lifecycle_status 缺省 approved（ADR-014 §3.1），仅 approved 进入活消费面。
+action_types:
+  schema.ontology.write:
+    http_route: "PUT /api/schema/ontology"
+    executor: schema-write.ontology
+    required_roles: [admin]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "PUT /api/schema/ontology requestBody"
+  schema.ontology.rollback:
+    http_route: "POST /api/schema/ontology/rollback"
+    executor: schema-write.ontology-rollback
+    required_roles: [admin]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/schema/ontology/rollback requestBody"
+  schema.enums.write:
+    http_route: "PUT /api/schema/enums"
+    executor: schema-write.enums
+    required_roles: [admin]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "PUT /api/schema/enums requestBody"
+  schema.enums.rollback:
+    http_route: "POST /api/schema/enums/rollback"
+    executor: schema-write.enums-rollback
+    required_roles: [admin]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "POST /api/schema/enums/rollback requestBody"
+  schema.fields.write:
+    http_route: "PUT /api/schema/fields"
+    executor: schema-write.fields
+    required_roles: [admin]
+    preconditions: []
+    input_schema:
+      contract_ref: "PUT /api/schema/fields requestBody"
+  schema.dependencies.write:
+    http_route: "PUT /api/schema/dependencies"
+    executor: schema-write.dependencies
+    required_roles: [admin]
+    preconditions: []
+    input_schema:
+      contract_ref: "PUT /api/schema/dependencies requestBody"
+  schema.dependencies.rollback:
+    http_route: "POST /api/schema/dependencies/rollback"
+    executor: schema-write.dependencies-rollback
+    required_roles: [admin]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/schema/dependencies/rollback requestBody"
+  schema.relations.write:
+    http_route: "PUT /api/schema/relations"
+    executor: schema-write.relations
+    required_roles: [admin]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "PUT /api/schema/relations requestBody"
+  schema.relations.rollback:
+    http_route: "POST /api/schema/relations/rollback"
+    executor: schema-write.relations-rollback
+    required_roles: [admin]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "POST /api/schema/relations/rollback requestBody"
+  schema.entity-parent.write:
+    http_route: "PUT /api/schema/entity-parent"
+    executor: schema-write.entity-parent
+    required_roles: [admin]
+    preconditions: []
+    input_schema:
+      contract_ref: "PUT /api/schema/entity-parent requestBody"
+  schema.versions.write:
+    http_route: "PUT /api/schema/versions"
+    executor: schema-write.versions
+    required_roles: [admin]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "PUT /api/schema/versions requestBody"
+  schema.versions.freeze:
+    http_route: "POST /api/schema/versions/freeze"
+    executor: schema-write.versions-freeze
+    required_roles: [admin]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "POST /api/schema/versions/freeze requestBody"
+  schema.product-identity.write:
+    http_route: "PUT /api/schema/product-identity"
+    executor: schema-write.product-identity
+    required_roles: [admin]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "PUT /api/schema/product-identity requestBody"
+  schema.discovery.absorb:
+    http_route: "POST /api/schema/discovery/absorb"
+    executor: schema-discovery.absorb
+    required_roles: []
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "POST /api/schema/discovery/absorb requestBody"
+  rules.lifecycle.transition:
+    http_route: "POST /api/rules/lifecycle"
+    executor: rules-lifecycle.transition
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/rules/lifecycle requestBody"
+  governance.resolve:
+    http_route: "POST /api/governance/resolve"
+    executor: governance.resolve
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/governance/resolve requestBody"
+  # WP-048 W1-B 批（ADR-014 §八 #1/2/3/5/6/10/11/13/18/44/48/49）：文章/异常/评审族 12 个动作。
+  # approval.transition 载荷敏感角色升级（operation=publish→publish 角色）以 payload_role_overrides
+  # 声明式承载——角色绑定唯一来源仍是动作定义（原 route-roles PAYLOAD_ROLE_RULES 机制随本批退役）。
+  # articles.upload 声明 success_status: 201（原 handler 先例）。
+  anomalies.reconcile:
+    http_route: "POST /api/anomalies/reconcile"
+    executor: anomaly-workbench.reconcile
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/anomalies/reconcile requestBody"
+  anomalies.operate:
+    http_route: "POST /api/anomalies/{issueId}/{operation}"
+    executor: anomaly-workbench.operate
+    required_roles: [review]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/anomalies/{issueId}/{operation} requestBody"
+  approval.transition:
+    http_route: "POST /api/approval/{articleId}/transition"
+    executor: approval-state-machine.transition
+    required_roles: [review]
+    payload_role_overrides:
+      - body_field: operation
+        equals: publish
+        roles: [publish]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/approval/{articleId}/transition requestBody"
+  article-associations.save:
+    http_route: "POST /api/article-associations/save"
+    executor: article-associations.save
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/article-associations/save requestBody"
+  article-associations.remove:
+    http_route: "POST /api/article-associations/remove"
+    executor: article-associations.remove
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/article-associations/remove requestBody"
+  articles.upload:
+    http_route: "POST /api/articles/upload"
+    executor: article-workflow.upload
+    required_roles: []
+    preconditions: []
+    success_status: 201
+    input_schema:
+      contract_ref: "POST /api/articles/upload requestBody"
+  articles.retire:
+    http_route: "POST /api/articles/retire"
+    executor: article-workflow.retire
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/articles/retire requestBody"
+  articles.standardize:
+    http_route: "POST /api/articles/precleaned/{id}/standardization"
+    executor: article-workflow.standardize
+    required_roles: [review]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/articles/precleaned/{id}/standardization requestBody"
+  articles.patch-fields:
+    http_route: "PATCH /api/articles/precleaned/{id}/fields"
+    executor: article-workflow.patch-fields
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "PATCH /api/articles/precleaned/{id}/fields requestBody"
+  articles.drafts-promote:
+    http_route: "POST /api/articles/drafts/promote"
+    executor: article-workflow.drafts-promote
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/articles/drafts/promote requestBody"
+  entity.repair-apply:
+    http_route: "POST /api/entity/repair/apply"
+    executor: entity-compliance.repair-apply
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/entity/repair/apply requestBody"
+  kg.review:
+    http_route: "POST /api/kg/review"
+    executor: review.kg-review
+    required_roles: [review]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/kg/review requestBody"
+  # WP-048 W1-C 批（ADR-014 §八 #19/20/21/22/23/41*/42/43/52/53）：管线/同步/发布族。
+  # 处置修正（change_request ADR-014-§八-#41-墓碑）：原列 #41 POST /api/sync/pull 动作化——
+  # 现场核实该端点 2026-07-13 已退役为 410 墓碑（contracts/retired-routes.json），立法时误列；
+  # 处置改为「保持墓碑不动作化」，处置统计修正为 37/9/7=53。
+  # pipeline.run/rebuild 与 sync.push 声明 success_status: 202（原 handler 先例）；
+  # derived.rebuild 为批报告型动作——部分失败由执行器经 __http_status 报 500 带数据体（契约既有形状）。
+  pipeline.run:
+    http_route: "POST /api/pipeline/run"
+    executor: pipeline.run
+    required_roles: []
+    preconditions: []
+    success_status: 202
+    input_schema:
+      contract_ref: "POST /api/pipeline/run requestBody"
+  pipeline.rebuild:
+    http_route: "POST /api/pipeline/rebuild"
+    executor: pipeline.rebuild
+    required_roles: []
+    preconditions: []
+    success_status: 202
+    input_schema:
+      contract_ref: "POST /api/pipeline/rebuild requestBody"
+  pipeline.cancel:
+    http_route: "POST /api/pipeline/cancel"
+    executor: pipeline.cancel
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/pipeline/cancel requestBody"
+  property.refresh:
+    http_route: "POST /api/property/refresh"
+    executor: property.refresh
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/property/refresh requestBody"
+  releases.mint:
+    http_route: "POST /api/releases/mint"
+    executor: releases.mint
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/releases/mint requestBody"
+  releases.current-restore:
+    http_route: "POST /api/releases/current/restore"
+    executor: releases.current-restore
+    required_roles: [admin]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/releases/current/restore requestBody"
+  sync.push:
+    http_route: "POST /api/sync/push"
+    executor: sync.push
+    required_roles: []
+    preconditions: []
+    success_status: 202
+    input_schema:
+      contract_ref: "POST /api/sync/push requestBody"
+  system.open-obsidian:
+    http_route: "POST /api/system/open-obsidian"
+    executor: system.open-obsidian
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/system/open-obsidian requestBody"
+  schema.derived-rebuild:
+    http_route: "POST /api/schema/derived/rebuild"
+    executor: schema.derived-rebuild
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/schema/derived/rebuild requestBody"

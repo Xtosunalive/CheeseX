@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-07-09T00:00:00.000Z",
+  "components": [
+    {
+      "id": "fixture-component",
+      "label": "Fixture Component",
+      "module": "fixture-module",
+      "arch_layer": "应用层",
+      "category": "应用组件",
+      "sourcePath": "知识库/wiki/entities/fixture-component.md"
+    }
+  ],
+  "dependencies": []
+}

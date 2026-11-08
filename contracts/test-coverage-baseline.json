@@ -1,0 +1,50 @@
+{
+  "$comment": "测试域认领棘轮基线（2026-10-14 test-domain-mgmt 批）——未被任何领域认领的测试文件目录清单。规则（check:domain-registry 检查面⑦执法）：①清单只减不增——新测试文件落在清单目录外且无人认领即红；②基线条目覆盖归零时必须同步缩减（防僵尸）；③认领在 reuse/data 两表 tests 字段（目录或文件路径，多域重叠认领合法）。",
+  "unclaimed": {
+    "scripts/__tests__": {
+      "count": 9,
+      "reason": "基建/横切测试（envelope/logger/dev-log 等）——归属待域化；+1＝test-node-env-pin.test.mjs（PR-116：运行器环境钉纯函数回归——镜像/持久层双钉缺省注入与显式不覆盖；测试基建域化时随迁）；+1＝setup-git-hooks.test.mjs（WP-009 修订 2：npm prepare 仓库钩子接线——git 本地配置非数据域，无域可挂；测试基建域化时随迁）；+1＝first-run.test.mjs（WP-021：npm run dev 首启问一句建库接线——dev 入口/交互提问属测试基建非数据域，无域可挂；测试基建域化时随迁）；+1＝vault-init-node-deps.test.mjs（WP-107：Node 依赖装配步 probe/ensure——同 vault-init.test.mjs 基建族，装配横切无域可挂）；+1＝WP-156 线新增测试（PR-296 代登记，归属其批次补认领）",
+      "note": "PR-296 代登记：WP-156 线新增测试未认领（归属其批次补认领）"
+    },
+    "scripts/e2e/__tests__": {
+      "count": 1,
+      "reason": "基建/横切测试（envelope/logger/dev-log 等）——归属待域化"
+    },
+    "scripts/quality/__tests__": {
+      "count": 35,
+      "note": "WP-142：kit-auto-publish.test.mjs（钩子自动发布腿破坏实验×4）——钩子测试无所属域认领（发布自动化非门禁），基线登记｜WP-143 波0-2（2026-11-08）：scripts/quality/__tests__ 三件新增无域认领测试（gates 投影/波次件）基线随批登记 21→24｜WP-143 波3（2026-11-08）：11 台厚扫描哨兵包装测试入 guards/ 子目录（retired 行 testFiles 认领）——基线随批登记 24→35"
+    },
+    "server/routes/__tests__": {
+      "count": 30,
+      "reason": "基建/横切测试（envelope/logger/dev-log 等）——归属待域化"
+    },
+    "server/services/__tests__": {
+      "count": 14,
+      "reason": "基建/横切测试（envelope/logger/dev-log 等）——归属待域化"
+    },
+    "server/services/entity-compliance/__tests__": {
+      "count": 12,
+      "reason": "基建/横切测试（envelope/logger/dev-log 等）——归属待域化"
+    },
+    "server/services/entity-growth/__tests__": {
+      "count": 2,
+      "reason": "基建/横切测试（envelope/logger/dev-log 等）——归属待域化"
+    },
+    "server/services/schema-profiling/__tests__": {
+      "count": 3,
+      "reason": "基建/横切测试（envelope/logger/dev-log 等）——归属待域化"
+    },
+    "server/shared/__tests__": {
+      "count": 29,
+      "reason": "基建/横切测试（envelope/logger/dev-log 等）——归属待域化"
+    },
+    "src/test": {
+      "count": 100,
+      "reason": "前端 feature 测试——功能域未立（八步法排序待裁）；+1=css-token-integrity（对侧 PR-117 CSS token 批——基线随其批膨胀，认领归其后续批） WP-033/PR-148：＋property-gov-copy.test.ts（页级文案投影钉——无共享域可挂，anomaly-workbench-copy 页级先例同走基线；2026-10-28） WP-034/PR-149：＋review-leaks.test.ts（页内映射钉——基线路线同 WP-033 先例；2026-10-28） WP-035/PR-150：＋p2-sweep.test.tsx、−anomaly-handoff-navigation.test.tsx（计数净不变——WP-034 批已 +1 至 97，本批 +1−1 维持 97）；+1=norelease-class.test.tsx（SPEC-029 类级回归：发布前常态不进错误横幅——三页消费面守卫，document-inventory 断言锚；WP 批 2026-10-29）；+1=table-toolbar-guard.test.ts（工具条归一化守卫——ui-kit tests 同步认领）；+1=candidate-field-empty-state.test.tsx（WP-062 空态功能性保障组件测试——2026-10-31）"
+    },
+    "src/test/architecture-projection": {
+      "count": 7,
+      "reason": "前端 feature 测试——功能域未立（八步法排序待裁）"
+    }
+  }
+}

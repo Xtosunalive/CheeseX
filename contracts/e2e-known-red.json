@@ -1,0 +1,20 @@
+{
+  "description": "e2e 已知红豁免名单 — nightly-e2e 的「已知红不拦截」白名单。本表是 check:e2e-baseline 的唯一判据来源：名单内的流红 → 打印不阻断；名单外任何流红 → 立即 fail。**豁免必须有主、有期、有追踪条目**，过期即 fail（防豁免永久化）。流名必须与 scripts/e2e/run-all-e2e.mjs 的 tests[].name 逐字一致，否则 fail（防豁免一个不存在的流）。当前 known_red 为空＝无豁免，任何一条流红都 fail。",
+  "version": 1,
+  "updated": "2026-10-05",
+  "known_red": [],
+  "history": [
+    {
+      "flow": "Article Upload → Standardize Flow",
+      "window": "2026-10-03",
+      "tracking": "docs/plans/problem-register.md#PR-022",
+      "note": "10-03 夜跑红：quality.yml 把 VAULT_RUNTIME_SCRIPTS_DIR 强制指向 e2e vault stub，而 validate-article.py 当时只在仓内 scripts/vault-runtime/ → POST /api/articles/drafts/validate 返回 503 VALIDATOR_NOT_FOUND（PR-016 为救 Dashboard 流的取舍，代价是坑掉本流，且该取舍只活在一行代码注释里、从未入簿）。2026-10-05 手动复跑已转绿——PR-016「建库从仓内单源投影」把脚本投进了 vault。**此红曾被 job 级 continue-on-error 的假绿掩盖，连「已转绿」也被掩盖了两天**。已摘豁免：若再现，按「名单外新红」立即 fail。"
+    },
+    {
+      "flow": "Schema Release → Promote Flow",
+      "window": "2026-10-03",
+      "tracking": "docs/plans/problem-register.md#PR-023",
+      "note": "10-03 夜跑红：schema-manager 页缺发布快照数据，Load schema manager view 断言失败。2026-10-05 手动复跑已转绿，根因待定性（PR-023 立案只固定现象与证据，不预设根因）。已摘豁免：若再现，按「名单外新红」立即 fail。"
+    }
+  ]
+}

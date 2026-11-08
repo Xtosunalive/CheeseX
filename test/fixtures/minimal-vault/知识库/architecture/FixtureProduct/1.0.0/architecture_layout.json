@@ -1,0 +1,14 @@
+{
+  "version": "1.0.0",
+  "updatedAt": "2026-07-09T00:00:00.000Z",
+  "product": "FixtureProduct",
+  "nodes": {
+    "fixture-component": {
+      "x": 100,
+      "y": 100,
+      "width": 170,
+      "height": 56
+    }
+  },
+  "groups": {}
+}

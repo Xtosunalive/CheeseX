@@ -1,0 +1,89 @@
+.card-nav-container {
+  width: 100%;
+  box-sizing: border-box;
+  /* Page content must stay below global overlays such as Entity Hub (z-50).
+     层级 10 档与表格 sticky 共用（B5 收编；L1 全局层级族立项〔C3〕时提升改名）。 */
+  z-index: var(--table-sticky-z);
+}
+
+.card-nav {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 8px 16px;
+  border: 0.5px solid var(--shadow-ring-ink); /* B5：白 10% 发丝线 → 描边墨水（随模式） */
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm); /* W3：收编裸几何 0 4px 6px → 轻阴影档 token（单一事实源） */
+  position: relative;
+  overflow: visible;
+  gap: 10px;
+}
+
+.card-nav-search {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+}
+
+.card-nav-hamburger-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-sm);
+  border: 0;
+  box-shadow: inset 0 0 0 1px var(--color-border-thin);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all var(--duration-fast) ease;
+}
+
+.card-nav-hamburger-btn:hover {
+  filter: brightness(1.2);
+}
+
+.card-nav-hamburger-btn:active {
+  transform: scale(0.96);
+}
+
+/* ── Dropdown (portal-rendered, all colors driven by inline style) ── */
+.card-nav-dropdown {
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card); /* B5：组合与 --shadow-card 同源（1px 描边＋22px 柔影），整token收编 */
+  animation: cardNavFadeIn var(--duration-fast) ease-out;
+  /* min-width / padding / background-color driven by inline style */
+}
+
+@keyframes cardNavFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ── Split line ── */
+.dropdown-section {
+  border-bottom: 1px solid var(--shadow-ring-ink);
+}
+
+.dropdown-section:last-child {
+  border-bottom: none;
+}
+
+/* ── Action links & buttons ── */
+.dropdown-section a,
+.dropdown-section button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  transition: background-color var(--duration-fast) ease;
+  /* font / padding / color / border-radius driven by inline style */
+}
+
+.dropdown-section a:hover,
+.dropdown-section button:hover {
+  background-color: var(--shadow-ring-ink); /* 白 6% 悬停洗 → 描边墨水同源洗（随模式） */
+}

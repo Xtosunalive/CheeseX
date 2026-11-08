@@ -1,0 +1,853 @@
+{
+  "$comment": "Python 校验器终版行为金标（SPEC-022 波 C 退役前实跑落档）——Node 唯一实现的回归基线。语料与金标冻结同变。（WP-040 两段式再生：语料改 domain:subdomain 后按 Node 现行为重录；三篇有意变更文件保留 Python 终版金标）",
+  "files": {
+    "article-type-bad.md": {
+      "exit": 0,
+      "payload": {
+        "file": "article-type-bad.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "status 字段为空",
+          "article_type '指南X' 不在标准枚举中"
+        ]
+      }
+    },
+    "catpath-bad-domain.md": {
+      "exit": 1,
+      "payload": {
+        "file": "catpath-bad-domain.md",
+        "valid": false,
+        "errors": [
+          "category-path domain 'nope' 不在 enums.yaml domains 中"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "catpath-bad-sub.md": {
+      "exit": 1,
+      "payload": {
+        "file": "catpath-bad-sub.md",
+        "valid": false,
+        "errors": [
+          "category-path subdomain 'noxist' 不在 ref 合法子域中；合法值：overview"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "catpath-bad-topic.md": {
+      "exit": 1,
+      "payload": {
+        "file": "catpath-bad-topic.md",
+        "valid": false,
+        "errors": [
+          "category-path 'ref:overview:Bad_Topic' 格式非法，应为 domain:subdomain"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "catpath-format.md": {
+      "exit": 1,
+      "payload": {
+        "file": "catpath-format.md",
+        "valid": false,
+        "errors": [
+          "category-path 'ref-overview' 格式非法，应为 domain:subdomain"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "catpath-troubleshoot.md": {
+      "exit": 1,
+      "payload": {
+        "file": "catpath-troubleshoot.md",
+        "valid": false,
+        "errors": [
+          "category-path 'troubleshoot:net' 使用历史排错口径；请改为 ops:<合法subdomain>，如 ops:maintain",
+          "category-path domain 'troubleshoot' 不在 enums.yaml domains 中"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "clean.md": {
+      "exit": 0,
+      "payload": {
+        "file": "clean.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "doc-type-bad.md": {
+      "exit": 0,
+      "payload": {
+        "file": "doc-type-bad.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "status 字段为空",
+          "doc-type '手册X' 不在标准枚举中"
+        ]
+      }
+    },
+    "image-bad.md": {
+      "exit": 0,
+      "payload": {
+        "file": "image-bad.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "wikilink [[截图.png]] 目标文件不存在",
+          "图片引用路径不规范: ![[截图.png]]",
+          "status 字段为空"
+        ]
+      }
+    },
+    "missing-product.md": {
+      "exit": 1,
+      "payload": {
+        "file": "missing-product.md",
+        "valid": false,
+        "errors": [
+          "frontmatter 缺必填字段: product"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "module-bad.md": {
+      "exit": 1,
+      "payload": {
+        "file": "module-bad.md",
+        "valid": false,
+        "errors": [
+          "module '非法模块' 不在 enums.yaml modules 列表中"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "module-empty.md": {
+      "exit": 1,
+      "payload": {
+        "file": "module-empty.md",
+        "valid": false,
+        "errors": [
+          "frontmatter 缺必填字段: module",
+          "module '' 不在 enums.yaml modules 列表中"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "module-wikilink.md": {
+      "exit": 0,
+      "payload": {
+        "file": "module-wikilink.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "status-empty.md": {
+      "exit": 0,
+      "payload": {
+        "file": "status-empty.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "status-entity-trio.md": {
+      "exit": 0,
+      "payload": {
+        "file": "status-entity-trio.md",
+        "valid": true,
+        "errors": [],
+        "warnings": []
+      }
+    },
+    "status-lifecycle.md": {
+      "exit": 0,
+      "payload": {
+        "file": "status-lifecycle.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "status 值不标准: '灰度'"
+        ]
+      }
+    },
+    "tags-empty.md": {
+      "exit": 1,
+      "payload": {
+        "file": "tags-empty.md",
+        "valid": false,
+        "errors": [
+          "category-path subdomain 'overview - t1' 不在 ref 合法子域中；合法值：overview"
+        ],
+        "warnings": [
+          "tags 字段为空",
+          "status 字段为空"
+        ]
+      }
+    },
+    "title-mismatch.md": {
+      "exit": 0,
+      "payload": {
+        "file": "title-mismatch.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "title '另一个标题' 与文件名 'title-mismatch' 不一致",
+          "status 字段为空"
+        ]
+      }
+    },
+    "version-bad.md": {
+      "exit": 1,
+      "payload": {
+        "file": "version-bad.md",
+        "valid": false,
+        "errors": [
+          "version 'v7' 格式非法"
+        ],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "version-numeric.md": {
+      "exit": 0,
+      "payload": {
+        "file": "version-numeric.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "status 字段为空"
+        ]
+      }
+    },
+    "version-range.md": {
+      "exit": 0,
+      "payload": {
+        "file": "version-range.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "version 范围起始 > 结束: 9.0 → 7.0",
+          "status 字段为空"
+        ]
+      }
+    },
+    "wikilink-missing.md": {
+      "exit": 0,
+      "payload": {
+        "file": "wikilink-missing.md",
+        "valid": true,
+        "errors": [],
+        "warnings": [
+          "wikilink [[不存在的页面]] 目标文件不存在",
+          "status 字段为空"
+        ]
+      }
+    }
+  },
+  "detectors": {
+    "--detect-author-placeholders": {
+      "summary": {
+        "mode": "detect_author_placeholders",
+        "directory": "/var/folders/s2/ywd82ccn19g20yql06k8pwsm0000gn/T/regen-4hlLNO/知识库/raw/det-corpus",
+        "total": 19,
+        "counts": {
+          "REAL": 19,
+          "PLACEHOLDER": 0,
+          "MISSING": 0
+        },
+        "results": [
+          {
+            "file": "article-type-bad.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "catpath-bad-domain.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "catpath-bad-sub.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "catpath-bad-topic.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "catpath-format.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "catpath-troubleshoot.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "clean.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "doc-type-bad.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "image-bad.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "missing-product.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "module-bad.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "module-empty.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "module-wikilink.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "status-empty.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "tags-empty.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "title-mismatch.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "version-bad.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "version-range.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          },
+          {
+            "file": "wikilink-missing.md",
+            "author_quality": "REAL",
+            "author_value": "张三"
+          }
+        ]
+      },
+      "exit": 0
+    },
+    "--detect-untracked-wikilinks": {
+      "summary": {
+        "mode": "detect_untracked_wikilinks",
+        "directory": "/var/folders/s2/ywd82ccn19g20yql06k8pwsm0000gn/T/regen-4hlLNO/知识库/raw/det-corpus",
+        "total_articles_scanned": 19,
+        "untracked_targets": 17,
+        "results": [
+          {
+            "file": "article-type-bad.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "catpath-bad-domain.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "catpath-bad-sub.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "catpath-bad-topic.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "catpath-format.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "catpath-troubleshoot.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "clean.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "doc-type-bad.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "missing-product.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "module-bad.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "module-empty.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "module-wikilink.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "status-empty.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "tags-empty.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "title-mismatch.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "version-bad.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          },
+          {
+            "file": "version-range.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md",
+            "exists_on_disk": true,
+            "git_tracked": false,
+            "risk": "untracked_target",
+            "message": "[[existing-entity]] → wiki/entities/existing-entity.md 存在但未被 git 跟踪，checkout 环境会断链"
+          }
+        ]
+      },
+      "exit": 1
+    },
+    "--quality-summary": {
+      "summary": {
+        "mode": "quality_summary",
+        "directory": "/var/folders/s2/ywd82ccn19g20yql06k8pwsm0000gn/T/regen-4hlLNO/知识库/raw/det-corpus",
+        "total_articles": 19,
+        "stale_stamps": 0,
+        "stale_details": [],
+        "untracked_wikilink_targets": 17,
+        "untracked_details": [
+          {
+            "file": "article-type-bad.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "catpath-bad-domain.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "catpath-bad-sub.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "catpath-bad-topic.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "catpath-format.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "catpath-troubleshoot.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "clean.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "doc-type-bad.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "missing-product.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "module-bad.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "module-empty.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "module-wikilink.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "status-empty.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "tags-empty.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "title-mismatch.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "version-bad.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          },
+          {
+            "file": "version-range.md",
+            "wikilink": "existing-entity",
+            "target_path": "wiki/entities/existing-entity.md"
+          }
+        ],
+        "author_quality": {
+          "REAL": 19,
+          "PLACEHOLDER": 0,
+          "MISSING": 0
+        },
+        "author_issues": [],
+        "overall_status": "needs_attention"
+      },
+      "exit": 1
+    },
+    "--detect-stale": {
+      "summary": {
+        "mode": "detect_stale",
+        "directory": "/var/folders/s2/ywd82ccn19g20yql06k8pwsm0000gn/T/regen-4hlLNO/知识库/raw/det-corpus",
+        "total": 19,
+        "stale": 0,
+        "fresh": 0,
+        "never_stamped": 19,
+        "results": [
+          {
+            "file": "article-type-bad.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 2,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "catpath-bad-domain.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 1,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "catpath-bad-sub.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 1,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "catpath-bad-topic.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 1,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "catpath-format.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 1,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "catpath-troubleshoot.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 2,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "clean.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "doc-type-bad.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 2,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "image-bad.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 3,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "missing-product.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 1,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "module-bad.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 1,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "module-empty.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 2,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "module-wikilink.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "status-empty.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "tags-empty.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 1,
+            "current_warnings": 2,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "title-mismatch.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 2,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "version-bad.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 1,
+            "current_warnings": 1,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "version-range.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 2,
+            "stale": false,
+            "reason": "never_stamped"
+          },
+          {
+            "file": "wikilink-missing.md",
+            "stored_errors": null,
+            "stored_warnings": null,
+            "current_errors": 0,
+            "current_warnings": 2,
+            "stale": false,
+            "reason": "never_stamped"
+          }
+        ]
+      },
+      "exit": 0
+    }
+  },
+  "stamp": {
+    "exit": 0,
+    "payload": {
+      "file": "nd-copy.md",
+      "valid": true,
+      "errors": [],
+      "warnings": [
+        "status 字段为空"
+      ],
+      "stamped": true
+    },
+    "frontmatter": "\ntitle: nd-copy\nmodule: 主模块\nproduct: 通用\narticle_type: 排错指南\ndoc-type: 用户手册\nversion: '7.0'\ncategory-path: ref:overview\ntags:\n  - t1\nauthor: 张三\nvalidation_status: warnings\nvalidation_errors: 0\nvalidation_warnings: 1\nvalidation_timestamp: 2026-10-29T11:52:03Z\nvalidation_summary: \"WARN(1): status 字段为空\"\n"
+  }
+}

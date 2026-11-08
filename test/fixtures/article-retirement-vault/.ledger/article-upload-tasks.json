@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "5.0",
+  "generatedAt": "2026-07-28T00:00:00.000Z",
+  "tasks": [],
+  "articles": [
+    {
+      "candidateId": "retired-article",
+      "articleId": "retired-article",
+      "identitySource": "article_id",
+      "sourcePath": "知识库/raw/precleaned/deleted.md",
+      "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "status": "source_deleted_pending_retirement",
+      "graphStatus": "retired",
+      "decisions": [],
+      "currentApprovedVersion": {
+        "articleId": "retired-article",
+        "contentHash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "snapshotPath": "知识库/wiki/articles/retired-article/approved.md",
+        "candidateSourcePath": "知识库/raw/precleaned/deleted.md",
+        "decisionId": "retirement-fixture-decision"
+      }
+    }
+  ]
+}

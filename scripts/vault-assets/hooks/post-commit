@@ -1,0 +1,57 @@
+#!/bin/sh
+# Component: Vault-Backup-Health-Check（备份健测 post-commit / post-merge hook）
+# @responsible: SPEC-011-W11 WP5·备份健测——提交后非阻塞 push，push 失败写 stalled 文件
+# @context: Vault 侧 git hook 的单源模板（cheeseh 仓 scripts/vault-assets/hooks/post-commit）。
+#   `npm run vault:init -- --vault <路径> --remote <url>` 把本文件逐字节复制到 Vault 的
+#   .git/hooks/post-commit 与 .git/hooks/post-merge（两钩子同一脚本——git merge 产生的提交只触发
+#   post-merge 不触发 post-commit；2026-10-25 旧库两次分支合并均未自动推送即此盲区）。
+#   内容承袭旧库 知识库/.hooks/post-commit（2026-10-25 版），WP-009 修订 2 迁入本仓成为唯一事实源。
+#
+# 行为：
+#   - 提交后后台 push（非阻塞）
+#   - push 失败 → 写 .git/anyshare-health/backup-stalled.json（stalledAt + reason）
+#   - push 成功 → 确保 stalled 文件不存在（清除旧告警）
+#   - 不阻断 git commit，退出码永远为 0
+#
+# SPEC-012 WP-B（2026-10-14）：stalled 落点从 .ledger/health/ 迁 .git/anyshare-health/——
+# 观测域已翻反向断言（vault 内禁止观测痕迹）；shell 钩子够不到 telemetry.db，.git 内落点
+# 不进版本树不进监听（沿 anyshare-releases 先例），属④类的诚实例外。
+#
+# 递归安全：git push 不触发 post-commit，此路径无递归风险（2026-10-12 临时仓验证）
+
+# stalled 文件落在主仓 .git 目录：worktree 内 <toplevel>/.git 是指针文件而非目录（2026-10-25 实发 mkdir: Not a directory），
+# 必须经 --git-common-dir 解析；主仓返回相对 ".git"，worktree 返回主仓绝对路径，cd+pwd 统一成绝对。
+GIT_COMMON_DIR="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
+HEALTH_DIR="$GIT_COMMON_DIR/anyshare-health"
+STALLED_FILE="$HEALTH_DIR/backup-stalled.json"
+
+# 后台 push + 等待结果；HTTP/2 路径到 github 两次实测失败（10-23 HTTP2 framing、10-25 TLS SSL_ERROR_SYSCALL）
+# 而 HTTP/1.1 实测通——首推失败后降级重试一次，不改全局 git 配置。
+git push > /tmp/vault-post-commit-push.$$.log 2>&1 &
+PUSH_PID=$!
+wait $PUSH_PID
+PUSH_EXIT=$?
+if [ $PUSH_EXIT -ne 0 ]; then
+  git -c http.version=HTTP/1.1 push >> /tmp/vault-post-commit-push.$$.log 2>&1
+  PUSH_EXIT=$?
+fi
+
+if [ $PUSH_EXIT -ne 0 ]; then
+  # push 失败：写 stalled 文件
+  mkdir -p "$HEALTH_DIR"
+  STALLED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  PUSH_ERR="$(cat /tmp/vault-post-commit-push.$$.log 2>/dev/null | head -3 | tr '\n' ' ')"
+  printf '{"stalledAt":"%s","reason":"push-failed","detail":"%s"}\n' \
+    "$STALLED_AT" "$PUSH_ERR" > "$STALLED_FILE"
+else
+  # push 成功：清除旧 stalled 文件（如有）
+  if [ -f "$STALLED_FILE" ]; then
+    rm -f "$STALLED_FILE"
+  fi
+fi
+
+# 清理临时日志
+rm -f /tmp/vault-post-commit-push.$$.log
+
+# post-commit hook 永远以 0 退出（不干扰 commit 结果）
+exit 0

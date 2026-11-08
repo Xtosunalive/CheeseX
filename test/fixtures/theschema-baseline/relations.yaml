@@ -1,0 +1,13 @@
+relations:
+  - source: 知识本体
+    target: 关系类型
+    type: containment
+    note: relation_types 段独立成卡（D3，Master 2026-10-24）
+    asserted_by: human
+    asserted_at: 2026-10-24
+  - source: 字段字典
+    target: 标签词表
+    type: reference
+    note: 标签字段合法值域来自标签词表
+    asserted_by: human
+    asserted_at: 2026-10-24

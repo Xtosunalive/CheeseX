@@ -1,0 +1,121 @@
+{
+  "$schema": "./empty-state-semantics.schema.json",
+  "registry_version": 1,
+  "description": "空态语义契约（error-copy 域首张 authority，WP-070／SPEC-070）：同一份「读不到数据」按消费面类别定行为——三类穷尽；「缺什么／去哪配」指引文案由本表单源组装（server/shared/availability-view.cjs 唯一组装点，门禁 tripwire 执法第二文案源）。事实层（vocab-load-port／document-load-port 六态）只回答「缺不缺」，本表回答「意味着什么、该怎么说」。",
+  "ruling": "Master 2026-11-02「同意」：表单类读不到→显示指引不当错误；展示类读不到→空列表＋缺什么去哪配不当错误；消费/发布类读不到→保持拒绝（fail-closed）但报错必须带指引（WP-069 D1 结案）",
+  "guide_template": "{what}——去处：「{where}」",
+  "prerequisite_template": "前置未满足：{what}（去处：「{where}」）；再处理 ",
+  "consumer_classes": {
+    "form": {
+      "behavior": "hint",
+      "status": 200,
+      "rule": "表单（下拉/候选）：读不到→选项空＋指引，不当错误；前端渲染指引替代死下拉"
+    },
+    "display": {
+      "behavior": "empty-guide",
+      "status": 200,
+      "rule": "展示（清单/总览）：读不到→空列表＋availability 指引，不当错误"
+    },
+    "consumer": {
+      "behavior": "reject-guide",
+      "status": 409,
+      "rule": "消费/发布（正式库、发布链）：读不到→拒绝（fail-closed），error details.guidance 必须带指引"
+    }
+  },
+  "absence_kinds": {
+    "product-identity-unmounted": {
+      "what": "产品身份未配置",
+      "where": "图谱规则配置 → 产品身份",
+      "requires": [],
+      "note": "元层 architecture_projection 的 product 与 version 为空＝尚未挂载任何主体（ADR-009 D5 合法空态）。主体挂载机制（D2 方向 B，登记簿 PR-103）尚未落地，该空态在机制交付前持续。"
+    },
+    "versions-empty": {
+      "what": "版本注册表无版本",
+      "where": "图谱规则配置 → 版本注册表",
+      "requires": [
+        "product-identity-unmounted"
+      ],
+      "note": "版本挂在产品之下——产品身份未配时登记版本无处挂；冻结版本会成对补齐投影身份（PR-152）"
+    },
+    "arch-categories-empty": {
+      "what": "业务分类未配置",
+      "where": "图谱规则配置 → 实体类别（声明宿主）或矩阵约束 allowed_categories",
+      "requires": [],
+      "note": "arch_categories 是矩阵派生只读视图（B1=b）；声明宿主 categories 可编辑（WP-064 解冻）"
+    },
+    "formal-release-empty": {
+      "what": "正式发布库暂无文档",
+      "where": "文章准入 → 工作草稿行操作「审批与发布」（发布后进入正式库）",
+      "requires": [],
+      "note": "文档清单只读正式发布快照（formal release）；工作区文章须经标准化→审批→发布才进入"
+    },
+    "semantic-architecture-empty": {
+      "what": "语义架构投影为空",
+      "where": "图谱规则配置 → 版本注册表 → 冻结版本（投影随冻结生成）",
+      "requires": [
+        "product-identity-unmounted"
+      ],
+      "note": "分类列表读正式发布中的语义架构投影；投影缺席（消费端 SEMANTIC_PROJECTION_NOT_FOUND 404）＝无冻结版本。投影在场但零组件另为 architecture-entities-empty"
+    },
+    "no-formal-release": {
+      "what": "尚无正式发布版本",
+      "where": "文章准入 → 工作草稿行操作「审批与发布」（首次发布生成正式版本）",
+      "requires": [],
+      "note": "零发布态：release-reader NO_CURRENT_RELEASE（404）——展示类站点在路由层接住走工作树活读分支（E3 同构）＋本指引；红队 2026-11-02 复核发现前端把该态挂在错误路径的卡片文案上（第四文案源），随本种类收编"
+    },
+    "architecture-entities-empty": {
+      "what": "架构图暂无已准入实体",
+      "where": "知识审批 → 实体准入（实体准入后进入架构图与分类列表）",
+      "requires": [],
+      "note": "语义架构投影在场但 components 为空——与「投影缺席」（semantic-architecture-empty，需冻结版本）是两种状态：2026-11-02 实库探针——用户已冻结 1.0 仍被指去冻结，即种类粒度不足的误导"
+    }
+  },
+  "sites": [
+    {
+      "id": "article-field-options",
+      "endpoint": "GET /api/articles/field-completion-options",
+      "class": "form",
+      "kinds": [
+        "product-identity-unmounted",
+        "versions-empty",
+        "arch-categories-empty"
+      ],
+      "module": "server/services/article-workflow/article-workflow-service.cjs",
+      "note": "WP-062 内联 hint 收编——响应 availability[key]={empty,hint,kind} 形状兼容前端"
+    },
+    {
+      "id": "documents-search",
+      "endpoint": "GET /api/documents/search",
+      "class": "display",
+      "kinds": [
+        "no-formal-release",
+        "formal-release-empty"
+      ],
+      "module": "server/routes/kg-routes.cjs",
+      "note": "零发布态 NO_CURRENT_RELEASE 路由层接住→200＋工作树活读＋no-formal-release 指引；有发布但空→formal-release-empty"
+    },
+    {
+      "id": "classification-list",
+      "endpoint": "GET /api/kg/classification/list",
+      "class": "display",
+      "kinds": [
+        "product-identity-unmounted",
+        "semantic-architecture-empty",
+        "architecture-entities-empty"
+      ],
+      "module": "server/routes/kg-routes.cjs",
+      "note": "路由层三分：未挂载身份（接 PROJECTION_IDENTITY_UNMOUNTED）／投影缺席（接 SEMANTIC_PROJECTION_NOT_FOUND）／投影在场零组件——各指各的去处"
+    },
+    {
+      "id": "formal-projection-identity",
+      "endpoint": "formal-knowledge-consumer readSemanticArchitecture",
+      "class": "consumer",
+      "kinds": [
+        "product-identity-unmounted"
+      ],
+      "error_code": "PROJECTION_IDENTITY_UNMOUNTED",
+      "module": "server/services/release-governance/formal-knowledge-consumer-service.cjs",
+      "note": "UNMOUNTED_GUIDANCE 内联串收编——message/details.guidance 经 guidanceFor"
+    }
+  ]
+}

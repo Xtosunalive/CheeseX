@@ -1,0 +1,5 @@
+schema_version: 1
+_comment: 产品身份注册表（结构保留）。AnyShare(As) 条目随词表归档清空（lane=paused，见 history/enums-legacy-archive-manifest.json）——多主体机制就位后按主体重新注册。
+reserved_products:
+- 通用
+products: {}

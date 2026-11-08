@@ -1,0 +1,29 @@
+{
+  "$comment": "冻结产物读侧收口注册表（PR-084）：derived-index.db artifacts 槽 → 零值形状与展示路径的唯一事实源。读侧咽喉 server/shared/frozen-artifact-reader.cjs 从这里取槽位与零值；未登记的槽名在读取口 fail-closed 拒绝——不注册即无读取路径（Master 2026-10-20 结构标尺：注册制，类消灭——「无数据怎么办」只在咽喉实现一次，消费方拿到的永远是形状合法的文档）。新增冻结产物接入成本 = artifacts 槽一行（slot/stagingPath/expectedFormatVersion/zeroValue）。边界：release 包内冻结副本（formal-knowledge-consumer-service，读 release 文件清单）是另一族单实现读取，不经本咽喉——见 SPEC-012 PR-084 节。",
+  "artifacts": {
+    "sa": {
+      "slot": "sa",
+      "stagingPath": "data/staging/sa/semantic_architecture.json",
+      "expectedFormatVersion": "1.0",
+      "zeroValue": {
+        "version": "0.0.0",
+        "product": "",
+        "updatedAt": "",
+        "components": [],
+        "layers": [],
+        "dependencies": [],
+        "crosscutting": [],
+        "gaps": []
+      }
+    },
+    "sa_layout": {
+      "slot": "sa_layout",
+      "stagingPath": "data/staging/sa/architecture_layout.json",
+      "expectedFormatVersion": null,
+      "zeroValue": {
+        "nodes": [],
+        "groups": []
+      }
+    }
+  }
+}

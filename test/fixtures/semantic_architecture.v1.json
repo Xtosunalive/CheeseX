@@ -1,0 +1,52 @@
+{
+  "_format_version": "1.0",
+  "version": "1.0.0",
+  "_generated_by": "generate-sa.py",
+  "_generated_at": "2026-07-09T00:00:00.000000+00:00",
+  "_generated_for_version": "master",
+  "_source": "wiki/entities/ (arch_component: true)",
+  "product": "FixtureProduct",
+  "updatedAt": "2026-07-09",
+  "components": [
+    {
+      "id": "comp-gateway",
+      "label": "API Gateway",
+      "sublabel": "",
+      "module": "MVP Gateway",
+      "modules": ["MVP Gateway"],
+      "layer": "gateway",
+      "category": "服务",
+      "colorKey": "teal",
+      "status": "approved",
+      "projectionLevel": "core",
+      "sourcePath": "wiki/entities/comp-gateway.md"
+    },
+    {
+      "id": "comp-auth",
+      "label": "Auth Service",
+      "sublabel": "",
+      "module": "Auth Module",
+      "modules": ["Auth Module"],
+      "layer": "application",
+      "category": "服务",
+      "colorKey": "cyan",
+      "status": "approved",
+      "projectionLevel": "core",
+      "sourcePath": "wiki/entities/comp-auth.md"
+    }
+  ],
+  "layers": [
+    { "id": "gateway", "label": "网关与安全边界", "color": "slate" },
+    { "id": "application", "label": "一体化应用层", "color": "teal" },
+    { "id": "service", "label": "核心服务层", "color": "cyan" }
+  ],
+  "dependencies": [
+    {
+      "from": "comp-gateway",
+      "to": "comp-auth",
+      "type": "DEPENDS_ON",
+      "label": "认证依赖"
+    }
+  ],
+  "crosscutting": []
+}

@@ -1,0 +1,690 @@
+@import "tailwindcss";
+@import "./styles/table-preset.css"; /* L3 组件类层首件（P0），契约 §2 组件类层细则 */
+
+/* ═══ WP-147 分类色 Radix 色板（走向 B：浅/深两套，夜间随 .dark 换值）═══
+   机制实测（node_modules/@radix-ui/colors/*.css 实读）：浅色挂 :root/.light/.light-theme，
+   深色挂 .dark/.dark-theme；本仓挂载点 = <html> 加 .dark 类（见下 .dark 覆盖块）。
+   :root 与 .dark 特异度同为 (0,1,0)，靠源序决胜——深色 import 必须置于浅色之后。
+   结论：与本仓 dark 机制同构，直接 import 即生效，无需映射层。
+   仅引入映射实际用到的 20 族；A 系（alpha 预计算阶）未引入（卡 §2.2：仅个别混融场景另议）。 */
+@import "@radix-ui/colors/cyan.css";
+@import "@radix-ui/colors/blue.css";
+@import "@radix-ui/colors/sky.css";
+@import "@radix-ui/colors/teal.css";
+@import "@radix-ui/colors/grass.css";
+@import "@radix-ui/colors/jade.css";
+@import "@radix-ui/colors/lime.css";
+@import "@radix-ui/colors/yellow.css";
+@import "@radix-ui/colors/amber.css";
+@import "@radix-ui/colors/orange.css";
+@import "@radix-ui/colors/red.css";
+@import "@radix-ui/colors/ruby.css";
+@import "@radix-ui/colors/plum.css";
+@import "@radix-ui/colors/purple.css";
+@import "@radix-ui/colors/violet.css";
+@import "@radix-ui/colors/iris.css";
+@import "@radix-ui/colors/slate.css";
+@import "@radix-ui/colors/mauve.css";
+@import "@radix-ui/colors/gray.css";
+@import "@radix-ui/colors/pink.css";
+/* 深色 palette（置于浅色之后——同特异度源序决胜） */
+@import "@radix-ui/colors/cyan-dark.css";
+@import "@radix-ui/colors/blue-dark.css";
+@import "@radix-ui/colors/sky-dark.css";
+@import "@radix-ui/colors/teal-dark.css";
+@import "@radix-ui/colors/grass-dark.css";
+@import "@radix-ui/colors/jade-dark.css";
+@import "@radix-ui/colors/lime-dark.css";
+@import "@radix-ui/colors/yellow-dark.css";
+@import "@radix-ui/colors/amber-dark.css";
+@import "@radix-ui/colors/orange-dark.css";
+@import "@radix-ui/colors/red-dark.css";
+@import "@radix-ui/colors/ruby-dark.css";
+@import "@radix-ui/colors/plum-dark.css";
+@import "@radix-ui/colors/purple-dark.css";
+@import "@radix-ui/colors/violet-dark.css";
+@import "@radix-ui/colors/iris-dark.css";
+@import "@radix-ui/colors/slate-dark.css";
+@import "@radix-ui/colors/mauve-dark.css";
+@import "@radix-ui/colors/gray-dark.css";
+@import "@radix-ui/colors/pink-dark.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/* ── 本地字体（OFL：Nunito 标题 / Inter 正文）── 原 Google Fonts CDN 已移除，
+   断网或国内网络下标题字体仍生效；仅含 latin/latin-ext，中文走系统字体回退。 */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/Inter-400-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/Inter-400-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/Inter-500-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/Inter-500-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Inter-600-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Inter-600-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Nunito-600-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/Nunito-600-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/Nunito-700-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/Nunito-700-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/Nunito-800-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Nunito";
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/Nunito-800-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   本文件是主题 token 的 L0 + L1 承载处，唯一事实源见 docs/design/theme-contract.md
+   （PR-025 阶段 0 建立，阶段 1 完成双层化）。
+   分层铁律：L0（:root）= 色值字面值唯一出现处；L1（@theme inline）= 组件唯一
+   可引用词汇，只允许 var() 引用与 color-mix() 派生，禁止任何色值字面值。
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── L0 原始层：全部色值字面值唯一出现处 ───────────────────────────
+     来源标注：用户紫 #8b5cf6 = violet-500（用户偏好，官方 light primary 的
+     唯一偏离）；其余 hsl 值 = shadcn-ui/ui 官方 Violet light 全套
+     （apps/v4/registry/_legacy-base-colors.ts，https://ui.shadcn.com/themes）。
+     B 端功能色（呼吸灯小圆点原色）原为用户明确保留项；Master 2026-11-08「4改」裁定改接 vendor 色板档位（见下方四行）。
+     品牌紫 #8b5cf6 不在 Radix 色板（Radix Violet 9 实为 #6e56cf，ΔE≈7.7），按用户偏好保留字面值。 */
+  --violet-500: #8b5cf6;           /* 用户紫（选中/主操作，全项目唯一品牌色） */
+  --paper: #f8f9fa;                /* Shakuro 浅色 bg-base（极浅灰底，让白卡片浮起，低对比 SaaS） */
+  --card: hsl(0 0% 100%);          /* 卡片表面（shadcn --card 角色；白卡片浮于浅灰底） */
+  --ink: hsl(224 71.4% 4.1%);      /* 官方 foreground（近黑） */
+  --mist: hsl(220 14.3% 95.9%);    /* 官方 secondary/accent（浅灰面） */
+  --slate: hsl(220 8.9% 46.1%);    /* 官方 muted-foreground（灰文字） */
+  --slate-ink: hsl(220.9 39.3% 11%); /* 官方 secondary/accent-foreground */
+  --mist-border: hsl(220 13% 91%); /* 官方 border/input（浅灰边） */
+  --cream: hsl(210 20% 98%);       /* 官方 primary-foreground（近白） */
+  --red-500: hsl(0 84.2% 60.2%);   /* 官方 destructive */
+  /* B 端功能色（WP-147 scope_revision 3，Master 2026-11-08「4改」）：L0 改引 vendor 色板档位，语义名不动；
+     夜间随 .dark 换 vendor dark palette（与分类色走向 B 同机制）；色差＝OKLab ΔE×100（≈2 起肉眼可辨）。 */
+  --fact-green: var(--jade-9);     /* 事实：原 #10b981（emerald-500）→ Jade 9 #29a383，同青绿色相、略暗略灰 ΔE≈6.6；与分类色 emerald→Jade 承接一致；9 档浅/深同值 */
+  --warn-amber: var(--amber-9);    /* 警示：原 #f59e0b（amber-500）→ Amber 9 #ffc53d，更亮更黄 ΔE≈9.4；二选一读值：Amber 10 浅色 #ffba18 近一些（ΔE≈7.0），但深色档变 #ffd60a 柠檬黄（ΔE≈13.9）——取两模式最坏差更小、浅/深同值且 9＝实色档的 Amber 9 */
+  --error-rose: var(--ruby-9);     /* 错误：原 #f43f5e（rose-500，阻断/截断红系）→ Ruby 9 #e54666，近同色 ΔE≈2.9；9 档浅/深同值 */
+  --loading-cyan: var(--sky-10);   /* 加载/进行中：原 #22d3ee（cyan-400）→ Sky 10 浅 #74daf8（ΔE≈5.3）/ 深 #a8eeff（ΔE≈12.7）；#74daf8 属 Sky 族（Cyan 10 实为 #0797b9，比 Cyan 9 #00a2c7 ΔE≈13.9 还深），按值取 Sky 10 */
+  /* ── 分类色 L0 退役墓碑（WP-147 二期终棒 2026-11-07）──
+     L1＝@theme inline --color-<族>-<step> 连名（消费通道＝step 封闭类工具类＋var(--color-*)）。
+     回换通道＝ThemePreviewView 对照段（卡 §3.3：对照页定案后改一行即可回换）。 */
+  --chart-teal: hsl(173 58% 39%);
+  --chart-deep-blue: hsl(197 37% 24%);
+  --chart-gold: hsl(43 74% 66%);
+  --chart-orange: hsl(27 87% 67%);
+  --overlay-ink: rgb(0 0 0 / 0.25);      /* 全屏遮罩（深度层，见契约定案 2） */
+  --glass-paper: hsl(0 0% 100% / 0.72);  /* 白玻璃底（深度层） */
+  --grid-line: rgb(148 163 184 / 0.18);  /* 网格线（深度层） */
+  --grid-line-strong: rgb(148 163 184 / 0.25);
+  --zebra-ink: rgb(15 18 24 / 0.55);     /* 诊断条纹底（深度层） */
+  /* 深度层黑系（收尾批：--shadow-card 复合值拆解，颜色入 L0、结构留 L1） */
+  --shadow-ring-ink: rgb(0 0 0 / 0.06);  /* 卡片 1px 描边 */
+  --shadow-blur-ink: rgb(0 0 0 / 0.08);  /* 卡片 22px 柔影 */
+  --range-track-ink: rgb(0 0 0 / 0.1);   /* range 滑块轨道底（深度层，PR① 清障收编） */
+  --node-hover-blur-ink: rgb(0 0 0 / 0.12); /* 节点卡 hover 阴影（深度层，PR① 清障收编） */
+  --group-dash-ink: rgb(0 0 0 / 0.15);   /* 分组容器虚线描边（深度层，PR① 清障收编） */
+  /* ── 深度层反转预案（夜间/warm 值，入册待 PR② 覆盖块启用）──
+     来源：原型 cheeseh-app-prototype.html（Master 已逐项确认）；入 L0 时标「预案」。
+     overlay 遮罩加深 / glass 玻璃转暗 / grid 网格降透明 / zebra 斑马纹反白 /
+     shadow 描边转白系、blur 转重黑；warm 档网格/斑马/阴影走暖色系。 */
+  /* 预案（dark）：.dark 覆盖块将取以下值
+     --overlay-ink: rgb(0 0 0 / 0.5);
+     --glass-paper: hsl(215 27.9% 16.9% / 0.72);
+     --grid-line: rgb(148 163 184 / 0.10);
+     --grid-line-strong: rgb(148 163 184 / 0.16);
+     --zebra-ink: rgb(255 255 255 / 0.04);
+     --shadow-ring-ink: rgb(255 255 255 / 0.07);
+     --shadow-blur-ink: rgb(0 0 0 / 0.5);
+     --range-track-ink / --node-hover-blur-ink / --group-dash-ink：随描边转白系（PR② 现场定值） */
+  /* 预案（warm）：[data-mode="warm"] 覆盖块将取以下值（原型 warm 块）
+     --glass-paper: rgb(251 246 234 / 0.72);
+     --grid-line: rgb(120 100 70 / 0.18); --grid-line-strong: rgb(120 100 70 / 0.25);
+     --zebra-ink: rgb(59 50 38 / 0.05);
+     --shadow-ring-ink: rgb(0 0 0 / 0.05); --shadow-blur-ink: rgb(0 0 0 / 0.10); */
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   显示模式覆盖块（PR②）：夜间 = 官方 Violet dark 角色映射；护眼 = 原型 warm 块。
+   机制：只重定义 L0 名——@theme inline 的工具类编译为 var(--L0名) 直引，
+   覆盖即全站生效；组件层零改动、全仓零 dark: variant（架构硬约束）。
+   挂载点 = <html>：data-mode 属性（三态）+ .dark 类（喂 @custom-variant dark）。
+   范围裁定 3：--violet-500 / B 端功能色 / 分类色 token 不动（本块零触碰）；B 端功能色与分类色
+   L0 已接 vendor 色板，夜间值由 vendor dark palette 经 .dark 自动换，仍不在本块覆盖。
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 夜间：官方 Violet dark（apps/v4/registry/_legacy-base-colors.ts 实拉复核）──
+   六件套按角色映射（与原型逐值核对一致）；destructive 按源文件覆盖
+   （官方 dark destructive = hsl(0 62.8% 30.6%)，原型未覆盖沿用亮值——
+   源文件与原型不一致时以源文件为准，此为唯一差异，已回报 Master）。 */
+.dark {
+  color-scheme: dark;
+  /* ── Shakuro 深色向取值（W0 风格定调，2026-10-28 Master 批准：保留用户紫；深色为可选模式皮肤，默认仍跟随系统）
+     原则：只改值不增词；Shakuro 近纯黑深底＋低饱和灰卡＋细边框；品牌紫不动。
+     来源：UI风格资源-shakuro.md 的 Design Token 深色档；
+     对照 theme-contract §二 L0 命名，逐词映射（详见提交信息与 W0 决策）。 */
+  --paper: #0f1014;                     /* Shakuro bg-base（近纯黑深底，原官方 dark #0A0C11 微调） */
+  --card: #17181f;                     /* Shakuro bg-card（低饱和灰卡，浮于背景之上） */
+  --ink: hsl(210 20% 98%);             /* 官方 dark foreground（保留，近纯白达标） */
+  --mist: #1c1d24;                     /* Shakuro bg-card-nested（嵌套卡/hover，比卡片亮一档） */
+  --slate: #a1a1aa;                    /* Shakuro text-secondary（辅助文字弱化） */
+  --slate-ink: hsl(210 20% 98%);       /* 官方 dark secondary/accent-foreground */
+  --mist-border: #25272e;             /* Shakuro border 等效纯色（rgba(255,255,255,0.1) 在 #0F1014 底上的混合值——半透明效果由 L1 color-mix 派生，L0 只存纯色） */
+  --cream: hsl(210 20% 98%);           /* 官方 dark primary-foreground */
+  --red-500: hsl(0 62.8% 30.6%);       /* 官方 dark destructive（源文件为准，唯一原型差异） */
+  /* 深度层夜值（预案启用：PR① 已入册，值出自原型） */
+  --overlay-ink: rgb(0 0 0 / 0.5);     /* 遮罩加深（预案） */
+  --glass-paper: hsl(215 27.9% 16.9% / 0.72); /* 玻璃转暗（预案） */
+  --grid-line: rgb(148 163 184 / 0.10);       /* 网格降透明（预案） */
+  --grid-line-strong: rgb(148 163 184 / 0.16);/* 网格降透明（预案） */
+  --zebra-ink: rgb(255 255 255 / 0.04);       /* 斑马纹反白（预案） */
+  --shadow-ring-ink: rgb(255 255 255 / 0.07); /* 描边转白系（预案） */
+  --shadow-blur-ink: rgb(0 0 0 / 0.4);        /* 柔影转重黑（Shakuro 深色弱化阴影） */
+  /* 深度层预案补充（PR① 清障新收编三词的夜值：描边转白系同款口径） */
+  --range-track-ink: rgb(255 255 255 / 0.16); /* 轨道底反白（预案） */
+  --node-hover-blur-ink: rgb(0 0 0 / 0.5);    /* 节点 hover 阴影加重（预案） */
+  --group-dash-ink: rgb(255 255 255 / 0.18);  /* 分组虚线转白系（预案） */
+}
+
+/* ── 护眼：勘察外新增档（表面值 = 原型 warm 块，DayEcho warm 同源色系）──
+   定位：light 色彩空间下的暖纸面；不覆盖 --violet-500（紫主操作保持品牌一致）。 */
+[data-mode="warm"] {
+  color-scheme: light;
+  --paper: #f4ecdc;        /* 原型 warm paper（暖纸面） */
+  --ink: #3b3226;          /* 原型 warm ink（暖深字） */
+  --mist: #efe5d1;         /* 原型 warm mist（暖浅灰面） */
+  --slate: #7a6c58;        /* 原型 warm slate（暖灰文字） */
+  --slate-ink: #3b3226;    /* 原型 warm slate-ink */
+  --mist-border: #d3c3a3;  /* 原型 warm mist-border（暖边） */
+  --cream: #fdfaf3;        /* 原型 warm cream（近白偏暖） */
+  /* 深度层 warm 值（预案启用：PR① 已入册） */
+  --glass-paper: rgb(251 246 234 / 0.72);     /* 暖玻璃（预案） */
+  --grid-line: rgb(120 100 70 / 0.18);        /* 暖网格（预案） */
+  --grid-line-strong: rgb(120 100 70 / 0.25); /* 暖网格强档（预案） */
+  --zebra-ink: rgb(59 50 38 / 0.05);          /* 暖斑马纹（预案） */
+  --shadow-ring-ink: rgb(0 0 0 / 0.05);       /* 暖描边（预案） */
+  --shadow-blur-ink: rgb(0 0 0 / 0.10);       /* 暖柔影（预案） */
+  --range-track-ink: rgb(59 50 38 / 0.18);    /* 暖轨道底（预案） */
+  --node-hover-blur-ink: rgb(0 0 0 / 0.14);   /* 暖节点影（预案） */
+  --group-dash-ink: rgb(59 50 38 / 0.25);     /* 暖虚线（预案） */
+}
+
+@theme inline {
+  /* ══ L1 语义层：组件唯一可引用的词汇（本块禁止色值字面值）══
+     表面色（surface-*）── 页面画布与容器 */
+  --color-surface-root: var(--paper);
+  --color-surface-card: var(--card);
+  --color-surface-hover: var(--mist);
+    --color-surface-alter: color-mix(in srgb, var(--mist) 35%, var(--paper)); /* 交替底：表头/行 hover（antd colorFillAlter 口径；三模式值见 theme-mix-report） */
+    --color-border-soft: color-mix(in srgb, var(--mist-border) 65%, var(--paper)); /* 次级分隔线（antd colorBorderSecondary 口径） */
+
+  /* 文字色（text-*）── 四级文字层次 */
+  --color-text-main: var(--ink);
+  --color-text-sub: var(--slate);
+  --color-text-hint: var(--slate);
+  --color-text-placeholder: color-mix(in srgb, var(--slate) 70%, transparent);
+
+  /* 边框（border-*）与主操作（accent-*） */
+  --color-border-thin: var(--mist-border);
+  --color-border-focus: color-mix(in srgb, var(--violet-500) 45%, transparent);
+  --color-accent-base: var(--violet-500);
+  --color-accent-bg: color-mix(in srgb, var(--violet-500) 12%, transparent);
+  --color-accent-bg-strong: color-mix(in srgb, var(--violet-500) 22%, transparent); /* hover 加深（收尾批补注释；定义随 recipes-layer 合入） */
+  --color-accent-contrast: var(--cream);   /* 饱和紫底上的白字（官方 primary-foreground 角色；text-white 收口目标词） */
+  --color-accent-fg: var(--slate-ink);     /* 淡紫底上的深字（官方 accent-foreground 角色） */
+
+  /* 状态色（status-*）── B 端呼吸灯/事实性信号 */
+  --color-status-fact: var(--fact-green);
+  --color-status-inferred: var(--violet-500);
+  --color-status-warn: var(--warn-amber);
+  --color-status-error: var(--error-rose);
+  --color-status-loading: var(--loading-cyan);
+  /* 状态色档桥（WP-147 scope_revision 3，Master 2026-11-08「4改」）：携带式 alpha（bg-status-warn/10 等）
+     按卡 §2.2 选档换 step 封闭类（bg-status-warn-2 等）——2 极淡底（/5 /10）/3 淡底（/15-/25；hover /10）/
+     4 hover 面（hover /25）/6 弱边环（ring·border /20-/30；进度条填充 /40 就近）/7 常规边（/40）/
+     8 强边（/70）/11 带透明文字（/60-/80）；/80 环就近落 9＝基色本身，不设桥。
+     值＝L0 同族 vendor 档（fact→jade / warn→amber / error→ruby / loading→sky；换族须同步本块同角色行），
+     夜间随 .dark 换 vendor dark palette（走向 B 同机制）。只补全站实际用到的 18 档，不预铺。
+     inferred（＝品牌紫 --violet-500）不设桥：品牌紫不在 Radix 色板，按用户偏好保留 alpha 写法。 */
+  --color-status-fact-2: var(--jade-2);
+  --color-status-fact-3: var(--jade-3);
+  --color-status-fact-6: var(--jade-6);
+  --color-status-fact-11: var(--jade-11);
+  --color-status-warn-2: var(--amber-2);
+  --color-status-warn-3: var(--amber-3);
+  --color-status-warn-4: var(--amber-4);
+  --color-status-warn-6: var(--amber-6);
+  --color-status-warn-7: var(--amber-7);
+  --color-status-warn-8: var(--amber-8);
+  --color-status-warn-11: var(--amber-11);
+  --color-status-error-2: var(--ruby-2);
+  --color-status-error-3: var(--ruby-3);
+  --color-status-error-6: var(--ruby-6);
+  --color-status-error-7: var(--ruby-7);
+  --color-status-error-11: var(--ruby-11);
+  --color-status-loading-2: var(--sky-2);
+  --color-status-loading-6: var(--sky-6);
+  /* kg-* 颜色别名已退役（PR-025 尾巴任务：78 文件替换为 status-*，门禁防回流）；
+     字阶类 text-kg-xs/2xs/md 非 color token，保留 */
+
+  /* 分类色（Radix step 档）── WP-147 二期 L1 换名（卡 §3.1 目标档；Master 裁「连名换 step 档」）。
+     双通道口径：类名通道用 step 档工具类（bg-amber-9 等；@theme inline 把 var 直编进工具类，
+     夜间随 .dark 自动换值——走向 B）；var() 通道（集中表/G6 canvas 兜底）走 var(--color-<族>-<step>)
+     碰撞核对：新增档位全为 2-12 单位数，Tailwind 默认档为 50-950，零覆盖点。
+     死 token（blue-950/amber-deep/red-darker）与准死（sky-deep）的 L1 镜像随 L0 一并退役。 */
+
+  /* alpha 收口桥（WP-147 二期终棒）：携带式 alpha（bg-X-9/20 等）按卡 §2.2 选档换 step 封闭类
+     所需的档位——2 极淡底（/10）/3 静态交互面（/15-/25）/4 hover 面（hover:/15-/25）/
+     5 强高亮 hover（/30）/6 弱边环（ring /20、边 /30）/7 常规边环（ring /25）/8 hover 边（边 /60）
+     ——只补两形态收编实际用到的 36 档，不预铺全 240。 */
+  --color-cyan-2: var(--cyan-2);
+  --color-cyan-3: var(--cyan-3);
+  --color-cyan-6: var(--cyan-6);
+  --color-blue-2: var(--blue-2);
+  --color-blue-6: var(--blue-6);
+  --color-sky-2: var(--sky-2);
+  --color-sky-6: var(--sky-6);
+  --color-teal-2: var(--teal-2);
+  --color-teal-6: var(--teal-6);
+  --color-grass-2: var(--grass-2);
+  --color-grass-3: var(--grass-3);
+  --color-jade-3: var(--jade-3);
+  --color-jade-4: var(--jade-4);
+  --color-jade-8: var(--jade-8);
+  --color-lime-2: var(--lime-2);
+  --color-lime-6: var(--lime-6);
+  --color-amber-4: var(--amber-4);
+  --color-amber-5: var(--amber-5);
+  --color-amber-8: var(--amber-8);
+  --color-orange-2: var(--orange-2);
+  --color-orange-6: var(--orange-6);
+  --color-red-4: var(--red-4);
+  --color-red-6: var(--red-6);
+  --color-red-8: var(--red-8);
+  --color-plum-2: var(--plum-2);
+  --color-plum-6: var(--plum-6);
+  --color-purple-2: var(--purple-2);
+  --color-purple-4: var(--purple-4);
+  --color-purple-6: var(--purple-6);
+  --color-purple-7: var(--purple-7);
+  --color-violet-7: var(--violet-7);
+  --color-slate-2: var(--slate-2);
+  --color-slate-6: var(--slate-6);
+  --color-mauve-6: var(--mauve-6);
+  --color-pink-2: var(--pink-2);
+  --color-pink-6: var(--pink-6);
+
+
+  /* 图表色（chart-*）── 官方 violet light 值；chart-1 对齐用户紫 */
+  --color-chart-1: var(--violet-500);
+  --color-chart-2: var(--chart-teal);
+  --color-chart-3: var(--chart-deep-blue);
+  --color-chart-4: var(--chart-gold);
+  --color-chart-5: var(--chart-orange);
+  --color-cyan-4: var(--cyan-4);
+  --color-cyan-9: var(--cyan-9);
+  --color-cyan-11: var(--cyan-11);
+  --color-blue-9: var(--blue-9);
+  --color-blue-10: var(--blue-10);
+  --color-blue-11: var(--blue-11);
+  --color-sky-9: var(--sky-9);
+  --color-sky-10: var(--sky-10);
+  --color-sky-11: var(--sky-11);
+  --color-teal-9: var(--teal-9);
+  --color-teal-10: var(--teal-10);
+  --color-teal-11: var(--teal-11);
+  --color-grass-9: var(--grass-9);
+  --color-grass-11: var(--grass-11);
+  --color-grass-12: var(--grass-12);
+  --color-jade-9: var(--jade-9);
+  --color-jade-10: var(--jade-10);
+  --color-jade-11: var(--jade-11);
+  --color-jade-12: var(--jade-12);
+  --color-lime-9: var(--lime-9);
+  --color-lime-10: var(--lime-10);
+  --color-lime-11: var(--lime-11);
+  --color-yellow-9: var(--yellow-9);
+  --color-amber-3: var(--amber-3);
+  --color-amber-9: var(--amber-9);
+  --color-amber-10: var(--amber-10);
+  --color-amber-11: var(--amber-11);
+  --color-orange-9: var(--orange-9);
+  --color-orange-10: var(--orange-10);
+  --color-orange-11: var(--orange-11);
+  --color-red-3: var(--red-3);
+  --color-red-9: var(--red-9);
+  --color-red-10: var(--red-10);
+  --color-red-11: var(--red-11);
+  --color-red-12: var(--red-12);
+  --color-ruby-3: var(--ruby-3);
+  --color-ruby-9: var(--ruby-9);
+  --color-ruby-10: var(--ruby-10);
+  --color-plum-9: var(--plum-9);
+  --color-plum-10: var(--plum-10);
+  --color-plum-11: var(--plum-11);
+  --color-purple-3: var(--purple-3);
+  --color-purple-9: var(--purple-9);
+  --color-purple-10: var(--purple-10);
+  --color-purple-11: var(--purple-11);
+  --color-violet-9: var(--violet-9);
+  --color-violet-11: var(--violet-11);
+  --color-iris-9: var(--iris-9);
+  --color-iris-10: var(--iris-10);
+  --color-slate-9: var(--slate-9);
+  --color-slate-10: var(--slate-10);
+  --color-mauve-9: var(--mauve-9);
+  --color-gray-9: var(--gray-9);
+  --color-gray-10: var(--gray-10);
+  --color-pink-9: var(--pink-9);
+  --color-pink-10: var(--pink-10);
+  --color-pink-11: var(--pink-11);
+
+  /* ══ shadcn 官方词汇（内部实现层）══
+     仅 src/components/ui/ 下 12 个基础组件可消费（契约禁令 3）；
+     由 L0 派生，值与官方 Violet light 一致，primary 系用用户紫。 */
+  --color-background:          var(--paper);
+  --color-foreground:          var(--ink);
+  --color-card:                var(--card);
+  --color-card-foreground:     var(--ink);
+  --color-popover:             var(--card);
+  --color-popover-foreground:  var(--ink);
+  --color-primary:             var(--violet-500);
+  --color-primary-foreground:  var(--cream);
+  --color-secondary:           var(--mist);
+  --color-secondary-foreground: var(--slate-ink);
+  --color-muted:               var(--mist);
+  --color-muted-foreground:    var(--slate);
+  --color-accent:              var(--mist);
+  --color-accent-foreground:   var(--slate-ink);
+  --color-destructive:         var(--red-500);
+  --color-destructive-foreground: var(--cream);
+  --color-border:              var(--mist-border);
+  --color-input:               var(--mist-border);
+  --color-ring:                var(--violet-500);
+
+  --color-sidebar:                    var(--paper);
+  --color-sidebar-foreground:         var(--ink);
+  --color-sidebar-primary:            var(--violet-500);
+  --color-sidebar-primary-foreground: var(--cream);
+  --color-sidebar-accent:             var(--mist);
+  --color-sidebar-accent-foreground:  var(--slate-ink);
+  --color-sidebar-border:             var(--mist-border);
+  --color-sidebar-ring:               var(--violet-500);
+
+  /* 深度层（定案 2：与表面色分开）── overlay/glass/grid 类 */
+  --color-overlay: var(--overlay-ink);
+  --color-glass: var(--glass-paper);
+  --color-grid-line: var(--grid-line);
+  --color-grid-line-strong: var(--grid-line-strong);
+  /* 细线系（收尾批补定义——CardNav/DocumentSearchBar 消费先于定义的悬空修复） */
+  --color-line-subtle: color-mix(in srgb, var(--ink) 12%, transparent); /* 树形分支细线 */
+  --color-line-faint: color-mix(in srgb, var(--ink) 8%, transparent);   /* 更弱分隔线（下拉分组线） */
+  --color-line-edge: var(--mist-border);   /* 收起态边框（与 border-thin 同值） */
+
+  /* ── 字阶（docs/design/theme-contract.md 为唯一合法来源）── */
+  --text-kg-2xs: 9px;
+  --text-kg-2xs--line-height: 1.35;
+  --text-kg-xs: 10px;
+  --text-kg-xs--line-height: 1.4;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-xl: 20px;
+  /* 大数字展示档（WP-036 Shakuro：大数字优先；28/32/48，标杆目检定） */
+  --text-2xl: 28px;
+  --text-2xl--line-height: 1.2;
+  --text-3xl: 32px;
+  --text-3xl--line-height: 1.15;
+  --text-5xl: 48px;
+  --text-5xl--line-height: 1.05;
+
+  /* ── 字体家族（W4 Shakuro 对齐：标题圆润粗体 Nunito，正文 Inter；恒定侧不随模式变）──
+     display = 页面级标题/大数字（圆润粗体，Shakuro display 角色）；
+     body = 正文与 UI 文本（保留 Inter 现役）；font-* 工具类由 @theme 生成。 */
+  --font-display: "Nunito", "Inter", system-ui, -apple-system, sans-serif;
+  --font-body: "Inter", system-ui, -apple-system, sans-serif;
+
+  /* 仅统一圆角，不碰尺寸布局
+     （W2 Shakuro 对齐：sm/md/lg 对齐 Shakuro 8/12/16 大三档，panel/xl 收敛到 16 上限；
+      --radius-xs 单消费者 ui/tag（豁免层）改 rounded-[4px] 后删除；
+      --radius-pill 零消费删除——rounded-full 走 Tailwind 内建档） */
+  --radius-sm: 8px;    /* Shakuro 小按钮/标签 */
+  --radius-md: 12px;   /* Shakuro 输入框/卡片（按钮/输入默认档） */
+  --radius-lg: 16px;   /* Shakuro 大卡片/弹窗 */
+  --radius-panel: 16px; /* PR-026 悬浮任务池面板（W2 对齐 lg=16 上限，不再插 lg/xl 之间） */
+  --radius-xl: 16px;   /* 大容器（与 lg 收敛同值——Shakuro 16px 上限） */
+  --radius: var(--radius-md);
+
+  /* 阴影仅用于浮层卡片（浅色适配：灰描边 + 柔和浅影；深度层）。
+     收尾批拆解：颜色部分入 L0（--shadow-ring-ink / --shadow-blur-ink），此处只留结构与 var() 引用 */
+  --shadow-sm: 0 2px 8px var(--shadow-blur-ink);  /* W3 Shakuro 轻阴影档（小控件/轻浮层，几何对齐 Shakuro --shadow-sm 0 2px 8px） */
+  --shadow-card: 0 0 0 1px var(--shadow-ring-ink), 0 6px 22px var(--shadow-blur-ink);
+  /* C3 品牌阴影族补档（2026-10-16）：popover=浮层气泡、overlay=重浮层（替代 Tailwind 默认黑影） */
+  --shadow-popover: 0 0 0 1px var(--shadow-ring-ink), 0 8px 24px var(--shadow-blur-ink);
+  --shadow-overlay: 0 0 0 1px var(--shadow-ring-ink), 0 12px 32px var(--shadow-blur-ink);
+  /* L1 动效家族（B2）：--duration-fast 首枚随 P0；--duration-normal 随收官存量清零批
+     （收编活规则里的裸 200ms：卡片 hover 微反馈与 accent hover，卡 §十一 B2 口径）；
+     --duration-base 统一过渡档随 WP-145 波 3 R7 动画归一（D3 裁决：tsx 非功能时长
+     150/200/300/500 归一 250ms，消费形态 duration-[var(--duration-base)]，var 通道） */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-base: 250ms;
+
+  /* 收官存量清零批（PR-069 结案）：--animate-accordion-down/up 与 7 个 keyframes 随死类
+     消费方（kg 区/node-card/connection/group/range-sm 全零消费，类消灭删除）一并退役；
+     对账结论见登记簿 PR-069 关闭卡。 */
+}
+
+/* body：定死全局基准字号 13px，统一正文基线，杜绝浏览器 16px 默认值 */
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-surface-root);
+  color: var(--color-text-main);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 等宽字体仅限定代码/ID片段，不全局污染 */
+code, .mono, [data-id-text] {
+  font-family: "JetBrains Mono", monospace;
+  font-size: inherit;
+}
+
+/* 全局统一过渡：所有可交互元素自带过渡，解决生硬跳转（时长走 L1 动效家族） */
+button, input, select, a {
+  transition: all var(--duration-fast) ease;
+}
+
+/* 治理驾驶舱：:root 度量词（vocab metrics NS 在册）
+   --kg-font-scale 随 kg 死类块退役（收官存量清零批，唯一消费者＝kg 块自身）；--app-bar-height 保留（tsx 6 消费者） */
+:root {
+  /* 应用栏统一高度（56px）：搜索面板顶部、域内导航热区等顶部定位均由此派生 */
+  --app-bar-height: 3.5rem;
+}
+
+
+
+
+
+
+/* 收官存量清零批（PR-069 结案）：kg 字阶复合类区（kg-panel-root/kg-type-* /kg-drift-id）
+   tsx 零消费（全量 grep 含动态拼串排查），按契约类消灭整块退役；
+   --kg-font-scale/--kg-fg-* /--kg-surface-base/--font-main 随块删除（唯一消费者＝本块）。 */
+
+/* 漂移处置区（浅色适配：白玻璃底；token 派生） */
+
+/* 缺口 Tab（浅色适配：白玻璃底） */
+
+/* 多跳邻域：临时诊断条纹底（深度层 token） */
+
+/* 收官存量清零批（PR-069 结案）：.grid-bg/.grid-bg-fine/.node-card/.group-container/
+   .connection-line/.connection-arrow——图谱画布原型类，tsx 零消费，随其引用的
+   nodeAppear/pulseGlow/connectionFlow keyframes 一并类消灭退役。
+   （L0 深度层 --grid-line-* /--node-hover-blur-ink/--group-dash-ink/--range-track-ink
+   为三模式台账预案值，保留在册——对账结论见 PR-069 关闭卡。） */
+
+/* ── 统一卡片 hover（swiss subtle，B-7 方案 B；时长走 --duration-normal）──
+   命中标准数据面板组合：bg-surface-card + rounded-xl + ring-1 + ring-border-thin
+   无 hover 微反馈的卡片获得一致的 ring 变亮过渡，避免逐组件重复标注 */
+.bg-surface-card.rounded-xl.ring-1.ring-border-thin {
+  transition: box-shadow var(--duration-normal) ease, border-color var(--duration-normal) ease;
+}
+.bg-surface-card.rounded-xl.ring-1.ring-border-thin:hover {
+  --tw-ring-color: var(--color-border-focus);
+}
+
+/* ── 统一"hover 变紫"（shadcn accent 语义，B-7 方案 C 落地）──
+   紫色主操作语言：bg-accent-bg（淡紫底）按钮/元素 hover 时紫色加深，
+   与主色 --violet-500 对齐（原 pulseGlow 呼吸灯随死类退役，紫色语言由此承载） */
+button.bg-accent-bg {
+  transition: background-color var(--duration-normal) ease, color var(--duration-normal) ease;
+}
+button.bg-accent-bg:hover {
+  background-color: color-mix(in srgb, var(--violet-500) 22%, transparent);
+}
+
+
+/* ══ L2 组件 token 层（W0-2 契约 §2 · P0 首批 --table-*，2026-10-15）══
+ * 定义在 :root 专用区段，不进 @theme（不生成工具类），只供 preset 用 var() 消费。
+ * 几何尺寸一律 calc(var(--spacing) * n) 派生（底座＝Tailwind --spacing 0.25rem）；
+ * 例外裸值白名单（契约 §2）：组件专属比值 / 阴影几何 / z 档位整数。
+ * 数值溯源＝antd 读码对照表（决策卡 §八）。密度档位覆盖写在 table-preset.css
+ * 的 .data-table[data-density] 根选择器。 */
+:root {
+  /* 密度三档（antd cellPaddingBlock/Inline：large 16/16、middle 12/8、small 8/8） */
+  --table-cell-py-lg: calc(var(--spacing) * 4);
+  --table-cell-px-lg: calc(var(--spacing) * 4);
+  --table-cell-py-md: calc(var(--spacing) * 3);
+  /* 横向内距全密度统一 16px（Master 2026-10-16 口径：跨页边距一致；antd middle 的 8px 横向
+     在多密度混用产品里呈现为「贴边不一致」，纵向密度差保留、横向不分档） */
+  --table-cell-px-md: calc(var(--spacing) * 4);
+  --table-cell-py-sm: calc(var(--spacing) * 2);
+  --table-cell-px-sm: calc(var(--spacing) * 2);
+  /* 当前档（无后缀；由 data-density 切换，默认 lg） */
+  --table-cell-py: var(--table-cell-py-lg);
+  --table-cell-px: var(--table-cell-px-lg);
+  /* 字与行高（antd cellFontSize 三档同 14；行高 1.5715＝14px→22px，组件专属比值例外） */
+  --table-font-size: var(--text-sm);
+  --table-line-height: 1.5715;
+  /* 结构与度量（controlHeight/selectionColumnWidth/itemSize 族） */
+  --table-radius: var(--radius-md);
+  --table-toolbar-height: var(--control-height-md);
+  --table-selection-width: var(--control-height-md);
+  --table-pagination-height: var(--control-height-md);
+  --table-state-padding: calc(var(--spacing) * 12) calc(var(--spacing) * 6);
+  --table-action-gap: calc(var(--spacing) * 2);
+  /* 层级与阴影（z 档位整数例外；角格＝sticky+1 相对值；阴影几何例外、墨水走 L0） */
+  --table-sticky-z: var(--z-sticky); /* C3：层级族单一事实源 */
+  --table-sticky-corner-z: calc(var(--table-sticky-z) + 1);
+  --table-fixed-shadow-left: inset 10px 0 8px -8px var(--shadow-ring-ink);
+  --table-fixed-shadow-right: inset -10px 0 8px -8px var(--shadow-ring-ink);
+}
+
+/* ══ L2 全局尺度 token 层（C3 · Master 2026-10-16「要做」）══
+ * 表格域之外的全站尺度收编（体检报告 C3 缺口：197 处裸控件高度/32 处裸 z/13 处 Tailwind 默认阴影）。
+ * 层级族按现网实测分层（z 档位整数例外，契约 §2）；阴影几何例外、墨水走 L0 ink；
+ * 控件高度＝antd controlHeight 锚点（24/32/40；tsx 的 h-6/h-8/h-10 已是 --spacing 底座派生，
+ * 同值合规——本族供 CSS 消费方与语义引用，离档高度 h-7/h-9/h-11/h-12 留待逐表裁定收编）。
+ * tsx 消费走下方 @utility 语义类（z-modal 等）；组件内局部提升（z-10/z-20 局部堆叠）不属全局层级、不收编。 */
+:root {
+  /* 层级语义族：sticky 吸顶 < docked 常驻浮件（悬浮操作条/投稿坞） < chrome 壳件（顶栏/常驻壳钮）
+     < overlay 浮层（全局搜索，含全屏压暗层） < modal 模态（对话框/抽屉/菜单） < popover 顶层气泡
+     （chrome 让位 modal/overlay＝Master 2026-10-30 两步裁定：无论何种弹窗打开，压暗层统一罩住顶栏与常驻壳钮） */
+  --z-sticky: 10;
+  --z-docked: 30;
+  --z-chrome: 35;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-popover: 80;
+  /* 品牌阴影族（card=平卡既有；popover=浮层气泡；overlay=重浮层——替代 Tailwind 默认黑影） */
+  /* 控件高度锚点（antd controlHeight）：md=32（工具栏/选择列/分页）；sm 无真消费者暂不立档；
+     lg=40 无真消费者暂不立档（出现 h-10 语义引用时再入册） */
+  --control-height-md: calc(var(--spacing) * 8);
+  /* 动效补档（antd motionDurationSlow）——无真消费者暂不立档（不写死未验证的东西）；出现首个慢动效场景时再入册 */
+}
+
+/* ── C3 层级语义工具类（tsx 消费位；z 无 @theme 命名空间，走 @utility；shadow 族已入 @theme 原生） ──
+   （shadow-popover/shadow-overlay 由 @theme 生成，见上） */
+@utility z-sticky { z-index: var(--z-sticky); }
+@utility z-docked { z-index: var(--z-docked); }
+@utility z-overlay { z-index: var(--z-overlay); }
+@utility z-modal { z-index: var(--z-modal); }
+@utility z-chrome { z-index: var(--z-chrome); }
+@utility z-popover { z-index: var(--z-popover); }
+/* ──（原 C3 区段注释保留）── */
+@utility shadow-popover { box-shadow: var(--shadow-popover); }
+@utility shadow-overlay { box-shadow: var(--shadow-overlay); }

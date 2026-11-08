@@ -1,0 +1,17 @@
+schema_version: 1
+_comment: 产品身份注册表（结构保留）。AnyShare(As) 条目随词表归档清空（lane=paused，见
+  history/enums-legacy-archive-manifest.json）——多主体机制就位后按主体重新注册。
+reserved_products:
+  - 通用
+products:
+  测试产品:
+    versions:
+      - id: "1.0"
+        label: "1.0"
+        status: released
+        release_date: 2026-11-01
+        aliases: []
+        snapshot:
+          path: 知识库/architecture/测试产品/1.0/architecture-version.snapshot.json
+          sha256: sha256:bddd4d3f9e08b4de3e7cbfb6e3c156ebea1f70b910af7d45a124470f051b9d37
+          generated_at: 2026-11-01T14:11:25.641Z

@@ -1,0 +1,9 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "entity-aliases.yaml 形态契约（WP-054 E-A 出生即账）：别名→canonical 映射。宽容面与 schema.py 旧过滤语义一致——非串值由读侧滤除（信封装载时脏值降级丢键）。",
+  "type": "object",
+  "additionalProperties": {
+    "type": "string"
+  },
+  "x-lenientPaths": []
+}

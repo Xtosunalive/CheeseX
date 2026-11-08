@@ -1,0 +1,27 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "index.html",
+    "scripts/quality/**/*.mjs"
+  ],
+  "project": [
+    "src/**/*.{ts,tsx}",
+    "server/**/*.cjs"
+  ],
+  "paths": {
+    "@/*": [
+      "./src/*"
+    ]
+  },
+  "ignore": [
+    "src/components/ui/**",
+    "src/components/aria/**",
+    "src/lib/generated/**",
+    "**/__tests__/**",
+    "src/test/**"
+  ],
+  "ignoreExportsUsedInFile": true,
+  "ignoreDependencies": [
+    "tailwindcss"
+  ]
+}

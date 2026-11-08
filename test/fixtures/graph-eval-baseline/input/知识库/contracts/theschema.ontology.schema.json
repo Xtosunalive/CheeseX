@@ -1,0 +1,443 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseh.local/contracts/theschema.ontology.schema.json",
+  "title": "ontology.yaml 形态单一事实源",
+  "description": "知识库 TheSchema/ontology.yaml（本体：节点类型/关系类型/推理规则/约束）的顶层结构契约。读侧（relation-capability-selector / compliance-rule-set-service / graph-relation-ctx / main.cjs 推理装配）与写侧 ontology-write-service 共用本文件（PR-053）。口径：全严格——能力七字段与断言策略的存在性/取值域是读侧 fail-closed 语义校验（relation-capability-selector.cjs，RELATION_CAPABILITY_INCOMPLETE / ASSERTION_POLICY_MISSING），形态层只管类型，不重复执法；字段不设 required 以免与语义层双标准。",
+  "x-lenientPaths": [],
+  "type": "object",
+  "definitions": {
+    "stringList": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "lifecycleStatus": {
+      "type": "string",
+      "description": "元素生命周期；缺省 approved。五态取值与语义由 contracts/object-meta-model.json layers.status.enums.lifecycle_status 单源定义，写侧据此校验"
+    },
+    "retirement": {
+      "type": "object",
+      "description": "退役元数据。retired 时 reason/replaced_by 的存在性、直接目标现役准入与多跳替代链由写侧语义校验执法",
+      "properties": {
+        "reason": {
+          "type": "string"
+        },
+        "replaced_by": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "dataPropertyBinding": {
+      "type": "object",
+      "description": "类对 fields.yaml 字段的绑定或覆盖；字段类型、值域与别名仍由 fields.yaml 单源定义，不得在此改型",
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "default": true,
+        "validation": true,
+        "permission": true
+      },
+      "additionalProperties": true
+    },
+    "actionType": {
+      "type": "object",
+      "description": "Wave 1 动作契约预留；Wave 0 仅登记数据形态，不执行",
+      "properties": {
+        "class_id": {
+          "type": "string"
+        },
+        "input_schema": {
+          "type": "object"
+        },
+        "preconditions": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "effects": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          }
+        },
+        "risk_id": {
+          "type": "string"
+        },
+        "required_roles": {
+          "$ref": "#/definitions/stringList"
+        },
+        "audit_policy": {
+          "type": "object"
+        },
+        "executor": {
+          "type": "string",
+          "description": "登记执行器 ID；不是模块路径或任意代码"
+        },
+        "lifecycle_status": {
+          "$ref": "#/definitions/lifecycleStatus"
+        },
+        "retirement": {
+          "$ref": "#/definitions/retirement"
+        },
+        "http_route": {
+          "type": "string",
+          "pattern": "^(GET|POST|PUT|PATCH|DELETE) /",
+          "description": "WP-048 Wave 1：动作绑定的契约路由（\"METHOD /path\"）；快照构建期与 OpenAPI 操作表对账"
+        },
+        "payload_role_overrides": {
+          "type": "array",
+          "description": "WP-048 W1-B：载荷敏感角色升级的声明式表达（先例＝审批 publish 升级）——body 字段等值匹配时以 roles 整体替换基线 required_roles；首条匹配生效。角色绑定唯一来源仍是本动作定义（ADR-014 §6.1 单源约束的兑现形态）",
+          "items": {
+            "type": "object",
+            "required": [
+              "body_field",
+              "equals",
+              "roles"
+            ],
+            "properties": {
+              "body_field": {
+                "type": "string"
+              },
+              "equals": {
+                "description": "等值匹配字面量（string/number/boolean）"
+              },
+              "roles": {
+                "$ref": "#/definitions/stringList"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "success_status": {
+          "type": "integer",
+          "minimum": 200,
+          "maximum": 299,
+          "description": "WP-048 W1-B：成功响应状态码（缺省 200；先例＝文章上传 201）"
+        }
+      },
+      "additionalProperties": true
+    },
+    "riskType": {
+      "type": "object",
+      "description": "风险声明预留；Wave 0 不解析、不继承",
+      "properties": {
+        "action_ids": {
+          "$ref": "#/definitions/stringList"
+        },
+        "when": true,
+        "level": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "allow",
+            "confirm",
+            "approve",
+            "block"
+          ],
+          "description": "放行、确认、审批或阻断的处置意图；Wave 1 由登记处置器消费"
+        },
+        "lifecycle_status": {
+          "$ref": "#/definitions/lifecycleStatus"
+        },
+        "retirement": {
+          "$ref": "#/definitions/retirement"
+        }
+      },
+      "additionalProperties": true
+    },
+    "nodeType": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        },
+        "icon": {
+          "type": "string"
+        },
+        "allows_relations": {
+          "$ref": "#/definitions/stringList"
+        },
+        "subClassOf": {
+          "type": "string",
+          "description": "同文件 node_types 的单父类 ID；缺省为独立根类"
+        },
+        "data_properties": {
+          "type": "object",
+          "description": "类侧字段绑定；键为 fields.yaml 字段名，值只保存绑定与覆盖",
+          "additionalProperties": {
+            "$ref": "#/definitions/dataPropertyBinding"
+          }
+        },
+        "lifecycle_status": {
+          "$ref": "#/definitions/lifecycleStatus"
+        },
+        "retirement": {
+          "$ref": "#/definitions/retirement"
+        }
+      },
+      "additionalProperties": true
+    },
+    "assertionPolicy": {
+      "type": "object",
+      "description": "断言策略（G3/PR-020 批3：来源准入与正式消费白名单）。取值域校验（source_kind 白名单、producer 禁通配等）在读侧 validateAssertionPolicies，此处只管类型。",
+      "properties": {
+        "source_kind": {
+          "type": "string",
+          "description": "该政策的边来源形态标识——产线按（关系类型×来源标签）对位政策"
+        },
+        "producer": {
+          "type": "string",
+          "description": "该政策边的唯一生产者模块"
+        },
+        "decision_mode": {
+          "type": "string",
+          "description": "裁决模式：reviewed 须人审（出生 pending 入待复核队列）；deterministic 规则即有效（出生 deterministic 章直接生效）；inherit_source_approval 随来源裁定继承（须 decisionId 证据）；derived_only 只活在派生视图；forbidden 禁产。消费方：extract_graph 出生章＋formal-relation-selector 正式过滤（PR-095 接线）。工作投影为本字段的派生（derived_only/forbidden→never 产线拒产；其余 approved_only）——working_projection 手写字段已退役（WP-006：消灭镜像字段）"
+        },
+        "required_evidence": {
+          "$ref": "#/definitions/stringList",
+          "description": "边成立必需的证据字段集（缺证即不合规）"
+        },
+        "formal_consumers": {
+          "$ref": "#/definitions/stringList",
+          "description": "正式消费方清单（never 时必须为空——装载校验）"
+        }
+      },
+      "additionalProperties": false
+    },
+    "relationType": {
+      "type": "object",
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "label_cn": {
+          "type": "string"
+        },
+        "semantic_role": {
+          "type": "string",
+          "description": "边在知识地图中的语义角色（architecture_skeleton 架构骨架——进影响面与正式知识消费；article_attachment 文章挂载；weak_semantic 弱语义；category_navigation 分类导航；historical_compat 历史兼容；governance_semantics 治理语义）。消费方：能力选择器派生 inImpactSet/impactEdgeTypes（影响分析遍历边集）＋riskKind；发布门卫经 impactEdgeTypes 收骨架成员（WP-006 单源化）"
+        },
+        "direction": {
+          "type": "string",
+          "description": "边的方向语义（directed/bidirectional）——推理引擎遍历与影响分析方向决策消费"
+        },
+        "weight_default": {
+          "type": "number",
+          "description": "边的默认权重（图渲染/传播计算用；非置信度——SPEC-027 轴分家后置信度见 confidence_prior）。消费方：schema 校验＋置信度建议服务读取对照"
+        },
+        "weight_range": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "description": "权重合法区间。消费方：schema 校验"
+        },
+        "versionable": {
+          "type": "boolean",
+          "description": "该类型边是否可携带版本区间（since/until）——富化与合规校验消费（versionableRelations/本体约束 versionable_has_range/依赖写服务）"
+        },
+        "candidate_enabled": {
+          "type": "boolean",
+          "description": "该类型边是否允许机器产出「关系候选」交人裁（false＝候选合同拒收该类型候选——WP-006 接线）。消费方：relation-candidate-contract 候选规范化过滤"
+        },
+        "fact_encoding": {
+          "type": "string",
+          "description": "事实编码形态。消费方：能力注册表序列化（发布工件）"
+        },
+        "projected": {
+          "type": "boolean",
+          "description": "是否参与投影。消费方：投影/发布装配"
+        },
+        "impact_propagation": {
+          "type": "string",
+          "description": "影响传播方向（reverse 被依赖者变更波及依赖者/forward/forward_stop 传到此止/none 不传播）——推理引擎四路遍历分支消费（inference-engine）。WP-006 审计环在册"
+        },
+        "legacy_policy": {
+          "type": "string",
+          "description": "遗留处置标记（keep 保留/migrate 待迁/delete 删除并停推理注册）。delete 有执法（推理跳过＋合规 B04 标签剔除＋前端选项剔除）；keep 与 migrate 运行时完全等价——migrate 为记录性字段，无运行时语义（WP-006 注明）"
+        },
+        "requires_review": {
+          "type": "boolean",
+          "description": "该类型边是否须人审。消费方：推理注册（requiresReview 派生）"
+        },
+        "is_legacy": {
+          "type": "boolean",
+          "description": "遗留类型标记（运行时按 legacy_policy 处置，本字段为展示性标记）"
+        },
+        "source_types": {
+          "$ref": "#/definitions/stringList",
+          "description": "允许的起点节点类型（SHACL domain 语义）——端点合法性校验消费（本体约束 source_target_valid）"
+        },
+        "target_types": {
+          "$ref": "#/definitions/stringList",
+          "description": "允许的终点节点类型（SHACL range 语义）——同上"
+        },
+        "allows_relations": {
+          "$ref": "#/definitions/stringList"
+        },
+        "assertion_policies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/assertionPolicy"
+          },
+          "description": "断言政策组：每条声明这类边的一个来源（source_kind）、生产者、裁决模式（decision_mode）、必需证据、工作投影与正式消费方。WP-006 起产线按 decision_mode 盖出生章、按 working_projection 拒产（声明=执法）"
+        },
+        "confidence_prior": {
+          "type": "number",
+          "minimum": 0,
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "description": "SPEC-027 C1/R4：置信度先验（该类型边为真概率＝建议值天花板）；prior>floor 序校验由服务侧 fail-safe 执法"
+        },
+        "confidence_floor": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "SPEC-027 C1/R4：建议值地板"
+        },
+        "lifecycle_status": {
+          "$ref": "#/definitions/lifecycleStatus"
+        },
+        "retirement": {
+          "$ref": "#/definitions/retirement"
+        },
+        "transitive": {
+          "type": "boolean",
+          "description": "传递关系预留；Wave 2 才接推理"
+        },
+        "inverse_of": {
+          "type": "string",
+          "description": "逆关系类型 ID 预留；Wave 2 才接推理"
+        },
+        "aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "关系别名（WP-049 余量批：非机械派生面——非 snake(name) 的英文口语别名与中文短名；前端别名注册表生成源。机械 nospace 变体由生成器派生，不入数据）"
+        },
+        "graph_database": {
+          "type": "boolean",
+          "description": "进图谱库子集标志（前端 GRAPH_DATABASE_RELATION_TYPES 生成源——WP-049 余量批从丢失的生成器手抄集上升为数据）"
+        }
+      },
+      "additionalProperties": true
+    }
+  },
+  "properties": {
+    "node_types": {
+      "type": "object",
+      "description": "节点类型注册表：键=类型 id，值=类型定义",
+      "additionalProperties": {
+        "$ref": "#/definitions/nodeType"
+      }
+    },
+    "relation_types": {
+      "type": "object",
+      "description": "关系类型注册表：键=关系类型 id（大写枚举），值=能力定义",
+      "additionalProperties": {
+        "$ref": "#/definitions/relationType"
+      }
+    },
+    "action_types": {
+      "type": "object",
+      "description": "动作类型注册表预留；Wave 0 不执行",
+      "additionalProperties": {
+        "$ref": "#/definitions/actionType"
+      }
+    },
+    "risk_types": {
+      "type": "object",
+      "description": "风险类型注册表预留；Wave 0 不解析",
+      "additionalProperties": {
+        "$ref": "#/definitions/riskType"
+      }
+    },
+    "inference_rules": {
+      "type": "array",
+      "description": "推理规则（main.cjs 装配 buildInferenceOntology）",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "pattern": {
+            "type": "string"
+          },
+          "output": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "class_id": {
+            "type": "string"
+          },
+          "when": true,
+          "then": true,
+          "lifecycle_status": {
+            "$ref": "#/definitions/lifecycleStatus"
+          },
+          "retirement": {
+            "$ref": "#/definitions/retirement"
+          }
+        },
+        "additionalProperties": true
+      }
+    },
+    "constraints": {
+      "type": "array",
+      "description": "本体约束（check-data-chain 质量门禁消费）",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "check": {
+            "type": "string"
+          },
+          "severity": {
+            "type": "string"
+          },
+          "class_id": {
+            "type": "string"
+          },
+          "action_id": {
+            "type": "string"
+          },
+          "lifecycle_status": {
+            "$ref": "#/definitions/lifecycleStatus"
+          },
+          "retirement": {
+            "$ref": "#/definitions/retirement"
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

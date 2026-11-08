@@ -1,0 +1,65 @@
+{
+  "manifestVersion": 2,
+  "schemaVersion": "v2.1",
+  "generatedAt": "2026-10-07T20:43:40.799Z",
+  "manifestKey": "wiki/entities/fixture-component.md",
+  "sourcePathCanonical": "知识库/wiki/entities/fixture-component.md",
+  "sourcePathNormalized": "wiki/entities/fixture-component.md",
+  "sourcePathAliases": [
+    "知识库/wiki/entities/fixture-component.md",
+    "wiki/entities/fixture-component.md"
+  ],
+  "masterGraphHash": "fab71bea0a1f615848680de0bef740259615804c1a97ca2e3928daa7449c3c4a",
+  "pipelineVersionHash": null,
+  "pipelineRunId": null,
+  "freshness": {
+    "status": "unknown",
+    "checkedAt": "2026-10-07T20:43:40.799Z",
+    "reason": "pipeline_version.json 缺失，无法判断一致性"
+  },
+  "article": {
+    "title": "Fixture Component",
+    "articleNodeId": "fixture-component",
+    "articleKind": "wiki_entity"
+  },
+  "extraction": {
+    "directRelationCount": 0,
+    "contextualRelationCount": 0,
+    "syntheticExcludedCount": 0,
+    "extractedEntityIds": [
+      "fixture-component"
+    ],
+    "matchedComponentIds": [],
+    "matchedVersionIds": [],
+    "matchedPlateIds": [],
+    "relationKeys": [],
+    "unresolvedFields": [
+      "no_direct_inference_sources"
+    ],
+    "sourceOnlyReason": "no_direct_inference_sources"
+  },
+  "evidence": {
+    "sourceMatches": [
+      {
+        "field": "file_path",
+        "value": "知识库/wiki/entities/fixture-component.md",
+        "matchType": "suffix",
+        "nodeId": "fixture-component"
+      }
+    ],
+    "nodeEvidenceCount": 1,
+    "relationEvidenceCount": 0
+  },
+  "review": {
+    "approved": 0,
+    "pending": 0,
+    "rejected": 0,
+    "none": 0
+  },
+  "manifestMode": "source_only",
+  "warnings": [],
+  "generator": {
+    "name": "kg-query-service.article-manifest",
+    "version": 1
+  }
+}

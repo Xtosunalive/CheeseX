@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "graph-admission.schema.json",
+  "title": "图准入单源契约",
+  "description": "可渲染实体标签集＋源文档判定口径的唯一声明处（WP-030/PR-145）。消费方：master-graph-service、entity-compliance-routes、property-governance-service、kg-routes（server require）；前端 GraphAdmissionService 副本经 src/test/graph-admission-contract.test.ts 对账钉同步。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$comment", "entityLabels", "sourceArticleKeys"],
+  "properties": {
+    "$comment": { "type": "string", "description": "单源立法说明——含修改须同批过对账钉的纪律" },
+    "entityLabels": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "可渲染实体标签集（ArchitectureComponent/Module）"
+    },
+    "sourceArticleKeys": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 },
+      "description": "源文档判定属性键序——按序取第一个非空值（file_path→sourcePath→source_path）"
+    }
+  }
+}

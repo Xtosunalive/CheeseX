@@ -1,0 +1,354 @@
+# pipeline-manifest.yaml — 图谱管道声明式 I/O 主权注册表
+#
+# 这是管道契约的「唯一事实源」。每个脚本在此声明:
+#   - 读取哪些文件 (reads)
+#   - 写入哪些文件 (writes) 及主权类型 (sovereignty)
+#   - 调用哪些其他脚本 (calls)
+#   - 属于哪个管道阶段 (stages)
+#
+# sovereignty 类型:
+#   exclusive   — 唯一写入者，任何其他脚本写入同一文件即为冲突
+#   shared       — 允许多写入者，但须指定 section（操作同一 section 时冲突）
+#   delegate     — 不直接写入，委托给 delegate_to 脚本
+#   owned        — 只读但声明所有权（如查询引擎声明 graph 为其管辖数据）
+#
+# 路径中的 $KB_VAULT 和 $ARCH_REPO 为变量，运行时替换。
+
+version: "1.0"
+description: "知识图谱管道 I/O 主权声明 — 唯一事实源，手改代码需同步更新本文件"
+
+# ─── Archive Sentinel 配置 ───
+# Stage 0 PRE-FLIGHT 扫描这些目录下的 .md 文件，生成 archived_nodes.json
+# 文件物理归档后，关联的 SQLite nodes/connections/document_index 行将被硬删除
+archive_dirs:
+  - "archive"
+  - "deprecated"
+  - "_attic"
+  - "历史归档"
+  - ".trash"
+
+scripts:
+
+  # ─── Stage 1.5: 多源推断 ───
+  infer-from-body.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/infer-from-body.py"
+    stages: [infer]
+    flags:
+      - {name: "--mode", type: value, desc: "full|quick"}
+      - {name: "--files", type: value, desc: "指定 entity 文件(quick)"}
+      - {name: "--output", type: value, desc: "输出 JSON 路径"}
+    reads:
+      - {path: "$KB_VAULT/知识库/wiki/entities/*.md", format: markdown}
+      - {path: "$KB_VAULT/知识库/TheSchema/entity-aliases.yaml", format: yaml}
+    writes:
+      - {path: "$KB_VAULT/.pipeline/intermediates/body_edges.json", format: json, sovereignty: exclusive}
+
+  infer-from-wiki.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/infer-from-wiki.py"
+    stages: [infer]
+    flags:
+      - {name: "--mode", type: value, desc: "full|quick"}
+      - {name: "--files", type: value, desc: "指定文章(quick)"}
+      - {name: "--output", type: value, desc: "输出 JSON 路径"}
+    reads:
+      - {path: "$KB_VAULT/知识库/raw/precleaned/*.md", format: markdown}
+    writes:
+      - {path: "$KB_VAULT/.pipeline/intermediates/wiki_edges.json", format: json, sovereignty: exclusive}
+
+  infer-from-config.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/infer-from-config.py"
+    stages: [infer]
+    flags:
+      - {name: "--mode", type: value, desc: "full|quick"}
+      - {name: "--output", type: value, desc: "输出 JSON 路径"}
+    reads:
+      - {path: "$KB_VAULT/知识库/TheSchema/dependencies.yaml", format: yaml}
+      - {path: "$KB_VAULT/知识库/TheSchema/enums.yaml", format: yaml}
+      - {path: "$KB_VAULT/知识库/raw/precleaned/*.md", format: markdown}
+    writes:
+      - {path: "$KB_VAULT/.pipeline/intermediates/config_edges.json", format: json, sovereignty: exclusive}
+
+  merge-inferred.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/merge-inferred.py"
+    stages: [infer]
+    flags:
+      - {name: "--body", type: value, desc: "body_edges.json"}
+      - {name: "--wiki", type: value, desc: "wiki_edges.json"}
+      - {name: "--config", type: value, desc: "config_edges.json"}
+      - {name: "--output", type: value, desc: "merged_edges.json"}
+    reads:
+      - {path: "$KB_VAULT/.pipeline/intermediates/body_edges.json", format: json}
+      - {path: "$KB_VAULT/.pipeline/intermediates/wiki_edges.json", format: json}
+      - {path: "$KB_VAULT/.pipeline/intermediates/config_edges.json", format: json}
+    writes:
+      - {path: "$KB_VAULT/.pipeline/intermediates/merged_edges.json", format: json, sovereignty: exclusive}
+
+  # ─── Stage 1: 图谱抽取 ───
+  extract_graph.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/extract_graph.py"
+    stages: [extract]
+    trigger_flag: "--apply"
+    flags:
+      - {name: "--apply", type: trigger, desc: "触发写入 master_graph.json"}
+      - {name: "--incremental", type: flag, desc: "跳过未变更文件"}
+      - {name: "--cache", type: flag, desc: "同时写入 graph_data.json 缓存"}
+      - {name: "--validate", type: flag, desc: "抽取后内联校验图谱"}
+      - {name: "--force", type: flag, desc: "绕过增量跳过"}
+    reads:
+      - {path: "$KB_VAULT/知识库/**/*.md", format: markdown, desc: "全 vault .md 文件"}
+      - {path: "$KB_VAULT/知识库/TheSchema/enums.yaml", format: yaml}
+      - {path: "$KB_VAULT/知识库/TheSchema/dependencies.yaml", format: yaml}
+      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json, desc: "上一版图谱(合并用)"}
+      - {path: "$KB_VAULT/.pipeline/intermediates/merged_edges.json", format: json, desc: "多源推断合并边"}
+    writes:
+      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json, sovereignty: exclusive}
+      - {path: "$KB_VAULT/.ledger/master_graph.db", format: sqlite, sovereignty: exclusive, table: document_index}
+      - {path: "$KB_VAULT/.ledger/extract_manifest.json", format: json, sovereignty: exclusive}
+      - {path: "$KB_VAULT/.ledger/extract_change_logs/change_*.json", format: json, sovereignty: exclusive}
+      - {path: "$KB_VAULT/.ledger/latest_change_log.json", format: json, sovereignty: exclusive}
+      - {path: "$KB_VAULT/知识库/TheSchema/enums.yaml", format: yaml, sovereignty: shared, section: "tags.pending+modules（停用写者——复活须先升协议，见 domain-registry schema-rules-data）", note: "自动学习的标签/模块回写（脚本已停用）"}
+      - {path: "$SCRIPTS_DIR/graph_data.json", format: json, sovereignty: exclusive, condition: "--cache"}
+    calls:
+      - {script: graph-status.py, args: ["--write"], when: "post-apply", note: "管道契约中由 Stage 4 独立执行，此处为 extract 内部的附加刷新"}
+
+  # ─── Stage 2: 图谱校验 ───
+  validate_graph.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/validate_graph.py"
+    stages: [validate]
+    flags:
+      - {name: "--ontology", type: flag, desc: "运行本体合规检查"}
+      - {name: "--threshold", type: value, desc: "弱边权重阈值"}
+      - {name: "--fix", type: flag, desc: "输出修复建议"}
+      - {name: "--auto-fix", type: flag, desc: "自动应用安全修复"}
+      - {name: "--architecture-projection", type: flag, desc: "架构投影契约校验"}
+    reads:
+      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json, condition: "--architecture-projection"}
+      - {path: "$KB_VAULT/知识库/architecture/AnyShare.architecture.json", format: json, note: "⚠ 此文件不存在 — 主校验路径已损坏"}
+    writes: []  # 只读诊断，--auto-fix 可写 entity stub 但那是修复动作非管道阶段
+
+  pipeline-check.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/pipeline-check.py"
+    stages: [validate]
+    flags:
+      - {name: "health", type: subcommand, desc: "4 阶段管道健康检查"}
+      - {name: "audit", type: subcommand, desc: "8 项数据审计"}
+      - {name: "--json", type: flag, desc: "JSON 输出"}
+      - {name: "--vault", type: value, desc: "覆盖 vault 路径"}
+    reads:
+      - {path: "$KB_VAULT/知识库/raw/imported/**/*", format: all}
+      - {path: "$KB_VAULT/知识库/raw/precleaned/**/*.md", format: markdown}
+      - {path: "$KB_VAULT/知识库/raw/archive/**/*", format: all}
+      - {path: "$KB_VAULT/知识库/raw/drafts/**/*", format: all}
+      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json}
+      - {path: "$KB_VAULT/知识库/wiki/entities/*.md", format: markdown}
+      - {path: "$KB_VAULT/知识库/TheSchema/enums.yaml", format: yaml}
+    writes: []  # 只读诊断
+
+  # ─── Stage 3: SA 同步 ───
+  generate-sa.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/generate-sa.py"
+    stages: [sync-sa]
+    trigger_flag: "--apply"
+    flags:
+      - {name: "--apply", type: trigger, desc: "本地读取 master_graph + TheSchema 写入 SA + layout"}
+      - {name: "--sync-enums", type: flag, desc: "同时同步 enums.yaml modules 段"}
+      - {name: "--version", type: value, desc: "生成指定版本的 SA"}
+      - {name: "--summary", type: flag, desc: "输出紧凑摘要"}
+    reads:
+      - {path: "$KB_VAULT/知识库/wiki/entities/*.md", format: markdown}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json, desc: "现有 SA 用于 diff"}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/architecture_layout.json", format: json, desc: "现有 layout 用于合并"}
+      - {path: "$KB_VAULT/知识库/TheSchema/enums.yaml", format: yaml}
+      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json}
+      - {path: "$KB_VAULT/知识库/TheSchema/dependencies.yaml", format: yaml}
+    writes:
+      - {path: "$KB_VAULT/知识库/TheSchema/enums.yaml", format: yaml, sovereignty: shared, section: modules, condition: "--sync-enums"}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json, sovereignty: exclusive}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/architecture_layout.json", format: json, sovereignty: exclusive}
+
+  # ─── Stage 3.5: Board 缓存同步 ───
+  sync-board-enums.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/sync-board-enums.py"
+    stages: [sync-board]
+    trigger_flag: "--apply"
+    flags:
+      - {name: "--apply", type: trigger, desc: "写入 _enums-cache.md"}
+    reads:
+      - {path: "$KB_VAULT/知识库/TheSchema/enums.yaml", format: yaml}
+    writes:
+      - {path: "$KB_VAULT/知识库/raw/boards/_enums-cache.md", format: markdown, sovereignty: exclusive}
+
+  # ─── Stage 4: 仪表盘刷新 ───
+  graph-status.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/graph-status.py"
+    stages: [refresh-dashboard]
+    flags:
+      - {name: "--write", type: trigger, desc: "写入 graph-status.md"}
+      - {name: "--json", type: flag, desc: "JSON 输出到 stdout"}
+      - {name: "--vault", type: value, desc: "覆盖 vault 路径"}
+    reads:
+      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json, condition: optional}
+    writes:
+      - {path: "$KB_VAULT/知识库/wiki/graph-status.md", format: markdown, sovereignty: exclusive}
+    called_by: [extract_graph.py]  # 被 extract_graph.py 子进程调用，管道中独立为 Stage 4
+
+  # ─── Stage 6: 端到端验证 ───
+  check-data-chain.mjs:
+    location: "$ARCH_REPO/scripts/quality/check-data-chain.mjs"
+    stages: [verify]
+    flags:
+      - {name: "--skip-api", type: flag, desc: "跳过 API 探活"}
+      - {name: "--skip-consistency", type: flag, desc: "跳过一致性检查"}
+      - {name: "--master", type: value}
+      - {name: "--semantic", type: value}
+    reads:
+      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/architecture_layout.json", format: json}
+      - {path: "$KB_VAULT/.ledger/master_graph.db", format: sqlite}
+      - {path: "$KB_VAULT/vector-cache.json", format: json, condition: optional}
+    writes: []  # 只读诊断
+    calls:
+      - {script: check_consistency.py, when: "not --skip-consistency", via: subprocess}
+
+  generate_dashboard_data.py:
+    location: "$KB_VAULT/知识库/.claude/scripts/generate_dashboard_data.py"
+    stages: [reporting]
+    trigger_flag: "--apply"
+    flags: []
+    reads:
+      - {path: "$KB_VAULT/", format: filesystem, desc: "项目文件系统扫描"}
+      - {path: "$KB_VAULT/.git/", format: git, desc: "Git 历史"}
+      - {path: "$KB_VAULT/CLAUDE.md", format: markdown, desc: "SKILL 路由提取"}
+      - {path: "$KB_VAULT/.obsidian/plugins/**/manifest.json", format: json, desc: "插件版本"}
+      - {path: "$KB_VAULT/知识库/.claude/scripts/*.py", format: python, desc: "Import 依赖分析"}
+    writes:
+      - {path: "$KB_VAULT/.ledger/dashboard_data.json", format: json, sovereignty: exclusive}
+    calls: []
+
+# ─── 管道阶段定义 ───
+# 此段定义了管道的执行顺序和每个阶段的脚本。
+# pipeline-runner.py 运行时从此段动态构建 STAGES 列表。
+
+pipeline_stages:
+  - {id: "0", name: preflight, label: "PRE-FLIGHT — 源配置与端口探活（派生产物允许缺失）", handler: stage_0_preflight}
+  - {id: "0.5", name: admission-readiness, label: "ADMISSION READINESS — 源 entity 入图资格门控", handler: stage_0_5_admission_readiness}
+  - {id: "1.5", name: infer, label: "INFER — 多源关系推断", scripts: [infer-from-body.py, infer-from-wiki.py, infer-from-config.py, merge-inferred.py]}
+  - {id: "1", name: extract, label: "EXTRACT — 图谱抽取", scripts: [extract_graph.py]}
+  - {id: "2", name: validate, label: "VALIDATE — 图谱质量校验", scripts: [validate_graph.py, pipeline-check.py]}
+  - {id: "2.5", name: backwrite, label: "BACKWRITE — Frontmatter 反向回写", scripts: [backwrite-frontmatter.py], enabled: false}
+  - {id: "3", name: sync-sa, label: "SYNC SA — 语义架构同步", scripts: [generate-sa.py]}
+  - {id: "3.5", name: sync-board, label: "SYNC BOARD CACHE — Board 枚举缓存同步", scripts: [sync-board-enums.py]}
+  - {id: "4", name: refresh-dashboard, label: "REFRESH DASHBOARD — 仪表盘刷新", scripts: [graph-status.py]}
+  - {id: "5", name: reload-frontend, label: "RELOAD FRONTEND — 前端热重载"}
+  - {id: "6", name: verify, label: "VERIFY — 端到端验证", scripts: [check-data-chain.mjs]}
+  - {id: "7", name: record-memory, label: "RECORD MEMORY — 自动经验记录", meta: true, note: "main() 后处理，不参与阶段循环"}
+  - {id: "8", name: project-reporting, label: "PROJECT REPORTING — 项目仪表盘数据生成", scripts: [generate_dashboard_data.py]}
+
+# ─── 数据路径定义 ───
+# 管道产出两条独立的数据路径，各自有不同的门控、同步链和消费者。
+# 脚本是手段，路径是目的。修改晋升规则时，必须指明影响哪条路径。
+
+data_paths:
+
+  knowledge-graph:
+    label: "知识图谱"
+    description: "全量数据湖 — 7 类节点全收，为影响面分析/BFS/关系查询提供基础"
+    promotion_rules: [R1, R2, R3, R4, R5]
+    gate: wide
+    flow:
+      - {step: extract, script: extract_graph.py, stage: "1"}
+      - {step: validate, script: validate_graph.py, stage: "2"}
+      - {step: write_json, output: "$KB_VAULT/.ledger/master_graph.json", format: json}
+      - {step: write_sqlite, output: "$KB_VAULT/.ledger/master_graph.db", format: sqlite, note: "extract_graph.py 内联写入"}
+      - {step: api_read, script: "$ARCH_REPO/electron/services/master-graph-service.cjs", stage: "runtime"}
+      - {step: http_serve, route: "/api/dashboard/topology", stage: "runtime"}
+    consumers:
+      - {id: dashboard, label: "Web 总览", app: "rebuild", http: "/api/dashboard/topology", description: "拓扑、缺口与分类统计"}
+      - {id: kg-review, label: "关系审核", app: "rebuild", http: "/api/kg/*", description: "关系准入与审核写回"}
+    node_types: [BusinessDomain, Subdomain, System, Module, ArchitectureComponent, Concept, Document, Plate]
+
+  main-canvas:
+    label: "主画布"
+    description: "架构拓扑可视化 — 精过滤，带 arch_component:true 的节点经 SA 投影渲染到 CSM 画布 (4 源全通 v2.3)"
+    promotion_rules: [R2-A, R2-B, R2-C, R2-D]  # 4 源全部通 (v2.3)
+    gate: narrow
+    flow:
+      - {step: extract, script: extract_graph.py, stage: "1", note: "R2 来源 A,B,C,D 产出 System/Module/Concept/Plate + ArchitectureComponent"}
+      - {step: validate, script: validate_graph.py, stage: "2"}
+      - {step: sa_sync, script: generate-sa.py, stage: "3"}
+      - {step: project, script: "generate-sa.py + sa_projection_support.py", note: "entity arch_component 门控 + TheSchema projected_relation_types 投影"}
+      - {step: write_sa, output: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json}
+      - {step: write_layout, output: "$KB_VAULT/知识库/architecture/<product>/<version>/architecture_layout.json", format: json}
+      - {step: merge_layout, script: "sa_projection_support.py:build_layout()", note: "TheSchema layers 决定默认分组，新节点确定性布局，已有合法坐标保留"}
+    consumers:
+      - {id: dashboard-architecture, label: "架构范围拓扑 API", app: "rebuild", http: "/api/dashboard/topology?scope=architecture", description: "按 SA 组件投影视图"}
+    excluded_sources: []  # v2.3: R3 Concept 硬排除已移除, R5 Plate 通过 arch_component:true 正常投影
+
+  obsidian-board:
+    label: "Obsidian Board 页面"
+    description: "知识板块导航 — 模块 × 场景类型覆盖矩阵，DataviewJS 动态渲染"
+    promotion_rules: [R5]  # Plate 数据 + enums 模块注册
+    gate: static  # board 页面不参与管道执行，仅消费缓存数据
+    flow:
+      - {step: sync_cache, script: sync-board-enums.py, stage: "3.5"}
+      - {step: write_cache, output: "$KB_VAULT/知识库/raw/boards/_enums-cache.md", format: markdown}
+      - {step: render, app: "Obsidian", plugin: "Dataview", note: "Board 页面 dv.page() 读取 _enums-cache.md 模块数组"}
+    consumers:
+      - {id: obsidian-board, label: "Board 页面", app: "Obsidian", plugin: "Dataview", description: "模块底座 + 知识覆盖矩阵 + 版本生命周期"}
+
+# ─── 消费者注册表 ───
+# 跨仓库消费者的统一注册，含 IPC 通道和前端组件映射。
+
+consumers:
+  web-app:
+    label: "架构图系统 rebuild Web 应用"
+    repo: "$ARCH_REPO"
+    components:
+      - {id: dashboard, label: "总览", path: "src/features/dashboard/", http: ["/api/dashboard/topology"]}
+      - {id: property-governance, label: "属性治理", path: "src/features/property-gov/", http: ["/api/property/check"]}
+      - {id: review, label: "关系审核", path: "src/features/review/", http: ["/api/kg/pending-review", "/api/review/log"]}
+    data_sources:
+      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json, used_by: [dashboard, property-governance, review]}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json, used_by: [dashboard, property-governance]}
+      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/architecture_layout.json", format: json, used_by: [dashboard]}
+    runtime:
+      - {script: electron/main.cjs, role: "18083 HTTP API 读取 Vault 派生产物"}
+      - {script: vite.config.ts, role: "5174 /api 代理到 18083"}
+      - {script: src/lib/generated/ontology-registry.ts, role: "由 TheSchema 生成前端本体注册表"}
+
+  obsidian:
+    label: "Obsidian 知识库"
+    repo: "$KB_VAULT"
+    plugins: [Dataview, Claudian]
+    components:
+      - {id: board-pages, label: "Board 导航页面", path: "知识库/raw/boards/", plugin: Dataview}
+    data_sources:
+      - {path: "$KB_VAULT/知识库/raw/boards/_enums-cache.md", format: markdown, used_by: [board-pages]}
+      - {path: "$KB_VAULT/知识库/wiki/graph-status.md", format: markdown, used_by: [obsidian-reader]}
+
+# ─── 主权冲突历史记录 ───
+# 记录已知的主权冲突及其解决方案，防止回归。
+# 2026-10-10 SPEC-009-W9 全段对账修正：写主权唯一事实源 = cheeseh 仓 contracts/domain-registry.json
+# 的 schema-rules-data 域（writers 全集四写者：页面服务/generate-sa --sync-enums/停用的 extract_graph/
+# 2026-10-09 实证的机制外写者）。本段自此只作 vault 侧管线编排参考，主权判定以 registry 为准。
+known_conflicts:
+  - files: [semantic_architecture.json, architecture_layout.json]
+    writers: [generate-sa.py]
+    resolution: "generate-sa.py 是唯一写入者；本地读取 master_graph + TheSchema，并在写入前校验非空组件、关系端点和 layout 节点集合。"
+    status: resolved_by_delegate
+
+  - file: enums.yaml
+    section: modules
+    writers: [schema-write-service.cjs(页面), generate-sa.py --sync-enums(管线), extract_graph.py(已停用)]
+    resolution: "多写者共写段——写主权登记与协议见 domain-registry schema-rules-data 域（唯一事实源）。管线侧 2026-10-10 起原子写+写前快照（SPEC-009-W9）；extract_graph 复活须先升协议再启用。旧记录「写不同段不冲突」所依据的键在代码中不存在，已废（详见 registry 域行 note）。"
+    status: multi_writer_registered
+
+  - file: graph-status.md
+    writers: [graph-status.py]
+    triggers: [extract_graph.py, pipeline-runner.py]
+    resolution: "extract_graph.py 内部的 graph-status 调用作为附加刷新（双重保险），管道契约为 Stage 4 独立执行。若 extract 内部的子进程调用失败，Stage 4 的独立调用会重新刷新。"
+    status: dual_write_safe

@@ -1,0 +1,94 @@
+{
+  "$comment": "SPEC-012 F1 写通道目的地执法单源——vault-io 唯一写通道的合法落点声明。两个消费方（vault-io 运行时越界 throw、check:vault-write-destinations 静态门禁）同源引用本文件，禁止各写清单。allowedPermanent＝①⑤类终态落点（只增即红，改动须先修 SPEC）；migrationWhitelist＝②③④类未迁尽的存量住址（SPEC-012 各波施工只减不增，清空＝分层完成）。发布治理产物住 vault 外 .releases/（WP-023 迁仓；WP-069 S3 起为 release-artifact-data 数据域——vault-io 通道不覆盖，release-publisher 直写唯一 lane；旧址 .git/anyshare-releases 条目 2026-11-02 退役——vault-io 对其写入面已随收编归零）。匹配语义：以 / 结尾＝目录前缀，否则＝精确文件。archived_nodes.json（Archive Sentinel）已随 wave-2 迁 data/staging（runner 侧 _staging_path，2026-10-14）；formal-schema-release.json 指针全仓无写者且 vault 无文件（勘察 2026-10-14 实证）——死路径条目移除；其唯一读者 schema-release-service 整件零调用方（旧 Schema-only 晋级协议 2026-08-11 退役残件），2026-10-26 删除，TheSchema/releases 落点随之无写者。",
+  "allowedPermanent": {
+    "知识库/": "①类事实源——文章/TheSchema yaml/history/wiki（architecture 的机器生成投影自 PR-082 迁 data/staging/sa 派生槽，源树该子树仅留归档；Obsidian＝产品现实，允许外部写）",
+    ".ledger/decisions.jsonl": "⑤类决策流水（SPEC-012 WP-I 归位 git 提交流后本条目随迁撤销）",
+    ".ledger/channel-write-log.jsonl": {
+      "reason": "⑤类通道写日志（路径＋内容哈希——排除法归属取证面）；随各域提交账车入库",
+      "selfAccounted": true,
+      "selfAccountedNote": "落账内建于写路径（vault-io 追加后搭所在域批次）；reconcile 层二/门禁⑥同源排除（SPEC-012 F2 修复批 2026-10-14）"
+    },
+    ".ledger/state-journal.jsonl": {
+      "reason": "⑤类③态耐久性流水（丢库不丢账，boot 重放重建）；Node/Python 双侧流水模块内建落账",
+      "selfAccounted": true,
+      "selfAccountedNote": "落账内建于两侧流水模块（Node state-journal/Python _runtime_state_db 尾接 _vault_ledger）；reconcile 层二/门禁⑥同源排除"
+    }
+  },
+  "migrationWhitelist": {},
+  "ignoredForms": {
+    "$comment": "vault 内非治理对象形态单一事实源（SPEC-012 结构收口批）：consumers 声明该形态的豁免面——watcher（监听忽略，不产生 external: 账）、git-clean（门禁⑥洁净度白名单与 reconcile 层二漂移排除，git status 不含 .git 故 only-watcher 条目对 git 面天然无意义）。新增形态只改此处，三消费方同源派生，禁止各写清单。",
+    "forms": [
+      {
+        "pattern": "(^|[/\\\\])\\.git([/\\\\]|$)",
+        "reason": "git 内部目录",
+        "consumers": [
+          "watcher"
+        ]
+      },
+      {
+        "pattern": "(^|[/\\\\])知识库[/\\\\]raw[/\\\\]boards([/\\\\]|$)",
+        "reason": "观察面板缓存（gitignore 同款语义）",
+        "consumers": [
+          "watcher",
+          "git-clean"
+        ]
+      },
+      {
+        "pattern": "\\.swp$",
+        "reason": "vim 交换文件",
+        "consumers": [
+          "watcher",
+          "git-clean"
+        ]
+      },
+      {
+        "pattern": "~$",
+        "reason": "编辑器备份尾缀",
+        "consumers": [
+          "watcher",
+          "git-clean"
+        ]
+      },
+      {
+        "pattern": "conflict copy",
+        "reason": "Obsidian Sync 冲突副本（入库会伪造写入记录）",
+        "consumers": [
+          "watcher",
+          "git-clean"
+        ]
+      },
+      {
+        "pattern": "(^|[/\\\\])\\.trash([/\\\\]|$)",
+        "reason": "Obsidian 内置回收站",
+        "consumers": [
+          "watcher",
+          "git-clean"
+        ]
+      },
+      {
+        "pattern": "\\.canvas\\.bak$",
+        "reason": "Obsidian canvas 备份",
+        "consumers": [
+          "watcher",
+          "git-clean"
+        ]
+      },
+      {
+        "pattern": "\\.vault-io-[\\w.-]+\\.tmp$",
+        "reason": "原子写瞬态 tmp（rename 前即逝，非稳定内容无从取证）",
+        "consumers": [
+          "watcher",
+          "git-clean"
+        ]
+      },
+      {
+        "pattern": "^\\.DS_Store$",
+        "reason": "macOS 目录元数据",
+        "consumers": [
+          "watcher",
+          "git-clean"
+        ]
+      }
+    ]
+  }
+}

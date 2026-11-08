@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "实体规则声明合法性 schema（2026-09-12 ADR068 配套防呆，取代旧双分支结构）。消费者：scripts/quality/check-entity-readiness-inventory.mjs —— 每次 --check/--write 前校验 rules.json，声明非法 fail-closed。引擎不校验自己，防呆由治理面承载。",
+  "title": "EntityReadinessRules",
+  "type": "object",
+  "required": [
+    "fields",
+    "rules"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "$comment": {
+      "type": "string"
+    },
+    "article": {
+      "type": "object",
+      "required": [
+        "required",
+        "enumFields",
+        "fields"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "enumFields": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "fields": {
+          "type": "object",
+          "description": "文章域补齐表单**表单形状**单源（2026-09-19 立法登记）：control=控件类型、required=是否必填、optionsKey=选项枚举键，三者皆可选；键序即补齐表单渲染顺序。消费方 article-workflow-service（补齐表单 articleFields）——本段缺失时它静默返回空清单（字段凭空消失却不报错），属危险方向，故进 required 由 schema 堵死。⚠ 刻意不登记 label：字段中文名唯一来源是 shared/field-labels.mjs 的文章域字典（contracts 下的配置前端读不到，当不了前后端共用落点）；本节 properties 白名单只含 $comment，其余键一律走 additionalProperties 且该子对象内部 additionalProperties:false——谁再往这里塞中文名会立刻红。这是反回潮的立法，不是漏写。",
+          "properties": {
+            "$comment": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "control": {
+                "type": "string"
+              },
+              "required": {
+                "type": "boolean"
+              },
+              "optionsKey": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "fields": {
+      "type": "object",
+      "minProperties": 1,
+      "description": "实体域**字段展示名单 + 填写要求**单源（2026-09-20 立法登记）：键集=展示名单、hint=填写要求。⚠ 刻意不登记 label：字段中文名唯一来源是 shared/field-labels.mjs 的实体域字典（contracts 下的配置前端读不到，当不了前后端共用落点），缺失实体模板与声明式引擎的 finding.label 都从那里派生。故本节子对象 additionalProperties:false 且 properties 白名单只留 hint——谁再把中文名写回 rules.json 的 fields[*]，schema 校验立刻报错。这是反回潮的立法，不是漏写。",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "hint": {
+            "type": "string",
+            "minLength": 1,
+            "description": "字段填写要求（人读），缺失实体模板（CREATE 分支）与补齐抽屉消费；声明式引擎的 rules[].hint 仍是另一条独立通道（当前为空串）。"
+          },
+          "system": {
+            "type": "boolean",
+            "description": "系统托管声明（2026-10-08 字段托管）：true=用户不可编辑，服务端写路径注入"
+          },
+          "control": {
+            "type": "string",
+            "enum": [
+              "input",
+              "select",
+              "readonly-system"
+            ],
+            "description": "表单控件形态；readonly-system=只读展示（系统托管字段）"
+          },
+          "managedBy": {
+            "type": "string",
+            "enum": [
+              "server"
+            ],
+            "description": "托管主体"
+          }
+        }
+      }
+    },
+    "rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "field",
+          "check",
+          "severity",
+          "message"
+        ],
+        "additionalProperties": true,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[FB]\\d{2}[a-z]?$"
+          },
+          "field": {
+            "type": "string",
+            "minLength": 1
+          },
+          "group": {
+            "type": "string",
+            "enum": [
+              "identity",
+              "spatial",
+              "version",
+              "organization",
+              "temporal",
+              "content",
+              "body"
+            ]
+          },
+          "check": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warn",
+              "info"
+            ]
+          },
+          "onEmpty": {
+            "enum": [
+              "warn"
+            ]
+          },
+          "required": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string",
+            "minLength": 4
+          },
+          "emptyMessage": {
+            "type": "string",
+            "minLength": 4
+          },
+          "gates": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "entity-repair.apply-create",
+                "entity-repair.preview-edit",
+                "pipeline.stage-0-5"
+              ]
+            }
+          },
+          "enumKey": {
+            "type": "string"
+          },
+          "aliasKey": {
+            "type": "string"
+          },
+          "dimension": {
+            "type": "string",
+            "enum": [
+              "completeness",
+              "uniqueness",
+              "validity",
+              "consistency",
+              "referential-integrity",
+              "timeliness"
+            ],
+            "description": "DAMA 数据质量维度标注（2026-10-08 术语对齐第一批）：规则对外可读性的业界坐标；私有体系保留为内部键，本字段为对外主索引"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "onEmpty": {
+                  "const": "warn"
+                }
+              },
+              "required": [
+                "onEmpty"
+              ]
+            },
+            "then": {
+              "required": [
+                "emptyMessage"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "check": {
+                  "const": "enum-ref"
+                }
+              },
+              "required": [
+                "check"
+              ]
+            },
+            "then": {
+              "required": [
+                "enumKey"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "statusMachine": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "values",
+        "default",
+        "transitions"
+      ],
+      "properties": {
+        "$comment": {
+          "type": "string"
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "default": {
+          "type": "string"
+        },
+        "transitions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "transitionGates": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,78 @@
+{
+  "version": "1",
+  "description": "明确退役的 API 路由 allowlist。外部消费者（如 Obsidian 插件）调用这些路径时，后端应返回 410 而非 404。政策（2026-08-31 D9-3 签署）：退役路由的错误码一经对外发布即冻结；内部墓碑实现收敛到 registrar 唯一通道，禁止在路由模块内联第二份墓碑。",
+  "retired": [
+    {
+      "method": "GET",
+      "path": "/api/sync/pull",
+      "errorCode": "SYNC_PULL_RETIRED",
+      "retiredAt": "2026-07-13",
+      "reason": "通用 Markdown 写回已退役，使用 entity repair / schema write / relation review 等专用安全接口代替",
+      "replacement": "无直接替代；系统侧变更请走 entity repair / schema write / relation review 专用接口"
+    },
+    {
+      "method": "POST",
+      "path": "/api/sync/pull",
+      "errorCode": "SYNC_PULL_RETIRED",
+      "retiredAt": "2026-07-13",
+      "reason": "通用 Markdown 写回已退役",
+      "replacement": "无直接替代"
+    },
+    {
+      "method": "POST",
+      "path": "/api/property/repair",
+      "retiredAt": "2026-08-11",
+      "reason": "属性修复不得直接修改正式 Vault",
+      "replacement": "POST /api/entity/repair/preview 后 POST /api/entity/repair/propose"
+    },
+    {
+      "method": "POST",
+      "path": "/api/schema/change-sets/preview",
+      "retiredAt": "2026-08-11",
+      "reason": "旧 Schema change-set 正式化协议已由 Proposal Preview 替代",
+      "replacement": "POST /api/schema-proposals/{id}/preview-release"
+    },
+    {
+      "method": "POST",
+      "path": "/api/schema/change-sets/apply",
+      "retiredAt": "2026-08-11",
+      "reason": "旧 Schema change-set 直接应用协议已退役",
+      "replacement": "Schema Proposal Checks、批准与 merge"
+    },
+    {
+      "method": "GET",
+      "path": "/api/schema/releases",
+      "retiredAt": "2026-08-11",
+      "reason": "旧 Schema-only Release 列表会与完整不可变 Release 混淆",
+      "replacement": "GET /api/releases/current"
+    },
+    {
+      "method": "POST",
+      "path": "/api/schema/releases",
+      "retiredAt": "2026-08-11",
+      "reason": "旧 Schema-only Release 创建协议已退役",
+      "replacement": "Schema Proposal Preview、批准与 merge"
+    },
+    {
+      "method": "POST",
+      "path": "/api/schema/releases/:revision/promote",
+      "retiredAt": "2026-08-11",
+      "reason": "旧 Schema-only Release 晋级协议已退役",
+      "replacement": "POST /api/schema-proposals/{id}/merge"
+    },
+    {
+      "method": "POST",
+      "path": "/api/schema/releases/:revision/redeploy",
+      "retiredAt": "2026-08-11",
+      "reason": "旧 Schema-only Release 重新部署协议已退役",
+      "replacement": "不可变完整 Release 发布与 current CAS"
+    },
+    {
+      "method": "POST",
+      "path": "/api/schema/releases/:revision/revert-preview",
+      "retiredAt": "2026-08-11",
+      "reason": "永久修正必须形成向前的 Schema Proposal",
+      "replacement": "POST /api/schema-proposals/{id}/edits（category=snapshot-revert）"
+    }
+  ]
+}

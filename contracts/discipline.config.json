@@ -1,0 +1,46 @@
+{
+  "$comment": "WP-140：discipline-kit 门禁的本仓接入配置（机制外迁后的唯一接线面——表清单/住址/检查面开关在此；登记簿/门禁注册表/测试基线路径走包内默认值〔与契约区惯例同址〕，仅偏离惯例的仓才需声明）。faces 语义：anchors=登记簿锚点验真、data_five=数据域五件套语义断言、sql_catalog=唯一实现 catalog 对账、gate_pointer=域卡 gate 别名对账 quality-gates、test_claims=测试认领棘轮。本仓为全量面（历史九面完整保留）。｜register_file＝红队复核 M1 修复（2026-11-07）：锚点验真面在本仓曾因缺声明静默跳过（包内默认 null≠惯例同址）——显式声明＋门禁显式红双修。｜WP-139 派生化注记（并线保留）：metrics_exempt_ids＝WP-139 派生化：存量豁免名单从门禁写死改为使用方 config 声明（机制不持账本）。",
+  "tables": [
+    {
+      "key": "reuse",
+      "file": "contracts/reuse-domains.json",
+      "schema": "node_modules/@cheeseh/discipline-kit/schemas/reuse-domains.schema.json",
+      "min_registry_version": 3
+    },
+    {
+      "key": "data",
+      "file": "contracts/data-domains.json",
+      "schema": "node_modules/@cheeseh/discipline-kit/schemas/data-domains.schema.json",
+      "min_registry_version": 3
+    }
+  ],
+  "common": "node_modules/@cheeseh/discipline-kit/schemas/domain-table-common.json",
+  "faces": {
+    "anchors": true,
+    "data_five": true,
+    "sql_catalog": true,
+    "gate_pointer": true,
+    "test_claims": true
+  },
+  "scan_dirs": [
+    "server",
+    "scripts"
+  ],
+  "test_roots": [
+    "server",
+    "scripts",
+    "src/test"
+  ],
+  "retired_paths": [
+    "contracts/reuse-domains.schema.json",
+    "contracts/data-domains.schema.json",
+    "contracts/domain-table-common.json",
+    "scripts/quality/check-domain-registry.mjs"
+  ],
+  "register_file": "docs/plans/problem-register.md",
+  "metrics_exempt_ids": [
+    "theme",
+    "rule-governance",
+    "entity-growth"
+  ]
+}

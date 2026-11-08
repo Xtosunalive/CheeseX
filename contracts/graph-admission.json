@@ -1,0 +1,5 @@
+{
+  "$comment": "图准入单源（WP-030，PR-145）。本文件是「可渲染实体标签集」与「源文档判定口径」的唯一声明处——server 各服务 require 本文件，前端副本（GraphAdmissionService.ENTITY_LABELS）经对账测试钉与本校验同步（contracts 目录前端读不到，当不了前后端共用落点——entity-readiness-rules 同款裁决）。判据：entityLabels=准入拓扑中可作为渲染实体的节点标签（ArchitectureComponent/Module）；BusinessDomain/Subdomain/Team/Document 不入（gap-engine.cjs 的 KNOWN_LABELS 是「图已知节点类型」5 键另一语义，独立维护不引用本键集）。sourceArticleKeys=判定实体是否携带源文档的属性键序（按序取第一个非空值——与 GET /api/kg/canvas-admission 的 blockedReasons.missing_source_article 判定同口径；此前 4 处代码副本漂移的根治）。修改本文件须同批过 src/test/graph-admission-contract.test.ts 对账钉（改键不同步即红）。",
+  "entityLabels": ["ArchitectureComponent", "Module"],
+  "sourceArticleKeys": ["file_path", "sourcePath", "source_path"]
+}

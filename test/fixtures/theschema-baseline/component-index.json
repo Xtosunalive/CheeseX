@@ -1,0 +1,471 @@
+{
+  "updated": "2026-10-29T03:45:18Z",
+  "total": 93,
+  "components": {
+    "Action-Routing-Contract-Guard（动作路由表子契约执法 · navigation 域）": {
+      "path": "scripts/quality/check-action-routing.mjs",
+      "context": "2026-10-06 Master 报「问题项与处理方式超集关系需梳理」→ 裁「要」→",
+      "responsible": "看守「问题类型（issueKind）→ 处理方式」对应关系的三重对账"
+    },
+    "Error-Code-Contract-Guard（错误码事实源双向对账 · P1 模式新实例）": {
+      "path": "scripts/quality/check-error-codes.mjs",
+      "context": "2026-10-08 Master 批（00:58「可以」）——P1 名言「单向对账会漏一半」在错误码域重演后的立门禁",
+      "responsible": "看守「服务端抛出的错误码 ↔ 契约 error_code enum」的双向完备："
+    },
+    "Rules-Lifecycle-Guard（规则生命周期治理 · 第 1 步审计模式 / 第 3 步门禁预留）": {
+      "path": "scripts/quality/check-rules-lifecycle.mjs",
+      "context": "2026-10-08 规则生命周期治理方案第 0+1 步；先例=check-error-codes.mjs（P1 双向对账模式）",
+      "responsible": "把「人肉理解规则体系」升级为「机器对账」——三层（22 规则声明 / 13 检查器出口 /"
+    },
+    "Article-Classifier": {
+      "path": "scripts/vault-py/content/classify.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "entity↔module 映射维护 + 待审核文档批量归类，支持基于关键词的自动映射建议"
+    },
+    "Article-Promoter": {
+      "path": "scripts/vault-runtime/promote-article.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "人工确认后将 drafts/ 中文章提升到 precleaned/，完成定居和归档"
+    },
+    "Classification-Validator": {
+      "path": "scripts/vault-py/tools/validate_classification.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "校验文章四层分类体系的合规性（category-path 闭合枚举、tags 白名单、module 法定值）"
+    },
+    "Dashboard-Data-Generator": {
+      "path": "scripts/vault-py/pipeline/generate_dashboard_data.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "扫描项目文件系统 + git 状态 + Python import 依赖 + Obsidian 插件信息，生成 `dashboard_data.json` 供 "
+    },
+    "Entity-Validator": {
+      "path": "scripts/vault-py/tools/validate-entity.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "entity 页面或 dependencies.yaml 变更后，提交前校验 frontmatter schema 合规性"
+    },
+    "Infer-From-Body": {
+      "path": "scripts/vault-py/pipeline/infer-from-body.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "从文档正文内容推断 product / module / article_type 等业务元数据"
+    },
+    "Infer-From-Config": {
+      "path": "scripts/vault-py/pipeline/infer-from-config.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "从 enums.yaml 和分类配置推断文档元数据归属"
+    },
+    "Infer-From-Wiki": {
+      "path": "scripts/vault-py/pipeline/infer-from-wiki.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "从 wiki/ 目录已有页面推断新文档的元数据归属"
+    },
+    "Inference-Schema": {
+      "path": "scripts/vault-py/pipeline/schema.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "推断管线共享数据结构 —— Source/InferredEdge dataclass + JSON 序列化"
+    },
+    "Merge-Inferred": {
+      "path": "scripts/vault-py/pipeline/merge-inferred.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "合并多个推断源的输出，按优先级裁决冲突，生成最终 frontmatter 建议"
+    },
+    "Pipeline-Quick-Check — 一键验证管线: extract → sync → validate": {
+      "path": "scripts/vault-py/check-arch.sh",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "三阶段快速验证（extract → sync → validate），退出码即结果，不依赖 Pipeline-Runner 全管道"
+    },
+    "Pipeline-Smoke": {
+      "path": "scripts/vault-py/content/pipeline-smoke.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "逐阶段验证 pipeline 可运行并产出有效数据，CI 或部署前快速诊断"
+    },
+    "Schema-Loader": {
+      "path": "scripts/vault-runtime/schema_loader.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "加载 TheSchema 全部 yaml（enums/ontology/versions/dependencies），为图谱抽取与约束校验提供类型定义"
+    },
+    "Vault-Paths": {
+      "path": "scripts/vault-runtime/kb_paths.py",
+      "context": "A. 知识源上下文 (Vault Context)",
+      "responsible": "KB_VAULT 路径约定，兼容旧环境变量，所有 Python 脚本的路径入口"
+    },
+    "Vault-Backup-Health-Check（备份健测 post-commit hook）": {
+      "path": "scripts/vault-runtime/vault-backup-health-hook.sh",
+      "context": "A. 知识源上下文（cheese vault 侧 git hook，进版本控制，符号链接到 .git/hooks/post-commit）",
+      "responsible": "SPEC-011-W11 WP5·备份健测——提交后非阻塞 push，push 失败写 stalled 文件"
+    },
+    "Layer-SSOT-Checker (防回退 + layers 完整性 + 消费者侧闭环)": {
+      "path": "scripts/quality/check-layer-ssot.mjs",
+      "context": "ADR008 D39（layers 为架构层唯一权威）+ T8/T10 生产者侧收口 + W1 消费者侧闭环",
+      "responsible": "断言退役键 arch_layers / architecture_projection.layers 不回流、layers[] 每项有合法 id+label，"
+    },
+    "Backwrite-Frontmatter": {
+      "path": "scripts/vault-py/pipeline/backwrite-frontmatter.py",
+      "context": "B. 逻辑中枢上下文 (Pipeline Context)",
+      "responsible": "存量文章 frontmatter 反向回写 — 将图谱对齐结果物理写入 Obsidian .md 文件"
+    },
+    "Board-Cache-Syncer": {
+      "path": "scripts/vault-py/pipeline/sync-board-enums.py",
+      "context": "B. 逻辑中枢上下文 (Pipeline Context)",
+      "responsible": "读取 enums.yaml modules 段，生成 `_enums-cache.md` 供 Board 页面 DataviewJS 动态查询"
+    },
+    "Constraint-Validator": {
+      "path": "scripts/vault-py/graph/validate_graph.py",
+      "context": "B. 逻辑中枢上下文 (Pipeline Context)",
+      "responsible": "校验 master_graph.json 节点/边是否符合 ontology.yaml；检查管道契约（I/O 声明、主权冲突、阶段漂移）；健康度审计（SA 漂移"
+    },
+    "Constraint-Validator (Health)": {
+      "path": "scripts/vault-py/pipeline/pipeline-check.py",
+      "context": "B. 逻辑中枢上下文 (Pipeline Context)",
+      "responsible": "校验 master_graph.json 节点/边是否符合 ontology.yaml；检查管道契约（I/O 声明、主权冲突、阶段漂移）；健康度审计（SA 漂移"
+    },
+    "Graph-Extractor": {
+      "path": "scripts/vault-py/graph/extract_graph.py",
+      "context": "B. 逻辑中枢上下文 (Pipeline Context)",
+      "responsible": "扫描 Vault 全文，执行 R1-R5 五条晋升规则，产出全量物理图谱。R5 Plate 三轴门控在此实现"
+    },
+    "Graph-Status": {
+      "path": "scripts/vault-py/graph/graph-status.py",
+      "context": "B. 逻辑中枢上下文 (Pipeline Context)",
+      "responsible": "统计图谱节点数、连接数、待审核数，写入 `graph-status.md` 供 Obsidian 仪表盘渲染"
+    },
+    "Pipeline-Runner": {
+      "path": "scripts/vault-runtime/pipeline-runner.py",
+      "context": "B. 逻辑中枢上下文 (Pipeline Context)",
+      "responsible": "按 Stage 0-7 顺序执行全管道，每阶段独立门控，断链即停。内置 SA 新鲜度检查和自动重试"
+    },
+    "Semantic-Projector": {
+      "path": "scripts/vault-runtime/generate-sa.py",
+      "context": "B. 逻辑中枢上下文 (Pipeline Context)",
+      "responsible": "读取 master_graph.json，过滤 `arch_component: true` 节点，按 `SA_VALID_LAYERS` 投影为 UI 专用的"
+    },
+    "Entity-Compliance API": {
+      "path": "src/features/entity-compliance/entity-compliance-api.ts",
+      "context": "Canvas",
+      "responsible": "封装源文档校验列表查询的前端 HTTP 调用。"
+    },
+    "Entity-Compliance Store": {
+      "path": "src/features/entity-compliance/entity-compliance-store.ts",
+      "context": "Canvas",
+      "responsible": "管理源文档校验筛选、分页、加载和错误状态。"
+    },
+    "Entity-Compliance Types — from OpenAPI contract": {
+      "path": "src/features/entity-compliance/entity-compliance-types.ts",
+      "context": "Canvas",
+      "responsible": "导出源文档校验页面使用的契约类型与查询参数类型。"
+    },
+    "Entity-Rule-Tester (对标 ESLint RuleTester)": {
+      "path": "scripts/quality/__tests__/helpers/entity-rule-tester.cjs",
+      "context": "Canvas（仅测试使用，禁止生产 import）",
+      "responsible": "测试专用单条规则断言工具——生产唯一入口是 service.checkEntityCompliance(runAllDiagnostics)，"
+    },
+    "E2E-Stack（e2e 自起受控服务栈）": {
+      "path": "scripts/e2e/lib/e2e-server.mjs",
+      "context": "E2E scripts only — never imported by server/",
+      "responsible": "复用域 runtime-scope 波1（PR-120）——e2e 不再搭常驻服务：harness 自起 API＋Vite，"
+    },
+    "E2E-Env-Guard（e2e 物理隔离守卫）": {
+      "path": "scripts/e2e/lib/e2e-env.mjs",
+      "context": "E2E scripts only — never imported by server/；只读消费 server/shared/vault-id.cjs（纯函数单源）",
+      "responsible": "SPEC-011 WP1——强制 e2e 脚本只能运行在 fixture vault，禁止写入真实 vault。"
+    },
+    "Persistence-F2-Replay-Journey（第 6 条 e2e 流——持久层全旅程）": {
+      "path": "scripts/e2e/persistence-journey.e2e.mjs",
+      "context": "E2E（self-managed server——本流需要在流程中途重启 server，故不经共享栈）",
+      "responsible": "SPEC-012 增量防线（PR-062）：⑤类回执链与③类耐久性的 e2e 级常设执法——"
+    },
+    "First-Run": {
+      "path": "scripts/first-run.mjs",
+      "context": "Onboarding（WP-021；WP-009 续篇）",
+      "responsible": "`npm run dev` 的首次启动接线——没有可用知识库时问一句位置（带默认值）即建，复用 vault-init；"
+    },
+    "check-theme-tokens 的门禁回归测试（PR-025 关闭卡回归固化位置）": {
+      "path": "scripts/quality/__tests__/check-theme-tokens.test.mjs",
+      "context": "PR-025 阶段 3 门禁 + 关账回归；范式参照 check-layer-ssot.test.mjs",
+      "responsible": "钉住主题门禁的执法活性——先红后绿形态。"
+    },
+    "Component-Doc-Generator": {
+      "path": "scripts/vault-py/pipeline/gen-system-components.py",
+      "context": "Pipeline",
+      "responsible": "扫描所有 # Component: / // Component: 头部元数据, 自动生成 system-components.md 的组件描述段"
+    },
+    "Data-Chain-Checker — schema-driven JSON/SQLite/SA/layout verifier.": {
+      "path": "scripts/quality/check-data-chain.mjs",
+      "context": "Pipeline",
+      "responsible": "校验 master、SQLite、SA、layout 与向量索引的数据链一致性。"
+    },
+    "Document-Index-Validator": {
+      "path": "scripts/vault-py/pipeline/validate-document-index.py",
+      "context": "Pipeline",
+      "responsible": "只读校验 master_graph.json 与 SQLite document_index 的行集合、字段和路径边界。"
+    },
+    "Entity-Readiness-CLI": {
+      "path": "scripts/quality/check-entity-readiness.mjs",
+      "context": "Pipeline",
+      "responsible": "为直接运行 Pipeline 提供与 HTTP API 同源的入图资格门控。"
+    },
+    "Relation-Expectation-Validator": {
+      "path": "scripts/vault-py/rules/validate-relation-expectations.py",
+      "context": "Pipeline",
+      "responsible": "验证 UI 已确认关系在 master_graph connections 中形成预期类型与方向。"
+    },
+    "Contract-Hygiene-Checker — 契约健康度门禁（ADR-003 / SPEC-003 WP3）。": {
+      "path": "scripts/quality/check-contract-hygiene.mjs",
+      "context": "Quality Gate",
+      "responsible": "常驻检查 OpenAPI 契约的单源纪律：零引用 Schema 清零 + 内联重复检测。"
+    },
+    "Contract-Route-Parity-Checker（PR-085 第 1 步 · ADR-010 · 复用域 api-contract 缺口「openapi↔后端实现漂移断言」）": {
+      "path": "scripts/quality/check-contract-route-parity.mjs",
+      "context": "Quality Gate。静态扫描口径与 check-error-codes 同族；运行时另有 http-app onRoute fail-closed 兜底。",
+      "responsible": "看守「契约操作 ⇄ 注册路由」双向完备："
+    },
+    "EntityGrowthCards Tests（SPEC-005 A2 前端层）": {
+      "path": "src/test/entity-growth-cards.test.tsx",
+      "context": "SPEC-005 §3.2；先例=schema-manager-view.test.tsx（mock store 形态）",
+      "responsible": "候选卡呈现（次数/样例/按钮）+ 裁定动作分发（create/link-existing）+"
+    },
+    "EntityGrowthCards（ADR-007 A2/A3：实体生长候选卡——Steward Queue 实体类卡片）": {
+      "path": "src/features/schema-manager/EntityGrowthCards.tsx",
+      "context": "SPEC-005 §3.2；样式与裁定交互沿用 SchemaDiscoveryTab 卡片先例（不另起设计）",
+      "responsible": "呈现文章提及产出的实体候选（次数/样例），承载裁定动作："
+    },
+    "VocabularyProfileSection Tests（SPEC-007 §3.3 前端层）": {
+      "path": "src/test/vocabulary-profile-section.test.tsx",
+      "context": "SPEC-007 §3.3；先例=entity-growth-cards.test.tsx",
+      "responsible": "词表画像区呈现（计数/阶段徽章/死词标记）+ 阈值旋钮交互（变更触发重取）+ 空维度不渲染。"
+    },
+    "VocabularyProfileSection（ADR-007 波2 · SPEC-007 §3.3：词表画像区——Steward Queue 词表类）": {
+      "path": "src/features/schema-manager/VocabularyProfileSection.tsx",
+      "context": "SPEC-007 §3.3；样式沿用 EntityGrowthCards 卡片先例；类型从 openapi 契约投影（单源）。",
+      "responsible": "呈现五维度（layer/category/subdomain/module/tag）使用计数+阶段徽章（Seed/Growing/Verified）"
+    },
+    "RulesChannelSection Tests（SPEC-008 §3.3 前端层）": {
+      "path": "src/test/rules-channel-section.test.tsx",
+      "context": "SPEC-008 §3.3；先例=vocabulary-profile-section.test.tsx。",
+      "responsible": "信号卡渲染/立规动作分发/台账只读（存量 sealed 无切换入口）/退役入口。"
+    },
+    "RulesChannelSection（ADR-007 波3 · SPEC-008 §3.3：规则通道——Steward Queue 规则类+台账）": {
+      "path": "src/features/schema-manager/RulesChannelSection.tsx",
+      "context": "SPEC-008 §3.3；术语（设计 §10）：Policy registry / enforcement mode。",
+      "responsible": "①规则候选信号卡（issueKind×ruleId 聚类，count≥2）+「立为规则」（携信号预填 propose）"
+    },
+    "Dev-Log-Integrity-Guard": {
+      "path": "scripts/quality/check-dev-log.mjs",
+      "context": "Sync",
+      "responsible": "开发日志事件流完整性门禁（CLI / 编排层）。"
+    },
+    "Dev-Log-Ledger-Pure-Logic": {
+      "path": "scripts/quality/shared/dev-log-ledger.mjs",
+      "context": "Sync",
+      "responsible": "check-dev-log.mjs 的纯校验逻辑（无 CLI、无报告、无退出码）。"
+    },
+    "Problem-Board-Generator (v2 · ECharts 动态管道 + 卡片抽屉)": {
+      "path": "scripts/problem-board/generate-board.mjs",
+      "context": "Sync",
+      "responsible": "问题处理看板 HTML 生成器（数据源=parse-register.mjs 单源解析登记簿）。"
+    },
+    "Problem-Register-Integrity-Guard": {
+      "path": "scripts/quality/check-problem-register.mjs",
+      "context": "Sync",
+      "responsible": "问题表条目结构门禁（问题处理流程固化·门禁 1，2026-09-29）。"
+    },
+    "Problem-Register-Parser": {
+      "path": "scripts/problem-board/parse-register.mjs",
+      "context": "Sync",
+      "responsible": "登记簿条目解析器——问题处理看板（scripts/problem-board/）与门禁"
+    },
+    "Runtime-Scope-Reverse-Scan-Gate（运行时作用域域门禁——波4 立项，PR-124/rule-governance 转 gating 的执法面）": {
+      "path": "scripts/quality/check-runtime-scope.mjs",
+      "context": "Sync（CI 可跑；无 vault 依",
+      "responsible": "复用域 runtime-scope 四条规则的机器执法："
+    },
+    "Dev-Log-Responsibility-Matrix-Renderer": {
+      "path": "scripts/quality/shared/dev-log-responsibility-matrix.mjs",
+      "context": "Unknown",
+      "responsible": "统一责任矩阵（角色 × 职能域）的 Vault 投影 renderer（#1890）。"
+    },
+    "Dev-Log-Role-Registry": {
+      "path": "scripts/quality/shared/dev-log-roles.mjs",
+      "context": "Unknown",
+      "responsible": "角色身份与辖区功能总结的唯一事实源。"
+    },
+    "Domain-Registry-Hygiene-Guard（领域注册表门禁——TALOS 分表形态）": {
+      "path": "scripts/quality/check-domain-registry.mjs",
+      "context": "Unknown",
+      "responsible": "两张领域注册表（reuse-domains.json＋data-domains.json，2026-10-14 拆表批自"
+    },
+    "First-Run-Test": {
+      "path": "scripts/__tests__/first-run.test.mjs",
+      "context": "Unknown",
+      "responsible": "WP-021 首次启动接线测试——①纯单元三态判定；③真实集成：真 vault-init（真 git init/真骨架/真 .env）"
+    },
+    "Frozen-Artifact-Throat-Guard（冻结产物读侧唯一咽喉执法门禁）": {
+      "path": "scripts/quality/check-frozen-artifact-throat.mjs",
+      "context": "Unknown",
+      "responsible": "PR-084 建立——冻结产物（derived-index artifacts 槽）读取必经注册制咽喉"
+    },
+    "Null-Segment-Guard Tests（数据域治理批 A6——红绿夹具）": {
+      "path": "scripts/quality/__tests__/null-segment-guard.test.mjs",
+      "context": "Unknown",
+      "responsible": "反例①rogue 写方 doc.set(\"<null段>\") 被报（含文件:行号）；"
+    },
+    "Parse-Register-SelfTest": {
+      "path": "scripts/problem-board/__tests__/parse-register.test.mjs",
+      "context": "Unknown",
+      "responsible": "problem-board 解析器测试——真实登记簿集成态 + 字段语义单元 + 产物自检。"
+    },
+    "Problem-Register-Guard-SelfTest": {
+      "path": "scripts/quality/__tests__/check-problem-register.test.mjs",
+      "context": "Unknown",
+      "responsible": "门禁 1 反例自测（问题处理流程固化，2026-09-29）。"
+    },
+    "Schema-Writers-Sovereignty-Guard（Schema 规则数据域写主权门禁）": {
+      "path": "scripts/quality/check-schema-writers.mjs",
+      "context": "Unknown",
+      "responsible": "domain-registry schema-rules-data 域的写主权对账执法（SPEC-009-W9 §三；"
+    },
+    "Taxonomy-Growth-Guard（分类矩阵生长观察器 · ADR-006 硬结构）": {
+      "path": "scripts/quality/check-taxonomy-growth.mjs",
+      "context": "Unknown",
+      "responsible": "让 subdomain×category 矩阵\"从存量事实中长出来\"——观察期计量组合分布，"
+    },
+    "TheSchema-Writer-Scan（check:schema-writers 检查面⑨的纯函数面——写者反向对账）": {
+      "path": "scripts/quality/shared/theschema-writer-scan.mjs",
+      "context": "Unknown",
+      "responsible": "实存写者 ⊆ 登记写者 ∪ 通道豁免。data-domains schema-rules-data.write_protocol 声明"
+    },
+    "Theme-Baseline（W0-3 · 契约「存量收敛条款」的执法件）": {
+      "path": "scripts/quality/shared/theme-baseline.mjs",
+      "context": "Unknown",
+      "responsible": "主题门禁存量基线的加载与棘轮对账——"
+    },
+    "Theme-CSS-Graph（W0-3 · 契约 A2：门禁执法面扩到 CSS 图）": {
+      "path": "scripts/quality/shared/theme-css-graph.mjs",
+      "context": "Unknown",
+      "responsible": "收集主题门禁的 CSS 执法面，两条通道——"
+    },
+    "Theme-Contract（结构审计合并批 2026-10-20）": {
+      "path": "scripts/quality/check-theme-contract.mjs",
+      "context": "Unknown",
+      "responsible": "视觉主题契约单门禁——token 卫生＋词表消费两面一台（原 theme-token-hygiene 与"
+    },
+    "Theme-Mix-Report（W0-5 · 契约 A7：新颜色角色三模式验收的机算件）": {
+      "path": "scripts/quality/theme-mix-report.mjs",
+      "context": "Unknown",
+      "responsible": "对 color-mix 派生角色计算 light/dark/warm 三模式实际值与对卡片底的对比比——"
+    },
+    "Theme-Token-Hygiene-Guard（PR-025 阶段 3）": {
+      "path": "scripts/quality/check-theme-tokens.mjs",
+      "context": "Unknown",
+      "responsible": "前端主题契约的机器执法。检查面六项（docs/design/theme-contract.md 五禁令 + 显示模式 PR 补充）："
+    },
+    "Theme-Vocab-Guard（PR-025 留账 2：配方自检能力固化）": {
+      "path": "scripts/quality/check-theme-vocab.mjs",
+      "context": "Unknown",
+      "responsible": "主题词汇表与定义的双向对账——「词表↔定义」缺失的实证（上会话配方自检"
+    },
+    "UsageBadgesStrip Tests（§3.3.1 实施项②）": {
+      "path": "src/test/usage-badges-strip.test.tsx",
+      "context": "Unknown",
+      "responsible": "B 域使用徽章——画像数据呈现/无数据静默/维度隔离"
+    },
+    "Validation-Parity-Guard（校验规则一致性对账门禁）": {
+      "path": "scripts/quality/check-validation-parity.mjs",
+      "context": "Unknown",
+      "responsible": "SPEC-011 WP6 建立；SPEC-022 波 C 收缩——Python 校验器退役后双侧对账面（③④⑤py 半）退役，"
+    },
+    "check-interaction-state 的门禁回归测试（第二落地批，2026-10-21）": {
+      "path": "scripts/quality/__tests__/check-interaction-state.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住三检查面活性——基线绿；裸 loading、同前缀配对、本地五态字面量三探针各自必红；孤立 busy 布尔不误伤。"
+    },
+    "check-navigation 的门禁回归测试（读侧收编批，2026-10-21）": {
+      "path": "scripts/quality/__tests__/check-navigation.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住三检查面的执法活性——基线绿；直写/裸读/裸订阅三种探针各自必红。"
+    },
+    "check-recipe-usage 的门禁回归测试（结构收口尾批 V1——原零测试补齐）": {
+      "path": "scripts/quality/__tests__/check-recipe-usage.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住配方六检查的执法活性——先红后绿（无红面证明的执法器可静默失效）。"
+    },
+    "check-schema-shape 的门禁回归测试（SCHEMA-IA-001 批16）": {
+      "path": "scripts/quality/__tests__/check-schema-shape.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住候选单源执法活性——基线绿；候选键外泄两探针（表达式值/变量值）各自必红；"
+    },
+    "check-table-usage 的门禁回归测试（A2+B 活性门禁批）": {
+      "path": "scripts/quality/__tests__/check-table-usage.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住表格用法三道闸的执法活性——先红后绿。"
+    },
+    "check-term-copy 的门禁回归测试（term-copy 切片一批，2026-10-21）": {
+      "path": "scripts/quality/__tests__/check-term-copy.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住状态词执法活性——基线绿；字符串字面量／JSX 文本／ASCII 省略号漂移三探针各自必红；完整句不误伤。"
+    },
+    "check-theme-vocab 的门禁回归测试（vocab 固化批）": {
+      "path": "scripts/quality/__tests__/check-theme-vocab.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住词汇对账门禁的执法活性——先红后绿。"
+    },
+    "check-ui-kit 的门禁回归测试（ui-kit 棘轮基线批 2026-10-21；同日二次扩面 input）": {
+      "path": "scripts/quality/__tests__/check-ui-kit.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住双标签棘轮活性——基线绿；新文件原生 button／input、分标签存量膨胀、基线僵尸各自必红；计数下降不拦。"
+    },
+    "theme-mix-report 的回归测试（W0-5 · 契约 A7）": {
+      "path": "scripts/quality/__tests__/theme-mix-report.test.mjs",
+      "context": "Unknown",
+      "responsible": "钉住三模式实算的正确性——六值与 2026-10-15 体检报告手算值对齐"
+    },
+    "_runtime_state_db": {
+      "path": "scripts/vault-runtime/_runtime_state_db.py",
+      "context": "repo data 目录（与 Node sqlite-adapter 同库：WAL＋busy_timeout 跨进程并发安全）",
+      "responsible": "SPEC-012 WP-A 管线三件套的 Python 侧持久化——runtime-state.db（repo 侧 data/，SQLite）。"
+    },
+    "Check-Vault-Write-Destinations": {
+      "path": "scripts/quality/check-vault-write-destinations.mjs",
+      "context": "repo 根（脚本位置锚定）",
+      "responsible": "SPEC-012 F1 写通道目的地执法的 CI 面——契约良构＋棘轮（allowedPermanent/migrationWhitelist"
+    },
+    "Check-Article-Lifecycle": {
+      "path": "scripts/quality/check-article-lifecycle.mjs",
+      "context": "repo 根（脚本位置锚定）。扫描豁免：__tests__（夹具路径字面量合法）、整行注释、",
+      "responsible": "SPEC-013 文章生命周期路径角色契约的静态执法面——契约良构＋server 侧裸拼四族路径"
+    },
+    "Check-Vault-Observation-Exit": {
+      "path": "scripts/quality/check-vault-observation-exit.mjs",
+      "context": "repo 根（脚本位置锚定；vault 侧运行时状态检查，与 check-schema-writers 面⑥同族）",
+      "responsible": "SPEC-012 WP-B ④类迁出后的反向断言门禁——contracts/observation-domain.json 声明"
+    },
+    "Null-Segment-Guard（数据域治理批 A6——check:schema-writers 检查面⑧的纯函数面）": {
+      "path": "scripts/quality/shared/null-segment-guard.mjs",
+      "context": "theschema-roles.json 段级纪律——null 段=只读账（lifecycle/category_map/subdomain_layer_map",
+      "responsible": "edited_by_tab=null 且非 reserved 的 enums 段（页面不可编辑段）的越权直写检测。"
+    },
+    "Taxonomy-Growth-Guard Tests": {
+      "path": "scripts/quality/__tests__/check-taxonomy-growth.test.mjs",
+      "context": "先例=check-layer-ssot.test.mjs（spawnSync 临时目录形态）",
+      "responsible": "验证 ADR-006 生长框架三态——观察期（矩阵未配置=ok）、立契期（矩阵执法+基线豁免）、audit 全景；"
+    },
+    "Schema-Writers-Guard Tests — 检查面⑥ vault git 洁净度（SPEC-010-W10 WP4）": {
+      "path": "scripts/quality/__tests__/check-schema-writers-surface6.test.mjs",
+      "context": "先例=check-taxonomy-growth.test.mjs（spawnSync 临时目录形态）",
+      "responsible": "验证 ⑥面：干净 vault=clean 提示；脏文件=WARN（过渡期软告警不计 FAIL）；"
+    },
+    "Article-Validator-Service": {
+      "path": "scripts/vault-runtime/article-validator-lib.cjs",
+      "context": "数据源与 Python 同源：resolved-domains.json（必填集）＋enums.yaml（经 normalizeEnums",
+      "responsible": "文章校验语义唯一实现（SPEC-022 波 A）——逐规则镜像 validate-article.py 现行为，"
+    },
+    "UsageBadgesStrip（§3.3.1 实施项②：B 域结构编辑器的只读使用徽章——治\"编辑是盲的\"）": {
+      "path": "src/features/schema-manager/UsageBadgesStrip.tsx",
+      "context": "设计文档 §3.3.1（2026-10-09 勘误版）——B 域加只读使用徽章，编辑权不动（手编=正确形态）。",
+      "responsible": "在 domains/layers 等结构编辑器顶部呈现该维度词表健康概览"
+    },
+    "Fastify-Integration-Probe（PR-085 第 0 步 · 外部组件开工前现场勘探）": {
+      "path": "scripts/probes/fastify-integration-probe.mjs",
+      "context": "非产品代码——不被任何运行时 require；fastify 依赖随 PR-085 第 1 步 ADR-010 accepted 后才进 package.json。",
+      "responsible": "以真实契约样本实证「Fastify 5.x ＋ 项目 Ajv2020 实例」的集成契约，为 SPEC-024 提供可复跑证据。"
+    }
+  }
+}

@@ -1,0 +1,1 @@
+export { TaxonomySidebar } from "./TaxonomySidebar";

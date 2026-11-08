@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "resolveJsonModule": true,
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+
+    /* 气密类型解析：默认 typeRoots 会向上遍历祖先目录（~/node_modules/@types 等），
+       家目录残留空 @types 壳会让 tsc 门禁误报 TS2688（2026-09-10 实录）。
+       钉死到项目内 = 与 CI runner（家目录无 @types）行为等价且抗机器污染。 */
+    "typeRoots": ["./node_modules/@types"],
+
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": ["src"]
+}

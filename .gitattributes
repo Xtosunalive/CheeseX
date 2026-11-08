@@ -1,0 +1,4 @@
+# 追加式台账 JSONL 跨分支合并走专用驱动（WP-003 红队③/WP-004）：union＋去重＋按 ts 排序＋seq 撞号重编。
+# 注册（每克隆一次性）：git config merge.devlog-union.name "dev-log append-union" &&
+#   git config merge.devlog-union.driver "node scripts/quality/dev-log-merge-driver.mjs %O %A %B"
+docs/dev-log/entries/*.jsonl merge=devlog-union

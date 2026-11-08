@@ -1,0 +1,110 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$comment": "前端统计点可溯源映射形状（WP-074／SPEC-074；WP-136 b 半生成化）：apiSources＝人写的规范半，sourceApis＝派生的描述半。检查器只管覆盖完整与口径可查，出处存在性由生成器构造性保证。",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "title",
+    "description",
+    "views",
+    "excluded"
+  ],
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "schema_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "views": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/definitions/view"
+      }
+    },
+    "excluded": {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/excluded"
+      }
+    }
+  },
+  "definitions": {
+    "view": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "view",
+        "file",
+        "statCount",
+        "apiSources",
+        "sourceApis"
+      ],
+      "properties": {
+        "view": {
+          "type": "string",
+          "minLength": 1
+        },
+        "file": {
+          "type": "string",
+          "pattern": "^src/.*\\.tsx$"
+        },
+        "statCount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sourceApis": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^/api/"
+          },
+          "description": "派生面：由 npm run gen:ui-stat-provenance 按 apiSources 生成，手抄退役；漂移由 check:derivation-sync 拦。"
+        },
+        "apiSources": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "pattern": "^src/.+\\.ts#\\w+$"
+          },
+          "description": "人写的规范半：本视图的数取自哪个 api 模块的哪个导出函数（一次真实调用）。WP-136 b 起 sourceApis 由它派生。"
+        },
+        "note": {
+          "type": "string",
+          "description": "取数链路的人读注解（原 dataModule 字段改名保留，2026-10-31 口径切换器教训的住址说明仍可写在这里）"
+        }
+      }
+    },
+    "excluded": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "file",
+        "reason"
+      ],
+      "properties": {
+        "file": {
+          "type": "string",
+          "minLength": 1
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  }
+}

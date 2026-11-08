@@ -1,0 +1,98 @@
+{
+  "$schema": "./rules-lifecycle.schema.json",
+  "$comment": "22 条规则声明指针（第 1 步分层索引之一）。铁律：只存指针+豁免，禁止复制声明内容；status 不落盘（审计现算）。指针经 2026-10-08 全量实扫核定：执法三链=①apply-create（entity-repair-service.cjs:338 strictRuleIds）②preview-edit（:249 regressionRuleIds）③stage-0-5（pipeline-runner.py:381→check-entity-readiness.mjs→buildReadiness errors）。读时诊断链（buildEntityIndexes→compositeRules→collector）独立于写入门，F02b/F02c 的 2026-10-08 勘误据此登记：引擎复合段有判定（引擎 :223-233），索引生产者存在（compliance-service buildEntityIndexes:91-135），断点收窄为『写入门未挂』而非『零实现』。｜2026-10-27 降档：F 族 19 行迁出（代码内声明 field-rule-declarations.cjs），索引只对账存留 B 族 4 条（口径随 registry）。",
+  "rules-index": {
+    "source": "contracts/entity-readiness-rules.json",
+    "rules": [
+      {
+        "ruleId": "B01",
+        "type": "hard",
+        "severity": "warn",
+        "source": "contracts/entity-readiness-rules.json#rules[18]",
+        "signal": {
+          "check": "typed-wikilink-count",
+          "engine": "server/services/entity-compliance/entity-compliance-declarative-engine.cjs#runBodyDiagnostics(:284-291)"
+        },
+        "enforcement": {
+          "gates": []
+        },
+        "closure": {
+          "exit": {
+            "kind": "diagnostic",
+            "surface": "server/services/entity-compliance/entity-compliance-service.cjs#isWorkbenchIssueFinding(:187-196)——B01/B03 显式排除出工作台，仅合规页诊断展示（advisory 无可执行修复动作，注释即设计声明）"
+          }
+        },
+        "dimension": "validity"
+      },
+      {
+        "ruleId": "B02",
+        "type": "hard",
+        "severity": "warn",
+        "source": "contracts/entity-readiness-rules.json#rules[19]",
+        "signal": {
+          "check": "resolve-target",
+          "engine": "server/services/entity-compliance/entity-compliance-declarative-engine.cjs#runBodyDiagnostics(:292-297)"
+        },
+        "enforcement": {
+          "gates": []
+        },
+        "closure": {
+          "exit": {
+            "kind": "issue",
+            "issueKind": "relation_conflict"
+          }
+        },
+        "dimension": "referential-integrity"
+      },
+      {
+        "ruleId": "B03",
+        "type": "hard",
+        "severity": "warn",
+        "source": "contracts/entity-readiness-rules.json#rules[20]",
+        "signal": {
+          "check": "ref-exists",
+          "engine": "server/services/entity-compliance/entity-compliance-declarative-engine.cjs#runBodyDiagnostics(:298-300)"
+        },
+        "enforcement": {
+          "gates": []
+        },
+        "closure": {
+          "exit": {
+            "kind": "diagnostic",
+            "surface": "server/services/entity-compliance/entity-compliance-service.cjs#isWorkbenchIssueFinding(:187-196)——B01/B03 显式排除出工作台，仅合规页诊断展示"
+          }
+        },
+        "dimension": "completeness"
+      },
+      {
+        "ruleId": "B04",
+        "type": "hard",
+        "severity": "error",
+        "source": "contracts/entity-readiness-rules.json#rules[21]",
+        "signal": {
+          "check": "known-labels",
+          "engine": "server/services/entity-compliance/entity-compliance-declarative-engine.cjs#runBodyDiagnostics(:301-307)"
+        },
+        "enforcement": {
+          "gates": [
+            "entity-repair.apply-create",
+            "entity-repair.preview-edit",
+            "pipeline.stage-0-5"
+          ]
+        },
+        "closure": {
+          "exit": {
+            "kind": "exempt",
+            "exemption": {
+              "reason": "出口键名错配（同 B02 新发现）：B04 severity=error 但出口经 collector:72 死代码轨道（unknownRelations 无生产者），实际错落 missing_field 通用出口——error 级规则出口语义失真，优先级高于 B02",
+              "owner": "klena",
+              "expiresAt": "2026-11-08",
+              "reviewCondition": "Master 裁决：修 collector 键名（恢复 relation_conflict 语义）或显式声明 missing_field 归位"
+            }
+          }
+        },
+        "dimension": "referential-integrity"
+      }
+    ]
+  }
+}

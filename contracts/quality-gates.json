@@ -1,0 +1,1273 @@
+{
+  "description": "门禁辖区注册表 — 每条记录只含权威引用→命令→执行级别→管辖测试，不复制业务规则正文。门禁辖区的唯一事实源（问题处理流程固化 P1a，决策卡第 5 项裁 B2 分层注册）；代码辖区见 scripts/quality/shared/dev-log-ledger.mjs OWNER_ZONE_PREFIXES，规则辖区清单见同文件 RULE_ZONE_FILES。治理归 guard-captain（注册/启停/健康度），执行归 quality-gate-engineer。｜结构收口批（2026-10-16）：CI 面＝注册表投影（run-ci-gates 执行器），check:* 别名＝gates:fold 投影，gate-wiring 随投影失业退役；execution 新增 nightly 值（e2e-suite——编排流住 nightly job）。",
+  "gates": [
+    {
+      "id": "dev-log",
+      "authority": [
+        "AGENTS.md#活动流水",
+        "contracts/dev-log.schema.json"
+      ],
+      "command": "npm run check:dev-log",
+      "stepName": "Dev-log ledger gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-dev-log-ledger.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "｜留任理由（2026-11-06 WP-122 补）：台账随 git 提交自动落账的完整性执法——entries/<owner>.jsonl 与提交按辖区归属一一对应，防漏账/越权归属/撞辖区；AGENTS.md §四「活动流水」条款的机器面。扫描脚本归属 quality-gate-engineer 辖区，账本本体归 progress-synthesizer｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "contract-hygiene",
+      "authority": [
+        "docs/plans/problem-register.md#PR-002",
+        "docs/adr/（W3 契约收敛）"
+      ],
+      "command": "npm run check:contract-hygiene",
+      "stepName": "Contract hygiene gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "quality-gate-engineer",
+      "note": "2026-09-28 P1a 注册（脚本 W3 期已存在，CI 第 42 行直跑 node 路径，本表登记后补 package.json 入口）2026-10-20 结构审计合并批（Master「批准」）：zero-ref 面退役（吸收者＝gen:api-types 硬失败）；余 inline 重复检查。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "problem-register",
+      "authority": [
+        "docs/problem-handling-spec.md#验收与门禁",
+        "docs/plans/problem-register.md 簿头"
+      ],
+      "command": "npm run check:problem-register",
+      "stepName": "Problem register gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "quality-gate-engineer",
+      "note": "2026-09-29 PR-010 独立复核补登记（D2 新增门禁当时漏注册，红队复核抓出；条款「新增门禁必须同步改两处」落地当日即被现状违反的自我指涉矛盾，本条闭合）｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "theme-token-hygiene",
+      "authority": [
+        "docs/design/theme-contract.md#五条硬禁令",
+        "scripts/quality/check-theme-tokens.mjs"
+      ],
+      "command": "npm run check:theme-tokens",
+      "execution": "ci",
+      "stepName": "Theme token hygiene gate",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-theme-tokens.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-05 PR-025 阶段 3 注册（定案 3 严门禁+窄白名单）；豁免区 ui//aria/ 基础组件与 src/test 断言；破坏实验三项先红后绿验证。2026-10-15 W0-4：检查⑦ CSS 图执法上线（A2），补 commit 面（定义侧文件触发本地提交执法，消费侧散布面留 CI；PR-066 注册表派生机制）2026-10-20 结构审计合并批（Master「批准」）：与 theme-vocab 同守一份契约——并入 theme-contract 单台（覆盖不减）。",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/index.css",
+        "src/styles/",
+        "docs/design/theme-contract.md",
+        "scripts/quality/theme-baseline.json"
+      ]
+    },
+    {
+      "id": "theme-vocab",
+      "authority": [
+        "docs/design/theme-contract.md#二-token-分层与唯一事实源",
+        "scripts/quality/check-theme-vocab.mjs"
+      ],
+      "command": "npm run check:theme-vocab",
+      "execution": "ci",
+      "stepName": "Theme vocab gate",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-theme-vocab.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-06 vocab 固化批注册（留账 2：上会话配方自检能力常驻化，修掉 ring- 前缀切分 bug——完整变量名边界切分）。四检查面：悬空消费/死定义/shadcn 词/退役 var；L0 直连（TS 色表 var(--cat-*)）合法。2026-10-15 W0-3/W0-4：检查⑤⑥（NS 注册表六命名空间＋CSS 消费通道）与⑦（预览镜像对账）上线，补 commit 面（定义侧文件触发本地执法）2026-10-20 结构审计合并批（Master「批准」）：并入 theme-contract 单台。",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/index.css",
+        "src/styles/",
+        "docs/design/theme-contract.md",
+        "scripts/quality/theme-baseline.json"
+      ]
+    },
+    {
+      "id": "data-chain",
+      "authority": [
+        "scripts/quality/check-data-chain.mjs（脚本头部注释）"
+      ],
+      "command": "npm run check:data-chain",
+      "execution": "manual",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-09-29 PR-010 终态化：入口自源库补搬（源库 package.json:35 形态），fixture 形态 CI 可跑；live 形态 check:data-chain:live 需 KB_VAULT 不入 CI2026-10-19 SPEC-022 终态卫生批（Master「批准」）：注销注册——管线验证操作工具非门禁（manual 档零 CI 面，注册行即心智税）。脚本与 npm 别名保留为工具入口；复活为门禁须重立契。",
+      "keptHelpers": [
+        "scripts/quality/check-data-chain.mjs"
+      ]
+    },
+    {
+      "id": "entity-readiness",
+      "authority": [
+        "contracts/entity-readiness-rules.json"
+      ],
+      "command": "node scripts/quality/check-entity-readiness.mjs",
+      "execution": "manual",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-09-29 PR-010 终态化：消费方为 live pipeline-runner.py Stage 0.5 经 $ARCH_REPO 运行时调用（仓内 CLI 手动场景），检查面另被 HTTP API 三端点覆盖；源库先例=无 npm 入口 CLI 直跑2026-10-19 SPEC-022 终态卫生批（Master「批准」）：注销注册——管线验证操作工具非门禁（manual 档零 CI 面，注册行即心智税）。脚本与 npm 别名保留为工具入口；复活为门禁须重立契。"
+    },
+    {
+      "id": "consistency-py",
+      "authority": [],
+      "command": "python3 scripts/quality/check_consistency.py",
+      "execution": "manual",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-09-29 PR-010 终态化：check-data-chain.mjs:170 spawnSync 内部组件（--master/--db/--json），非独立门禁；纯 stdlib python32026-10-19 SPEC-022 终态卫生批（Master「批准」）：注销注册——管线验证操作工具非门禁（manual 档零 CI 面，注册行即心智税）。脚本与 npm 别名保留为工具入口；复活为门禁须重立契。"
+    },
+    {
+      "id": "e2e-baseline",
+      "authority": [
+        "contracts/e2e-known-red.json",
+        "scripts/e2e/run-all-e2e.mjs#tests"
+      ],
+      "command": "npm run check:e2e-baseline",
+      "stepName": "E2E baseline gate (known-red allowlist)",
+      "execution": "nightly",
+      "status": "registered",
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-05 PR-021 立：只在 nightly-e2e job（schedule/workflow_dispatch）执行，不进 PR gate——e2e 需双服务+Chrome+人工 vault，PR-013 3B 既定路线。判据=豁免名单制：名单外的新红立即 fail、名单内红打印不阻断、名单内的流绿了即 fail（逼摘豁免）、豁免缺 owner/expires/tracking 或过期即 fail、豁免了不存在的流名即 fail。取代原 job 级 continue-on-error 造成的「job 实红 run 显绿」假绿｜结构收口批：execution 归 nightly——判定对象是 nightly 全量 e2e 的证据文件（test-results/e2e-all-tests-summary.json），主 CI runner 无此文件（旧主 job 也从未接线它，gate-wiring 靠扫描全 workflow 被 nightly 步满足）。"
+    },
+    {
+      "id": "navigation",
+      "authority": [
+        "src/lib/navigation.ts",
+        "contracts/domain-registry.json#navigation"
+      ],
+      "command": "npm run check:navigation",
+      "stepName": "Navigation contract gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-navigation.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-06 补登漏项（Master 18:27 PR-026 批时发现：脚本+package.json+CI step 三处已就位唯独登记表遗漏——gate_wiring 9/9 即为佐证。违反 PR-010「新增门禁必须同步改两处」成文条款，正是 PR-018「登记表退化为愿望文档」的同类形态）。域内容见 domain-registry#navigation；24 处直写已收编至 navigate() 唯一出口｜2026-10-21 读侧收编批：第三检查面（裸读 location.hash／自挂 hashchange）上线，门禁回归测试 5 用例（三探针红）；补 commit 面（src/ 触发）。｜2026-11-06 WP-122 起为导航域唯一常驻入口：+面④包装串联 check-action-routing 五面（子件红即本件红，8 面一张不少）；NAV_ROUTES/SUB_ROUTES 解析收敛 shared/nav-routes.mjs（fail-closed：锚点缺失即结构红——破坏实验 exit=1 实证）。authority 维持 src/lib/navigation.ts 原位：提为 JSON 契约会丢失 NavRoute 编译期字面量联合保护（防护不减原则），故收敛的是解析实现而非清单住址｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-navigation.mjs",
+        "scripts/quality/check-action-routing.mjs"
+      ]
+    },
+    {
+      "id": "action-routing",
+      "authority": [
+        "src/features/anomaly-workbench/action-routing.ts",
+        "contracts/domain-registry.json#navigation"
+      ],
+      "command": "npm run check:action-routing",
+      "stepName": "Action routing contract gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-06 Master 18:24 报「问题项与处理方式超集关系需梳理」、18:27 裁「要」。四检查面：完备性（后端 openapi issueKind 枚举 13 种须逐行登记——原 registry 只处理 9 种，standardization_warning/release_publication_failure 静默无动作）/ 理由完整性（exempt·pending 必写理由——「有意不处理」与「漏处理」可区分）/ 跳转合法性（route+sub 须在 navigation 清单内）/ 参数消费对账（query 参数须有消费端 get()——死参数防护）。子契约，归 navigation 域｜2026-11-06 WP-122 导航域合一退役：注册表常驻位并入 check-navigation 包装面（面④，域唯一入口，commitScope=src/ 本就覆盖本域表格文件——提交瞬间执法面不减反增）；本件五面判定零改动、独立可跑（别名留档）。面③跳转合法性的 NAV_ROUTES/SUB_ROUTES 解析随域收敛至 shared/nav-routes.mjs 唯一实现（与 check-navigation 面② 同读一份），消灭两处各译一遍的正则假红源｜红队 L4：退役时清 testFiles 悬空项（check-action-routing.test.mjs 从未存在，main 存量）"
+    },
+    {
+      "id": "error-codes",
+      "authority": [
+        "contracts/http-api.openapi.json#components.schemas.*ErrorResponse.error_code",
+        "scripts/quality/check-error-codes.mjs（脚本头部注释）"
+      ],
+      "command": "npm run check:error-codes",
+      "stepName": "Error codes contract gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-error-codes.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-08 Master 批立（P1 模式新实例：错误码事实源双向对账）。起因 tr_43c615f5——DUPLICATE_DOCUMENT_ID 服务端抛而契约未登记，enforce 把真实业务错误掩埋成 500。两检查面：①抛了未登记（新码不补契约即红——增量防御，存量欠账入基线豁免分批清理）②登记没人抛（死枚举须显式归位，28 存量入基线）。PR-206（2026-11-03）两扩：③挂 commit 面（surfaces+commitScope）——新码提交瞬间即拦，不再等 CI 兜底（WP-076 实锤：MIRROR_SCOPE_UNRESOLVED 两天后才红）；④内部信号车道（exemptions.internalSignals）——进程内信号不因无 enum 强制入欠账基线，机器面三硬判（非契约枚举∧无 error_code 直写∧不出现在 server/routes/**）命中即红须升外发道，四要素＋到期复审同纪律。门禁首跑+先红后绿破坏实验实证（删 DUPLICATE 豁免即红，精确报抛点文件）｜2026-11-06 WP-122 合一承接台：+面③freshness（gen-error-registry --check，无条件）+面④出生校验 strict（三工厂变体共享 assertCodeBorn 行为证明）——自 error-registry 门禁原样并入，守护测试以合成桩直调（auditRegistryFaces 可注入）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "server/",
+        "contracts/http-api.openapi.json",
+        "contracts/error-code-exemptions.json",
+        "scripts/quality/check-error-codes.mjs"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-error-codes.mjs"
+      ]
+    },
+    {
+      "id": "rules-lifecycle",
+      "authority": [
+        "contracts/rules-lifecycle.schema.json",
+        "docs/plans/断点全景表-规则生命周期-2026-10-08.md"
+      ],
+      "command": "npm run check:rules-lifecycle",
+      "stepName": "Rules lifecycle gate",
+      "execution": "ci",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-10-08 规则生命周期治理第 3 步上门禁（P0 七步走完：A1 error 必有执法或豁免/A3 issueKind 必有生产者/索引指针有效性硬拦截；A9 软面 audit 提示不拦）。--audit 模式产出断点全景表供裁决；gate 模式只看硬面。先例=error-codes（P1 双向对账）｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "taxonomy-growth",
+      "authority": [
+        "docs/adr/ADR-006-arch-categories-退役为派生视图-subdomain-policies-唯一权威.md"
+      ],
+      "command": "npm run check:taxonomy-growth",
+      "stepName": "Taxonomy growth gate",
+      "execution": "manual",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-10-08 ADR-006 生长框架观察器（阶段①观察→③立契→④执法零代码切换）：矩阵未配置=观察期 ok 不执法；配置之日=立契期自动执法（存量违规走 contracts/taxonomy-growth-exemptions.json 基线豁免，防增量不追历史）；--audit 出组合分布全景。先例=rules-lifecycle --audit/gate 双模式 + error-codes 基线豁免。2026-10-21 PR-088 批（Master 裁定「功能常驻，数据需要的时候能被发现」）：观察账本 data/taxonomy-observations.jsonl——每轮带 vault 落账（append-only，TAXONOMY_OBSERVATIONS_FILE 钉扎隔离夹具）；门禁输出「本轮 vs 上轮：新增/消失/无变化」delta；--audit 附组合观察史（首见/轮次/累计出现）。不设日期/阈值触发——观察期退出时机由人看账本数字裁（评估实录：真库 entities=0 combos=0，退出判据不能绑天数）。红绿夹具 3 用例（新增被发现/跨 vault 不串台/观察史积累）。｜2026-11-06 WP-122 降档 CI→manual：观察期 4 周空转（矩阵内容属 Master 裁定区未配置，CI 每推直绿不执法）。功能与 --audit 全景常驻不变（PR-088「功能常驻」裁决维持）；退出路径：Master 配置矩阵之日（脚本设计＝立契期自动执法）由保安队长把 execution 挂回 ci｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）",
+      "surfaces": []
+    },
+    {
+      "id": "domain-registry",
+      "authority": [
+        "node_modules/@cheeseh/discipline-kit/schemas/reuse-domains.schema.json",
+        "node_modules/@cheeseh/discipline-kit/schemas/data-domains.schema.json",
+        "node_modules/@cheeseh/discipline-kit/schemas/domain-table-common.json",
+        "contracts/discipline.config.json",
+        "contracts/reuse-domains.json",
+        "contracts/data-domains.json"
+      ],
+      "command": "npm run check:domain-registry",
+      "stepName": "Domain registry gate",
+      "execution": "ci",
+      "owner": "quality-gate-engineer",
+      "status": "registered",
+      "note": "2026-10-09 补接线（PR-037 批次）：域表门禁自身自 2026-10-06 建成起未进 CI——10 域卡的指针/状态/completed 完备性长期无机器执法（PR-036「接线≠活性」同族病灶，本次自举补线）。先例=taxonomy-growth 第17号｜2026-10-14 数据域登记补建步骤1：新增检查面⑤（kind=data 五件套必填＋store_location∈{vault,repo-data,git}＋repo-data 工件对账 schema 单源枚举）与第⓪面（domain-registry.schema.json 内联 ajv 校验，悬空 $schema 兑现）；破坏实验十场景固化 check-domain-registry-data.test.mjs。2026-10-14 裁决批（TALOS 式角色口径）：writers 语义＝唯一实现入口（调用方经网关不入清单、运行时写者由回执回答）＋新增面⑥唯一实现对账 catalog（SQLite 连接点⊆登记网关∪装配豁免；Python 只读豁免；观察者/测试基建豁免）＋提交边界接线 .githooks/pre-commit（TALOS pre-checkpoint 时点结构：暂存面触及 server/scripts/注册表才跑，fail-closed 拦截——检测窗口从 CI 时点收到提交瞬间；集成红绿证 pre-commit-hook.test.mjs）。。2026-10-15 PR-066 类消：commit 面改为注册表派生（surfaces/commitScope），pre-commit 硬编码 scope 退役——执行清单只此一份｜结构收口尾批（衍生发现）：commitScope 末项 contracts/domain-registry 为拆表前死路径——单独改两表时提交边界不触发；换为两张现实表（存在性由 gates-projection 守卫验真）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：半可投影（仅一面）——⓪双表通用块字节同源可改 schema 单源引用后退役该子面；其余八面留任：指针验真/唯一实现 catalog（禁模式扫描）/测试认领棘轮均为纪律执法；通用块漂移频率低，提取成本不划算时整门禁留任亦可接受（本批复核采此口径）｜2026-11-07 WP-140 工具化外迁：执法器本体迁 discipline-kit/gates/（参数化——表清单/住址/面开关来自 contracts/discipline.config.json），schema×2＋通用块迁 discipline-kit/schemas/（唯一住址随迁，旧路径复活由 check:kit-single-source 绊线执法），别名 check:domain-registry 同名义改指包内（消费方零感）；旧 contracts 三件与 scripts/quality/check-domain-registry.mjs 退役（旧路径留一次性残留探针随批次清零后退役）。检查面语义零改动（九面全量保留，真仓锚 18 用例＋包内自测 12 用例双锚）。｜复核更正（M1，2026-11-07）：『检查面语义零改动』表述失实——锚点验真面曾因 config 缺 register_file 静默跳过（假绿）；修复＝config 显式声明＋门禁对 anchors-true-无-register_file 显式红（消除静默跳过类），重取证据见 SPEC-088 矩阵更新。｜WP-139 线追加：2026-10-09 补接线（PR-037 批次）：域表门禁自身自 2026-10-06 建成起未进 CI——10 域卡的指针/状态/completed 完备性长期无机器执法（PR-036「接线≠活性」同族病灶，本次自举补线）。先例=taxonomy-growth 第17号｜2026-10-14 数据域登记补建步骤1：新增检查面⑤（kind=data 五件套必填＋store_location∈{vault,repo-data,git}＋repo-data 工件对账 schema 单源枚举）与第⓪面（domain-registry.schema.json 内联 ajv 校验，悬空 $schema 兑现）；破坏实验十场景固化 check-domain-registry-data.test.mjs。2026-10-14 裁决批（TALOS 式角色口径）：writers 语义＝唯一实现入口（调用方经网关不入清单、运行时写者由回执回答）＋新增面⑥唯一实现对账 catalog（SQLite 连接点⊆登记网关∪装配豁免；Python 只读豁免；观察者/测试基建豁免）＋提交边界接线 .githooks/pre-commit（TALOS pre-checkpoint 时点结构：暂存面触及 server/scripts/注册表才跑，fail-closed 拦截——检测窗口从 CI 时点收到提交瞬间；集成红绿证 pre-commit-hook.test.mjs）。。2026-10-15 PR-066 类消：commit 面改为注册表派生（surfaces/commitScope），pre-commit 硬编码 scope 退役——执行清单只此一份｜结构收口尾批（衍生发现）：commitScope 末项 contracts/domain-registry 为拆表前死路径——单独改两表时提交边界不触发；换为两张现实表（存在性由 gates-projection 守卫验真）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：半可投影（仅一面）——⓪双表通用块字节同源可改 schema 单源引用后退役该子面；其余八面留任：指针验真/唯一实现 catalog（禁模式扫描）/测试认领棘轮均为纪律执法；通用块漂移频率低，提取成本不划算时整门禁留任亦可接受（本批复核采此口径）｜2026-11-07 WP-138 工具化外迁：执法器本体迁 discipline-kit/gates/（参数化——表清单/住址/面开关来自 contracts/discipline.config.json），schema×2＋通用块迁 discipline-kit/schemas/（唯一住址随迁，旧路径复活由 check:kit-single-source 绊线执法），别名 check:domain-registry 同名义改指包内（消费方零感）；旧 contracts 三件与 scripts/quality/check-domain-registry.mjs 退役（旧路径留一次性残留探针随批次清零后退役）。检查面语义零改动（九面全量保留，真仓锚 18 用例＋包内自测 12 用例双锚）。｜SPEC-093 修订（波4b）：本台不拆——域表活账本的机制消费（依赖锚定形态的核心价值），拆除＝自断；保留为唯一治理执法",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "server/",
+        "scripts/",
+        "contracts/reuse-domains.json",
+        "contracts/data-domains.json",
+        "contracts/discipline.config.json"
+      ]
+    },
+    {
+      "id": "schema-writers",
+      "authority": [
+        "contracts/domain-registry.json#schema-rules-data",
+        "docs/spec/SPEC-009-W9-Schema规则数据域立契.md"
+      ],
+      "command": "npm run check:schema-writers",
+      "stepName": "Schema writers sovereignty gate",
+      "execution": "ci",
+      "testFiles": [
+        "scripts/quality/__tests__/theschema-writer-scan.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-10-10 建成（SPEC-009-W9/PR-041，第18号）：写主权对账四面——写者指针对账/vault+仓内写点扫描（防第四写者无感接入）/快照连续性（机制外写入识别）/manifest 影子源对账。破坏实验三面先红后绿（悬空写者/变量流未登记写者/机制外写入注入）。vault 未解析时②③④skip 并明示（CI 无 vault 环境跑①面）。首跑战果：咬出 classify.py 第五写者（人工 CLI，前两轮勘察漏网）。2026-10-19 SPEC-023 波 4 收缩：面②③④随迁仓退役（vault 侧 enums/fields 物理消失，git 边界即数据边界）；现存①登记⑤symlink⑥vault 洁净⑦repo 洁净。2026-10-21 数据域治理批扩面⑧：null 段只读断言——edited_by_tab=null 且非 reserved 的 enums 段被代码直写（doc.set）即红（rogue 注入红→删即绿的接线级红证＋纯函数红绿夹具 null-segment-guard）；合法化路径＝该段在 theschema-roles.json 登记页签或派生，登记即出入扫描集。 面⑩（WP-079 唯一门）：TheSchema 写通道不得由调用方自判——谓词 A 直连仓内通道、谓词 B vault 通道写 TheSchema 住址且不经咽喉；豁免附理由且空转即摘（tr_504310b2 即谓词 B 的实形）。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "validation-parity",
+      "authority": [
+        "contracts/validation-rules.json",
+        "docs/spec/SPEC-011-W11-数据边界收窄与运行时闭环.md#WP6"
+      ],
+      "command": "npm run check:validation-parity",
+      "stepName": "Validation parity gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/guards/validation-parity.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-12 建成（SPEC-011 WP6/PR-046 防复发，第19号）：双侧校验器同源对账——Node 侧 enums-loader.cjs validateCategoryPath 与 Python 侧 validate-article.py validate_category_path 特征指纹与 contracts/validation-rules.json 比对；改一漏一即红。三项破坏实验先红后绿（规则表缺失/Node 侧 troubleshoot 禁令被移除/Python 侧三段检查被移除）。 2026-10-19 SPEC-022 波C：Python 侧退役——双侧对账面③④退役，门禁职责＝规则表↔Node 唯一实现指纹；面⑦反信号探针防第三套读法复活。｜2026-11-06 WP-122 收敛批退役：对账对象已不存在——validate-article.py 于 SPEC-022 波 C（2026-10-19）退役为墓碑壳（exit 2 指引 Node 唯一实现 article-validator-lib.cjs，行为金标 __tests__/validate-article-parity.test.cjs 持续锁定）。本台原波4状态「挂起待 SPEC-022」就此关闭。脚本留作手动工具（node scripts/quality/check-validation-parity.mjs），别名经投影保留 | 2026-11-06 WP-128 红线复核否决退役前提并恢复 registered：「对账对象已不存在」只覆盖已死的 Python 侧；余面②⑤⑦对象实测仍活——validation-rules.json 被 frontmatter-rule-engine.cjs 数据驱动消费（4 处引用）、enums-loader.cjs validateCategoryPath 硬编码语义仍在（267 行 troubleshoot）、指纹面②⑤与防第三实现探针⑦脚本中原样未动。恢复＝防护回归保守方向。退出路径＝enums-loader 数据驱动化结构收编落地后，指纹面对象才真正消失，按波 4 流程退役。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-validation-parity.mjs"
+      ]
+    },
+    {
+      "id": "vault-write-destinations",
+      "authority": [
+        "docs/spec/SPEC-012-W12-持久层分层.md#F1"
+      ],
+      "command": "npm run check:vault-write-destinations",
+      "stepName": "Vault write destinations gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "server/shared/__tests__/vault-io.test.cjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "SPEC-012 F1 第22号：写通道目的地执法 CI 面——契约良构＋棘轮（allowedPermanent/migrationWhitelist 不新增键，白名单随波次只减不增）＋server 源码 .ledger 目的地字面量全覆盖；运行时面在 vault-io（assertVaultWriteDestination 越界 throw）。两面同源 contracts/vault-write-destinations.json。白名单清空＝分层完成（WP-J），届时转为①⑤-only 全量硬执法。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "vault-observation-exit",
+      "authority": [
+        "docs/spec/SPEC-012-W12-持久层分层.md#WP-B"
+      ],
+      "command": "npm run check:vault-observation-exit",
+      "stepName": "Vault observation exit gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "quality-gate-engineer",
+      "note": "SPEC-012 WP-B 第23号：④类迁出反向断言——contracts/observation-domain.json 翻转 forbidden 后，观测痕迹目录在 vault 出现即红（构造性不存在＋回流兜底；枚举式白名单排除的补丁形态退役，WP-J 收面⑥重估）。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "article-lifecycle",
+      "authority": [
+        "contracts/article-lifecycle.json",
+        "scripts/quality/check-article-lifecycle.mjs"
+      ],
+      "command": "npm run check:article-lifecycle",
+      "stepName": "Article lifecycle gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-article-lifecycle.test.mjs",
+        "server/shared/__tests__/article-lifecycle-paths.test.cjs",
+        "server/shared/__tests__/vault-io.test.cjs",
+        "scripts/quality/__tests__/guards/article-lifecycle.test.mjs"
+      ],
+      "owner": "guard-captain",
+      "description": "SPEC-013 路径角色单源＋SPEC-028 可变性档三面（角色行 mutability 必填/枚举/§四映射＋执法测试在册＋裸拼扫描）",
+      "note": "｜留任理由（2026-11-06 WP-122 补）：文章生命周期路径角色契约静态执法（SPEC-013/028）——契约良构＋server 侧裸拼四族路径字面量即红（必须经 article-lifecycle-paths.cjs 单源）＋可变性档三面。对账对象=仓内代码与契约文件，扫描是唯一手段（无生成关系），必须留任｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-article-lifecycle.mjs"
+      ]
+    },
+    {
+      "id": "typecheck",
+      "authority": [
+        "package.json#typecheck",
+        ".github/workflows/quality.yml#Typecheck",
+        "docs/plans/problem-register.md#PR-063"
+      ],
+      "command": "npm run typecheck",
+      "stepName": "Typecheck",
+      "execution": "ci",
+      "status": "registered",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/",
+        "package.json",
+        "tsconfig.app.json",
+        "tsconfig.json"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-15 PR-066 类消补登记：CI 有 step 而注册表不见（原 checker 只查注册表→CI 单向）；commit 面＝暂存触 src/ 时 pre-commit 派生执行。实证通道：PR-063 类型错随本地提交直达 main、CI 连红无人接；2026-10-15 红队复核 F2：scope 补 tsconfig*（tsc -p 的真实触发面，改坏编译配置提交瞬间即红）"
+    },
+    {
+      "id": "lint",
+      "authority": [
+        "package.json#lint",
+        "package.json#lint:ratchet",
+        ".github/workflows/quality.yml#Lint"
+      ],
+      "command": "npm run lint:full",
+      "stepName": "Lint",
+      "execution": "ci",
+      "status": "registered",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/",
+        "eslint.config.js",
+        "contracts/eslint-suppressions.json",
+        "package.json"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-15 PR-066 类消补登记（反向盲区）：仅 CI 面——整仓 eslint 不进提交边界，域级红由 CI 时点执法｜2026-11-07 WP-144 波1（SPEC-091 §2.3）：补 commit 面（src/ 触发，PR-206 同款先例）＋两族新选择器（CJK 字面量族＝用户文案出口、裸 fetch＝HTTP 信封出口，ADR-019 展示面归属律）；存量入 ESLint 原生 suppressions 基线 contracts/eslint-suppressions.json（机器生成禁手改，ui-kit-baseline 同款纪律），lint:ratchet 棘轮＝僵尸必缩减；闭集豁免块见 eslint.config.js（声明式 diff 可审）｜2026-11-07 修正：command 由组合形态改单 token lint:full——pre-commit 钩子按 POSIX 词分割执行注册表命令，变量展开的 && 非操作符（首提交实测被拦，eslint 收到字面量 && 参数）"
+    },
+    {
+      "id": "frontend-tests",
+      "authority": [
+        "package.json#test:frontend",
+        ".github/workflows/quality.yml#Frontend tests",
+        "docs/plans/problem-register.md#PR-066"
+      ],
+      "command": "npm run test:frontend",
+      "stepName": "Frontend tests",
+      "execution": "ci",
+      "status": "registered",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/",
+        "package.json",
+        "vite.config.ts"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-15 PR-066 类消补登记：a573c4e 带 7 个前端红测试直达 main 的实证通道——pre-commit 原注释「前端留给 CI 全量」而本地 main 领先 origin 32 笔、CI 全部未见；commit 面＝暂存触 src/ 时派生执行（全量套件实测 98s）；2026-10-15 红队复核 F2：scope 补 vite.config.ts（vitest 配置所在，改坏 test.include 此前提交直过）"
+    },
+    {
+      "id": "node-tests",
+      "authority": [
+        "package.json#test:node",
+        ".github/workflows/quality.yml#Node tests (unit + contract)"
+      ],
+      "command": "npm run test:node",
+      "stepName": "Node tests (unit + contract)",
+      "execution": "ci",
+      "status": "registered",
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-15 PR-066 类消补登记（反向盲区）：commit 面不整量进——域级由 pre-commit 域表段按域执法（reuse/data-domains tests 字段），CI 全量兜底"
+    },
+    {
+      "id": "e2e-suite",
+      "authority": [
+        "package.json#test:e2e",
+        ".github/workflows/quality.yml#Run all e2e flows",
+        "docs/plans/problem-register.md#PR-013"
+      ],
+      "command": "npm run test:e2e",
+      "stepName": "Run all e2e flows",
+      "execution": "nightly",
+      "status": "registered",
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-15 PR-066 反向执法（gate_wiring_step_unregistered）首跑抓到的漏登记：nightly 全量 e2e 套件自 PR-013 起在跑但注册表不见。step 级 continue-on-error——红绿由 e2e-baseline gate 依 known-red 名单判定，本条只补登记可见性｜结构收口批：execution 归 nightly——其实跑面在 nightly-e2e job（建 vault/起 server 的编排流），主 CI runner 不跑全量 e2e。｜2026-11-06 WP-096/T3：七旅程迁 @playwright/test，自研断言件退役（断言位点逐条同源映射见 spec 头注释）；run-all 槽位顶替、流程名与豁免名单对账不变",
+      "testFiles": [
+        "scripts/e2e/persistence-journey.spec.mjs",
+        "scripts/e2e/entity-compliance-repair-flow.spec.mjs",
+        "scripts/e2e/relation-review-approve-flow.spec.mjs",
+        "scripts/e2e/article-upload-standardize-flow.spec.mjs",
+        "scripts/e2e/schema-release-promote-flow.spec.mjs",
+        "scripts/e2e/dashboard-pipeline-integration-flow.spec.mjs",
+        "scripts/e2e/governance-release-journey.spec.mjs"
+      ]
+    },
+    {
+      "id": "table-usage",
+      "authority": [
+        "docs/design/theme-contract.md"
+      ],
+      "command": "npm run check:table-usage",
+      "stepName": "Table usage gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-table-usage.test.mjs"
+      ],
+      "owner": "ui-component-engineer",
+      "note": "结构收口批补登记：10-15 上线的表格执法扫描器三面全无（无 CI 步/无注册条目/零调用方）——配方执法层的执法面。bem 类与域组件对账（bem_classes=17 domain_components=8）。｜结构收口尾批（2026-10-16 Master 审计 V1）：补 commit 面（域卡声明 gate 的检测窗口收到提交瞬间——src/ 触发）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-table-usage.mjs"
+      ]
+    },
+    {
+      "id": "recipe-usage",
+      "authority": [
+        "docs/design/theme-contract.md"
+      ],
+      "command": "npm run check:recipe-usage",
+      "stepName": "Recipe usage gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-recipe-usage.test.mjs"
+      ],
+      "owner": "ui-component-engineer",
+      "note": "结构收口批补登记：10-16 配方执法器（Master「能按契约和配方检查出没收敛的代码吗」）六道检查——裸 z/默认阴影/h-7 棘轮/自写表格/cell 原生 button/悬空 import。曾三面全无（同 table-usage），本批随投影接入 CI。｜结构收口尾批（V1）：补 commit 面＋补回归测试（原零测试——无红面证明的执法器可静默失效）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-recipe-usage.mjs"
+      ]
+    },
+    {
+      "id": "fields-registry",
+      "authority": [
+        "contracts/data-domains.json#schema-rules-data",
+        "docs/adr/ADR-008-词表与字段元数据治理-词条对象化与fields数据字典.md"
+      ],
+      "command": "npm run check:fields-registry",
+      "stepName": "Fields dictionary registry gate",
+      "execution": "ci",
+      "testFiles": [
+        "scripts/quality/__tests__/check-fields-registry.test.mjs",
+        "scripts/quality/__tests__/guards/fields-registry.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-10-17 建成（ADR-008 D2/SPEC-015，第30号）：字段引用对账——server/管线消费 frontmatter 字段名（画像 DIMENSIONS/validate-article REQUIRED_FIELDS/合规 allowedByField 三锚点）⊆ fields.yaml 声明集（name∪aliases）。防「校验代码读未登记字段」的字段漂移假绿面。红绿夹具三面：未登记消费红/全登记绿（含 advisory 不拦截——隐式消费合法）/字典缺失红（fail-closed）。声明侧 advisory 只提示不拦截（title 等由渲染面隐式消费）。2026-10-18 SPEC-020 波 1 扩第四面：值域引用悬空执法——经唯一解释器 value-domain-resolver.cjs 解析全部结构化配方，引用不存在的段/别名表/未知 op 即红（fail-closed）。同日波 2：REQUIRED_FIELDS／allowedByField 两锚点随平行账字面量退役而退役（消费端从 resolved-domains.json 解析物派生，对账对象消失）；DIMENSIONS 锚点随迁 profile-dimensions.cjs 单一定义；防漏面＝第四面＋derivation-sync＋等价性测试。2026-10-19 SPEC-023 波 4：第四面（配方悬空）已前置写路径（writeFields→FIELDS_RECIPE_INVALID 拒写）——本面降为回归兜底。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：半可投影——第五面 required 集为真双写（fields.yaml 语义源×entity-readiness-rules.json 消费契约），可派生化（拆契约=生成 required 集＋手写 control/optionsKey 映射＋derivation-sync 行，结构性收编另立批次）；DIMENSIONS 锚点随消费端改吃 resolved-domains 即退役（REQUIRED_FIELDS 先例同构）；subjects 双向/值域配方悬空/选项包面为纪律执法留任｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-fields-registry.mjs"
+      ]
+    },
+    {
+      "id": "data-roles",
+      "authority": [
+        "contracts/theschema-roles.json"
+      ],
+      "command": "npm run check:data-roles",
+      "stepName": "TheSchema data role registry gate",
+      "execution": "ci",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-10-18 建成（SPEC-019 ③，第31号）：注册表四面对账——文件悬空/页签漂移(TabId 正则单源)/门禁漂移(⊆quality-gates 键集)/生成器在册(scripts)。防页面层标注投影引用不存在的页签或门禁。反例夹具：ghost-tab 红→还原绿。2026-10-19 PR-044③ 扩面⑥段覆盖：注册段＝唯一账——真实 enums 顶层键⊆注册段、SECTION_YAML_KEY_MAP⊆注册段（防新键无感落地与映射漂移）。2026-10-19 SPEC-023 波 4：面⑥（段覆盖）已前置写路径（writeEnums→ENUMS_SEGMENT_UNREGISTERED 拒写）——本面降为回归兜底。2026-10-21 数据域治理批扩面⑦⑧＋段级纪律：⑦段存在性 warn（在册→物理反向——非 reserved 在册键物理缺失只 warn 不 block，预留位 status:reserved 豁免；无真库跳过）；⑧册外领地版图声明（contracts/data-territory.json 形状校验——只声明不加严）；status 枚举仅 reserved（禁自造）＋sub_key 非空（一行＝一个页签编辑面，同段可多行）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——本门禁是派生纳保机制自身的进料咽喉（孤儿面逼新文件登记、生成器在册面逼 derived 行接线，之后 derivation-sync 才自动接管）；登记册承载人裁语义不可从其描述的文件生成，引用完整性指向外部位权威（TabId 归 TS 源/门禁 id 归 quality-gates/段闭合棘轮）｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "derivation-sync",
+      "authority": [
+        "docs/adr/ADR-008-词表与字段元数据治理-词条对象化与fields数据字典.md",
+        "docs/spec/SPEC-015-词表与字段元数据治理.md",
+        "docs/spec/SPEC-019-TheSchema数据角色注册与页面层标注.md"
+      ],
+      "command": "npm run check:derivation-sync",
+      "execution": "ci",
+      "stepName": "Derivation sync gate",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "contracts/theschema-roles.json",
+        "scripts/quality/",
+        "contracts/reuse-domains.json"
+      ],
+      "testFiles": [
+        "scripts/quality/__tests__/check-derivation-sync.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-10-18 建成（第 32 号，Master 批准「类被消灭才是结构」结构版）：检查清单从 theschema-roles.json 派生——每条 role=derived 且 generator≠null 的行运行其生成器 --check（生成器即校验器，dictionary-of-ai-coding 先例），新派生物登记即自动入保，无手工接线面。commit 面＝注册表本体＋生成器目录（scripts/quality/）——登记动作即触发动作。无 vault 明示 skip（fields-registry 先例：CI 门禁阶段先于 e2e vault 构建）；CI 由 run-ci-gates 按 execution=ci 全量执行。generator=null 的管线产物（history/**、component-index.json）由各自管线自有验证覆盖，不入本面。配套：check:data-roles 扩第五面孤儿对账（新文件必须登记），存量 12 个未登记文件同批清偿（10 登记＋2 杂物移 history/stray/ 留档）。｜2026-11-06 WP-133 子项①：扩第二登记源——reuse-domains.json 域行 generator≠null 即仓内侧派生行（selectRepoDerivations），不依赖 vault 无条件跑（CI 门禁阶段先于 vault 构建，vault skip 不覆盖仓内侧——error-registry 退役先例同款教训）；首行 state-layering→gen:value-domains（三机值域契约投影）。commitScope 同步增 reuse-domains.json。｜WP-143 波1 去注册化（2026-11-07 Master 裁决：产物新鲜度检查＝普通 CI 脚本非治理；语义零改动，改由 quality.yml 显式步骤＋pre-commit 显式段直呼，注册表记录保留）",
+      "keptHelpers": [
+        "scripts/quality/check-derivation-sync.mjs"
+      ]
+    },
+    {
+      "id": "theme-contract",
+      "authority": [
+        "docs/design/theme-contract.md"
+      ],
+      "command": "npm run check:theme-contract",
+      "execution": "ci",
+      "stepName": "Theme contract gate",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/index.css",
+        "src/styles/",
+        "docs/design/theme-contract.md",
+        "scripts/quality/theme-baseline.json"
+      ],
+      "testFiles": [
+        "scripts/quality/__tests__/check-theme-tokens.test.mjs",
+        "scripts/quality/__tests__/check-theme-vocab.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "note": "2026-10-20 结构审计合并批（Master「批准」）：theme-token-hygiene＋theme-vocab 两台合一（同契约密度冗余）——包装器串联两面，子检查器与测试原样保留。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-theme-contract.mjs"
+      ]
+    },
+    {
+      "id": "frozen-artifacts",
+      "authority": [
+        "contracts/frozen-artifacts.registry.json",
+        "docs/spec/SPEC-012-W12-持久层分层.md#PR-084"
+      ],
+      "command": "npm run check:frozen-artifacts",
+      "stepName": "Frozen artifact read-throat gate",
+      "execution": "ci",
+      "status": "retired",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "contracts/frozen-artifacts.registry.json",
+        "server/shared/frozen-artifact-reader.cjs",
+        "server/shared/persistence/graph-artifact-ingest.cjs",
+        "server/routes/",
+        "server/services/"
+      ],
+      "testFiles": [
+        "server/shared/__tests__/frozen-artifact-reader.test.cjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-20 PR-084（Master 开工）：冻结产物读侧唯一咽喉执法面——①artifacts.get 直读仅限咽喉＋摄取模块 ②routes/services 零自实现空态文案 ③退役原语 readSaArtifactText 不复活 ④注册表自洽＋与摄取层 STAGED 双向对账（注册未摄取＝死槽／摄取未注册＝无读取路径）。主防线是结构（未登记槽名咽喉 fail-closed、零值形状使空态问题在接口上消失），门禁为辅助早暴露。四向破坏实验先红后绿实证。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "contract-route-parity",
+      "authority": [
+        "docs/adr/ADR-010-传输层标准框架化-HTTP边界收敛.md#决策 2/4",
+        "docs/spec/SPEC-024-HTTP边界收敛.md#集成契约",
+        "contracts/http-api.openapi.json",
+        "contracts/retired-routes.json",
+        "docs/plans/problem-register.md#PR-085"
+      ],
+      "command": "npm run check:contract-route-parity",
+      "stepName": "Contract route parity gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-contract-route-parity.test.mjs",
+        "scripts/quality/__tests__/guards/contract-route-parity.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-20 PR-085 第 1 步立（Master 批准 v2 决策卡）：复用域 api-contract 备注里缺的「openapi↔后端实现漂移断言」——契约操作⇄注册路由双向完备（契约超前／契约外／重复三面），retired-routes.json 墓碑以退役登记表为契约之源豁免；运行时另有 http-app onRoute fail-closed 兜底。首跑 routes=100 contract_ops=94 墓碑豁免 6；红绿反证三面（夹具）随测试文件入档。立案时补登 GET /api/schema/subjects（自 SPEC-019 在线、前端消费、契约缺席）。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-contract-route-parity.mjs"
+      ]
+    },
+    {
+      "id": "response-count-parity",
+      "authority": [
+        "docs/spec/SPEC-071-仪表盘计数口径统一与响应口径执法.md",
+        "contracts/reuse-domains.json#mechanism-patterns",
+        "contracts/http-api.openapi.json"
+      ],
+      "command": "npm run check:response-count-parity",
+      "stepName": "Response count parity gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-response-count-parity.test.mjs",
+        "scripts/quality/__tests__/guards/response-count-parity.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "WP-071 立（模式五「同集合计数同口径」执法件）：扫描响应内成对计数字段，仅对带 x-count-parity 标记的对象执行三规则（口径声明/配对自洽/过滤口径一致），机器发现「节点过滤、边不过滤」类语义冲突；存量对象只登记不阻断。真仓 enforced=2 零违例；夹具 R1/R2/R3 反例随测试入档。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "contracts/http-api.openapi.json"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-response-count-parity.mjs"
+      ]
+    },
+    {
+      "id": "interaction-state",
+      "authority": [
+        "src/lib/request-status.ts",
+        "contracts/reuse-domains.json#interaction-state"
+      ],
+      "command": "npm run check:interaction-state",
+      "stepName": "Interaction state gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-interaction-state.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-21 interaction-state 第二落地（PR-071 子项二）：13 个 zustand store 的 loading/error 布尔配对全部迁至 RequestStatus 五态＋RequestSlice 构造器（error 非空⇔status=error 由构造器保证）；本门禁三检查面＝裸 loading: boolean／同前缀 xLoading+xError 配对／store 内另写五态字面量。首跑 stores=19 零违例；回归测试 5 用例（三探针红＋孤立 busy 布尔不误伤）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-interaction-state.mjs"
+      ]
+    },
+    {
+      "id": "term-copy",
+      "authority": [
+        "src/constants/term-const.ts",
+        "contracts/reuse-domains.json#term-copy"
+      ],
+      "command": "npm run check:term-copy",
+      "stepName": "Term copy gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-21 term-copy 切片一（PR-075 验收口径「状态机高频词回收」）：TERM 新增「请求状态词」段 8 词（加载中…/加载失败/请求失败/重试/暂无数据/保存失败/已保存/无法连接 API），业务代码 27 处独立字面量全部收编（含 加载中… 与 加载中... 两种省略号写法的漂移统一）。门禁两检查面＝段内值的独立字面量/JSX 文本硬编码、ASCII 省略号变体；词表单源从 term-const 该段解析，不另抄。首跑 words=8 files=319 零违例；回归测试 5 用例。完整句直写仍允许（term-const 规则 3）。｜2026-11-07 WP-145 波4 退役（ADR-019 §四，账物分离口径）：检查面已被 lint CJK 选择器＋基线棘轮全量吸收（2454 行硬编码介质翻转完成，销账进行中）；退役理由＝执法介质升级（白名单追词→闭集出口），出生职责由 ADR-019 §二文案出口承载。恢复路径＝git checkout 7a46c186 -- scripts/quality/check-term-copy.mjs＋注册表行改 registered＋package.json 别名恢复（恢复须与域卡 gate 指针同步改回）。实物删除随本批：脚本＋回归测试＋package.json 别名（testFiles 悬空项同批清空，与 WP-122 action-routing 退役先例同款；域卡 tests 认领同步摘除）。｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-vocab-envelope-coverage.mjs"
+      ]
+    },
+    {
+      "id": "ui-kit",
+      "authority": [
+        "src/components/ui/",
+        "contracts/ui-kit-baseline.json",
+        "contracts/reuse-domains.json#ui-kit"
+      ],
+      "command": "npm run check:ui-kit",
+      "stepName": "UI kit gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-ui-kit.test.mjs"
+      ],
+      "owner": "ui-component-engineer",
+      "note": "2026-10-21 ui-kit 政策落地（Master「批准修复」）：新代码必须走 @/components/ui/button，存量按触碰迁移不专项替换（手写样式与 ui/button 风格差异大，强换改视觉）。机制＝原生 <button 棘轮基线 contracts/ui-kit-baseline.json（机器生成，--write 重算，禁手改；首算 90 文件 223 处）：基线外文件出现即红／基线内只减不增／归零条目须缩减。豁免 ui/（基础件自身）与 aria/（侧栏专属皮肤，PR-070）。回归测试 5 用例（三探针红＋下降不拦）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/",
+        "contracts/ui-kit-baseline.json"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-ui-kit.mjs"
+      ]
+    },
+    {
+      "id": "object-dictionary",
+      "authority": [
+        "REQUIREMENTS.md#52",
+        "contracts/object-meta-model.json"
+      ],
+      "command": "npm run check:object-dictionary",
+      "stepName": "Object dictionary gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-object-dictionary.test.mjs",
+        "scripts/quality/__tests__/guards/object-dictionary.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "字典×元模型对账（TALOS 枚举单源＋常设校验面借鉴批，Master 2026-10-23 批准）——字段归属/双状态机/证据双通道/类型化关系边/读侧纪律执法面。 迁移边咽喉接线（WP-115/PR-259 #4）：surfaces+commit——字典/边表/元模型暂存即跑提交时面（HEAD↔暂存迁移边判定）；CI 面不变。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——字典即人写真身（证据串/裁决文/边界 B1-B6/标准对照），元模型是词表权威非其可生成投影，对账面为纪律执法（归属闭合/枚举闭合/卡数16棘轮/boundary7棘轮/律文钉 ADR-017/HEAD↔暂存迁移咽喉），无第二副本可统一（ADR-015 退役公式无施力点）｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "commit"
+      ],
+      "commitScope": [
+        "contracts/object-dictionary.json",
+        "contracts/dictionary-lifecycle.json",
+        "contracts/object-meta-model.json"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-object-dictionary.mjs"
+      ]
+    },
+    {
+      "id": "check-py-tests",
+      "authority": "scripts/quality/check-py-tests.mjs",
+      "command": "node scripts/quality/check-py-tests.mjs",
+      "stepName": "check-py-tests",
+      "execution": "ci",
+      "status": "active",
+      "testFiles": [
+        "scripts/quality/__tests__/check-object-dictionary.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "SPEC-025 C11（#75）：CI Python 面——W0.5 路由器管 pre-commit 增量，本门禁管 CI 全量；pytest 缺失 fail-closed"
+    },
+    {
+      "id": "check-pipeline-rules",
+      "authority": "scripts/quality/check-pipeline-rules.mjs",
+      "command": "node scripts/quality/check-pipeline-rules.mjs",
+      "stepName": "check-pipeline-rules",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-object-dictionary.test.mjs",
+        "scripts/quality/__tests__/guards/pipeline-rules.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "红修批 #76（面2 修复件）：D6 版本门机器执法——active 指针合法/版本名白名单/已发布哈希自校验/候选成对｜WP-143 波3 转普通测试（2026-11-08 铁律）——厚扫描逻辑保留为测试助手，账物分离｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-pipeline-rules.mjs"
+      ]
+    },
+    {
+      "id": "test-placement",
+      "authority": [
+        "vite.config.ts#test.include",
+        "scripts/test-node.mjs#DISCOVERY_PATTERNS",
+        "docs/plans/problem-register.md#PR-066"
+      ],
+      "command": "npm run check:test-placement",
+      "stepName": "Test placement gate",
+      "execution": "ci",
+      "status": "retired",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/",
+        "server/",
+        "scripts/",
+        "vite.config.ts"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-24 Master 批准立闸（「测试写了没跑到比没写更危险」）：全仓 .test.* 文件必须 ⊆ 两发现器收集集合（vitest include〔vite.config.ts 单源解析，解析失败 fail-closed〕∪ test-node DISCOVERY_PATTERNS〔import 单源〕）——游离测试文件提交即红。gate-governance 域内施工，构造走 P0 协议先红后绿。；2026-11-07 WP-138 加面④（反向对账）：凡往真实 src/ 写探针的 node 测试必须逐项在 SERIAL_NODE_TESTS 内，漏登记即红。立面前实测=注入型 9 支、名单只 7 支（漏 check-table-usage／check-ui-kit，九支探针同住 src/features/dashboard/），本机整桶已现形一次：check-theme-tokens 的「复原后绿」读到正消失的 __nav_probe__.tsx，readFileSync ENOENT 炸死门禁进程；单跑与三支定向并发各 3 轮均绿——只在整桶时序现形，故不靠人记得登记。首跑自咬实录：判据是纯文本，把注入代码当夹具字符串写进测试也会命中（本门自己的测试文件被自己咬一次），解法为夹具字面改运行时拼接，不建豁免集；漏检方向只会是假红不是假绿。读数行新增『注入型 N 支全部在册串行批』。｜WP-139 线追加：2026-10-24 Master 批准立闸（「测试写了没跑到比没写更危险」）：全仓 .test.* 文件必须 ⊆ 两发现器收集集合（vitest include〔vite.config.ts 单源解析，解析失败 fail-closed〕∪ test-node DISCOVERY_PATTERNS〔import 单源〕）——游离测试文件提交即红。gate-governance 域内施工，构造走 P0 协议先红后绿。；2026-11-07 WP-137 加面④（反向对账）：凡往真实 src/ 写探针的 node 测试必须逐项在 SERIAL_NODE_TESTS 内，漏登记即红。立面前实测=注入型 9 支、名单只 7 支（漏 check-table-usage／check-ui-kit，九支探针同住 src/features/dashboard/），本机整桶已现形一次：check-theme-tokens 的「复原后绿」读到正消失的 __nav_probe__.tsx，readFileSync ENOENT 炸死门禁进程；单跑与三支定向并发各 3 轮均绿——只在整桶时序现形，故不靠人记得登记。首跑自咬实录：判据是纯文本，把注入代码当夹具字符串写进测试也会命中（本门自己的测试文件被自己咬一次），解法为夹具字面改运行时拼接，不建豁免集；漏检方向只会是假红不是假绿。读数行新增『注入型 N 支全部在册串行批』。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "work-packages",
+      "authority": [
+        "docs/adr/ADR-013-工作包合同制-义务派生与合同先于写入.md",
+        "scripts/quality/wp-derive.mjs"
+      ],
+      "command": "npm run check:work-packages",
+      "stepName": "Work-package contracts gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/wp-derive.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "ADR-013：全量对账 schema、终态与 R1/R8；差异触发义务在 pre-commit 按合同范围派生。R7 从登记命令及 npm 别名确认脚本注册，改登记文件不等于已注册。observe 期 pre-commit 只报不拦（WP_ENFORCE=1 转 enforce）；CI 按注册表执行。｜2026-11-06 T4：pre-commit 第三层 enforce 为默认（两次 observe 漏拦实证达标），WP_ENFORCE=0 临时降观察｜2026-11-06 T4 正式激活：PR-265 修复（登记簿锚定合同跳过 R6）＋休眠债清偿后 enforce 为默认（WP_ENFORCE=0 降观察）｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——无实物（执法面＝wp-derive --pre-commit 直呼形态，随本批一并退役）——全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "ontology-consumer-anchors",
+      "authority": "WP-006 第6b项（PR-096 处置）——本体能力字段消费锚点对账",
+      "command": "npm run check:ontology-consumer-anchors",
+      "stepName": "check_ontology_consumer_anchors",
+      "execution": "deny",
+      "status": "retired",
+      "owner": "domain-core-engineer",
+      "note": "git 旁路最小审计面：主执法在写路径（PUT /api/schema/ontology 锚点校验 422）；本检查兜 AI 会话直写 ontology.yaml 旁路。破坏实验在 testFiles（未登记字段/锚点失效/模块缺失三面）。surfaces: ci＋commit（data/theschema/ontology.yaml 变更时提交面触发）。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "data/theschema/ontology.yaml",
+        "server/shared/relation-capability-selector.cjs"
+      ]
+    },
+    {
+      "id": "merge-reconcile",
+      "authority": [
+        "AGENTS.md（§五 写任务开树／登记簿合并对账两条款）",
+        "GIT-CONTEXT.md（§二.3）",
+        "docs/plans/problem-register.md#PR-017",
+        "docs/work-packages/WP-012.json"
+      ],
+      "command": "npm run check:merge-reconcile",
+      "stepName": "Merge reconcile gate",
+      "execution": "manual",
+      "status": "retired",
+      "surfaces": [],
+      "commitScope": [],
+      "testFiles": [
+        "scripts/quality/__tests__/check-merge-reconcile.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-25 WP-012（Master「123都做」②）：合并面门禁——任务树合并 main 之前人工执行：fetch origin 对齐后三方（merge-base／origin/main／HEAD）对比：双侧各自新开的 PR/WP 编号相交＝撞号红；登记簿同条目状态分叉按 closed-wins（任一侧已关闭即以其为准）红；给出合并后取号节期望 max。零 CI 面（actions/checkout 浅克隆无 merge-base）、零 commit 面（需联网 fetch，离线提交会被误拦）——manual 档保留注册行是因为它是合并流程的门禁而非操作工具（区别于 data-chain 2026-10-19 注销先例）。立项由来：并行会话撞号四轮（PR-095/098/099/100）。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）",
+      "keptHelpers": [
+        "scripts/quality/check-merge-reconcile.mjs"
+      ]
+    },
+    {
+      "id": "conflict-markers",
+      "authority": [
+        "scripts/quality/check-conflict-markers.mjs（脚本头注释——2026-10-26 两次带病推送实录）",
+        "docs/work-packages/WP-021.json"
+      ],
+      "command": "npm run check:conflict-markers",
+      "stepName": "Conflict markers gate",
+      "execution": "ci",
+      "status": "registered",
+      "surfaces": [
+        "commit"
+      ],
+      "commitScope": [
+        "docs/",
+        "contracts/",
+        "scripts/",
+        "server/",
+        "src/",
+        ".githooks/"
+      ],
+      "testFiles": [
+        "scripts/quality/__tests__/check-conflict-markers.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-26 WP-021（Master「批准」）：暂存面文本文件扫描 〈六字符起始标记〉/〈六字符结束标记〉 六字符标记——两次登记簿带病推送实录（一次 JSON 解析侥幸拦、一次人肉 grep）的机器防线。成对标记只报起止（分隔线不误报）；二进制/未知扩展保守跳过。CI 全仓扫（--all 语义由 step 侧决定）。"
+    },
+    {
+      "id": "runtime-scope",
+      "authority": [
+        "contracts/runtime-scope.json",
+        "scripts/quality/check-runtime-scope.mjs"
+      ],
+      "command": "npm run check:runtime-scope",
+      "stepName": "Runtime scope reverse-scan gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "quality-gate-engineer",
+      "note": "runtime-scope 域波4 立项（2026-10-27，PR-124）：八面执法——①已修违约定点回退复查（V01/V02/V05 禁模式）②全仓反向扫描（parents[N]＋data／KB_DATA_DIR 空串回落／data/governance 硬拼；Python＋fs，补 schema-writers 面⑨不含 Python 的记档边界）③起链写面钉对账（WRITE_PINS_REQUIRED 单源）④契约违约清零棘轮⑤写原语闭集（波5）⑥spawn 位点闭集⑦作用域变量读写闭集（env_reads_allow 带理由，空转即红）⑧写敏感变量必有登记解析器＋variables.resolver 字段与 resolvers 集合双向对账（WP-077 2026-11-03 立，零豁免起步：现值 ws_resolver=9/9；默认拒绝形——缺解析器即红，报错点名出口，非白名单放行）。豁免=登记解析器/登记写者（理由内联）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：逐面活体普查入账（11 面＋2 子面，零真违例）：面②P1/P2 两模式形态已灭绝（parents+data 组合零命中/KB_DATA_DIR 空串回落唯一历史实例已 fail-closed 化）留作防回潮 tripwire；面②P3 活体薄执法（唯一命中=登记解析器本体 mirror-scope.cjs，豁免空转联动）；面③④⑤⑥⑦⑧⑨全活体（10 起链钉/违约登记闸/50 写原语/9 spawn/7 env 口/13 变量闭集/9 解析器对账）；面⑩⑩py 收敛进行中（4+6 生产残口在册，收口批自动减员）。无面可整面退役——全绿是执法结果非对象消失；py pathlib 硬拼 data/governance 为词法盲区（现无逃逸），记档待补签名｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "schema-shape",
+      "authority": [
+        "src/lib/schema-shape.ts",
+        "contracts/reuse-domains.json#schema-shape"
+      ],
+      "command": "npm run check:schema-shape",
+      "stepName": "Schema shape gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-schema-shape.test.mjs",
+        "scripts/quality/__tests__/guards/schema-shape.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-27 SCHEMA-IA-001 批16（Master 裁 A 扩域）：实体字段候选投影单源执法——src/features/**与src/components/** 中对象键 arch_layer/arch_category/arch_subdomain 被赋非字面量值（候选推导第二份实现）即红；字符串字面量（草稿空态）与可选类型键（?:）不误伤。背景=批16 前合规页/异常抽屉双份拍平且健壮度分叉（异常侧有 ADR-008 D1 双形态加固、合规侧 layers 对象形态静默漏词）——收编进 schema-shape entityFieldCandidates 后立法防回潮。豁免面=schema-manager（enums 编辑器合法直读 section）。首跑 files=238 零违例；门禁回归 5 用例（两旧形态探针红+两不误伤面绿）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——执法对象是尚不存在的第二份候选推导实现（禁模式扫描，负向不变量），无副本可统一；退役前提=候选键类型化/代码生成另立立法路径｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "src/features/",
+        "src/components/"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-schema-shape.mjs"
+      ]
+    },
+    {
+      "id": "state-liveness",
+      "authority": [
+        "docs/spec/SPEC-030-投稿状态三层定身份.md#五、验证标准（批3 门禁执法面）",
+        "contracts/reuse-domains.json#state-layering"
+      ],
+      "command": "node scripts/quality/check-state-liveness.mjs",
+      "stepName": "State machine liveness gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-28 WP-026 批3（PR-136）：三机值域三源活性对账（服务端单源≡HTTP 契约 enum≡前端显示钉子；任务派生①加产活面——登记值必有 return 生产路径）。破坏实验：改 TASK_STATUSES 单值→红→还原→绿（本批实测）。｜2026-11-06 WP-133 子项①（ADR-015 副本→生成器公式：副本→生成器→旧文件消失→门禁退役）：本门禁退役，脚本与 npm 别名删除。承接面——三源一致（服务端枚举源≡openapi 三段≡前端钉子键集）→ gen-value-domains 生成器 --check（reuse-domains#state-layering 生成行，derivation-sync 纳保）；任务派生①加产活面＋聚合入口在册面→ server/services/article-workflow/__tests__/upload-task-status-liveness.test.cjs（域认领测试，断言语义逐条对齐，测试头有迁移映射）。退出路径：status 由 retired 改回 registered＋新实现接线（重立契，Master 批）。｜2026-11-06 WP-133 退役收尾：npm 别名摘除（红队 F3——脚本已删别名残留＝MODULE_NOT_FOUND 困惑面），退役留档直跑形态"
+    },
+    {
+      "id": "fields-dictionary",
+      "authority": [
+        "data/theschema/fields.yaml（SPEC-023 仓内主源）"
+      ],
+      "command": "npm run check:fields-dictionary",
+      "stepName": "Fields dictionary hygiene gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/guards/fields-dictionary.test.mjs"
+      ],
+      "owner": "data-governance",
+      "note": "2026-10-29 建（PR-156 刀四）：字段字典卫生——(name,scope) 组合唯一（同名跨域重载合法有据：status 实体/文章两义）、值域显式（free 合法但空值域红）、enum 必闭合、必填枚举合法。前科：title 空值域、status 双条目无机器规则（消费方按 scope 过滤故行为正确，但字典页呈现无说明——呈现改进另行）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——fields.yaml 是唯一真身，五面为单文件卫生不变量（(name,scope)唯一/值域显式/enum闭合/必填枚举合法），无对账对象、投影化无处着力｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-fields-dictionary.mjs"
+      ]
+    },
+    {
+      "id": "error-registry",
+      "authority": [
+        "server/shared/error-registry.generated.cjs（生成物）",
+        "scripts/quality/gen-error-registry.mjs"
+      ],
+      "command": "npm run check:error-registry",
+      "stepName": "Error registry birth gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "server-api-engineer",
+      "note": "2026-10-30 建（PR-158 副本→计算第一刀）：错误码唯一账本=生成物（真身=抛点，出生即账）。两面执法——①freshness：生成物与抛点扫描一致（derivation-sync 同语义，派生物不许过期）；②出生校验 strict 面行为证明（CHEESE_ERROR_STRICT=1 未知码构造即炸，三工厂变体共享）。生成器内建一码多态冲突即炸（DECLARED_MULTI_STATUS 显式声明区）。取代已退役的 error-catalog 追账门禁。｜2026-11-06 WP-122 error 族合一退役：面①freshness→三线承接（theschema-roles 派生行＝derivation-sync vault 环境纳保＋error-codes 面③无条件执法——CI 门禁阶段在 vault 构建步之前，派生同步在 CI skip，故保留台无条件面不可省）；面②strict 出生校验→error-codes 面④原样并入（判定逻辑零改动）。脚本与别名留档（node scripts/quality/check-error-registry.mjs）。三台共用同一抛点收集器（error-throw-scan.mjs），常驻位从 3 收敛为 2（error-codes＋rules-lifecycle——后者与抛点扫描是不同对账对象，A1/A3/A4 面不属错误码扫描，不并）｜2026-11-07 WP-145 波4 实物删除（ADR-019 §四账物分离）：脚本本体全仓 grep 零消费者（仅 error-throw-scan/error-registry-faces 头注释历史叙述）随本批物理删除；package.json 别名 check:error-registry 随投影裁撤；生成器 gen-error-registry.mjs 仍存活（error-registry-faces --check 消费，derivation-sync 纳保）。恢复路径＝git checkout <退役前提交> -- scripts/quality/check-error-registry.mjs＋注册表行改 registered＋package.json 别名恢复"
+    },
+    {
+      "id": "vocab-load-port",
+      "authority": [
+        "docs/adr/ADR-016-结构目标-四个唯一入口-消费面归属律.md#六",
+        "scripts/quality/check-vocab-load-port.mjs（判据在检查器头部，一键复算）"
+      ],
+      "command": "npm run check:vocab-load-port",
+      "stepName": "Vocab load port existence gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-vocab-load-port.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "2026-10-31 建（WP-049 L1／SPEC-044 C3，ADR-016 §四-2 裁决）：词表装载入口存在制断言——五件词表读取路径 ⊆ server/shared/vocab-load-port.cjs，Python 面 basename 出现即红（零知识目标态）。豁免基线 117 命中起步（实证清单 §四＋硬读旁路 JS 8 点），失效 2026-12-31、只减不增；--collect 一键复算。基线余量随 L2/L3 收敛，退役判据见 ADR-016 §五顺序律。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：顺序律定位入账（ADR-016 §五）：①入口上线已完成、②余量收敛进行中（基线 117→33，15 文件顶格 33/33 余量 0，expiresAt=2026-12-31 棘轮只减不增；Python 生产仅剩挂起 lane archive-enums-legacy.py 3 处［Master 2026-10-17 裁决挂起］，JS 生产残口 schema-config.cjs 1 处）、③未解锁——本门禁是吸收方而非被吸收方，其收敛完成是摘除旧对账门禁的前置条件，本体无退役判据、收敛到底后转零容忍 tripwire 常备｜WP-143 波1 去注册化（2026-11-07 Master 裁决：产物新鲜度检查＝普通 CI 脚本非治理；语义零改动，改由 quality.yml 显式步骤＋pre-commit 显式段直呼，注册表记录保留）",
+      "keptHelpers": [
+        "scripts/quality/check-vocab-load-port.mjs"
+      ]
+    },
+    {
+      "id": "action-coverage",
+      "authority": [
+        "docs/spec/SPEC-067-治理链路系统性防线.md#二",
+        "scripts/quality/check-action-coverage.mjs"
+      ],
+      "command": "npm run check:action-coverage",
+      "stepName": "Action coverage tripwire",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-action-coverage.test.mjs",
+        "scripts/quality/__tests__/guards/action-coverage.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "WP-067（2026-11-01）：注册路由×测试树点名对账——死路径哨兵（tripwire）。口径=静态点名，不冒充真实通道证明（真实通道由治理链旅程 E2E 承担，SPEC-067 §二.3 两层分工）；豁免单只减不增棘轮，存量 10 条零点名挂账逐条销号。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-action-coverage.mjs"
+      ]
+    },
+    {
+      "id": "empty-state-semantics",
+      "authority": [
+        "contracts/empty-state-semantics.json",
+        "scripts/quality/check-empty-state-semantics.mjs"
+      ],
+      "command": "npm run check:empty-state-semantics",
+      "stepName": "Empty-state semantics gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-empty-state-semantics.test.mjs",
+        "scripts/quality/__tests__/guards/empty-state-semantics.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "WP-070／SPEC-070 §3.5（error-copy 域首个执法面，2026-11-02）：四面——①契约形状（ajv）②requires 边闭合（自指/悬空/成环红）③站点闭合（kinds⊆种类；消费类必带 error_code；module 存在）④文案 tripwire（server/** 含契约 guide_template 固定片段者只许为唯一组装点 availability-view——第二文案源即红；指纹随模板派生不写死）。已知缺口：tripwire 只认模板指纹，不按模板写的散文式指引不在镜头（代码评审面）。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "keptHelpers": [
+        "scripts/quality/check-empty-state-semantics.mjs"
+      ]
+    },
+    {
+      "id": "ui-stat-provenance",
+      "authority": [
+        "docs/spec/SPEC-074-前端统计可溯源-多视角对账模式⑥执法.md",
+        "contracts/reuse-domains.json#mechanism-patterns",
+        "contracts/ui-stat-provenance.json",
+        "scripts/quality/gen-ui-stat-provenance.mjs"
+      ],
+      "command": "npm run check:ui-stat-provenance",
+      "stepName": "UI statistic provenance gate",
+      "execution": "ci",
+      "status": "retired",
+      "testFiles": [
+        "scripts/quality/__tests__/check-ui-stat-provenance.test.mjs",
+        "scripts/quality/__tests__/gen-ui-stat-provenance.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "note": "WP-074 立（模式六「多视角对账：展示数字可溯源」执法件）：扫描前端真实 Statistic 点，与映射清单、OpenAPI 三方对账，执行三规则（R1 覆盖完整含文件集合与点数、R2 出处真实、R3 口径可查 description/summary），机器发现给用户看的数字找不到后端出处/出处不存在/口径读不到；不做数据流静态分析、不判业务对错。真仓 12 文件 38 点 10 来源零违例；夹具 R1/R2/R3 反例随测试入档。；2026-11-07 WP-136 c 留任复核·降档（非退役）：原 R2『出处真实＝sourceApis ⊆ OpenAPI paths』整条删除——自 WP-136 b 起 sourceApis 由 gen-ui-stat-provenance.mjs 按 apiSources 派生，派生时认不出契约路径即抛（宁红不静默），违例构造性不可能；该职责现住生成器，其漂移由 derivation-sync（波1 起直呼） 自动跑（mechanism-patterns 行 generator≠null 即入保，零新增门禁）。留任部分＝R1 覆盖完整（前端实际 Statistic 集合与点数 ⇄ 登记面，含幽灵登记）＋R2 口径可查（operation description/summary 非空），两者皆非派生物性质，派生化不可达。退出路径：若派生面重回手抄或生成器退役，恢复本检查器 git 历史 97f2ca61 版的 paths 成员判定段即可，不需新件。另记：本批另查明一处检出面盲区——knip.json entry 写整目录 scripts/quality/**/*.mjs ⇒ 该目录死件永不报死（本批只记不修，未立案）。｜WP-143 波1 去注册化（2026-11-07 Master 裁决：产物新鲜度检查＝普通 CI 脚本非治理；语义零改动，改由 quality.yml 显式步骤＋pre-commit 显式段直呼，注册表记录保留）",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "contracts/ui-stat-provenance.json",
+        "contracts/http-api.openapi.json",
+        "src/",
+        "scripts/quality/gen-ui-stat-provenance.mjs"
+      ],
+      "keptHelpers": [
+        "scripts/quality/check-ui-stat-provenance.mjs"
+      ]
+    },
+    {
+      "id": "defect-shapes",
+      "authority": [
+        "contracts/defect-shapes.json",
+        "scripts/quality/check-defect-shapes.mjs"
+      ],
+      "command": "npm run check:defect-shapes",
+      "stepName": "Defect-shape census and fingerprint ratchet gate",
+      "execution": "ci",
+      "status": "retired",
+      "owner": "quality-gate-engineer",
+      "note": "WP-083（2026-11-03，Master 批「先只做 P6 一族试点」）：把《同型缺陷判据与确认清单》(2026-10-31) 的形状谓词从人读清单升成在册数据对象＋可跑普查。判据——①内容指纹双向对账（新副本实例红且点名 文件:行＋20 位指纹；修了没销账＝基线僵尸红；此前仓内基线全是「文件→数量」形，「改了内容数量没变」不可见）②计数天花板只减不增，且 ceiling 高于上次收账实数即红（反证轮回件：旧写法把 ceiling 从 171 悄悄抬到 172／999999 全绿——现把「只减不增」从 PR 评审升成机器判）③上闸三条件机器核（默认拒绝／豁免只减不增／自带破坏实验且用例名须为**真实测试标题**并由测试件真 spawn `node --test --test-name-pattern` 选中通过 # pass≥1；三缺一律判 ungated，账面声称 gated 即红＝不得声称已收净）④readout 族读数下调未销账即红（反证轮回件：只把上游打印改成 0 就能把「四处免检」读成「清零」）⑤排除面问责：census.exclude_files 须在 exemptions 挂四要素、文件存在且确实挡住命中（匿名／僵尸／空转三种都红）⑥普查口径一改，基线必须同批重算（census_params_hash）⑦入口判定走 realpath（反证轮实测：经符号链接直调时旧写法 main() 不执行、空输出 exit 0＝门禁自己最坏形态的假绿）。已上闸族（P6-F1 面⑩／P6-F2 面⑨）读数直接取执法面自己的输出（census.kind=readout），不另抄谓词——抄即自犯本件所执法的 P6；P6-F3＝checker 自持的仓内路径清单，反证轮后普查面从 check-*.mjs 扩到 scripts/quality/**.mjs 且纳入注释行，现场实算 171 处／34 文件（闸＝指纹＋天花板，非清零承诺）。P6-F4／P6-F5＝PR-215 新立两族（豁免四要素清单／扫描扩展名集合各只许一处，现各 1 处住在 shared 定义件），把「抄第二份」本身变成机器红：活体复跑塞一份副本 → `新副本实例 …:1〔豁免四要素清单字面量〕指纹 …` ＋ `计数膨胀：现算 2 > 天花板 1`，报错出口直指权威源文件。已知缺口：词法近似有假阳性（指向权威源的单点住址也算命中）与假阴性（字符串拼接的路径、跨行拆开的模板串扫不到），「标题在册但断言空洞」机器判不了；是 tripwire＋棘轮不是证明，买到的是「族余量可见、同族第 N 次发作不再重复付费全链」｜ D1（WP-086／PR-216，2026-11-03 深夜）P6-F3 判据换形为两维：值维＝字面量逐字等于某 contracts/*.json 的叶子值（census.join.sources 声明，读契约原文不读翻译件）；位维＝字面量位于数组/对象字面量成员位或相等比较右值位（词法栈取最内层开括号，块花括号／下标取键／正则字面量／注释散文均不入位）。单靠值维方向反了——契约自己也声明路径（authority[]／commitScope[]／$id／generator），naive join 把 22 条读住址留下、把「契约根本没有该值」的代码权威定义留下；单靠位维把 38 条权威定义算成债。两维同施后读数 154→32（词法全量 157＝值不在契约 87＋值在册位不入镜头 37＋两维齐 33，其中本件自指面 1 条按在册排除＋四要素豁免挂账），读数升为「代码清单/比较位与契约在册值的重合数」＝可逐条清偿的债额；天花板同批 154→32。残余两面在族 note 逐条如实标（假阳性＝契约自我描述值；假阴性＝单值赋值常量／散文清单／拼接路径／方法实参），未纳入即不声称已清。 ｜ 第二、三刀（WP-088／WP-089，2026-11-03 深夜，PR-216 残余债①与 PR-218）位置维补第三形 alias_data_member 并把该形从「整行单值赋值正则＋文件级名池」换成「按字面量位反查声明器绑定＋按作用域链把清单/比较用法解析到具体绑定＋沿改名边回溯到不动点」：一行多声明与传递别名入镜头（读数 32→35），同名遮蔽不再记功到字面量头上。同时新增 census.join.lens_limits 六类全集（与本件 JOIN_LIMITS 镜像钉，漏声明一类即红），读数行改为 `P6-F3=N/N(gated)[在册值M·词法面K·不入形L类·下界]`——「下界」从族 note 的散文升进机器可见面，防止 35 与天花板逐字相等被读成「账已清到项」。两刀均未新增债：同一代码同一契约，改的只有镜头（第三刀实测读数与指纹逐字节未变）。逐类边界与现场存量以 contracts/defect-shapes.json 的 P6-F3 note 为单源，本条只记口径事件。 ｜ WP-089 反证轮回件同批补三处：箭头参数遮蔽原为假阳性通道（本件原自称「宁漏不误」被实测推翻）已补进绑定登记；传播跳数写死 pass<12 改为队列推到不动点；新增第七类不入形边界 use_before_declarator（用法先于绑定，真树 23 处形状、涉在册值 0）。读数行分母带上判据代数：`[在册值M·词法面K·不入形L类·第G代·下界]`。**未堵一面如实标**：复核实测只改契约（收窄 join.sources 或 value_pattern）即可把读数洗小而 A1 因 paramsDrift 主动让路、也不触发本体哈希红——该通道由 PR-219 承接，不在本批修。 另补「含糊即让」：同名引入点（声明器＋参数表形）大于一处时拒绝记功——方向从「可能记错」改为「宁可漏记」，真树实测零代价（读数与指纹仍逐字节相同），lens_generation 第 5 代。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "knip",
+      "status": "registered",
+      "execution": "ci",
+      "surfaces": [],
+      "command": "npm run check:knip",
+      "authority": [
+        "https://knip.dev（现成工具）",
+        "knip.json"
+      ],
+      "stepName": "Knip dead-code ratchet gate",
+      "owner": "quality-gate-engineer",
+      "description": "死码/死导出/未用依赖——基线棘轮（存量入册只减不增，基线外新增即红）",
+      "note": "2026-11-06 双线合流（WP-126 T1＋WP-128 同 id 撞台后合体）：强版＝标准工具 knip＋基线棘轮（check-knip.mjs 包装，bkn-foundry hardcoded_chinese_baseline 同构），WP-128 会话明确请求强版替换其 advisory 手动版。准入四问（P0）：①死码无法结构消灭 ②内部质量·通用基础层（兄弟仓同类留标准工具链）③扫描唯一手段（knip 语义分析）④现成工具胜任✓。WP-128 复核成果吸收：基线逐符号复核＝162 真债＋2 误报（tailwindcss v4 CSS 形态盲区已单依赖精确豁免；RULE_FIELDS 为 CJS 组合出口链盲区，误报滞留基线无害——棘轮只防增量）；清理路线五批已勘明（机械删 3／平行单源鉴别 45（gap-types 16＋domain/index 29）／feature 死导出约 85／vendored 余量约 23（aria/** 豁免归属待 Master 裁）／RULE_FIELDS 形态修复），逐批清偿后 --write 缩减。阻塞语义与 P0 第 5 步一致：存量入基线不拦（防首日全红），增量不进基线即红。守护测试 scripts/quality/__tests__/check-knip.test.mjs（归一化/棘轮红绿/真仓烟测）。 | 2026-11-06 WP-131 批 1 清账：机械删三项（react-aria-components 依赖／article-retirement-reference.cjs 孤儿文件／pipeline-api.ts 垫片＋3 测试 mock 改指 @/lib/pipeline-api）＋退役即删三件套（layer-ssot/register-coverage/wave0 脚本删除、注册表退役行删除、别名随投影裁撤；调用方审计＝注释级引用零代码依赖；退出路径＝git 历史＋复活须过 ADR）。退役即删纪律在册（四联动）：退役门禁＝删脚本＋删测试＋删注册行与别名＋登记簿关闭卡回归固化位置指针随批改指（PR-092/PR-221 实测——机器防假关账咬住漏项），例外仅两类——链式活件（error-registry/action-routing/theme-tokens/theme-vocab，注册行即孤儿法律引用凭证）与管线运行时活件（data-chain/consistency-py/entity-readiness，pipeline-runner 调用）。",
+      "testFiles": [
+        "scripts/quality/__tests__/check-knip.test.mjs"
+      ]
+    },
+    {
+      "id": "kit-version-guard",
+      "authority": [
+        "discipline-kit/package.json"
+      ],
+      "command": "npm run check:kit-version",
+      "stepName": "Discipline-kit version bump guard",
+      "execution": "ci",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [],
+      "note": "WP-140 Q8/A（2026-11-07）：动包必 bump。P0 第 0 步准入四问——①结构可得否：否（git 暂存面×版本字段是跨件一致性，无单源结构可消）②守护对象：对消费方的外部承诺（版本锚定，业界 pre-commit rev 同型）③扫描唯一手段否：是（无生成器可替代——版本是人工语义决策）④现成工具：npm version/release-please 针对『发布』而本面是『动包未发布』窗口的提交时点执法，现成工具不覆盖该时点，接线不造轮子不可得→立门禁。假红方向：安全（挡漏 bump）。包内自测 version.test.mjs 三场景（真 git 暂存面）。｜WP-139 线追加：WP-138 Q8/A（2026-11-07）：动包必 bump。P0 第 0 步准入四问——①结构可得否：否（git 暂存面×版本字段是跨件一致性，无单源结构可消）②守护对象：对消费方的外部承诺（版本锚定，业界 pre-commit rev 同型）③扫描唯一手段否：是（无生成器可替代——版本是人工语义决策）④现成工具：npm version/release-please 针对『发布』而本面是『动包未发布』窗口的提交时点执法，现成工具不覆盖该时点，接线不造轮子不可得→立门禁。假红方向：安全（挡漏 bump）。包内自测 version.test.mjs 三场景（真 git 暂存面）。｜WP-143 波4 kit 翻转随批退役（E 类随 kit 走）——执法责任移交 kit 私有仓自带测试（npm test）；cheeseh 消费面＝依赖锚 v0.3.0"
+    },
+    {
+      "id": "vocab-envelope-coverage",
+      "authority": [
+        "docs/plans/方案决策卡-单源收口四替换-2026-11-07.md §2 R1（已签收方案，PR-277）",
+        "docs/adr/ADR-016-结构目标-四个唯一入口-消费面归属律.md#四-2（Python 读词表经信封）",
+        "scripts/quality/check-vocab-envelope-coverage.mjs（判据在检查器头注，一键复算）"
+      ],
+      "command": "npm run check:vocab-envelope-coverage",
+      "stepName": "Vocab envelope coverage gate",
+      "execution": "ci",
+      "testFiles": [
+        "scripts/quality/__tests__/check-vocab-envelope-coverage.test.mjs"
+      ],
+      "owner": "quality-gate-engineer",
+      "status": "registered",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "contracts/",
+        "scripts/quality/"
+      ],
+      "note": "2026-11-07 建（WP-138 R1，方案决策卡-单源收口四替换 §2 R1 执法固化）：R1 已把最后一个未接信封的域值消费方（validate_graph 对齐矩阵，PR-257 病灶位）接上，本门禁把替换成果立为常设纪律执法。P0 第 0 步准入四问——①能否结构消灭：结构侧已完成（词表经 vocab_envelope 信封递入、值域单源 ontology，Python 零读路径），门禁守的是替换后的结构不被回填，属禁模式＋唯一性纪律执法（P0 允许的留任形态）；②守护对象：仓内一致性（Python 面与 Node 单源之间），非对外产品不变量；③扫描是否唯一手段：手抄域值矩阵（PR-257 形态）无生成器可派生——抄本是手写行为，行级形状启发是唯一机器手段（诚实边界：多行折行逃逸启发，由面②接线对账与评审兜底）；④现成工具：无现成 linter 认得「键→(域集,值集) 手抄矩阵」与本仓信封接线语义，eslint/grep 只能做本门禁面①的子集（basename 共现已由 vocab-load-port 存在制执法，本门禁面①A 定位为行为形状钉——yaml.load×词表件名共现，与存在制不重复判物）。面②＝Node 侧真物化（dump CLI 空 vault 走仓内主源）覆盖登记消费方对账（消费方清单=R1 扫尾真读者实录，住检查器 CONSUMERS）。豁免：EXEMPT file 级附理由，空转即摘（对齐 ACTION_ROUTING 先例）；构造走 P0 先红后绿（check-vocab-envelope-coverage.test.mjs）。退出路径：Python 面信封接线若被结构性替换（如 Pyodide 直载 Node 装载产物），本门禁随消费方清单清空自然空转，按空转即摘退役。"
+    },
+    {
+      "id": "kit-single-source",
+      "authority": [
+        "discipline-kit/schemas/"
+      ],
+      "command": "npm run check:kit-single-source",
+      "stepName": "Discipline-kit single-source tripwire",
+      "execution": "ci",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "contracts/",
+        "scripts/quality/"
+      ],
+      "note": "WP-138 Q9 轻量版（2026-11-07）：包外副本绊线。P0 第 0 步准入四问——①结构：旧路径物理删除已是主防线，本面防『复活』（回填绊线同型）②守护对象：仓内两处一致性（机制唯一住址）③扫描唯一手段：是（精确路径级，config.retired_paths 使用方声明，非全仓哈希——重扫描已在 WP-138 non_goals 排除）④现成工具：无现成『退役路径复活』检测器；精确路径存在性十行实现，接线优于引包→立门禁（轻量）。假红方向：安全。｜WP-143 波4 kit 翻转随批退役（E 类随 kit 走）——执法责任移交 kit 私有仓自带测试（npm test）；cheeseh 消费面＝依赖锚 v0.3.0"
+    },
+    {
+      "id": "kit-coupling",
+      "authority": [
+        "discipline-kit/coupling.json"
+      ],
+      "command": "npm run check:kit-coupling",
+      "stepName": "Discipline-kit consumer coupling guard",
+      "execution": "ci",
+      "owner": "quality-gate-engineer",
+      "status": "retired",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "AGENTS.md",
+        "docs/problem-handling-spec.md",
+        "docs/system/source-of-truth.md",
+        "docs/system/governance-glossary.md",
+        "docs/system/reuse-playbook.md",
+        "contracts/reuse-domains.json",
+        "contracts/data-domains.json",
+        "contracts/discipline.config.json",
+        "contracts/quality-gates.json"
+      ],
+      "note": "WP-139（2026-11-07）：消费方清单接线对账——纪律对象变更须同批核对其登记消费方（跳步机器化）。P0 第 0 步准入四问——①结构可得否：部分（派生化本批已做：kit 门禁规则键集改现读契约，探针 derived.test.mjs 防写死回归）；残余耦合无生成关系只能声明＋对账 ②守护对象：仓内多处一致性 ③扫描唯一手段：是（暂存面×声明清单时点差分，同 kit-version 形态）④现成工具：无现成『对象→消费方』耦合对账器，声明文件＋80 行门禁自建优于引包→立门禁。假红方向：安全。清单住 discipline-kit/coupling.json。｜WP-143 波4 kit 翻转随批退役（E 类随 kit 走）——执法责任移交 kit 私有仓自带测试（npm test）；cheeseh 消费面＝依赖锚 v0.3.0"
+    },
+    {
+      "id": "gate-admission",
+      "authority": [
+        "contracts/gates-admission-baseline.json"
+      ],
+      "command": "npm run check:gate-admission",
+      "stepName": "Gate admission marker guard",
+      "execution": "ci",
+      "owner": "security-guard-captain",
+      "status": "retired",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        "contracts/quality-gates.json",
+        "contracts/gates-admission-baseline.json"
+      ],
+      "note": "WP-141（2026-11-07）：门禁准入标记面——PR-289 缺口①清偿。P0 第 0 步准入四问——①结构可得否：否（注册 note 语义是人工承诺，无派生关系）②守护对象：仓内多处一致性（注册完备性）③扫描唯一手段：是（note 标记×基线棘轮）④现成工具：无现成『注册完备性』检测器，40 行自建优于引包→立门禁。假红方向：安全。基线=2026-11-06 条款生效前在册 40 台（存量豁免，只减不增）；新注册无『P0…准入四问』标记即红（对抗性演习 kit-indent 绕过实证的补墙）。保安队长辖区。｜WP-143 波4b 拆除（2026-11-08 甲裁定：治理机器退役，规则转纪律自觉；执法面摘除（注册表/pre-commit/CI）——实物转 test:node 载体继续执法，全量留档 discipline-kit 仓 /reference，退出路径＝取回复活）"
+    },
+    {
+      "id": "suppressions-monotonic",
+      "command": "npm run lint:monotonic",
+      "execution": "ci",
+      "surfaces": [],
+      "status": "registered",
+      "owner": "quality-gate-engineer",
+      "note": "2026-11-07 WP-144 红队A F3 护栏（enforce 层 R7 义务拦获后正规登记）：基线计数单调门——contracts/eslint-suppressions.json 总违例数相对 HEAD 只减不增，静默养大即红；逃生口＝执法面 eslint.config.js 同批暂存方放行合法抬闸（F1 型一次性重造），放行大声宣读。P0 第 0 步准入四问：①结构可得否——否（git HEAD 时点对比无单源结构可消）②守护对象——介质翻转的存量棘轮承诺（基线重造养大检测，红队实测 suppress-all 重造可静默入提交）③扫描唯一手段——是（计数对比无生成器替代）④现成工具——无（ESLint 原生仅 prune 语义，无跨提交单调门）；假红方向——安全。CI 面净增一台（46→47），随本批报备。"
+    },
+    {
+      "id": "workflow-gates",
+      "authority": [
+        "scripts/quality/workflow-gates.mjs"
+      ],
+      "command": "node scripts/quality/workflow-gates.mjs",
+      "stepName": "Workflow gates (contract/freeze/domain-sync)",
+      "execution": "ci",
+      "testFiles": [],
+      "owner": "team-lead",
+      "status": "registered",
+      "surfaces": [
+        "ci",
+        "commit"
+      ],
+      "commitScope": [
+        ".githooks/",
+        "scripts/quality/workflow-gates.mjs",
+        "eslint.config.js",
+        "contracts/reuse-domains.json",
+        "src/",
+        "server/",
+        "docs/work-packages/"
+      ],
+      "note": "WP-153 增（域同步闸第四断言）＋PR-296 补注册执行面：合同闸/门禁冻结闸/域同步闸三断言（甲' 普通CI断言——无注册外壳单目的脚本）。CI 兜底占位：PR-283 恢复后 quality.yml 注册执行器自动跑；此前仅本地钩子。M2 修复（PR-296）：域同步判据改客观差集（净新增成员↔域卡），撤 includes('-copy.ts') 字面量误伤。"
+    }
+  ]
+}

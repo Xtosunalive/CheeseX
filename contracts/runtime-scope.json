@@ -1,0 +1,984 @@
+{
+  "$schema": "./runtime-scope.schema.json",
+  "registry_version": 1,
+  "description": "运行时作用域契约（复用域 runtime-scope 权威源，2026-10-26 开域）。治理对象：一个进程「写到哪个 vault／哪个 data 目录／哪棵树／连哪个服务」由谁决定。开域前痛点（PR-116/120/121/122 同根）：作用域由每个写者与每条起链各自决定——写者自拼 __file__.parents[N] 或 REPO_ROOT、三级阶梯隐式翻仓、空串回落、继承 process.env；起链各钉一个子集；e2e 以端口默认值假定服务作用域。本表登记变量全集、两侧解析器、全部起链与现存违约，供门禁反向对账与迁移波次消费；本表只登记不实现——但写敏感变量的落点实现须带 probe（文件＋缺席报错原文，且 probe.file 必须等于该解析器行自己登记的 file——不许指向别处自证），门禁⑨面静态核对 probe 真实存在，取代旧 fail_closed 布尔自填位（PR-211／WP-082）。探针的证据强度＝『该文件确有这句抛点原文』，不含『抛点在运行期真阻断写入』：2026-11-03 反证轮实测六条分三档（可传播硬失败 3：main.cjs process.exit／validate-relation-expectations 未包 try／observations-path throw；可见拒绝 2：mirror-scope 抛出被 decisions-mirror catch 但回传 error 字段并落告警面；静默警告 1：merge-inferred._trajectory_dir 的 raise 落在 _append_trajectory 的 try 内，被 :180 except 收成 stderr 一行——轨迹缺席不阻断，属 D5 已裁定，但探针对此绿）。分档账与升级出口＝PR-213——解析器实现仍在 resolvers 所指模块，不另抄一份。 波5（2026-10-27，Master「结构性收敛」指示）：新增 write_primitive_allow——写原语闭集执法面（门禁⑤）的允许清单，棘轮只减不增，条目须理由、空转即摘；原语集合封闭（fs 写/建/改/搬＋py open/write_text/write_bytes/os.replace/shutil/sqlite3.connect），与写者数量解耦。Python 写网关 write_gateway.py 立（merge-inferred 已迁入示范，零写原语）。",
+  "rules": {
+    "single_resolver": "每个作用域变量只能由 resolvers 登记的解析器解析；写者不得自拼 __file__/parents[N]/REPO_ROOT 路径，不得各自发明回落规则。",
+    "no_implicit_fallback_on_write": "写路径上作用域变量缺席即 fail-closed（SPEC-021「写路径不允许隐式回落」从 Node TheSchema 扩到全部 write_sensitive 变量与 Python 侧）；读路径允许登记的回落（fallback 字段显式写出，未登记即违约）。",
+    "launch_pins_full_set": "任一起链（测试跑批器／pre-commit 域批／e2e harness／管线 spawn／dev）必须经单一构造器注入 variables 全集，不自拼子集；构造器登记在 launch_chains.builder。",
+    "service_scope_proof": "跨进程消费服务的一方（e2e→API）须向服务端取作用域证明（/api/health.vaultId，server/shared/vault-id.cjs computeVaultId）并与自身作用域对账，不以端口默认值假定对端作用域。"
+  },
+  "variables": [
+    {
+      "id": "VAULT_PATH",
+      "side": "node",
+      "purpose": "vault 根（Node 服务）",
+      "write_sensitive": true,
+      "fallback": null,
+      "resolver": "server-main-vault"
+    },
+    {
+      "id": "KB_VAULT",
+      "side": "python",
+      "purpose": "vault 根（Python 脚本）",
+      "write_sensitive": true,
+      "fallback": "脚本位置上溯仓根（kb_paths.vault_roots 带 知识库 存在性校验；各脚本自拼 parents 无校验）",
+      "resolver": "kb-paths-vault-roots",
+      "governed_by": [
+        "no_implicit_fallback_on_write"
+      ]
+    },
+    {
+      "id": "KB_DATA_DIR",
+      "side": "both",
+      "purpose": "repo-data 住址根（三库＋staging＋backups）",
+      "write_sensitive": true,
+      "fallback": "Node：REPO_ROOT/data（生产设计内，起链须钉）；Python kb_paths：无回落 fail-closed",
+      "resolver": "data-dir-resolve",
+      "governed_by": [
+        "no_implicit_fallback_on_write"
+      ]
+    },
+    {
+      "id": "THESCHEMA_DIR",
+      "side": "both",
+      "purpose": "TheSchema 规则目录",
+      "write_sensitive": true,
+      "fallback": "三级阶梯：env ＞ vault 知识库/TheSchema（enums.yaml 在场）＞ 仓 data/theschema",
+      "resolver": "theschema-root-resolve",
+      "governed_by": [
+        "no_implicit_fallback_on_write"
+      ]
+    },
+    {
+      "id": "PIPELINE_TRAJECTORIES_DIR",
+      "side": "python",
+      "purpose": "管线轨迹账本目录",
+      "write_sensitive": true,
+      "fallback": "ARCH_REPO/data/governance（登记回落——起链必传 ARCH_REPO，python-bridge 白名单）；缺席＝RuntimeError 被 _append_trajectory 外层 except 收成 stderr 警告行、主链路继续（SPEC-025 C5 轨迹失败不阻断；运行期后果档③，署名例外见 write_fallback_exceptions）",
+      "resolver": "merge-inferred-trajectory-dir"
+    },
+    {
+      "id": "DECISIONS_MIRROR_DIR",
+      "side": "node",
+      "purpose": "裁决镜像目录",
+      "write_sensitive": true,
+      "fallback": "钉扎（DECISIONS_MIRROR_DIR）＞登记真库确认（.env VAULT_PATH，缺则 env）＞拒——无「按脚本位置猜仓根」回落",
+      "resolver": "mirror-scope-resolve"
+    },
+    {
+      "id": "TAXONOMY_OBSERVATIONS_FILE",
+      "side": "node",
+      "purpose": "分类观察账本文件",
+      "write_sensitive": true,
+      "fallback": "仅显式钉扎；缺席 throw（旧回落指向 .gitignore:/data/* 内住址＝写成功亦零可见）",
+      "resolver": "observations-path-resolve"
+    },
+    {
+      "id": "ARCH_REPO",
+      "side": "python",
+      "purpose": "管线脚本所在仓（决定调哪棵树的 scripts/）",
+      "write_sensitive": false,
+      "fallback": "pipeline-runner.py 自拼 ../..；服务端 spawn 固定为服务进程所在树",
+      "resolver": null
+    },
+    {
+      "id": "VAULT_RUNTIME_SCRIPTS_DIR",
+      "side": "node",
+      "purpose": "运行时脚本目录",
+      "write_sensitive": false,
+      "fallback": "仓 scripts/vault-runtime",
+      "resolver": "vault-runtime-resolver"
+    },
+    {
+      "id": "API_BASE",
+      "side": "node",
+      "purpose": "e2e 消费的服务端地址（服务端作用域选择器）",
+      "write_sensitive": true,
+      "fallback": "六流各自默认 http://127.0.0.1:18083——谁在听谁的作用域（违约：无服务端作用域证明对账）",
+      "resolver": "service-scope-proof",
+      "governed_by": [
+        "no_implicit_fallback_on_write"
+      ]
+    },
+    {
+      "id": "PIPELINE_RULES_DIR",
+      "side": "python",
+      "purpose": "管线规则资产根（candidates/versions/active 指针）",
+      "write_sensitive": true,
+      "fallback": "ARCH_REPO/data/governance/pipeline-rules（登记回落）；缺席 fail-closed（运行时通道 --expectations-file 不触此根）",
+      "resolver": "relation-expectations-rules-root"
+    },
+    {
+      "id": "VOCAB_ENVELOPE_PATH",
+      "side": "node",
+      "purpose": "词表信封槽路径（WP-049 L3——Node 装载入口物化→Python 纯计算消费；WP-069 入册——冻结链死链即漏配本变量）",
+      "write_sensitive": false,
+      "fallback": null,
+      "resolver": "vocab-envelope-materializer"
+    },
+    {
+      "id": "DOC_ENVELOPE_PATH",
+      "side": "node",
+      "purpose": "文档信封槽路径（WP-117 批 2——Node 文档装载入口物化全语料→Python 图管线纯计算消费；extract_graph 自读 .md 归零的供给面）",
+      "write_sensitive": false,
+      "fallback": null,
+      "resolver": "doc-envelope-materializer"
+    }
+  ],
+  "resolvers": [
+    {
+      "id": "server-main-vault",
+      "side": "node",
+      "file": "server/main.cjs",
+      "lines": "35-39",
+      "variables": [
+        "VAULT_PATH"
+      ],
+      "probe": {
+        "file": "server/main.cjs",
+        "contains": "VAULT_PATH environment variable is required"
+      }
+    },
+    {
+      "id": "data-dir-resolve",
+      "side": "node",
+      "file": "server/shared/persistence/data-dir.cjs",
+      "lines": "19",
+      "variables": [
+        "KB_DATA_DIR"
+      ],
+      "note": "options.dir ＞ KB_DATA_DIR ＞ REPO_ROOT/data；生产写仓 data/ 为设计内，测试/e2e 起链必须钉（PR-116 根因位）"
+    },
+    {
+      "id": "theschema-root-resolve",
+      "side": "node",
+      "file": "server/shared/theschema-root.cjs",
+      "lines": "10-23",
+      "variables": [
+        "THESCHEMA_DIR"
+      ],
+      "note": "三级阶梯；写侧经 repo-schema-io repoWrite 目的地执法（SPEC-021 Node 侧已对齐）"
+    },
+    {
+      "id": "vault-runtime-resolver",
+      "side": "node",
+      "file": "server/shared/vault-runtime-resolver.cjs",
+      "lines": "19-24",
+      "variables": [
+        "VAULT_RUNTIME_SCRIPTS_DIR"
+      ]
+    },
+    {
+      "id": "kb-paths-vault-roots",
+      "side": "python",
+      "file": "scripts/vault-runtime/kb_paths.py",
+      "lines": "24-50",
+      "variables": [
+        "KB_VAULT"
+      ],
+      "note": "回落仓根但带 知识库 存在性校验，缺失 RuntimeError"
+    },
+    {
+      "id": "kb-paths-data-dir",
+      "side": "python",
+      "file": "scripts/vault-runtime/kb_paths.py",
+      "lines": "71-86",
+      "variables": [
+        "KB_DATA_DIR"
+      ],
+      "note": "data_dir/staging_dir/staging_path——无回落，缺失 RuntimeError 附 export 指引（Python 侧正确形态）"
+    },
+    {
+      "id": "kb-paths-theschema-dir",
+      "side": "python",
+      "file": "scripts/vault-runtime/kb_paths.py",
+      "lines": "89-105",
+      "variables": [
+        "THESCHEMA_DIR"
+      ],
+      "note": "三级阶梯，写侧无 SPEC-021 执法（Python 侧未对齐——PR-120 次因①）"
+    },
+    {
+      "id": "service-scope-proof",
+      "side": "node",
+      "file": "server/shared/vault-id.cjs",
+      "lines": "17",
+      "variables": [
+        "API_BASE"
+      ],
+      "note": "computeVaultId(vaultPath)，/api/health 已回 vaultId（server/main.cjs:370 起）——服务端作用域证明原语现成，e2e 守卫尚未消费"
+    },
+    {
+      "id": "merge-inferred-trajectory-dir",
+      "side": "python",
+      "file": "scripts/vault-py/pipeline/merge-inferred.py",
+      "lines": "143-157",
+      "variables": [
+        "PIPELINE_TRAJECTORIES_DIR"
+      ],
+      "note": "波2（V01）：env ＞ ARCH_REPO/data/governance ＞ RuntimeError；词表锚同批改走 theschema_dir 阶梯；外层 D5 fail-open 包装不变。PR-213 改道：RuntimeError 位于 _append_trajectory 的 try 内、被 except Exception 收成 stderr 警告（不阻断）——运行期后果实测为档③「静默警告」而非硬失败，探针道不再冒充 fail-closed，处置署名入 write_fallback_exceptions（register=PR-213）"
+    },
+    {
+      "id": "relation-expectations-rules-root",
+      "side": "python",
+      "file": "scripts/vault-py/rules/validate-relation-expectations.py",
+      "lines": "18-31",
+      "variables": [
+        "PIPELINE_RULES_DIR"
+      ],
+      "note": "波2（V02）：env ＞ ARCH_REPO ＞ RuntimeError；懒解析——运行时通道不触根",
+      "probe": {
+        "file": "scripts/vault-py/rules/validate-relation-expectations.py",
+        "contains": "规则资产根未解析"
+      }
+    },
+    {
+      "id": "vocab-envelope-materializer",
+      "side": "node",
+      "file": "server/shared/vocab-envelope-materializer.cjs",
+      "lines": "15-25",
+      "variables": [
+        "VOCAB_ENVELOPE_PATH"
+      ],
+      "note": "WP-049 L3 信封物化器（Node 装载入口产出→运行时槽；WP-069 入 resolver 册——variables.resolver 引用闭合）"
+    },
+    {
+      "id": "doc-envelope-materializer",
+      "side": "node",
+      "file": "server/shared/doc-envelope-materializer.cjs",
+      "lines": "15-25",
+      "variables": [
+        "DOC_ENVELOPE_PATH"
+      ],
+      "note": "WP-117 批2 文档信封物化器（Node 文档装载入口产出→运行时槽；variables.resolver 引用闭合）"
+    },
+    {
+      "id": "mirror-scope-resolve",
+      "side": "node",
+      "file": "server/shared/mirror-scope.cjs",
+      "lines": "40-54",
+      "variables": [
+        "DECISIONS_MIRROR_DIR"
+      ],
+      "note": "WP-076 收 V03：镜像落点＝钉扎＞登记真库确认＞拒；同族形状先例 V01",
+      "probe": {
+        "file": "server/shared/mirror-scope.cjs",
+        "contains": "MIRROR_SCOPE_UNRESOLVED"
+      }
+    },
+    {
+      "id": "observations-path-resolve",
+      "side": "node",
+      "file": "scripts/quality/shared/observations-path.mjs",
+      "lines": "21-25",
+      "variables": [
+        "TAXONOMY_OBSERVATIONS_FILE"
+      ],
+      "note": "WP-076 收 V04：仅认显式钉扎；调用方 check-taxonomy-growth 的 fail-open 包装不变（痕迹非执法项）",
+      "probe": {
+        "file": "scripts/quality/shared/observations-path.mjs",
+        "contains": "OBSERVATIONS_SCOPE_UNRESOLVED"
+      }
+    },
+    {
+      "id": "mirror-scope-vault-authority",
+      "side": "node",
+      "file": "server/shared/mirror-scope.cjs",
+      "lines": "23-29",
+      "variables": [
+        "VAULT_PATH"
+      ],
+      "note": "WP-076——仅作镜像归属确认（.env 登记值＞env＞null 即拒），不另立生产根：服务运行期根仍由 server-main-vault（main.cjs:35-39 缺即启动即错）决定。先例＝KB_DATA_DIR 亦为 node/python 两解析器并登记（variables.resolver 记主口，resolvers 列全集）",
+      "probe": {
+        "file": "server/shared/mirror-scope.cjs",
+        "contains": "MIRROR_SCOPE_UNRESOLVED"
+      }
+    }
+  ],
+  "launch_chains": [
+    {
+      "id": "test-node-runner",
+      "file": "scripts/test-node.mjs",
+      "lines": "107-110,245",
+      "builder": "buildRunnerEnv",
+      "pins": [
+        "KB_DATA_DIR",
+        "DECISIONS_MIRROR_DIR",
+        "PIPELINE_TRAJECTORIES_DIR",
+        "TAXONOMY_OBSERVATIONS_FILE"
+      ],
+      "missing": [],
+      "note": "波4：buildRunnerEnv 写面四钉齐（THESCHEMA_DIR 不盲钉——repo 主源读语义，写面测试自钉；VAULT_PATH 同理不盲钉）"
+    },
+    {
+      "id": "pre-commit-domain-batch",
+      "file": ".githooks/pre-commit",
+      "lines": "71-77",
+      "builder": null,
+      "pins": [
+        "KB_DATA_DIR",
+        "DECISIONS_MIRROR_DIR",
+        "PIPELINE_TRAJECTORIES_DIR",
+        "TAXONOMY_OBSERVATIONS_FILE"
+      ],
+      "missing": [],
+      "note": "波4：mktemp 四钉（同 buildRunnerEnv 写面集）；THESCHEMA_DIR/VAULT_PATH 不盲钉同上"
+    },
+    {
+      "id": "e2e-harness",
+      "file": "scripts/e2e/lib/e2e-env.mjs",
+      "lines": "54-183",
+      "builder": "buildE2EEnv",
+      "pins": [
+        "VAULT_PATH",
+        "KB_VAULT",
+        "KB_DATA_DIR",
+        "PIPELINE_TRAJECTORIES_DIR",
+        "DECISIONS_MIRROR_DIR",
+        "TAXONOMY_OBSERVATIONS_FILE",
+        "THESCHEMA_DIR"
+      ],
+      "missing": [],
+      "note": "PR-120 波1 落地（task/pr120-wave1-e2e-scope）：buildE2EEnv 单一构造器钉全集（e2e-env.mjs:73-100）；requireE2EServiceScope 服务端作用域证明（:105-183，/api/health.vaultId 对账，不等/缺字段/不可达均 fail-closed）"
+    },
+    {
+      "id": "e2e-run-all",
+      "file": "scripts/e2e/run-all-e2e.mjs",
+      "lines": "18,129-132,157-167",
+      "builder": null,
+      "pins": [],
+      "missing": [],
+      "note": "PR-120 波1：默认自起受控栈（e2e-server.mjs startE2EStack——API＋Vite 免费端口，env 经 buildE2EEnv）；E2E_EXTERNAL_SERVER=1 外部形态仍强制作用域证明；六流头部各自再证一次（单流直跑同守）；零脏终检（宿主仓 data/＋真库 drafts 跑前后对账，不等计失败）"
+    },
+    {
+      "id": "pipeline-spawn",
+      "file": "server/services/pipeline/pipeline-run-service.cjs",
+      "lines": "174-196",
+      "builder": null,
+      "pins": [
+        "KB_VAULT",
+        "ARCH_REPO",
+        "KB_DATA_DIR",
+        "VOCAB_ENVELOPE_PATH"
+      ],
+      "missing": [],
+      "note": "波2/波4 复核：ARCH_REPO 覆盖 trajectories 与 pipeline-rules 两写面（写者读 ARCH_REPO）；THESCHEMA_DIR 走登记阶梯（vault 窗口＞仓内主源＝SPEC-023 登记回落，gen-system-components 为登记写者）；无未钉写面｜WP-069 §3.1：env 全集经唯一构造器 buildVaultRuntimeEnv（信封随构造物化；153 行显式物化保留为转 running 前 fail-closed 闸）"
+    },
+    {
+      "id": "dev",
+      "file": "scripts/dev.mjs",
+      "lines": "19",
+      "builder": null,
+      "pins": [
+        "VAULT_PATH"
+      ],
+      "missing": [],
+      "note": "从 .env 回填 VAULT_PATH（first-run.mjs:29-30 同款）；生产形态，不属测试作用域问题"
+    },
+    {
+      "id": "version-registry-projector",
+      "file": "server/services/pipeline/version-registry-service.cjs",
+      "lines": "82-95",
+      "builder": "execVaultRuntimeScript",
+      "pins": [
+        "KB_VAULT",
+        "ARCH_REPO",
+        "KB_DATA_DIR",
+        "VOCAB_ENVELOPE_PATH"
+      ],
+      "missing": [],
+      "note": "WP-069：冻结链真实拉起（generate-sa.py --json）——env 全集经唯一构造器；2026-11-01 死链（漏信封＋漏 data dir）回归固化"
+    },
+    {
+      "id": "article-workflow-promote",
+      "file": "server/services/article-workflow/article-draft-workflow.cjs",
+      "lines": "189-196",
+      "builder": "execVaultRuntimeScript",
+      "pins": [
+        "KB_VAULT",
+        "VOCAB_ENVELOPE_PATH"
+      ],
+      "missing": [],
+      "note": "WP-069：文章提升拉起（promote-article.py）——信封随拉起物化（WP-049 L3）"
+    },
+    {
+      "id": "article-workflow-validator",
+      "file": "server/services/article-workflow/article-draft-workflow.cjs",
+      "lines": "155-166",
+      "builder": "execVaultRuntimeScript",
+      "pins": [
+        "KB_VAULT"
+      ],
+      "missing": [],
+      "note": "WP-069：校验器拉起（schema-write-client.mjs，interpreter=node）——Node 走装载端口无需信封"
+    },
+    {
+      "id": "pipeline-due-spawn",
+      "file": "server/services/projection/pipeline-due-service.cjs",
+      "lines": "24-40",
+      "builder": "execVaultRuntimeScript",
+      "pins": [
+        "KB_VAULT",
+        "KB_DATA_DIR",
+        "VOCAB_ENVELOPE_PATH"
+      ],
+      "missing": [],
+      "note": "WP-069：到期巡检拉起（extract_graph.py/pipeline_due.py，family=vault-py-graph）——extract 消费信封；旧 ROOT/.. 静默猜库回落移除"
+    }
+  ],
+  "violations": [
+    {
+      "id": "V01",
+      "kind": "hardcoded_repo_path",
+      "file": "scripts/vault-py/pipeline/merge-inferred.py",
+      "lines": "143-147,155-167",
+      "variable": "PIPELINE_TRAJECTORIES_DIR",
+      "detail": "_trajectory_dir 与词表锚均以 __file__.resolve().parents[3] 硬拼服务所在仓；唯一重定向口 PIPELINE_TRAJECTORIES_DIR 全部起链无人供给",
+      "register": [
+        "PR-120",
+        "PR-121"
+      ],
+      "resolved_in": "波2（task/runtime-scope-wave2）：_trajectory_dir 改登记解析链（env＞ARCH_REPO＞fail-closed）＋词表锚接 theschema_dir；测试 test_merge_inferred_trajectory.py（链三态＋fail-open 零写入）",
+      "ban": ".parents[3]",
+      "probe_reason": "V01：轨迹落点/词表锚不得再按脚本位置硬拼"
+    },
+    {
+      "id": "V02",
+      "kind": "hardcoded_repo_path",
+      "file": "scripts/vault-py/rules/validate-relation-expectations.py",
+      "lines": "23,74",
+      "variable": null,
+      "detail": "规则资产根无任何环境变量，硬拼 parents[3]/data/governance/pipeline-rules；--consume 直写仓内",
+      "register": [
+        "PR-121"
+      ],
+      "resolved_in": "波2：_resolve_rules_root 同链懒解析（env＞ARCH_REPO＞fail-closed）；运行时通道不触根；测试 test_runtime_scope_writers.py",
+      "ban": ".parents[3]",
+      "probe_reason": "V02：规则资产根不得再按脚本位置硬拼"
+    },
+    {
+      "id": "V03",
+      "kind": "default_repo_fallback",
+      "file": "server/shared/mirror-scope.cjs",
+      "lines": "40-54",
+      "variable": "DECISIONS_MIRROR_DIR",
+      "detail": "原形态：变量缺席即按 __dirname 拼 ROOT/data/governance 写真账面——隔离靠每个测试文件头自钉（加固批 a620c2a5），漏一件即复发（b3-fresh-validation-receipt.test.cjs 裸跑实测把镜像 41→1 行）",
+      "register": [
+        "PR-121"
+      ],
+      "resolved_in": "WP-076（2026-11-03，Master 批准「按 V01 形状收口，同批带上 V04」）：落点解析搬进登记解析器 mirror-scope.cjs——钉扎＞登记真库确认＞throw；decisions-mirror.cjs 不再自拼住址（EXEMPT 豁免同批摘除，env_reads_allow 条目同批摘——棘轮只减不增）。PR-121 当时只做了「写者登记」半刀并把这条记成「登记回落＝合规」，与规则 no_implicit_fallback_on_write 相互矛盾——本批按上游规则收，PR-203 记覆盖关系"
+    },
+    {
+      "id": "V04",
+      "kind": "default_repo_fallback",
+      "file": "scripts/quality/shared/observations-path.mjs",
+      "lines": "21-25",
+      "variable": "TAXONOMY_OBSERVATIONS_FILE",
+      "detail": "原 detail 称「无起链钉」与 launch_chains 四条链 pins 实况不符（四链均已钉 TAXONOMY_OBSERVATIONS_FILE）——真实缺口是写者自拼仓根回落，且回落住址在 .gitignore:/data/* 内，写成功零可见",
+      "register": [
+        "PR-121"
+      ],
+      "resolved_in": "WP-076：登记解析器 observations-path.mjs（仅认显式钉扎，缺席 throw）；check-taxonomy-growth 改吃解析器，外层 fail-open 包装不变（落不了账只 WARN，不阻断门禁——痕迹非执法项先例）；V04 detail 同步校正"
+    },
+    {
+      "id": "V05",
+      "kind": "empty_string_fallback",
+      "file": "scripts/vault-py/graph/extract_graph.py",
+      "lines": "2418",
+      "variable": "KB_DATA_DIR",
+      "detail": "os.environ.get('KB_DATA_DIR','') 空串拼接→master_graph.db 路径随 cwd 漂移；应改经 kb_paths.data_dir()（同文件其余写点已经此解析器）",
+      "register": [
+        "PR-120"
+      ],
+      "resolved_in": "波2：_populate_document_index 改经 kb_paths.data_dir()（空串回落消灭）；测试 test_runtime_scope_writers.py（缺席 RuntimeError／钉定目录落库）",
+      "ban": "os.environ.get(\"KB_DATA_DIR\", \"\")",
+      "probe_reason": "V05：master_graph.db 不得空串回落"
+    },
+    {
+      "id": "V07",
+      "kind": "implicit_fallback_on_write",
+      "file": "scripts/vault-runtime/kb_paths.py",
+      "lines": "89-105",
+      "variable": "THESCHEMA_DIR",
+      "detail": "theschema_dir 阶梯对写侧无 fail-closed 分支——SPEC-021 禁令 Python 侧未对齐。波2 复核：阶梯第三级＝SPEC-023 迁仓后仓内主源（登记回落非猜测）；写侧 fail-closed 执法归波4 反向扫描门禁",
+      "register": [
+        "PR-120"
+      ],
+      "resolved_in": "波4 复核结案：阶梯第三级＝SPEC-023 仓内主源（登记回落非猜测，契约 variables.THESCHEMA_DIR.fallback 在册）；写者 gen-system-components 已登记（V06）＋门禁 check:runtime-scope ②面扫新增 parents[N] 硬拼——写侧新违约零可见缺口闭合"
+    },
+    {
+      "id": "V08",
+      "kind": "default_endpoint_no_scope_proof",
+      "file": "scripts/e2e/article-upload-standardize-flow.spec.mjs",
+      "lines": "17",
+      "variable": "API_BASE",
+      "detail": "六流同款（dashboard:16／schema:16／review:16／entity:23）默认 http://127.0.0.1:18083——常驻 dev 服务在听即搭真库；守卫不取 /api/health.vaultId 对账",
+      "register": [
+        "PR-120"
+      ],
+      "resolved_in": "PR-120 波1（task/pr120-wave1-e2e-scope）：六流头部 requireE2EServiceScope 对 /api/health.vaultId 对账，非本 fixture 即拒跑——对常驻 18083 实测拒（先红）；run-all 默认自起栈不搭常驻端口"
+    },
+    {
+      "id": "V09",
+      "kind": "launch_pins_subset",
+      "file": "server/services/pipeline/pipeline-run-service.cjs",
+      "lines": "178-182",
+      "variable": null,
+      "detail": "spawn 只钉 KB_VAULT/ARCH_REPO/KB_DATA_DIR，THESCHEMA_DIR/PIPELINE_TRAJECTORIES_DIR 缺席——管线写面随服务宿主树。波1 注：e2e 自起栈场景经 process.env 继承已覆盖（栈 env 钉全集后 spawn 继承）；dev/prod 起链显式钉仍待波2",
+      "register": [
+        "PR-120"
+      ],
+      "resolved_in": "波2（写者改读 ARCH_REPO——spawn 白名单已传）＋波4（契约起链行 missing 清零，③面对账钉 KB_VAULT/ARCH_REPO/KB_DATA_DIR）；THESCHEMA_DIR 登记阶梯覆盖"
+    },
+    {
+      "id": "V10",
+      "kind": "launch_pins_subset",
+      "file": "scripts/e2e/lib/e2e-env.mjs",
+      "lines": "50-55",
+      "variable": null,
+      "detail": "ensureE2EDataDir 只钉 KB_DATA_DIR；requireE2EVault 只校验脚本自身 VAULT_PATH",
+      "register": [
+        "PR-120"
+      ],
+      "resolved_in": "PR-120 波1：ensureE2EDataDir 升级为 buildE2EEnv 钉七变量全集＋服务端作用域证明＋零脏终检"
+    },
+    {
+      "id": "V11",
+      "kind": "registered_writer_outside_gateway",
+      "file": "scripts/quality/project-resolved-domains.mjs",
+      "lines": "100",
+      "variable": "THESCHEMA_DIR",
+      "detail": "已登记写者 fs 直写不走 repoWrite 目的地执法（project-frontmatter-schema.mjs:126 同款）——登记合规、网关外灰区",
+      "register": [
+        "PR-122"
+      ],
+      "resolved_in": "波3：project-resolved-domains.mjs/project-frontmatter-schema.mjs 投影写改经 repoWrite 目的地执法（data/theschema 或 THESCHEMA_DIR 钉扎领地外即拒）；测试改显式钉扎（隐式 vault 窗口写被 SPEC-021 拦截＝预期）"
+    }
+  ],
+  "write_primitive_allow": [
+    {
+      "file": "scripts/dev-log/fold-progress.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/e2e/lib/build-e2e-vault.mjs",
+      "side": "node",
+      "reason": "e2e 基建（作用域经 buildE2EEnv＋服务端作用域证明钉死）"
+    },
+    {
+      "file": "scripts/e2e/run-all-e2e.mjs",
+      "side": "node",
+      "reason": "e2e 基建（作用域经 buildE2EEnv＋服务端作用域证明钉死）"
+    },
+    {
+      "file": "scripts/migrate-theschema-to-repo.mjs",
+      "side": "node",
+      "reason": "一次性迁移件（SPEC-023 历史工具）"
+    },
+    {
+      "file": "scripts/ops/reconcile-status-domain.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/problem-board/generate-board.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/check-rules-lifecycle.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/check-runtime-scope.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/check-taxonomy-growth.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/check-ui-kit.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/check-defect-shapes.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写＝显式 --write 重算缺陷形状族的实例指纹基线 contracts/defect-shapes-baseline.json，同 check-ui-kit 先例；CI 不带 --write 即只读）"
+    },
+    {
+      "file": "scripts/quality/check-vocab-load-port.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写＝显式 --write 重算词表装载存量豁免基线 contracts/vocab-load-baseline.json；该基线此前是本文件内的手抄 map，WP-084 按 check-ui-kit 先例改为生成物，CI 不带 --write 即只读）"
+    },
+    {
+      "file": "scripts/quality/check-vault-write-destinations.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/confidence-calibration-report.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/dev-log-merge-driver.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/dev-log/project-to-vault.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/wp-derive.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/quality/wp-start.mjs",
+      "side": "node",
+      "reason": "派生投影/工具产物（写=commit 面；test-results/tmp）"
+    },
+    {
+      "file": "scripts/vault-init.mjs",
+      "side": "node",
+      "reason": "建库工具（WP-021 首启建 vault 骨架）"
+    },
+    {
+      "file": "scripts/vault-py/graph/extract_graph.py",
+      "side": "python",
+      "reason": "管线写者（作用域经登记解析器；原语随触碰迁 write_gateway）"
+    },
+    {
+      "file": "scripts/vault-py/pipeline/validate-document-index.py",
+      "side": "python",
+      "reason": "sqlite 只读校验（mode=ro URI——非写者；connect 仅为原语形态命中，读面豁免）"
+    },
+    {
+      "file": "scripts/vault-runtime/_runtime_state_db.py",
+      "side": "python",
+      "reason": "Python 状态库网关（runtime-state SQL 单源）"
+    },
+    {
+      "file": "scripts/vault-runtime/article-validator-lib.cjs",
+      "side": "node",
+      "reason": "校验暂存写（存量；随触碰迁通道）"
+    },
+    {
+      "file": "scripts/vault-runtime/write_gateway.py",
+      "side": "python",
+      "reason": "Python 写网关本体（波5 立——原语收口点）"
+    },
+    {
+      "file": "server/shared/decisions-mirror.cjs",
+      "side": "node",
+      "reason": "登记写者（pipeline-governance-data.writers 在册；DECISIONS_MIRROR_DIR 注入）"
+    },
+    {
+      "file": "server/shared/dev-log.cjs",
+      "side": "node",
+      "reason": "网关/通道本体（登记解析器与写通道所在）"
+    },
+    {
+      "file": "server/shared/persistence/backup-store.cjs",
+      "side": "node",
+      "reason": "网关/通道本体（登记解析器与写通道所在）"
+    },
+    {
+      "file": "server/shared/persistence/runtime-state-import.cjs",
+      "side": "node",
+      "reason": "网关/通道本体（登记解析器与写通道所在）"
+    },
+    {
+      "file": "server/shared/persistence/state-journal.cjs",
+      "side": "node",
+      "reason": "网关/通道本体（登记解析器与写通道所在）"
+    },
+    {
+      "file": "server/shared/releases-dir.cjs",
+      "side": "node",
+      "reason": "网关/通道本体（登记解析器与写通道所在）"
+    },
+    {
+      "file": "server/shared/repo-file-io.cjs",
+      "side": "node",
+      "reason": "网关/通道本体（登记解析器与写通道所在）"
+    },
+    {
+      "file": "server/shared/repo-schema-io.cjs",
+      "side": "node",
+      "reason": "网关/通道本体（登记解析器与写通道所在）"
+    },
+    {
+      "file": "server/shared/vault-io.cjs",
+      "side": "node",
+      "reason": "网关/通道本体（登记解析器与写通道所在）"
+    },
+    {
+      "file": "scripts/quality/gen-error-registry.mjs",
+      "side": "node",
+      "reason": "PR-158 出生即账生成器：扫抛点真身产出 error-registry.generated.cjs（确定性派生物，仓内 commit 面）——副本→计算第一律的生成面，与 fold-progress/gates-fold 同类"
+    },
+    {
+      "file": "server/shared/vocab-envelope-materializer.cjs",
+      "side": "node",
+      "reason": "词表信封＝Node→Python 拉起点物化的运行时态工件（每次拉起重写、不入 git、ADR-016 §四-2 同宿主裁决交付面；WP-049 L3）"
+    },
+    {
+      "file": "scripts/vault-runtime/dump-vocab-envelope.mjs",
+      "side": "node",
+      "reason": "派生工件 CLI（词表信封手工物化面，同 fold-progress 工具产物族；WP-049 L3）"
+    },
+    {
+      "file": "scripts/vault-runtime/dump-doc-envelope.mjs",
+      "side": "node",
+      "reason": "派生工件 CLI（文档信封手工物化面，dump-vocab-envelope 同款工具产物族；WP-117 批2）"
+    },
+    {
+      "file": "scripts/generate-ontology-registry.mjs",
+      "side": "node",
+      "reason": "派生工件生成器（前端本体注册表——生成物即收据；数据单源 TheSchema 经装载端口读取，WP-049 余量批恢复在册生成器）"
+    },
+    {
+      "file": "server/services/release-governance/release-publisher-service.cjs",
+      "side": "node",
+      "reason": "release-artifact-data 数据域唯一写者（WP-069 S3 一表一主）：审计 JSONL 追加（publish-failures.jsonl，0o600）——.releases/ 住 vault 外，vault-io 通道不覆盖，appendFileSync 为该域登记写原语位（指针/清单经 repo-file-io 原子通道）"
+    },
+    {
+      "file": "server/shared/human-edit-guard.cjs",
+      "reason": "WP-015/SPEC-029 裁决门自体：机器基线侧账（.machine-write-baseline.json）写后登记与播种——guard 是 write_primitive 闭集的机制内记账者，非内容写点（页面内容写仍全部经 vault-io/write_gateway 咽喉）；撤此登记即裁决门无法记账（PR-210 同款 allow 清单语义）",
+      "side": "node"
+    },
+    {
+      "file": "scripts/vault-runtime/human_edit_guard.py",
+      "reason": "同上——Python 侧同判据同侧账（跨语言单源＝侧账文件本身）；两件对称登记",
+      "side": "python"
+    },
+    {
+      "file": "scripts/e2e/entity-compliance-repair-flow.spec.mjs",
+      "side": "node",
+      "reason": "WP-096/PR-233 试点平行件——e2e 基建同款（造数自清理/配置；作用域经 globalSetup 三守卫钉死：requireE2EVault＋双通道服务端作用域证明＋契约锚定）"
+    },
+    {
+      "file": "server/services/governance/vault-watcher-service.cjs",
+      "side": "node",
+      "reason": "外部编辑自动更新哈希元数据，仅修改frontmatter，不碰正文，属于监听通道合法写"
+    },
+    {
+      "file": "scripts/vault-runtime/migrate-readable-paths.cjs",
+      "side": "node",
+      "reason": "一次性迁移工具，用户显式执行，作用域限定在正式文件目录，不碰其他数据"
+    },
+    {
+      "file": "scripts/quality/dev-log/gate-health.mjs",
+      "side": "node",
+      "reason": "派生投影写者（WP-124/126：健康度读数覆盖写 docs/dev-log/gate-health.md，写=commit 面）——与 fold-progress.mjs 同形态"
+    },
+    {
+      "file": "scripts/quality/check-knip.mjs",
+      "side": "node",
+      "reason": "基线棘轮写者（WP-126 T1：覆盖写 contracts/knip-baseline.json，写=commit 面）——merge 时与 main 侧改动冲突丢失，2026-11-06 补登记"
+    },
+    {
+      "file": "scripts/quality/gen-readiness-required.mjs",
+      "side": "node",
+      "reason": "投影生成器（WP-133：覆盖写 contracts/entity-readiness-rules.json required 段，写=commit 面；pre-commit theschema_touched 块接线）"
+    },
+    {
+      "file": "scripts/quality/gen-value-domains.mjs",
+      "side": "node",
+      "reason": "投影生成器（WP-133 子项①：三机值域定点替换写 contracts/http-api.openapi.json 三个 enum 段，写=commit 面——gen-readiness-required 同形态；显式 --write 才写、写前写后双对账〔锚唯一＋写后内容级全等〕，CI/derivation-sync 只跑 --check 只读）"
+    },
+    {
+      "file": "scripts/quality/gen-ui-stat-provenance.mjs",
+      "side": "node",
+      "reason": "投影生成器（WP-136 b：覆盖写 contracts/ui-stat-provenance.json 的 views[].sourceApis 派生段，写=commit 面）——人写规范半 apiSources（视图↔api 模块#导出函数），机器派生描述半端点清单，手抄面退役；gen-value-domains／gen-readiness-required 同形态先例。缺省即写入、--check 只比对不写（派生纳保由 check:derivation-sync 经 reuse-domains 行 generator 调用）。"
+    }
+  ],
+  "spawn_sites_allow": [
+    {
+      "file": "server/shared/async-exec.cjs",
+      "reason": "exec 引擎本体（唯一 execFile 原语位——唯一拉起点 vault-runtime-spawn 的底座；PR-056）"
+    },
+    {
+      "file": "server/services/pipeline/python-bridge.cjs",
+      "reason": "流式拉起机制本体（pipeline-runner 长进程行协议＋AbortSignal——spawn 原语唯一另一合法位；env 经 buildVaultRuntimeEnv）"
+    },
+    {
+      "file": "server/services/governance/vault-git-ledger.cjs",
+      "reason": "vault git 台账通道（git 账本读写本体——审批落账/漂移恢复；VAULT_GIT_LEDGER 设计开关）"
+    },
+    {
+      "file": "server/services/governance/vault-reconcile-service.cjs",
+      "reason": "vault git 对账（reconcile 读 git 历史——台账完整性对账本体）"
+    },
+    {
+      "file": "server/services/pipeline/obsidian-open-service.cjs",
+      "reason": "打开库动作（spawn open/Obsidian 桌面应用——用户显式触发的进程外动作，非 KB 运行时拉起）"
+    },
+    {
+      "file": "server/services/release-governance/approval-state-machine-assembly.cjs",
+      "reason": "vaultHead 源提交锚（git rev-parse——铸版 sourceCommit 锚定；发布链读面）"
+    },
+    {
+      "file": "server/shared/repo-schema-io.cjs",
+      "reason": "repo 契约写通道 git 落账（SPEC-023 波3——repoWrite 提交面）"
+    },
+    {
+      "file": "server/shared/vault-io.cjs",
+      "reason": "vault git 台账底层（git 账本 append——vault-io 写通道的 git 面）"
+    },
+    {
+      "file": "scripts/vault-runtime/article-validator-lib.cjs",
+      "reason": "校验章随写重算的 git 面（WP-044 机制模式④）：execFileSync 只调 git（源哈希/提交锚取证，349/359 行）；Python 校验器已随 SPEC-022 波 C 退役——非 KB 运行时 Python 拉起（红队 2026-11-02 核实改写）"
+    }
+  ],
+  "env_reads_allow": [
+    {
+      "file": "server/shared/vault-runtime-spawn.cjs",
+      "vars": [
+        "KB_DATA_DIR"
+      ],
+      "reason": "唯一拉起点：部署覆盖读回退（extraEnv 显式值＞process.env＞仓内 data 回落——SPEC-012 WP-A 语义）"
+    },
+    {
+      "file": "server/main.cjs",
+      "vars": [
+        "KB_DATA_DIR"
+      ],
+      "reason": "装配根：dataDir 引导注入（telemetry/派生库住址——装配态消费非写者）"
+    },
+    {
+      "file": "server/shared/releases-dir.cjs",
+      "vars": [
+        "VAULT_PATH"
+      ],
+      "reason": "resolver 本体（RELEASES_DIR＞vault 同级 .releases/ 唯一解析点——WP-023/PR-127；VAULT_PATH 为默认推导输入）"
+    },
+    {
+      "file": "server/shared/json-logger.cjs",
+      "vars": [
+        "VAULT_PATH"
+      ],
+      "reason": "日志落点 per-vault 推导（观测④类写面——非作用域解析）"
+    },
+    {
+      "file": "server/routes/entity-compliance-routes.cjs",
+      "vars": [
+        "VAULT_PATH"
+      ],
+      "reason": "路由装配态读 vault 锚（单文件消费——resolver 化待治理波次，登记入镜头）"
+    },
+    {
+      "file": "server/services/schema-profiling/matrix-candidates.cjs",
+      "vars": [
+        "TAXONOMY_OBSERVATIONS_FILE"
+      ],
+      "reason": "观测文件住址消费（test-node 起链钉注入的登记变量——服务侧读取面）"
+    },
+    {
+      "file": "server/shared/repo-schema-io.cjs",
+      "vars": [
+        "THESCHEMA_DIR"
+      ],
+      "reason": "repo 契约写通道对账读（SPEC-023 波3——TheSchema 主源住址对账）"
+    }
+  ],
+  "write_fallback_exceptions": [
+    {
+      "variable": "KB_VAULT",
+      "resolver": "kb-paths-vault-roots",
+      "departs_from": [
+        "no_implicit_fallback_on_write"
+      ],
+      "reason": "Python 侧 kb_paths.vault_roots 带「知识库」目录存在性校验——回落在解析器内有谓词，非按位置裸猜（第二刀已落：fail_closed 手抄位随 WP-082 全删，回落与缺席即拒由登记解析器实现＋probe 静态可核承担）",
+      "register": "PR-121"
+    },
+    {
+      "variable": "KB_DATA_DIR",
+      "resolver": "data-dir-resolve",
+      "departs_from": [
+        "no_implicit_fallback_on_write"
+      ],
+      "reason": "Node 侧 REPO_ROOT/data＝persistence 层生产设计住址（SPEC-012 分层终态），非「猜错仓库」；起链须钉（③面对账在册）（第二刀已落：fail_closed 手抄位随 WP-082 全删，回落与缺席即拒由登记解析器实现＋probe 静态可核承担）",
+      "register": "PR-116"
+    },
+    {
+      "variable": "THESCHEMA_DIR",
+      "resolver": "theschema-root-resolve",
+      "departs_from": [
+        "no_implicit_fallback_on_write"
+      ],
+      "reason": "三级阶梯＝SPEC-023 登记回落（env ＞ vault 侧 知识库/TheSchema ＞ 仓内 data/theschema），第三级为设计内主源；写面另有 repoWrite 目的地执法兜底（WP-075 咽喉）（第二刀已落：fail_closed 手抄位随 WP-082 全删，回落与缺席即拒由登记解析器实现＋probe 静态可核承担）",
+      "register": "PR-122"
+    },
+    {
+      "variable": "API_BASE",
+      "resolver": "service-scope-proof",
+      "departs_from": [
+        "no_implicit_fallback_on_write"
+      ],
+      "reason": "服务作用域证明面（V08/PR-120）——缺省端点风险由 /api/health.vaultId 对账兜住，非靠 fail-closed；例外登记同时保留默认值以不阻断本地开发（第二刀已落：fail_closed 手抄位随 WP-082 全删，回落与缺席即拒由登记解析器实现＋probe 静态可核承担）",
+      "register": "PR-120"
+    },
+    {
+      "variable": "PIPELINE_TRAJECTORIES_DIR",
+      "resolver": "merge-inferred-trajectory-dir",
+      "departs_from": [
+        "no_implicit_fallback_on_write"
+      ],
+      "reason": "运行期后果实测档③（PR-213 三档分法）：缺席时 _trajectory_dir 的 RuntimeError 位于 _append_trajectory 的 try 内，被 except Exception 收成 stderr「⚠️ 轨迹写入失败（不阻断）」一行、主链路继续——「轨迹失败不阻断」是 SPEC-025 C5（D5）已裁定的登记回落，非隐式；探针道只证报错原文存在、不证运行期阻断，不该冒充 fail-closed 证据，故改署名例外道（fallback 字段同步改真话）",
+      "register": "PR-213"
+    }
+  ],
+  "rule_implementations": {
+    "single_resolver": [
+      {
+        "file": "scripts/quality/check-runtime-scope.mjs",
+        "note": "②面反向扫描拦自拼路径；⑧面双向对账拦「有变量无解析器」与字段漂移"
+      },
+      {
+        "file": "server/shared/theschema-root.cjs",
+        "note": "登记解析器本体（三级阶梯单点，含 THESCHEMA_REPO_FALLBACK_DIR 沙箱注入口）"
+      }
+    ],
+    "no_implicit_fallback_on_write": [
+      {
+        "file": "scripts/quality/check-runtime-scope.mjs",
+        "note": "⑨面：写敏感变量须有可核 probe 或署名例外；废字段 fail_closed 回潮即红（PR-207 立／PR-211 换形）"
+      },
+      {
+        "file": "server/shared/mirror-scope.cjs",
+        "note": "实现侧示范：三档皆不成立即抛 MirrorScopeError（不静默回落）"
+      }
+    ],
+    "launch_pins_full_set": [
+      {
+        "file": "scripts/quality/check-runtime-scope.mjs",
+        "note": "③面按 WRITE_PINS_REQUIRED 对账各起链钉面；未知起链即红"
+      },
+      {
+        "file": "scripts/e2e/lib/e2e-env.mjs",
+        "note": "buildE2EEnv 单一构造器钉写面全集（缺省临时目录），e2e 零脏终检另守"
+      }
+    ],
+    "service_scope_proof": [
+      {
+        "file": "server/shared/vault-id.cjs",
+        "note": "computeVaultId——服务端作用域证明原语（/api/health.vaultId 出）"
+      },
+      {
+        "file": "scripts/e2e/lib/e2e-env.mjs",
+        "note": "requireE2EServiceScope：等→过；不等／缺字段／不可达三种 fail-closed 拒跑（V08/PR-120）"
+      }
+    ]
+  }
+}

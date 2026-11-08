@@ -1,0 +1,31 @@
+{
+  "phase": "fixture",
+  "title": "Fixture Phase",
+  "status": "IMPLEMENTED",
+  "authorities": [
+    "docs/adr/ADR009-architecture-relation-capability-matrix.md",
+    "AGENTS.md#规则-6数据管道输出校验"
+  ],
+  "allowedFiles": [
+    "docs/plans/fixture-phase.md",
+    "docs/plans/fixture-phase.acceptance.json"
+  ],
+  "requiredArtifacts": [],
+  "productionConsumers": [],
+  "profiles": ["architecture"],
+  "negativeTests": [
+    {
+      "description": "Invalid status should be rejected",
+      "expectedBehavior": "schema validation fails"
+    }
+  ],
+  "environments": {
+    "requiresRealVault": false,
+    "vaultRealpath": "none",
+    "backupRoot": "none"
+  },
+  "manualCheckpoints": [],
+  "allowedVaultMutations": [],
+  "forbiddenMutations": [],
+  "expectedOutputs": ["fixture output"]
+}

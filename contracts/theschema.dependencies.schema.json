@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseh.local/contracts/theschema.dependencies.schema.json",
+  "title": "dependencies.yaml 形态单一事实源",
+  "description": "知识库 TheSchema/dependencies.yaml（版本范围依赖规则）的顶层结构契约。读侧 dependencies-write-service.cjs（readDependencies/listDependencies）与写侧 schema-write-service.cjs 共用本文件（PR-053）。口径：全严格——形态层只管类型；source/target 非空、版本区间合法性、拓扑边存在性等语义由既有 validateDependencyPayload/validateRules 负责（不重复执法）。注意：真实 vault 起底是 dependencies: []；e2e 夹具历史上的 rules: [] 键名分裂由此 schema 收口终结。",
+  "x-lenientPaths": [],
+  "type": "object",
+  "definitions": {
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "properties": {
+    "dependencies": {
+      "type": "array",
+      "description": "依赖规则表。行级字段类型由此约束；normalizeRule 的缺省补齐（type 默认 DEPENDS_ON、origin 默认 manual、until 空→null）为语义层缺省，不属于形态 coerce。",
+      "items": {
+        "type": "object",
+        "properties": {
+          "source": { "type": "string" },
+          "target": { "type": "string" },
+          "type": { "type": "string" },
+          "since": { "type": "string" },
+          "until": { "type": ["string", "null"] },
+          "origin": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}

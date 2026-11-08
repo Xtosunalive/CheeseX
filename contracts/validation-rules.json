@@ -1,0 +1,144 @@
+{
+  "$comment": "校验规则单源表（SPEC-011 WP6，PR-046 防复发件）。每条规则描述一个 frontmatter 字段的校验语义——不存储枚举值域（值域在 enums.yaml 里，唯一事实源）；存储「校验类型」「规则 id」「字段名」「权威 Node 实现（唯一——SPEC-022 波 C 起 Python 侧退役）」「指纹计算方法」。用途：双侧对账门禁（check:validation-parity）用本表作为「应有什么校验」的事实源，比较 Node 侧与 Python 侧的实现指纹——两侧指纹不一致即门禁红。值域变化由 enums.yaml 管，不改本文件；校验语义变化（新规则、类型变更、字段更名）改本文件并同步两侧实现。",
+  "version": "1.2.0",
+  "updatedAt": "2026-11-09",
+  "rules": [
+    {
+      "id": "A03",
+      "field": "product",
+      "type": "managed-enum",
+      "description": "product 必填，值必须在 enums.yaml products 闭合枚举中",
+      "enumSource": "enums.yaml#products",
+      "nodeImpl": "server/services/article-workflow/article-compliance-service.cjs:managedEnumText",
+      "fingerprint": "managed-enum:product:enums.yaml#products"
+    },
+    {
+      "id": "A05",
+      "field": "module",
+      "type": "enum",
+      "description": "module 必填，值必须在 enums.yaml modules 键集中",
+      "enumSource": "enums.yaml#modules",
+      "nodeImpl": "server/services/article-workflow/article-compliance-service.cjs:enumText",
+      "fingerprint": "enum:module:enums.yaml#modules.keys"
+    },
+    {
+      "id": "A06",
+      "field": "article_type",
+      "type": "enum",
+      "description": "article_type 必填，值必须在 enums.yaml article_types 闭合列表中",
+      "enumSource": "enums.yaml#article_types",
+      "nodeImpl": "server/services/article-workflow/article-compliance-service.cjs:enumText",
+      "fingerprint": "enum:article_type:enums.yaml#article_types"
+    },
+    {
+      "id": "A07",
+      "field": "doc-type",
+      "type": "enum",
+      "description": "doc-type 必填，值必须在 enums.yaml doc_types 闭合列表中",
+      "enumSource": "enums.yaml#doc_types",
+      "nodeImpl": "server/services/article-workflow/article-compliance-service.cjs:enumText",
+      "fingerprint": "enum:doc-type:enums.yaml#doc_types"
+    },
+    {
+      "id": "A08",
+      "field": "category-path",
+      "type": "structured-two-part",
+      "description": "category-path 必填，格式 domain:subdomain——两段均为 enums.yaml 闭合枚举（WP-040 定 A 两段式，topic 段退役）；禁历史排错口径 troubleshoot",
+      "enumSource": "enums.yaml#domains + enums.yaml#subdomains",
+      "formatRegex": "^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$",
+      "bannedValues": [
+        "troubleshoot"
+      ],
+      "nodeImpl": "server/shared/enums-loader.cjs:validateCategoryPath",
+      "fingerprint": "structured-two-part:category-path:domain:subdomain:no-troubleshoot"
+    },
+    {
+      "id": "A09",
+      "field": "tags",
+      "type": "enum-list",
+      "description": "tags 白名单（逐项）——标量或数组逐项查 enums.yaml#tags 派生闭合集（formalTags，剔除 disabled_tags）；缺失跳过；闭合集为空＝无合法 tag，任何值即违规（对齐 WP-155 退役的 validate_tags fail-closed 语义）",
+      "enumSource": "enums.yaml#tags",
+      "required": false,
+      "errorTemplate": "tag 非法：'{value}'（不在分类法白名单中）",
+      "fingerprint": "enum-list:tags:enums.yaml#tags:fail-closed-empty-closure",
+      "nodeImpl": "server/shared/frontmatter-rule-engine.cjs:validateFrontmatter(enum-list)"
+    },
+    {
+      "id": "A10",
+      "field": "status",
+      "type": "enum",
+      "description": "status 闭合枚举（治理状态，缺失跳过——非进门必填）",
+      "enumSource": "enums.yaml#lifecycle.status",
+      "required": false,
+      "errorTemplate": "status 非法：'{value}'（合法值：{values}）",
+      "fingerprint": "enum:status:enums.yaml#lifecycle.status:missing-skip",
+      "nodeImpl": "server/shared/frontmatter-rule-engine.cjs:validateFrontmatter(enum)"
+    },
+    {
+      "id": "A11",
+      "field": "review-cycle",
+      "type": "enum",
+      "description": "review-cycle 闭合枚举（缺失跳过）",
+      "enumSource": "enums.yaml#lifecycle.review_cycle",
+      "required": false,
+      "errorTemplate": "review-cycle 非法：'{value}'（合法值：{values}）",
+      "fingerprint": "enum:review-cycle:enums.yaml#lifecycle.review_cycle:missing-skip",
+      "nodeImpl": "server/shared/frontmatter-rule-engine.cjs:validateFrontmatter(enum)"
+    },
+    {
+      "id": "A12",
+      "field": "date",
+      "type": "required",
+      "description": "date 必填且 YYYY-MM-DD（WP-155 退役的 validate_lifecycle date 段语义等价搬迁）",
+      "formatRegex": "^\\d{4}-\\d{2}-\\d{2}$",
+      "formatHint": "应为 YYYY-MM-DD",
+      "required": true,
+      "fingerprint": "required:date:YYYY-MM-DD",
+      "nodeImpl": "server/shared/frontmatter-rule-engine.cjs:validateFrontmatter(required)"
+    },
+    {
+      "id": "A13",
+      "field": "updated",
+      "type": "required",
+      "description": "updated 必填且 YYYY-MM-DD",
+      "formatRegex": "^\\d{4}-\\d{2}-\\d{2}$",
+      "formatHint": "应为 YYYY-MM-DD",
+      "required": true,
+      "fingerprint": "required:updated:YYYY-MM-DD",
+      "nodeImpl": "server/shared/frontmatter-rule-engine.cjs:validateFrontmatter(required)"
+    },
+    {
+      "id": "A14",
+      "field": "expires",
+      "type": "expiry-date",
+      "description": "expires 选填；出现时须 YYYY-MM-DD 可解析且不早于当前日期（过期即违规——运行时动态判定，对拍用远过期值避边界）",
+      "required": false,
+      "errorTemplate": "expires 格式错误：'{value}'",
+      "expiredTemplate": "文档已过期：expires={value}",
+      "fingerprint": "expiry-date:expires:parse-and-not-past",
+      "nodeImpl": "server/shared/frontmatter-rule-engine.cjs:validateFrontmatter(expiry-date)"
+    },
+    {
+      "id": "A15",
+      "field": "category",
+      "type": "deprecated-field",
+      "description": "废弃字段提示：出现即报，应改用 category-path（WP-155 退役的 validate_deprecated_fields 语义等价搬迁）",
+      "replacement": "category-path",
+      "required": false,
+      "errorTemplate": "废弃字段：'{field}'（应使用 '{replacement}'）",
+      "fingerprint": "deprecated-field:category:replacement=category-path",
+      "nodeImpl": "server/shared/frontmatter-rule-engine.cjs:validateFrontmatter(deprecated-field)"
+    },
+    {
+      "id": "A16",
+      "field": "type",
+      "type": "deprecated-field",
+      "description": "废弃字段提示：出现即报，应改用 doc-type",
+      "replacement": "doc-type",
+      "required": false,
+      "errorTemplate": "废弃字段：'{field}'（应使用 '{replacement}'）",
+      "fingerprint": "deprecated-field:type:replacement=doc-type",
+      "nodeImpl": "server/shared/frontmatter-rule-engine.cjs:validateFrontmatter(deprecated-field)"
+    }
+  ]
+}

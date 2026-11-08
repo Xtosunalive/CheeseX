@@ -1,0 +1,180 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "work-package.schema.json",
+  "title": "Work Package Contract（工作包合同）",
+  "description": "ADR-013 工作包合同制：合同先于写入、义务派生不枚举、检查只认登记、缺口自声明。形态先例＝TALOS session-contract（docs/adr/ADR-013 考察记录）；实例住 docs/work-packages/<package_id>.json（一包一文件，dev-log 先例：schema 在 contracts/、实例在 docs/）。zones 语义校验（∈ 两域表 id ∪ 固定 extras）与义务派生由 scripts/quality/wp-derive.mjs 承担，本 schema 只管形状。",
+  "type": "object",
+  "required": [
+    "$schema",
+    "schema_version",
+    "package_id",
+    "title",
+    "kind",
+    "status",
+    "upstream",
+    "wiring",
+    "in_scope_zones",
+    "in_scope_paths",
+    "non_goals",
+    "deliverables",
+    "acceptance",
+    "validation_commands",
+    "scope_revision",
+    "obligations",
+    "coverage"
+  ],
+  "properties": {
+    "$schema": { "const": "./work-package.schema.json" },
+    "schema_version": { "const": 1 },
+    "package_id": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9]*(-[A-Z0-9-]+)?-[0-9]{3}$",
+      "description": "工作包编号（既有编号习惯，如 EDGE-RELATION-GOV-001；机制包 WP-00N）"
+    },
+    "title": { "type": "string", "minLength": 1 },
+    "kind": {
+      "enum": ["mainline", "support", "audit"],
+      "description": "mainline=主线施工；support=轻量修复（走 dev-log 台账即可的例外不立合同）；audit=复核包——与开发角色分离（AGENTS §四红队复核），audit 不得连续、不得改 in_scope（调度纪律借 TALOS execution_control）"
+    },
+    "phase": {
+      "type": "string",
+      "description": "滚动波浪：本合同覆盖的批（如「阶段 1+2 交付批」）；后续批走 change_request 或另立合同"
+    },
+    "status": {
+      "enum": ["draft", "gated", "approved", "building", "accepted", "merged", "paused"],
+      "description": "draft 起草→gated 双闸字段齐（wiring/domain_mapping 非空）→approved Master 批→building 施工→accepted 验收过→merged 已合并。gated→approved 的跳级＝未批先做，对账红"
+    },
+    "upstream": {
+      "type": "object",
+      "required": ["adr", "spec"],
+      "properties": {
+        "adr": { "type": "array", "items": { "type": "string" }, "description": "权威链：accepted ADR 路径（机制/修复小包可为空数组）" },
+        "spec": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" },
+          "description": "权威链：SPEC 或设计稿路径（含追踪矩阵表头的文件——R6 判据）"
+        },
+        "proposal": { "type": "array", "items": { "type": "string" }, "description": "立案/提案路径（可选）" }
+      }
+    },
+    "wiring": {
+      "type": "object",
+      "required": ["trigger", "logging", "source", "sink"],
+      "description": "设计稿双闸第一闸（接线四问）字段化——缺任一键 schema 不过，即双闸执法",
+      "properties": {
+        "trigger": { "type": "string", "minLength": 1, "description": "怎么触发：挂哪个既有 watcher/boot/钩子" },
+        "logging": { "type": "string", "minLength": 1, "description": "怎么留日志：哪层账（telemetry/审计/⑤类/dev-log）" },
+        "source": { "type": "string", "minLength": 1, "description": "从哪读数据：resolver 链/单一装载器" },
+        "sink": { "type": "string", "minLength": 1, "description": "数据落哪：对照①-⑤类分层，零新库为默认" }
+      },
+      "additionalProperties": false
+    },
+    "domain_mapping": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item", "domain", "action"],
+        "properties": {
+          "item": { "type": "string", "description": "设计件名" },
+          "domain": { "type": "string", "description": "挂的域（登记册键）或「无域可挂」" },
+          "action": { "enum": ["attach", "extend", "open", "none"], "description": "attach=挂既有域内；extend=扩域（须 Master 签收）；open=开新域（须四问走查）；none=无域可挂（首建）" },
+          "reason": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "description": "双闸第二闸（复用域对照）结论行——status 到 gated 前须非空（wp-derive 对账）"
+    },
+    "in_scope_zones": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "触及的登记册辖区键：两域表 id（data-domains/reuse-domains 动态读，不硬编码）∪ 固定 extras（openapi/retired-routes/quality-gates/contracts-core/hooks/ci）——义务派生的输入"
+    },
+    "in_scope_paths": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "写入上限（TALOS 语义：允许≠必要——路径在册不证明每个改动必要）"
+    },
+    "non_goals": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+    "deliverables": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "预期交付物 delta（文件级或能力级）" },
+    "acceptance": {
+      "type": "object",
+      "required": ["criteria", "revision"],
+      "properties": {
+        "criteria": { "type": "array", "items": { "type": "string" }, "minItems": 1, "description": "验收条款（可判定句式：满足则验收通过）" },
+        "revision": { "type": "integer", "minimum": 1, "description": "验收合同修订号——改 criteria 必须提交 change_request 并递增" }
+      },
+      "additionalProperties": false
+    },
+    "pending_decisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "question", "status"],
+        "properties": {
+          "id": { "type": "string" },
+          "question": { "type": "string" },
+          "status": { "enum": ["open", "ruled"] },
+          "ruling": { "type": "string", "description": "status=ruled 时填写裁决内容与日期" }
+        },
+        "additionalProperties": false
+      },
+      "description": "待裁决项显式在场（D1/D2/D3 类）——防擅定；open 项不得阻塞投影类实施但必须登记"
+    },
+    "validation_commands": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "验证命令（引用 quality-gates 键与测试路径，不新造命令语义）"
+    },
+    "change_requests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "reason", "approved_by_master"],
+        "properties": {
+          "id": { "type": "string" },
+          "reason": { "type": "string", "minLength": 1 },
+          "approved_by_master": { "const": true, "description": "批准是 Master 输入的声明——执行器不得自行补造（TALOS 同构）" }
+        },
+        "additionalProperties": false
+      }
+    },
+    "scope_revision": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "范围修订计数——in_scope/non_goals/deliverables 任一变化须提交 change_request 并递增；用过的批准 id 不能二次授权"
+    },
+    "obligations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "rule", "duty", "check", "status"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^R[1-9]-[a-z0-9-]+$", "description": "R<规则号>-<序名>；由 wp-derive 派生填充，禁手写新增" },
+          "rule": { "type": "integer", "minimum": 1, "maximum": 9 },
+          "trigger": { "type": "string", "description": "触发事实（触及了什么）" },
+          "duty": { "type": "string", "description": "义务内容（对应派生规则表的行）" },
+          "check": { "type": "string", "description": "机器可对账的完成判据" },
+          "status": { "enum": ["pending", "fulfilled", "waived"], "description": "waived 须 evidence 写豁免依据（Master 批）" },
+          "evidence": { "type": "string", "description": "了结证据（file:line / 门禁输出 / 提交号）——fulfilled/waived 必填" }
+        },
+        "additionalProperties": false
+      },
+      "description": "义务清单——单调累积（派生只增不减，历史义务保留至 fulfilled）；由 wp-derive 派生与对账"
+    },
+    "coverage": {
+      "type": "object",
+      "required": ["gaps"],
+      "properties": {
+        "gaps": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "机制看不见什么，写在机制里（TALOS coverage 同构）——至少含语义质量/判断类归人两条"
+        },
+        "notes": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

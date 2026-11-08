@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "generatedAt": "2026-07-09T00:00:00.000Z",
+  "nodes": [
+    {
+      "id": "fixture-component",
+      "label": "Fixture Component",
+      "category": "应用组件",
+      "labels": [
+        "ArchitectureComponent"
+      ],
+      "properties": {
+        "architecture_node_id": "fixture-component",
+        "file_path": "知识库/wiki/entities/fixture-component.md"
+      }
+    }
+  ],
+  "connections": []
+}

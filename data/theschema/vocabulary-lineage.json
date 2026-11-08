@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "_comment": "ADR-007 波5 方案B：origin 血缘账本——grown=经发现通道晋升，blueprint=蓝图单方声明（缺省）。只标注不删。",
+  "entries": {
+    "layer": {},
+    "category": {
+      "浏览器验收分类": {
+        "route": "discovery-absorb",
+        "at": "2026-10-12T13:36:50.589Z"
+      }
+    },
+    "subdomain": {
+      "architecture": {
+        "route": "discovery-absorb",
+        "at": "2026-10-09T05:58:25.746Z"
+      }
+    },
+    "module": {},
+    "tag": {
+      "可观测性": {
+        "route": "discovery-absorb",
+        "at": "2026-10-09T05:58:25.736Z"
+      }
+    }
+  }
+}

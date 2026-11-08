@@ -1,0 +1,14 @@
+import type { components, paths } from "@/lib/generated/api-types";
+type ImpactAnalysisOperation = paths["/api/kg/impact-analysis"]["post"];
+type ImpactAnalysisSuccess = ImpactAnalysisOperation["responses"][200]["content"]["application/json"];
+export type ImpactAnalysisRequest = ImpactAnalysisOperation["requestBody"]["content"]["application/json"];
+export type ImpactAnalysisResult = ImpactAnalysisSuccess["data"];
+export type ImpactHopGroup = components["schemas"]["ImpactHopGroup"];
+export type ImpactNode = components["schemas"]["ImpactNode"];
+export type ImpactEdge = components["schemas"]["ImpactEdge"];
+export type ImpactPath = components["schemas"]["ImpactPath"];
+export type ImpactDirection = "downstream" | "upstream" | "both";
+export type InferenceConflict = components["schemas"]["InferenceConflict"];
+export type StructuredInferenceDecision = components["schemas"]["StructuredInferenceDecision"];
+export type ImpactProductVersionList = paths["/api/kg/product-versions"]["get"]["responses"][200]["content"]["application/json"]["data"];
+export type ImpactProductVersion = ImpactProductVersionList["items"][number];

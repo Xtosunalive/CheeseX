@@ -1,0 +1,404 @@
+{
+  "$comment": "TheSchema 数据角色注册表（SPEC-019 建；SPEC-023 波 2 路径改指仓内 data/theschema）——三视角坐标系：role=source（源数据，改它=改事实）/ derived（派生物，可丢弃可重建）。segments.edited_by_tab=配置页页签映射（一行＝一个页签对该段的编辑面；同一段可多行——sub_key 标注页签在段内的编辑范围〔点路径，、分隔多键〕）；segments.status=reserved（预留位：登记在册、物理允许缺失，缺不报）；segments.effective_role=derived-view＋derives_from（段级派生标记：段物理在 source 文件内但语义为派生视图，直改见 PR-087）；referenced_by=引用执法/消费方（门禁 id ⊆ quality-gates.json 键集）。执法：npm run check:data-roles（文件悬空/页签漂移/门禁漂移/生成器在册/孤儿/段覆盖/段存在性 warn/册外领地版图八面对账——孤儿面保证 TheSchema 新文件必须登记；段存在性面对非 reserved 在册键物理缺失只 warn 不 block）；npm run check:derivation-sync（generator≠null 的派生行运行生成器 --check——登记即自动入保）；npm run check:schema-writers（edited_by_tab:null 且非 reserved 的段出现代码直写即红）。页面投影：GET /api/schema/data-roles → 页签层标注条（页面不手写，防漂移）。册外领地角色见 contracts/data-territory.json（只声明不加严）。两轴正交（PR-089 裁决，Master 2026-10-21 采 TALOS file-rules 解法——初建只承 role 两值、未承 writer 轴，流水账之争源于此）：role=性质（source 源数据改它=改事实／derived 派生物可重建／evidence 证据留档只读追溯——history/** 归此）× writer=写法（human 人裁定可改，经页面/API/统一客户端／system 程序写，人不该手改／append-only 只追加账本）——流水账是写法不是性质。执法 check:data-roles 两轴枚举面。形态承 TALOS file-rules×本库 data-domains 行结构。 四轴注记（D1/D2 扩轴，Master 2026-10-23『补』）：role×writer 之上补 persistence（tracked/local-only）×retention（current/project-lifetime/archive/local）——TALOS file-rules 同构；consumers（D3）＝条目级册外消费方声明（category_map 勘误盲区补面）。",
+  "schema_version": 1,
+  "entries": [
+    {
+      "file": "data/theschema/enums.yaml",
+      "role": "source",
+      "writer": "human",
+      "derives": [
+        "词表画像（现算，响应即弃）",
+        "ruleSet 归一词表（内存态）"
+      ],
+      "segments": [
+        {
+          "segment": "subdomain_layer_map",
+          "edited_by_tab": null,
+          "referenced_by": []
+        },
+        {
+          "segment": "category_map",
+          "edited_by_tab": null,
+          "referenced_by": []
+        },
+        {
+          "segment": "lifecycle",
+          "edited_by_tab": null,
+          "referenced_by": [
+            "fields-registry(配方段引用: lifecycle.status/review_cycle/default_status)"
+          ]
+        },
+        {
+          "segment": "layers",
+          "edited_by_tab": "layers",
+          "referenced_by": [
+            "validate-article 统一客户端（arch_layer 值域——SPEC-022 Node 单源）"
+          ]
+        },
+        {
+          "segment": "arch_categories",
+          "edited_by_tab": null,
+          "effective_role": "derived-view",
+          "derives_from": "subdomain_constraints（ADR-006：矩阵唯一权威，arch_categories 为其 allowed_categories 并集的派生视图）。B1=b 已执法（Master 2026-10-23 裁 b，#61 批＋absorb 补漏批兑现）：PUT /api/schema/enums 与 discovery absorb（field=categories）双通道拒收（403 DERIVED_SEGMENT_READ_ONLY）＋categories 页签只读——前态 A5 derivedDirectEdit 回标（仅标注不拦截）就此退役；矩阵落地（B2/PR-093 触发条件）后升级永久只读派生",
+          "referenced_by": [
+            "entity-readiness"
+          ],
+          "note": "；WP-064（Master「B」）：categories 声明宿主解冻与本段分离——勾选框选项源恢复可配置，本段派生冻结维持；页签 categories（面板 id derived-categories-readonly）即本段的只读展示面——2026-11-02 PR-173 账面纠偏时从幽灵行搬来"
+        },
+        {
+          "segment": "subdomain_constraints",
+          "edited_by_tab": "categories",
+          "status": "reserved",
+          "referenced_by": [
+            "entity-readiness"
+          ],
+          "note": "页签 categories 的勾选框选项源即本段 allowed_categories（服务端 enums-routes.cjs:82 把 arch_categories 作为 categories 别名喂前端——物理键只有 arch_categories，故本文件不设 categories 行，2026-11-02 PR-173 账面纠偏）。WP-072：discovery absorb（field=categories）同样走 arch_categories 键映射（SECTION_YAML_KEY_MAP 单源），不写独立 categories 键（曾误写孤儿键被段级守卫 ENUMS_SEGMENT_UNREGISTERED 拦截，已修正）"
+        },
+        {
+          "segment": "domains + subdomains",
+          "edited_by_tab": "domains",
+          "referenced_by": [
+            "validation-parity",
+            "validate-article 统一客户端（category-path——SPEC-022 Node 单源）"
+          ]
+        },
+        {
+          "segment": "domains + subdomains",
+          "sub_key": "subdomains.concept",
+          "edited_by_tab": "concepts",
+          "referenced_by": []
+        },
+        {
+          "segment": "article_types + doc_types + modules",
+          "edited_by_tab": "taxonomy",
+          "referenced_by": [
+            "taxonomy-growth"
+          ]
+        },
+        {
+          "segment": "tags + tag_aliases",
+          "edited_by_tab": "tags",
+          "referenced_by": [
+            "taxonomy-growth"
+          ]
+        },
+        {
+          "segment": "disabled_tags",
+          "edited_by_tab": "tags",
+          "status": "reserved",
+          "referenced_by": [
+            "taxonomy-growth"
+          ]
+        },
+        {
+          "segment": "architecture_projection",
+          "sub_key": "product、product_aliases",
+          "edited_by_tab": "versions",
+          "referenced_by": []
+        },
+        {
+          "segment": "concept_types",
+          "edited_by_tab": null,
+          "status": "reserved",
+          "referenced_by": []
+        }
+      ],
+      "referenced_by": [
+        "schema-writers"
+      ],
+      "persistence": "tracked",
+      "retention": "current",
+      "consumers": [
+        {
+          "name": "vault 图谱管线（extract_graph/validate-entity/validate_graph/pipeline-smoke）",
+          "kind": "vault",
+          "location": "知识库/.claude/scripts/extract_graph.py:395-419（architecture_projection 必填上下文）＋:119-136（category_map 归一）——2026-10-23 实测"
+        }
+      ]
+    },
+    {
+      "file": "data/theschema/fields.yaml",
+      "role": "source",
+      "writer": "human",
+      "derives": [
+        "entity-frontmatter-schema.md（投影）",
+        "entity-readiness-rules.json article.required 段（WP-132 生成投影——身份豁免单源 shared/readiness-required）"
+      ],
+      "segments": [
+        {
+          "segment": "fields[]",
+          "edited_by_tab": "fields",
+          "referenced_by": [
+            "fields-registry"
+          ]
+        }
+      ],
+      "referenced_by": [
+        "schema-writers"
+      ],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/ontology.yaml",
+      "role": "source",
+      "writer": "human",
+      "derives": [
+        "合规规则集（能力七字段+断言策略）"
+      ],
+      "segments": [
+        {
+          "segment": "node_types + relation_types + inference_rules + constraints",
+          "edited_by_tab": "ontology",
+          "referenced_by": []
+        }
+      ],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/dependencies.yaml",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [
+        {
+          "segment": "dependencies[]",
+          "edited_by_tab": "dependencies",
+          "referenced_by": []
+        }
+      ],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/versions.yaml",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [
+        {
+          "segment": "products + reserved_products",
+          "edited_by_tab": "versions",
+          "referenced_by": []
+        }
+      ],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/subjects.yaml",
+      "role": "source",
+      "writer": "human",
+      "derives": [
+        "合层读视图（readEnumsForSubject，现算）"
+      ],
+      "segments": [
+        {
+          "segment": "subjects[]",
+          "edited_by_tab": null,
+          "referenced_by": [
+            "fields-registry(主体对账面)"
+          ]
+        }
+      ],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current",
+      "consumers": [
+        {
+          "name": "前端文件树主体行",
+          "kind": "frontend",
+          "location": "src/features/schema-manager/SchemaFileTree.tsx:27"
+        }
+      ]
+    },
+    {
+      "file": "data/theschema/subjects/<id>/enums.yaml",
+      "role": "source",
+      "writer": "human",
+      "derives": [
+        "合层读视图"
+      ],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/entity-frontmatter-schema.md",
+      "role": "derived",
+      "writer": "system",
+      "derives_from": "data/theschema/fields.yaml",
+      "generator": "project:frontmatter-schema",
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/history/**",
+      "role": "evidence",
+      "writer": "system",
+      "derives_from": "写源前的快照留档（vault-io 通道自动产出）",
+      "generator": null,
+      "segments": [
+        {
+          "segment": "enums/fields 快照",
+          "edited_by_tab": "history",
+          "referenced_by": [
+            "schema-writers(快照连续性面)"
+          ]
+        }
+      ],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "archive"
+    },
+    {
+      "file": "data/theschema/vocabulary-lineage.json",
+      "role": "source",
+      "writer": "append-only",
+      "$comment": "A1 归位：读写路径经 resolveTheSchemaDir＋repo-schema-io（原硬编码 vault 相对路径会在 vault 册外重建 TheSchema 目录）。PR-089 裁决落地（TALOS 两轴）：晋升事件追加账本＝性质 source（唯一事实源）＋写法 append-only（recordGrowth 幂等追加，人不手改）。",
+      "derives": [
+        "画像 origin 字段"
+      ],
+      "segments": [
+        {
+          "segment": "entries",
+          "edited_by_tab": null,
+          "referenced_by": []
+        }
+      ],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/article_associations.yaml",
+      "role": "source",
+      "writer": "system",
+      "derives_from": "article-workflow 发布流程（article-association-service.cjs 机器写 decisions 账本——无页面编辑面；WP-075 起经落点分流咽喉 theschema-write.cjs 按主源住址选通道，P2-8 跨通道同域已结项）",
+      "generator": null,
+      "$comment": "PR-089 裁决落地（Master 2026-10-21 采 TALOS role×writer 两轴）：机器写账本是写法不是性质——本行是发布流程决策的唯一记录（不可由他处重建，authoritative 同构），role=source＋writer=system；A8 过渡改判（derived）按此终态回转。generator=null＝derivation-sync 面外。P2-8 跨通道同域遗留已于 WP-075 通道归一（2026-11-03，tr_504310b2 生产 500 收口）。",
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/AI_CONCEPT.md",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/DATA-DICTIONARY.md",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/KNOWLEDGE_SCENARIOS.md",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/SCHEMA.md",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/TheSchema.md",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/entity-disambiguation.md",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/entity-disambiguation-design.md",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/resolved-domains.json",
+      "role": "derived",
+      "writer": "system",
+      "derives_from": "data/theschema/fields.yaml 配方（SPEC-020 结构化 value_domain）＋enums/versions 源数据",
+      "generator": "project:resolved-domains",
+      "segments": [],
+      "referenced_by": [
+        "fields-registry(配方对账面)"
+      ],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/interaction-contracts.md",
+      "role": "source",
+      "writer": "human",
+      "derives": [],
+      "segments": [],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    },
+    {
+      "file": "data/theschema/relations.yaml",
+      "role": "source",
+      "writer": "human",
+      "derives": [
+        "edge 投影并源（治理边＋字典对象节点 → graph_nodes/edges，EDGE-RELATION-GOV-001 对象本体批）"
+      ],
+      "segments": [
+        {
+          "segment": "relations",
+          "edited_by_tab": "relations",
+          "referenced_by": []
+        }
+      ],
+      "referenced_by": [],
+      "persistence": "tracked",
+      "retention": "current"
+    }
+  ]
+}

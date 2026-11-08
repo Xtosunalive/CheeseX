@@ -1,0 +1,27 @@
+{
+  "$schema": "./ontology-lifecycle.schema.json",
+  "schema_version": 1,
+  "$comment": "ADR-017 本体元素生命周期状态化转移边定义表——唯一真身。取值域住 object-meta-model.json，本表只裁「允许哪些迁移」。代码内出现第二份允许清单即违规（存在制）。缺省态按 approved 参与判定（存量零回填）。",
+  "defaultStatus": "approved",
+  "terminalFrom": "retired",
+  "transitions": [
+    { "from": "draft", "to": "submitted", "note": "提交评审" },
+    { "from": "submitted", "to": "approved", "note": "批准生效；关系回 approved 时能力锚校验由 relation-capability-selector 另行执法" },
+    { "from": "submitted", "to": "draft", "note": "退回草稿，不留退役痕迹" },
+    { "from": "approved", "to": "reserved", "note": "登记预留位，进入即退出活消费面" },
+    { "from": "approved", "to": "retired", "note": "退役：必须带 retirement.reason 与同类当时 approved 的 replaced_by（ADR-014 §5.2）" },
+    { "from": "reserved", "to": "approved", "note": "预留兑现回现役，重新过能力锚" }
+  ],
+  "explicitlyDenied": [
+    { "from": "retired", "to": "approved", "reason": "退役不可原地复活；恢复走新建或 ADR-014 §5.2 读侧替代链" },
+    { "from": "reserved", "to": "retired", "reason": "预留件从未进入活消费，退役语义不适用；撤销走删除流程" }
+  ],
+  "elementSections": [
+    { "key": "node_types", "shape": "map" },
+    { "key": "relation_types", "shape": "map" },
+    { "key": "action_types", "shape": "map" },
+    { "key": "risk_types", "shape": "map" },
+    { "key": "inference_rules", "shape": "array" },
+    { "key": "constraints", "shape": "array" }
+  ]
+}

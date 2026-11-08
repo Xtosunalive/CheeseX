@@ -1,0 +1,37 @@
+name: 功能建议
+description: 提议新能力或改进，先讨论方向再动工
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: 提建议前请先搜过现有 Issues。新功能建议先在此讨论方向，达成一致后再动工（见 CONTRIBUTING）。
+  - type: textarea
+    id: problem
+    attributes:
+      label: 要解决的问题
+      description: 这个功能解决什么痛点？没有它哪个用户动作会受阻？
+      placeholder: 当前在……场景下无法……
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 期望的方案
+      description: 你设想的行为或界面；如有替代方案也请说明
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 替代方案与取舍
+      description: 考虑过的其他做法、各自的代价
+    validations:
+      required: false
+  - type: textarea
+    id: context
+    attributes:
+      label: 补充背景
+      description: 相关截图、链接或使用场景（注意脱敏，不要贴 .env 原文）
+    validations:
+      required: false

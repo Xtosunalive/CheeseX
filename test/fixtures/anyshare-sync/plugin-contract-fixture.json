@@ -1,0 +1,13 @@
+{
+  "version": "2",
+  "extractedFrom": "anyshare-sync/main.js v3.1 (post H2 fix)",
+  "extractedAt": "2026-07-13",
+  "calls": [
+    { "method": "GET", "path": "/api/health", "status": "active" },
+    { "method": "POST", "path": "/api/pipeline/run", "status": "active" },
+    { "method": "GET", "path": "/api/pipeline/status", "status": "active" },
+    { "method": "GET", "path": "/api/dashboard/topology", "status": "active" },
+    { "method": "GET", "path": "/api/entity/readiness", "status": "active" },
+    { "method": "POST", "path": "/api/sync/push", "status": "active" }
+  ]
+}

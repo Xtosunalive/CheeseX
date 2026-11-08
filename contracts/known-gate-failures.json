@@ -1,0 +1,6 @@
+{
+  "description": "已知门禁失败基线 — check-register-coverage 的唯一豁免事实源。语义：登记在此的门禁即使失败也不阻断登记簿接住义务判定（视为已确认的存量不可修问题），并必须写明 why 与 owner。**豁免必须有主、有期、有追踪条目**，过期即 fail（防豁免永久化）。新出现的门禁失败不在此列 → 立即 fail。对应 TALOS system/db/check-baseline.json 的同构设计。",
+  "version": 1,
+  "updated": "2026-10-05",
+  "known": {}
+}

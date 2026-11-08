@@ -1,0 +1,11 @@
+{
+  "slice": "fixture-slice",
+  "expectedResult": "FAIL",
+  "checks": [
+    {
+      "id": "fixture-red",
+      "failureConfirmed": true
+    }
+  ],
+  "red": true
+}

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <filter id="black-logo" color-interpolation-filters="sRGB">
+      <feComponentTransfer>
+        <feFuncR type="table" tableValues="1 0" />
+        <feFuncG type="table" tableValues="1 0" />
+        <feFuncB type="table" tableValues="1 0" />
+      </feComponentTransfer>
+    </filter>
+  </defs>
+  <image href="/brand-logo.png" width="256" height="256" filter="url(#black-logo)" />
+</svg>

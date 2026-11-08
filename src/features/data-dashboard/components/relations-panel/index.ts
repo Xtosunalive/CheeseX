@@ -1,0 +1,1 @@
+export { RelationsPanel } from "./RelationsPanel";

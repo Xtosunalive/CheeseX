@@ -1,0 +1,11 @@
+{
+  "sortInput": ["7.0.10", "6.1", "7.0.2"],
+  "sortExpected": ["6.1", "7.0.2", "7.0.10"],
+  "ranges": [
+    { "version": "6.9", "since": "7.0", "until": null, "active": false },
+    { "version": "7.0", "since": "7.0", "until": "7.3", "active": true },
+    { "version": "7.2.9", "since": "7.0", "until": "7.3", "active": true },
+    { "version": "7.3", "since": "7.0", "until": "7.3", "active": false },
+    { "version": "9.0", "since": "7.0", "until": null, "active": true }
+  ]
+}

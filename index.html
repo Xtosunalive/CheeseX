@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>cheeseh</title>
+    <meta name="description" content="cheeseh——面向 Obsidian 知识库的架构图编辑与知识图谱治理" />
+    <meta name="author" content="cheeseh" />
+    <link rel="icon" type="image/svg+xml" href="/brand-logo-dark.svg" media="(prefers-color-scheme: light)" />
+    <link rel="icon" type="image/png" href="/brand-logo.png" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:title" content="cheeseh" />
+    <meta property="og:description" content="cheeseh——面向 Obsidian 知识库的架构图编辑与知识图谱治理" />
+    <meta property="og:type" content="website" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@architect-web" />
+
+    <script>
+      /* 显示模式防闪锚点（PR②）：首帧前读 localStorage（键 cheeseh-mode），
+         无存值按系统解析；data-mode 与 .dark 类同步落到 <html>。
+         与 src/hooks/use-mode.ts 同一约定——存储是唯一事实，DOM 是投影。 */
+      (function () {
+        try {
+          var m = localStorage.getItem("cheeseh-mode") || "auto";
+          if (m === "auto")
+            m = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          if (m !== "light" && m !== "dark" && m !== "warm") m = "light";
+          document.documentElement.dataset.mode = m;
+          if (m === "dark") document.documentElement.classList.add("dark");
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

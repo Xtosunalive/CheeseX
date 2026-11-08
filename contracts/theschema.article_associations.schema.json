@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://cheeseh.local/contracts/theschema.article_associations.schema.json",
+  "title": "article_associations.yaml 形态单一事实源",
+  "description": "知识库 TheSchema/article_associations.yaml（文章关联审计账本，append-only）的顶层结构契约。读侧 article-association-service.cjs 与写侧 save() 共用本文件（PR-053）。口径：全严格——账本是审计史，脏形态局部降级（脏 decision 丢弃）不抛错；字段必填性由语义层（save/list）负责，形态层不设 required 以免误伤历史遗留条目。",
+  "x-lenientPaths": [],
+  "type": "object",
+  "definitions": {
+    "stringList": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "properties": {
+    "schema_version": {
+      "type": "number",
+      "description": "账本结构版本；写侧 save() 固定写 1"
+    },
+    "decisions": {
+      "type": "array",
+      "description": "关联决策审计记录（append-only，save() 按 decidedAt 排序全量重写）。非对象条目由读侧局部降级（数组位留 null，消费方 filter(Boolean)）。",
+      "items": {
+        "type": "object",
+        "properties": {
+          "decisionId": { "type": "string" },
+          "articleId": { "type": "string" },
+          "action": { "type": "string" },
+          "componentIds": { "$ref": "#/definitions/stringList" },
+          "versionIds": { "$ref": "#/definitions/stringList" },
+          "candidateSourcePath": { "type": "string" },
+          "candidateSourceHash": { "type": "string" },
+          "decidedAt": { "type": "string" },
+          "operatorId": { "type": "string" },
+          "lineage": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true
+}
