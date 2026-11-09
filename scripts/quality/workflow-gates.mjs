@@ -3,7 +3,10 @@
 //   ①合同闸：写任务路径改动而无同批工作包合同文件 → 红
 //   ②对账闸：merge-reconcile 现成脚本直呼（撞号/登记簿分叉）
 //   ③门禁冻结闸：新增 scripts/quality/check-*.mjs → 红（治理建造线封笔，WP-143 铁律）
-// @inputs: git 暂存面（pre-commit 语境）。fail-closed（拦提交）；CI 恢复后同脚本挂 CI 步骤。
+// @inputs: git 暂存面（pre-commit 语境）＋治理层姿态（docs 挂载形态）。fail-closed（拦提交）。
+// 双仓结构：治理件（工作包合同／问题登记簿）住在私有 kit 仓时，合同闸与对账闸在本仓
+//   暂存面构造性不可满足，执法面移交 kit 仓（gov:sync / gov:reconcile）；本仓打印移交说明，
+//   **不静默跳过**。docs 为仓内真实目录（主仓形态）时两闸照旧执法，纪律不削弱。
 // @outputs: workflow_gates=ok|FAIL；非零退出=违规。
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -12,6 +15,27 @@ const ROOT = execFileSync("git", ["rev-parse", "--show-toplevel"], { encoding: "
 const stagedStatus = execFileSync("git", ["diff", "--cached", "--name-status"], { encoding: "utf-8" })
   .split("\n").filter(Boolean);
 const vs = [];
+
+// ── 治理层姿态判定（只认 docs 挂载形态，不读 kit 仓内容、不引入新依赖）──
+//   in-repo  : docs 是仓内真实目录 —— 主仓形态，合同闸／对账闸照旧执法；
+//   external : docs 是符号链接且目标存在 —— 治理 kit 外挂（独立代码仓常态）；
+//   absent   : docs 不存在 —— 全新克隆／CI 形态，同样无治理件；
+//   broken   : 符号链接目标缺失 —— 半挂载异常，fail-closed。
+function governancePosture() {
+  const docsPath = path.join(ROOT, "docs");
+  let st;
+  try { st = fs.lstatSync(docsPath); } catch { return "absent"; }
+  if (!st.isSymbolicLink()) return "in-repo";
+  return fs.existsSync(docsPath) ? "external" : "broken";
+}
+const GOV_POSTURE = governancePosture();
+const GOV_EXTERNAL = GOV_POSTURE === "external" || GOV_POSTURE === "absent";
+if (GOV_EXTERNAL) {
+  console.log(`[治理层姿态] ${GOV_POSTURE === "external" ? "docs 为治理 kit 仓符号链接挂载" : "docs 挂载点不存在（全新克隆／CI 形态）"}——合同闸／对账闸执法面移交私有 kit 仓（gov:sync / gov:reconcile）；本仓保留代码层门禁。`);
+}
+if (GOV_POSTURE === "broken") {
+  vs.push("[治理层姿态] docs 挂载断链（符号链接目标不存在）——fail-closed；先跑 npm run gov:status 确认、gov:setup 修复挂载");
+}
 
 // ③ 门禁冻结闸：**新增**门禁脚本＝治理建造回潮（删除退役脚本不受此限——那是正确的退役行为）
 for (const line of stagedStatus) {
@@ -77,10 +101,20 @@ const WRITE_TASK = [/^src\//, /^server\//, /^contracts\//, /^scripts\/vault/];
 const touchedWriteTask = stagedStatus.map(l=>l.split("\t")[1]).filter(Boolean).filter((f) => WRITE_TASK.some((re) => new RegExp("^" + re.source.slice(1)).test(f)));
 const hasContract = stagedStatus.map(l=>l.split("\t")[1]).filter(Boolean).some((f) => /^docs\/work-packages\/WP-\d+\.json$/.test(f));
 if (touchedWriteTask.length > 0 && !hasContract) {
-  vs.push(`[合同闸] 写任务路径改动 ${touchedWriteTask.length} 件而无同批工作包合同——开树纪律（写合同文件或列入豁免批注）`);
+  if (GOV_POSTURE === "in-repo") {
+    vs.push(`[合同闸] 写任务路径改动 ${touchedWriteTask.length} 件而无同批工作包合同——开树纪律（写合同文件或列入豁免批注）`);
+  } else if (GOV_EXTERNAL) {
+    // 独立仓：合同文件物理上在另一个仓，git 不跟随符号链接（实测 `git add -f` 报
+    // "pathspec ... is beyond a symbolic link"）。要求本仓暂存面带合同＝不可能满足的假红，
+    // 故显式打印移交并放行；治理约束由 kit 仓 gov:sync / gov:reconcile 承接。
+    console.log(`[合同闸] 移交：本次 ${touchedWriteTask.length} 件写任务路径改动；工作包合同随治理 kit 仓提交（gov:sync），本仓暂存面不含治理件，不重复执法。`);
+  }
+  // broken 形态由上方「治理层姿态」违规项 fail-closed，此处不重复计入。
 }
 
 // ② 对账闸：登记簿改动而无对账脚本直呼（现成 merge-reconcile）。
+//    双仓形态下 docs/plans/problem-register.md 不在本仓暂存面，本闸不会触发；
+//    对账执法由 kit 仓 gov:reconcile 承接（与 CI 治理层姿态自检同口径）。
 //    对账脚本住址从注册表 keptHelpers 读（派生化：该路径已是 contracts/quality-gates.json 的
 //    在册值，此处硬编码即第二副本——defect-shapes P6-F3 已实测咬中，本段即对账结论的兑现）。
 //    行缺声明＝账物分离口径破坏，fail-closed。

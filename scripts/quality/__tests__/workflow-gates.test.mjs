@@ -96,3 +96,61 @@ test("authority 路径同样受管（粒度A：authority＋writers 并重）", (
   const r2 = runGate(dir);
   assert.match(r2.out, /受管沉淀闸/, "authority/contract 路径变更同样须沉淀");
 });
+
+// ── 双仓形态：治理件外挂到私有 kit 仓 ──
+// makeRepo 造的是 in-repo（docs 真实目录＝主仓形态）。下面把 docs 移出仓再按形态重建：
+// external＝符号链接指向别处的 kit；absent＝不重建（全新克隆／CI）；broken＝链接目标缺失。
+function withGovernancePosture(dir, mode) {
+  const holder = fs.mkdtempSync(path.join(os.tmpdir(), "wf-docs-"));
+  fs.renameSync(path.join(dir, "docs"), path.join(holder, "docs"));
+  if (mode === "external") fs.symlinkSync(path.join(holder, "docs"), path.join(dir, "docs"), "dir");
+  if (mode === "broken") fs.symlinkSync(path.join(holder, "missing-kit"), path.join(dir, "docs"), "dir");
+}
+
+test("in-repo 形态（主仓）：改 src 无同批合同 → 合同闸照旧红，纪律未削弱", () => {
+  const dir = makeRepo();
+  stage(dir, "src/lib/probe.ts", "export const p = 1;\n");
+  const r = runGate(dir);
+  assert.equal(r.code, 1, `期望红，实得:\n${r.out}`);
+  assert.match(r.out, /\[合同闸\]/);
+  assert.doesNotMatch(r.out, /\[合同闸\] 移交/);
+});
+
+test("external 形态（治理 kit 外挂）：改 src 无合同 → 显式移交后放行，不静默", () => {
+  const dir = makeRepo();
+  withGovernancePosture(dir, "external");
+  stage(dir, "src/lib/probe.ts", "export const p = 1;\n"); // 非受管路径，单独验合同闸
+  const r = runGate(dir);
+  assert.equal(r.code, 0, `期望绿，实得:\n${r.out}`);
+  assert.match(r.out, /\[治理层姿态\]/);
+  assert.match(r.out, /\[合同闸\] 移交/);
+  assert.match(r.out, /gov:sync/);
+});
+
+test("absent 形态（全新克隆／CI）：改 src 无合同 → 同样移交而非不可能满足的假红", () => {
+  const dir = makeRepo();
+  withGovernancePosture(dir, "absent");
+  stage(dir, "src/lib/probe.ts", "export const p = 1;\n");
+  const r = runGate(dir);
+  assert.equal(r.code, 0, `期望绿，实得:\n${r.out}`);
+  assert.match(r.out, /docs 挂载点不存在/);
+  assert.match(r.out, /\[合同闸\] 移交/);
+});
+
+test("broken 形态（半挂载断链）：fail-closed 拦提交", () => {
+  const dir = makeRepo();
+  withGovernancePosture(dir, "broken");
+  stage(dir, "src/lib/probe.ts", "export const p = 1;\n");
+  const r = runGate(dir);
+  assert.equal(r.code, 1, `期望红，实得:\n${r.out}`);
+  assert.match(r.out, /挂载断链/);
+});
+
+test("external 形态：受管沉淀闸仍执法（只移交合同／对账两闸，不放行其余门禁）", () => {
+  const dir = makeRepo();
+  withGovernancePosture(dir, "external");
+  stage(dir, "src/components/ui/probe.tsx", "export const p = 1;\n");
+  const r = runGate(dir);
+  assert.equal(r.code, 1, `期望红，实得:\n${r.out}`);
+  assert.match(r.out, /\[受管沉淀闸\]/);
+});
