@@ -1,4 +1,4 @@
-# cheeseh
+# CheeseX
 
 **中文** | [English](./README-en.md)
 
@@ -22,7 +22,7 @@ npm run dev                # API 18083 + 前端 5174 → http://localhost:5174
 
 首次 `npm run dev` 没有可用知识库时会问一次位置（带默认值），回车即建库并生成 `.env`（复用 `npm run vault:init`；非交互终端只给命令指引、不替你决定）。建库时若没找到带 PyYAML 的解释器，会再问一句「要现在自动准备 Python 吗？」——本机有 uv 时答 Y 即全自动装好并写进 `.env`，没装 uv 会给出安装命令。
 
-> 本仓是**代码仓**：设计文档、工作包合同与开发台账放在独立的私有治理仓，普通克隆里没有 `docs/`、`.githooks/` 等目录属正常形态。维护者可用 `npm run gov:setup -- <治理仓路径> --with-hooks` 挂载治理面，详见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+> 本仓是**开发仓（代码仓）**：设计文档、工作包合同与开发台账放在独立的私有治理仓，普通克隆里没有 `docs/`、`.githooks/` 等目录属正常形态。维护者可用 `npm run gov:setup -- <治理仓路径> --with-hooks` 挂载治理面，详见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
 完整起步细节（环境变量、测试要求、工程约定）见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
 
