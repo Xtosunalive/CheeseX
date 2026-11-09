@@ -12,7 +12,8 @@ test-results/
 !.env.example
 
 # ── Python 虚拟环境与编译缓存 ──
-/.venv/
+# 无尾斜杠：fresh worktree 常用 ln -s 主仓 .venv，带斜杠的规则不认符号链接（同 /node_modules）。
+/.venv
 __pycache__/
 *.pyc
 *.pyo
