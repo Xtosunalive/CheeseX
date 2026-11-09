@@ -190,8 +190,18 @@ function sync(kitDir, { message, push }) {
       console.log("未推送；需要推送时加 --push。");
     }
   }
-  const rest = git(kitDir, ["status", "--porcelain"]);
-  if (rest) console.log("gov:sync 提示：kit 里仍有非治理层变更未处理（本命令不碰，请自行核对）。");
+  // 提交后 post-commit 会新写出一条台账（治理层）。若只看全仓 status 就报
+  // 「非治理层变更」，每次同步都会误报一次；按治理层路径把两类剩余变更分开说明。
+  // 必须拿未 trim 的原始输出：git() 会 .trim() 整段，把首行 " M docs/..." 的
+  // 前导空格削掉，slice(3) 就截出残路径，反而把治理层误判成非治理层。
+  const remaining = execFileSync("git", ["-C", kitDir, "status", "--porcelain"], { encoding: "utf8" })
+    .split("\n").filter(Boolean)
+    .map((line) => line.slice(3).trim())
+    .filter(Boolean);
+  const nonGov = remaining.filter((p) => !GOV_PATHS.some((g) => p === g || p.startsWith(`${g}/`)));
+  const pendingGov = remaining.length - nonGov.length;
+  if (nonGov.length) console.log(`gov:sync 提示：kit 里仍有 ${nonGov.length} 项非治理层变更未处理（本命令不碰，请自行核对）。`);
+  if (pendingGov) console.log(`gov:sync 提示：post-commit 新写出 ${pendingGov} 项治理层台账变更，下次 gov:sync 带走（钩子正常工作的稳定尾巴）。`);
   return 0;
 }
 

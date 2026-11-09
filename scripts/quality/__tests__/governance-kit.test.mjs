@@ -161,6 +161,29 @@ test("通过符号链接路径调用 CLI 仍执行，不静默假绿", (t) => {
   assert.equal(r.stdout.trim(), repo, "CLI 必须真的执行并输出 kit 路径");
 });
 
+test("gov:sync 不把 post-commit 新写出的治理层台账误报成非治理层变更", (t) => {
+  const repo = initRepo(t, "sync-postcommit");
+  fs.mkdirSync(path.join(repo, ".githooks"), { recursive: true });
+  const hook = path.join(repo, ".githooks", "post-commit");
+  fs.writeFileSync(hook, `#!/bin/sh
+printf '\\n' >> docs/work-packages/WP-001.json
+mkdir -p docs/dev-log/entries
+echo '{"probe":1}' > docs/dev-log/entries/post.jsonl
+exit 0
+`);
+  fs.chmodSync(hook, 0o755);
+  execFileSync("git", ["-C", repo, "config", "core.hooksPath", ".githooks"], { stdio: "ignore" });
+  fs.writeFileSync(path.join(repo, "docs", "work-packages", "WP-001.json"), '{"probe":true}\n');
+  const logs = [];
+  const orig = console.log;
+  console.log = (...a) => { logs.push(a.join(" ")); };
+  try { assert.equal(kit.main(["sync", repo, "-m", "probe"]), 0); }
+  finally { console.log = orig; }
+  const text = logs.join("\n");
+  assert.doesNotMatch(text, /非治理层变更/);
+  assert.match(text, /治理层台账/);
+});
+
 test("fresh worktree 用符号链接接 node_modules 也不污染工作树", (t) => {
   const base = makeTmp(t);
   execFileSync("git", ["init", "-q", base], { stdio: "ignore" });
