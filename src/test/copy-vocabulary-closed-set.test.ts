@@ -220,22 +220,28 @@ function stripComments(content: string): string {
   return content.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
-function inlineOccurrences(copy: string): { file: string; hits: number }[] {
-  const violations: { file: string; hits: number }[] = [];
+/** 一次遍历同时匹配全部受控词条。
+ *  原形态每个词条各 walkSources(SRC_ROOT) 一遍：组四 8 个正名＝8 次全量 src 扫描，
+ *  实测约 8s > vitest 默认 5s 超时，守卫因此**假红**（超时而非真违规）。
+ *  违规集合与逐词条扫描逐项一致，只是聚合顺序改为按文件优先；断言 toEqual([]) 不受影响。 */
+function inlineOccurrences(copies: readonly string[]): { copy: string; file: string; hits: number }[] {
+  const violations: { copy: string; file: string; hits: number }[] = [];
   for (const file of walkSources(SRC_ROOT)) {
     const name = file.split("/").pop() ?? file;
     if (ALLOWED_BASENAMES.some((allowed) => name.includes(allowed))) continue;
     const content = stripComments(readFileSync(file, "utf8"));
-    const hits = content.split(copy).length - 1;
-    if (hits > 0) violations.push({ file: file.replace(SRC_ROOT + "/", ""), hits });
+    for (const copy of copies) {
+      const hits = content.split(copy).length - 1;
+      if (hits > 0) violations.push({ copy, file: file.replace(SRC_ROOT + "/", ""), hits });
+    }
   }
   return violations;
 }
 
 describe("组三 aria 受控文案（受控文案禁止内联字面量，#1755）", () => {
   it("aria 受控文案只允许出现在 term-const.ts 定义处", () => {
-    const violations = GUARDED_ARIA_COPY.flatMap((copy) =>
-      inlineOccurrences(copy).map((v) => `${v.file}: "${copy}" ×${v.hits}`),
+    const violations = inlineOccurrences(GUARDED_ARIA_COPY).map(
+      (v) => `${v.file}: "${v.copy}" ×${v.hits}`,
     );
     expect(
       violations,
@@ -254,8 +260,8 @@ describe("组四 页面正名（导航与页题同源，手写正名即红）", 
   });
 
   it("八个页面正名禁止在 term-const.ts 以外内联手写（原守卫断言形态照抄）", () => {
-    const violations = PAGE_OFFICIAL_NAMES.flatMap(({ name }) =>
-      inlineOccurrences(name).map((v) => `${v.file}: "${name}" ×${v.hits}`),
+    const violations = inlineOccurrences(PAGE_OFFICIAL_NAMES.map(({ name }) => name)).map(
+      (v) => `${v.file}: "${v.copy}" ×${v.hits}`,
     );
     expect(
       violations,

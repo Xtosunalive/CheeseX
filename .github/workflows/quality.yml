@@ -35,8 +35,9 @@ jobs:
       # ── 独立仓姿态自检（治理层已从本仓剥离到私有 kit 仓）──
       # 本 workflow 从不挂载治理 kit，下列门禁在 CI 里结构性不适用，必须显式说明而非静默假绿：
       #   · domain-registry：个人 discipline-kit 未安装 → 脚本自身 skip；
-      #   · workflow-gates：读 git 暂存面，CI checkout 无暂存 → 恒 ok；
-      # 二者的执法面在 kit 仓的提交/对账流程（gov:reconcile），不在这里。
+      #   · workflow-gates：治理层外挂／缺席时，合同闸与对账闸显式打印移交说明后放行
+      #     （CI 形态会打印 [治理层姿态] / [合同闸] 移交），其余代码层门禁照旧执法；
+      # 二者的执法面在 kit 仓的提交/对账流程（gov:sync / gov:reconcile），不在这里。
       # 断链（挂了符号链接但目标不存在）是异常形态，fail-closed。
       - name: Governance kit posture (private kit is NOT mounted in CI)
         run: |
