@@ -1,6 +1,8 @@
-# 贡献指南（Contributing to cheeseh）
+# 贡献指南（Contributing to CheeseX）
 
-感谢你关注 cheeseh——面向 Obsidian 知识库的知识治理工作台。欢迎 Issue 与 PR。
+感谢你关注 CheeseX——面向 Obsidian 知识库的知识治理工作台。欢迎 Issue 与 PR。
+
+> **本仓是开发仓**：日常开发、测试、CI 与提交都在这里进行。历史归档仓与未来的发布仓是另外两个独立仓库，不参与本仓的开发流程；发布仓在开发完成前不会派生。
 
 ## 如何参与
 

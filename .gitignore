@@ -27,6 +27,10 @@ __pycache__/
 /data/*.db-wal
 /data/*.db-shm
 /data/taxonomy-observations.jsonl
+# SPEC-012 WP-A 写前备份（backup-store 落点 data/backups/<family>/*.bak）：
+# 运行/测试产生的本机产物，与上面 .db 同类；「人裁清理、无限保留」策略不变，这里只保证不进 git。
+# 注意别写成 /data/ —— data/theschema/ 是必须入库的 TheSchema 主源。
+/data/backups/
 
 # ── 治理 kit 挂载点（本地配置与符号链接，不入库）──
 # 治理件版本保存在独立私有仓；gov:setup 会把下列路径挂成符号链接。
