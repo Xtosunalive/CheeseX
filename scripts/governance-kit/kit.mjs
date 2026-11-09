@@ -42,9 +42,12 @@ export const MOUNTS = [
 ];
 
 function git(dir, args, opts = {}) {
-  return execFileSync("git", ["-C", dir, ...args], {
+  // stdio:"ignore"（sync 的 add/commit/push）时 execFileSync 返回 null 而非字符串，
+  // 无条件 .trim() 会让 gov:sync 直接崩在提交前——返回空串即可，调用方只看副作用。
+  const out = execFileSync("git", ["-C", dir, ...args], {
     encoding: "utf8", stdio: ["ignore", "pipe", "pipe"], ...opts,
-  }).trim();
+  });
+  return typeof out === "string" ? out.trim() : "";
 }
 
 function isGitRepo(dir) {
@@ -165,11 +168,19 @@ const GOV_PATHS = [
 ];
 
 function sync(kitDir, { message, push }) {
-  const dirty = git(kitDir, ["status", "--porcelain", "--", ...GOV_PATHS]);
+  // pathspec 指向不存在的路径时 git add 会 exit 128；治理层目录不齐全的 kit
+  // （新克隆／局部裁剪）不应让同步崩掉，只把在盘存在的治理路径交给 git。
+  // 全部缺席时也不能省略 pathspec，否则 status 会退化成全仓扫描。
+  const paths = GOV_PATHS.filter((p) => fs.existsSync(path.join(kitDir, p)));
+  if (paths.length === 0) {
+    console.log("gov:sync kit 内无治理层路径，跳过提交。");
+    return 0;
+  }
+  const dirty = git(kitDir, ["status", "--porcelain", "--", ...paths]);
   if (!dirty) {
     console.log("gov:sync 治理层无变更，跳过提交。");
   } else {
-    git(kitDir, ["add", "-A", "--", ...GOV_PATHS], { stdio: "ignore" });
+    git(kitDir, ["add", "-A", "--", ...paths], { stdio: "ignore" });
     git(kitDir, ["commit", "-m", message], { stdio: "ignore" });
     console.log(`gov:sync 已提交：${message}`);
     if (push) {
@@ -253,6 +264,14 @@ export function main(argv = process.argv.slice(2)) {
   return sync(kitDir, opts);
 }
 
-if (process.argv[1] && fileURLToPath(import.meta.url) === path.resolve(process.argv[1])) {
-  process.exitCode = main();
+// 只比字面路径不够：/tmp 等符号链接路径下 argv[1] 与 import.meta.url 的真实路径
+// 不一致，CLI 会静默跳过 main() 却 exit 0（假绿）。先字面比，再按 realpath 兜底。
+function isMainModule() {
+  const entry = process.argv[1];
+  if (!entry) return false;
+  const self = fileURLToPath(import.meta.url);
+  const arg = path.resolve(entry);
+  if (self === arg) return true;
+  try { return fs.realpathSync(self) === fs.realpathSync(arg); } catch { return false; }
 }
+if (isMainModule()) process.exitCode = main();

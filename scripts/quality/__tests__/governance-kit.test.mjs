@@ -138,3 +138,35 @@ test("治理 kit 仓：登记簿可读，声明开关不误伤，对账给出真
   assert.equal(out.ok, true);
   assert.equal(out.expectedMax, 1);
 });
+
+test("gov:sync 把治理层变更提交进治理仓（stdio:ignore 不再让 git() 崩）", (t) => {
+  const repo = initRepo(t, "sync-kit");
+  fs.writeFileSync(path.join(repo, "docs", "work-packages", "WP-001.json"), '{"probe":true}\n');
+  const head = () => execFileSync("git", ["-C", repo, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  const before = head();
+  assert.equal(kit.main(["sync", repo, "-m", "chore(governance): e2e 探针"]), 0);
+  assert.notEqual(head(), before, "治理层变更应落成一次提交");
+  const files = execFileSync("git", ["-C", repo, "show", "--pretty=format:", "--name-only", "HEAD"], { encoding: "utf8" }).trim();
+  assert.match(files, /^docs\/work-packages\/WP-001\.json$/m);
+  assert.equal(execFileSync("git", ["-C", repo, "status", "--porcelain"], { encoding: "utf8" }).trim(), "");
+});
+
+test("通过符号链接路径调用 CLI 仍执行，不静默假绿", (t) => {
+  const base = makeTmp(t);
+  const repo = initRepo(t, "alias-kit");
+  const alias = path.join(base, "kit-alias.mjs");
+  fs.symlinkSync(path.join(ROOT, "scripts", "governance-kit", "kit.mjs"), alias);
+  const r = spawnSync("node", [alias, "path", repo], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  assert.equal(r.stdout.trim(), repo, "CLI 必须真的执行并输出 kit 路径");
+});
+
+test("fresh worktree 用符号链接接 node_modules 也不污染工作树", (t) => {
+  const base = makeTmp(t);
+  execFileSync("git", ["init", "-q", base], { stdio: "ignore" });
+  fs.copyFileSync(path.join(ROOT, ".gitignore"), path.join(base, ".gitignore"));
+  fs.symlinkSync("/nonexistent", path.join(base, "node_modules"), "dir");
+  const r = spawnSync("git", ["-C", base, "check-ignore", "node_modules"], { encoding: "utf8" });
+  assert.equal(r.status, 0, r.stderr);
+  assert.match(r.stdout, /node_modules/);
+});
