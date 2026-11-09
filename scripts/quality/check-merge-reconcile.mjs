@@ -15,12 +15,13 @@ import process from "node:process";
 const STATES = ["候选", "已立案", "根因确认", "修复中", "待验收", "已关闭", "reopened", "superseded"];
 
 function parseArgs(argv) {
-  const out = { target: "origin/main", head: "HEAD", fetch: true, json: false, repo: process.cwd() };
+  const out = { target: "origin/main", head: "HEAD", fetch: true, json: false, expectGovernance: false, repo: process.cwd() };
   for (let i = 0; i < argv.length; i++) {
     if (argv[i] === "--target") out.target = argv[++i];
     else if (argv[i] === "--head") out.head = argv[++i];
     else if (argv[i] === "--no-fetch") out.fetch = false;
     else if (argv[i] === "--json") out.json = true;
+    else if (argv[i] === "--expect-governance") out.expectGovernance = true;
     else if (argv[i] === "--repo") out.repo = argv[++i];
     else if (argv[i] === "--help") out.help = true;
     else { console.error(`check-merge-reconcile: 未知参数 ${argv[i]}`); process.exit(2); }
@@ -118,7 +119,8 @@ export function reconcile({ base, target, head }) {
 function main() {
   const args = parseArgs(process.argv.slice(2));
   if (args.help) {
-    console.log("用法：npm run check:merge-reconcile [-- --target origin/main --head HEAD --no-fetch --json]");
+    console.log("用法：node scripts/quality/check-merge-reconcile.mjs [--target origin/main --head HEAD --no-fetch --json --repo <路径> --expect-governance]");
+    console.log("治理 kit 化后，登记簿/工作包只在治理 kit 仓的 git 历史里；请用 gov:reconcile 在 kit 仓执行（它会传 --expect-governance）。不带该开关时保留既有语义：历史提交无治理件视为空集合、允许 ok。");
     return 0;
   }
   if (args.fetch) {
@@ -134,6 +136,23 @@ function main() {
     console.error(`merge_reconcile=FAIL 引用解析失败：--target ${args.target} / --head ${args.head}`);
     return 1;
   }
+  // 治理 kit 化后的假绿防线（仅 --expect-governance 启用，由 gov:reconcile 传入）：
+  // 声明「本次必须在治理仓对账」却三个引用都查不到登记簿时，撞号/分叉判定没有
+  // 可比对象，静默 ok 等于「该拦没拦」。默认不启用，以保留既有契约——历史提交
+  // 确实没有登记簿/工作包时允许空集合（PR-239 用例钉住）。
+  const hasRegister = (sha) => {
+    try { return git(args.repo, ["ls-tree", sha, "--", "docs/plans/problem-register.md"]).length > 0; }
+    catch { return false; }
+  };
+  const governanceAbsent = ![baseSha, targetSha, headSha].some(hasRegister);
+  if (governanceAbsent && args.expectGovernance) {
+    const hint = "声明了 --expect-governance，但登记簿不在本仓 git 历史（撞号/分叉对账无可比对象）——请确认 --repo 指向治理 kit 仓；治理对账走 gov:reconcile，代码仓合并不要在治理仓上下文跑本工具";
+    if (args.json) console.log(JSON.stringify({ ok: false, violations: [hint] }, null, 2));
+    else console.error(`merge_reconcile=FAIL ${hint}`);
+    return 1;
+  }
+  // 治理件缺席的声明放到最终输出处（成功路径）才打印：失败路径的 --json 输出
+  // 必须保持纯 JSON，否则「对象不可读/类型错误」等既有 fail-closed 用例会被污染。
   const load = (sha) => ({ pr: extractRegister(args.repo, sha), wp: extractWorkPackages(args.repo, sha), sha });
   let result;
   try {
@@ -150,6 +169,10 @@ function main() {
   } else {
     for (const v of result.violations) console.error(`✗ ${v}`);
     console.log(summary);
+  }
+  if (governanceAbsent && result.violations.length === 0) {
+    // 保留既有「历史提交无治理件＝空集合」语义，但不许把「没比过」静默写成一次通过。
+    console.error("merge_reconcile=NOTE 本仓 git 历史无登记簿/工作包：本次未执行撞号与分叉对账，ok 不代表治理对账通过；治理对账请用 gov:reconcile 在治理 kit 仓执行。");
   }
   if (result.violations.length) {
     console.error("处置：先按上述逐条对账（撞号重编／closed-wins 取关闭侧），把对账结果落在合并提交信息（登记簿已对账），再合并；对账后重跑本命令应 ok。");

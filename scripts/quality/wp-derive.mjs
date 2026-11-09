@@ -514,6 +514,20 @@ export function orphanContractGaps(staged, contractDocs, addedFiles, { registrie
   return (staged || []).filter((f) => needsContractFace(f, addedFiles?.has(f)) && !covered(f));
 }
 
+// 治理 kit 挂载态（docs 为符号链接）时，合同不在代码仓 git 索引里，改从挂载目录枚举。
+// 返回 null 表示未挂载（调用方回退到 git 索引）；返回数组表示挂载态（可能为空数组）。
+export function governanceContractFiles(root = ROOT) {
+  try {
+    if (!fs.lstatSync(path.join(root, "docs")).isSymbolicLink()) return null;
+  } catch { return null; }
+  const dir = path.join(root, "docs", "work-packages");
+  if (!fs.existsSync(dir)) return [];
+  return fs.readdirSync(dir)
+    .filter((f) => /^[^/]+\.json$/.test(f))
+    .map((f) => `docs/work-packages/${f}`)
+    .sort();
+}
+
 function checkStagedContracts() {
   const enforce = process.env.WP_ENFORCE !== "0"; // T4（2026-11-06）正式激活：PR-265 机制缝隙修复（登记簿锚定合同跳过 R6 派生）＋休眠合同存量债清偿完成；WP_ENFORCE=0 临时降 observe 排查
   const mode = enforce ? "enforce" : "observe";
@@ -525,13 +539,28 @@ function checkStagedContracts() {
     for (const error of errors) console.log(`  ${error}`);
   };
   const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 32 * 1024 * 1024, stdio: ["pipe", "pipe", "pipe"] });
+  // 治理 kit 化后的合同来源：docs 挂成指向治理仓的符号链接时，代码仓 git 索引里
+  // 没有治理件，合同要从挂载目录读；治理路径走文件系统，其余仍读暂存区版本。
+  // 索引与磁盘都拿不到合同时显式跳过并给配置指引，不把「没有合同」误判成
+  // 「所有改动都是孤儿」（假红，拦截正常提交）。
+  const mountedFiles = governanceContractFiles();
+  const docsIsMount = mountedFiles !== null;
   try {
     const staged = git("diff", "--cached", "--name-only", "-z").split("\0").filter(Boolean);
     if (staged.length === 0) return 0;
-    const readText = (p) => git("show", `:${p}`);
+    const readIndex = (p) => git("show", `:${p}`);
+    const readText = docsIsMount
+      ? (p) => (p.startsWith("docs/") ? fs.readFileSync(path.join(ROOT, p), "utf8") : readIndex(p))
+      : readIndex;
     const registries = loadRegistries(ROOT, readText);
-    const files = [...new Set(git("ls-files", "--cached", "-z", "--", "docs/work-packages/").split("\0"))]
-      .filter((f) => /^docs\/work-packages\/[^/]+\.json$/.test(f));
+    const files = docsIsMount
+      ? mountedFiles
+      : [...new Set(git("ls-files", "--cached", "-z", "--", "docs/work-packages/").split("\0"))]
+        .filter((f) => /^docs\/work-packages\/[^/]+\.json$/.test(f));
+    if (files.length === 0) {
+      console.log("work-packages(pre-commit): 治理 kit 未挂载且索引无合同实例——本次跳过在途合同覆盖判定（不判孤儿）。出口：npm run gov:setup <kit路径>；公开仓贡献者无需 kit，由 CI 门禁兜底。");
+      return 0;
+    }
     const added = new Set(git("diff", "--cached", "--name-only", "--diff-filter=A", "-z").split("\0"));
     const contractDocs = [];
     for (const file of files) {

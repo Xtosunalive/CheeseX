@@ -26,6 +26,13 @@ __pycache__/
 /data/*.db-shm
 /data/taxonomy-observations.jsonl
 
+# ── 治理 kit 挂载点（本地配置与符号链接，不入库）──
+# 治理件版本保存在独立私有仓；gov:setup 会把下列路径挂成符号链接。
+# 带尾斜杠的规则只认目录、不认符号链接，故这里用无尾斜杠形式一并忽略。
+# 未挂载时这些规则同样覆盖真实目录，公开面不因此变化。
+/docs
+.governance-kit
+
 # ── 内部治理/台账/方案卡/SPEC/ADR/合同（§2-C 组裁剪——在盘但不追踪）──
 docs/dev-log/
 docs/plans/
@@ -53,13 +60,13 @@ AGENTS.md
 GIT-CONTEXT.md
 README-addendum.md
 docs/环境启动说明.md
-data/governance/
+data/governance
 
 # ── 仓库自用工具（不公开；根锚定——夹具内 .claude 是公开测试数据）──
-.githooks/
+.githooks
 /.claude/
-scripts/dev-log/
-scripts/problem-board/
-scripts/ops/
+scripts/dev-log
+scripts/problem-board
+scripts/ops
 # 内部一次性对账脚本的行为钉（被测脚本不公开，钉随脚本撤出）
 scripts/__tests__/reconcile-status-domain-load-port.test.mjs
