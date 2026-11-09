@@ -91,6 +91,26 @@ test("挂载态从治理 kit 磁盘枚举合同；未挂载返回 null 交回 gi
   assert.equal(wp.governanceContractFiles(path.join(base, "no-docs")), null);
 });
 
+test("断链 / kit 内容缺失被识别为挂载损坏，不混同于未挂载或空 kit", (t) => {
+  const base = makeTmp(t);
+  const broken = path.join(base, "broken-code");
+  fs.mkdirSync(broken);
+  fs.symlinkSync(path.join(base, "missing-kit-docs"), path.join(broken, "docs"), "dir");
+  assert.equal(wp.governanceMountBroken(broken), true, "断链符号链接应判损坏");
+  assert.equal(wp.governanceMountBroken(base), false, "无 docs 应判未挂载");
+
+  const kitDocs = path.join(base, "kit-docs");
+  fs.mkdirSync(kitDocs);
+  const incomplete = path.join(base, "incomplete-code");
+  fs.mkdirSync(incomplete);
+  fs.symlinkSync(kitDocs, path.join(incomplete, "docs"), "dir");
+  assert.equal(wp.governanceMountBroken(incomplete), true, "目标存在但缺合同目录应判损坏");
+
+  fs.mkdirSync(path.join(kitDocs, "work-packages"));
+  assert.equal(wp.governanceMountBroken(incomplete), false, "正常挂载不应判损坏");
+  assert.deepEqual(wp.governanceContractFiles(incomplete), [], "合法空 kit 是空数组");
+});
+
 test("声明必须在治理仓对账（--expect-governance）时：治理件缺席即 fail-closed，不静默假绿", (t) => {
   const repo = initRepo(t, "code-only");
   const r = runReconcile(repo, ["--json", "--expect-governance"]);

@@ -514,6 +514,20 @@ export function orphanContractGaps(staged, contractDocs, addedFiles, { registrie
   return (staged || []).filter((f) => needsContractFace(f, addedFiles?.has(f)) && !covered(f));
 }
 
+// 断链 / kit 内容缺失属于「挂载已损坏」，不是「未挂载」，更不是「空 kit」。
+// 红队复核 F-1：lstatSync 不跟随链接，断链仍会被判成挂载态；若此时按空集合
+// 跳过合同对账，门禁会静默假绿并声称「治理 kit 未挂载」，必须单独识别并拦住。
+export function governanceMountBroken(root = ROOT) {
+  const link = path.join(root, "docs");
+  try {
+    if (!fs.lstatSync(link).isSymbolicLink()) return false; // 真实目录＝未挂载（正常）
+  } catch { return false; }                                 // docs 不存在＝未挂载（正常）
+  try {
+    if (!fs.statSync(link).isDirectory()) return true;      // 跟随链接：断链或指向文件
+    return !fs.statSync(path.join(link, "work-packages")).isDirectory();
+  } catch { return true; }
+}
+
 // 治理 kit 挂载态（docs 为符号链接）时，合同不在代码仓 git 索引里，改从挂载目录枚举。
 // 返回 null 表示未挂载（调用方回退到 git 索引）；返回数组表示挂载态（可能为空数组）。
 export function governanceContractFiles(root = ROOT) {
@@ -538,6 +552,11 @@ function checkStagedContracts() {
     console.log(`work-packages(${mode}): ${name} ${enforce ? "deny" : "would-deny"}——`);
     for (const error of errors) console.log(`  ${error}`);
   };
+  if (governanceMountBroken()) {
+    console.error("work-packages(pre-commit): 治理 kit 挂载已损坏（docs 是符号链接，但目标或合同目录不可用）——合同对账不可用，按 fail-closed 拦截提交。");
+    console.error("  修复：重跑 npm run gov:setup <kit路径>；不需要治理层时运行 npm run gov:unlink 显式解除挂载。");
+    return 1;
+  }
   const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8", maxBuffer: 32 * 1024 * 1024, stdio: ["pipe", "pipe", "pipe"] });
   // 治理 kit 化后的合同来源：docs 挂成指向治理仓的符号链接时，代码仓 git 索引里
   // 没有治理件，合同要从挂载目录读；治理路径走文件系统，其余仍读暂存区版本。

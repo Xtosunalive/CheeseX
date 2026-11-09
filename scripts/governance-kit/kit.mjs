@@ -156,21 +156,31 @@ function status(kitDir) {
   return 0;
 }
 
+// kit 是 cheeseh 全历史克隆，里面还有 1482 个代码文件。同步只提交治理层路径，
+// 不把 kit 里的代码文件变更带进治理仓历史（红队复核 F-2）。
+const GOV_PATHS = [
+  "docs", "data/governance", "scripts/problem-board", "scripts/dev-log",
+  "scripts/ops", ".githooks", "AGENTS.md", "GIT-CONTEXT.md",
+  "README-addendum.md", "GOVERNANCE-KIT.md",
+];
+
 function sync(kitDir, { message, push }) {
-  const dirty = git(kitDir, ["status", "--porcelain"]);
+  const dirty = git(kitDir, ["status", "--porcelain", "--", ...GOV_PATHS]);
   if (!dirty) {
     console.log("gov:sync 治理层无变更，跳过提交。");
-    return 0;
-  }
-  git(kitDir, ["add", "-A"], { stdio: "ignore" });
-  git(kitDir, ["commit", "-m", message], { stdio: "ignore" });
-  console.log(`gov:sync 已提交：${message}`);
-  if (push) {
-    git(kitDir, ["push"], { stdio: "ignore" });
-    console.log("gov:sync 已推送到 kit 远端（私有）。");
   } else {
-    console.log("未推送；需要推送时加 --push。");
+    git(kitDir, ["add", "-A", "--", ...GOV_PATHS], { stdio: "ignore" });
+    git(kitDir, ["commit", "-m", message], { stdio: "ignore" });
+    console.log(`gov:sync 已提交：${message}`);
+    if (push) {
+      git(kitDir, ["push"], { stdio: "ignore" });
+      console.log("gov:sync 已推送到 kit 远端（私有）。");
+    } else {
+      console.log("未推送；需要推送时加 --push。");
+    }
   }
+  const rest = git(kitDir, ["status", "--porcelain"]);
+  if (rest) console.log("gov:sync 提示：kit 里仍有非治理层变更未处理（本命令不碰，请自行核对）。");
   return 0;
 }
 
