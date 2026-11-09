@@ -33,6 +33,24 @@ npm run health:api # 健康自检
 
 > 未设置 VAULT_PATH 时服务会 FATAL 退出（有意为之：知识库是唯一事实源，无静默降级）。
 
+## 双仓结构（代码仓 / 治理仓）
+
+本仓只放**产品代码与公开契约**。方案卡、工作包合同、开发台账、问题登记簿、提交钩子等治理件放在独立的私有治理仓，既不在本仓，也不进 CI。
+
+- **普通克隆 / 外部贡献**：不需要治理仓，`npm install && npm run dev` 就能开发。全新克隆里没有 `docs/`、`.githooks/`、`AGENTS.md` 等目录是预期形态，不是缺文件。
+- **维护者**（持有治理仓）才需要挂治理面：
+
+  ```bash
+  npm run gov:setup -- <治理仓路径> --with-hooks  # 挂符号链接 + 设 core.hooksPath
+  npm run gov:status                               # 查看挂载与钩子状态
+  npm run gov:sync                                 # 只把治理层改动提交进治理仓
+  npm run gov:reconcile                            # 撞号 / 分叉对账（治理仓内执行）
+  npm run gov:unlink                               # 取消挂载，代码仓内容不动
+  ```
+
+- 挂载点是符号链接且已被 `.gitignore` 忽略，所以治理件**不会出现在代码仓的提交里**；`git status` 看不到它们是预期行为。
+- CI 从不挂载治理仓。注册表里依赖 git 暂存面或个人 discipline-kit 的两条门禁（`workflow-gates`、`domain-registry`）在 CI 里结构性不适用——CI 会显式打印姿态而不是静默跳过；它们的执法面在本地提交与治理仓对账流程。
+
 ## 测试（提交前三层）
 
 ```bash
@@ -48,7 +66,7 @@ npm run test:e2e    # 浏览器端到端 7 条（6 业务流/旅程 + 1 持久�
 2. **写通道唯一**：服务端写 Vault 必经 `server/shared/vault-io.cjs`（凭据制）；写 SQLite 必经 `server/shared/persistence/*` store；直连 `fs`/裸 SQL 会被 lint 与门禁拦下。
 3. **数据域登记**：新增数据落点先在 `contracts/data-domains.json` 登记六件（五件套＋住址枚举 `store_location`，门禁对账）。
 4. **前端路由**：页面跳转一律经 `src/lib/navigation.ts` 的 `navigate()`（登记制，门禁执法）。
-5. **质量门禁**：CI 按 `contracts/quality-gates.json` 注册表执行（`npm run gates:ci` 本地同款）；红灯不合并。
+5. **质量门禁**：CI 按 `contracts/quality-gates.json` 注册表执行（`npm run gates:ci` 本地同款）；红灯不合并。`feat/**`、`fix/**` 等功能分支推送即触发，PR 到 `main` 必跑一次。
 6. 提交信息用简洁祈使句；一个 PR 聚焦一件事。
 
 ## 目录速览
@@ -60,7 +78,7 @@ npm run test:e2e    # 浏览器端到端 7 条（6 业务流/旅程 + 1 持久�
 | `scripts/vault-py/`、`server/vault-runtime/` | Python 图谱管线（抽取/推断/投影） |
 | `contracts/` | OpenAPI、TheSchema schema、门禁/数据域等契约注册表 |
 | `data/theschema/` | TheSchema 默认主源（词表/本体/依赖/字段等 YAML） |
-| `docs/` | 设计与系统文档 |
+| `docs/` | 治理仓挂载点（仅维护者可见；普通克隆不存在）。设计与系统文档在私有治理仓 |
 
 ## 行为准则
 

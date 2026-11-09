@@ -2,22 +2,23 @@ name: quality
 
 on:
   push:
-    branches: [main]
+    # 独立代码仓的开发期：功能分支推送也跑一次质量门禁，别等合并到 main 才见红。
+    # PR 到 main 另由下面的 pull_request 触发（两条路径都会跑，PR 合并前必有一次绿）。
+    branches: [main, dev, 'feat/**', 'fix/**', 'refactor/**', 'chore/**']
   pull_request:
     branches: [main]
   schedule:
-    # nightly 全量 e2e（PR-013 3B 裁决）：cron 触发，UTC 20:00 = 北京时间次日 04:00（低峰期）。
-    # e2e 需要双服务（API+Vite）+ Chrome + 人工 vault 数据，不进 PR gate——先 nightly 收证据，
-    # 套件连续绿后再分批进 PR gate（登记簿 PR-013 动作项既定路线）。
+    # nightly 全量 e2e：cron 保留但默认不执行（见 nightly-e2e 的 if）。
+    # 私有仓 Actions 有分钟额度，e2e 需双服务（API+Vite）+ Chrome + 人工 vault，
+    # 不在发布准备窗口自动烧额度。开启＝仓库 Settings → Variables → RUN_NIGHTLY_E2E=true。
+    # UTC 20:00 = 北京时间次日 04:00（低峰期）。
     - cron: "0 20 * * *"
   workflow_dispatch: {}
 
-# 显式声明最小必要权限（PR-024）：register-coverage 需读本次 run 的 step 结论，
-# 默认 GITHUB_TOKEN 无 actions:read → HTTP 403（run 37243983113 实测）。
-# 此声明是**收紧**而非放宽——未列出的权限一律不给。
+# 最小必要权限。原 actions:read 是给已退役的 register-coverage 用的
+# （〔结构法审计退役 2026-10-19〕摘除），独立仓不再需要，收紧到只留 contents:read。
 permissions:
   contents: read   # actions/checkout 拉代码
-  actions: read    # register-coverage 读 run 的 step 结论
 
 jobs:
   quality:
@@ -30,6 +31,23 @@ jobs:
         with:
           node-version: 22
           cache: npm
+
+      # ── 独立仓姿态自检（治理层已从本仓剥离到私有 kit 仓）──
+      # 本 workflow 从不挂载治理 kit，下列门禁在 CI 里结构性不适用，必须显式说明而非静默假绿：
+      #   · domain-registry：个人 discipline-kit 未安装 → 脚本自身 skip；
+      #   · workflow-gates：读 git 暂存面，CI checkout 无暂存 → 恒 ok；
+      # 二者的执法面在 kit 仓的提交/对账流程（gov:reconcile），不在这里。
+      # 断链（挂了符号链接但目标不存在）是异常形态，fail-closed。
+      - name: Governance kit posture (private kit is NOT mounted in CI)
+        run: |
+          npm run gov:status
+          for p in docs data/governance .githooks AGENTS.md scripts/dev-log scripts/problem-board scripts/ops; do
+            if [ -L "$p" ] && [ ! -e "$p" ]; then
+              echo "::error::治理挂载断链：$p —— fail-closed" >&2
+              exit 1
+            fi
+          done
+          echo "CI: 无私有治理 kit（预期形态）；治理件门禁在 kit 仓执行，不在此 workflow。"
 
       # SPEC-025 C11（#75）：Python 域测试环境准备（门禁本身经注册表驱动执行器接线，本步只备环境）
       - uses: actions/setup-python@v6
@@ -96,7 +114,11 @@ jobs:
   # 2026-10-05 改为下沉到 step 级：只豁免「跑测试」这一步的退出码，由紧随其后的
   # E2E baseline gate 依 contracts/e2e-known-red.json 判定本次到底该不该红。
   nightly-e2e:
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # 独立仓开发/发布准备期：默认只响应手动 dispatch；定时跑需仓库变量 RUN_NIGHTLY_E2E=true。
+    # 避免私有仓每天自动烧一整套 e2e（Chrome + 双服务 + 30min timeout）。
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && vars.RUN_NIGHTLY_E2E == 'true')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:

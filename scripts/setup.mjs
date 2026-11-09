@@ -16,11 +16,14 @@ const ok = (msg) => console.log(`  ✓ ${msg}`);
 const vaultArgIdx = process.argv.indexOf("--vault");
 let vaultPath = vaultArgIdx > 0 ? process.argv[vaultArgIdx + 1] : null;
 
-// ── 步骤 1：npm install（依赖＋钩子自动接线）──
-step(1, "npm install（Node 依赖＋git hooks 自动接线）");
+// ── 步骤 1：npm install（只装 Node 依赖）──
+// 本仓是独立代码仓：.githooks 属私有治理 kit 的挂载点，普通克隆没有，
+// 且 npm 未声明 prepare/postinstall，不会自动改 git config。
+// 提交钩子只能由维护者显式跑 `gov:setup --with-hooks` 接线（见文末）。
+step(1, "npm install（Node 依赖）");
 try {
   execFileSync("npm", ["install"], { cwd: ROOT, stdio: "inherit" });
-  ok("依赖安装完成，hooks 已接线");
+  ok("依赖安装完成");
 } catch (e) {
   console.error(`npm install 失败：${e.message}`); process.exit(1);
 }
@@ -45,12 +48,19 @@ try {
   console.error(`vault:init 失败：${e.message}`); process.exit(1);
 }
 
-// ── 步骤 3：就绪检查（server 能启动＋域表绿）──
+// ── 步骤 3：就绪检查（门禁投影零漂移＋冲突标记）──
+// 原实现调用 scripts/quality/check-domain-registry.mjs——该脚本在本仓并不存在，
+// 于是每次都走 catch 打印「跳过」，是静默假绿。改为两个确实存在的仓内自检，
+// 且任一失败即 setup 失败，不再吞掉。
 step(3, "就绪检查");
 try {
-  execFileSync("node", ["scripts/quality/check-domain-registry.mjs"], { cwd: ROOT, stdio: "inherit" });
-  ok("域表检查通过");
-} catch { ok("域表检查跳过（kit 依赖未安装时不阻塞 setup）"); }
+  execFileSync("node", ["scripts/quality/gates-fold.mjs", "--check"], { cwd: ROOT, stdio: "inherit" });
+  execFileSync("node", ["scripts/quality/check-conflict-markers.mjs"], { cwd: ROOT, stdio: "inherit" });
+  ok("门禁投影与冲突标记检查通过");
+} catch (e) {
+  console.error(`就绪检查失败：${e.message}`);
+  process.exit(1);
+}
 
 console.log(`
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -58,5 +68,8 @@ console.log(`
 
   npm run dev
   → 打开浏览器 http://localhost:5174
+
+  维护者（持有私有治理 kit）：npm run gov:setup -- <kit路径> --with-hooks
+  → 挂载治理件并启用提交钩子；普通克隆不需要这一步。
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
