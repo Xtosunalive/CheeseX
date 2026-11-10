@@ -85,6 +85,9 @@ jobs:
           test -n "$PKGS" || { echo "单源投影为空——拒绝静默装零依赖" >&2; exit 1; }
           python3 -m pip install --user $PKGS
 
+      - name: Install Playwright Chromium for Node tests
+        run: npx --no-install playwright install --with-deps --only-shell chromium
+
       - name: Registered CI gates (registry-driven)
         run: node scripts/quality/run-ci-gates.mjs
 
