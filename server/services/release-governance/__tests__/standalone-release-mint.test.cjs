@@ -32,7 +32,7 @@ function fixtureVault() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "mint-vault-"));
   for (const def of SOURCE_ROOTS) fs.mkdirSync(path.join(root, def.relativePath), { recursive: true });
   fs.mkdirSync(path.join(root, "知识库/wiki/articles"), { recursive: true });
-  write(root, "知识库/wiki/entities/mint-component.md", "---\narchitecture-node-id: mint-component\nmodule: [fixture-module]\n---\n\n# Mint Component\n");
+  write(root, "知识库/wiki/entities/mint-component.md", "---\ntitle: Mint Component\narchitecture-node-id: mint-component\narch_component: true\narch_layer: service\narch_category: 服务\narch_subdomain: maintain\narch_since: 1.0.0\narch_until: 9.9.9\nmodule: fixture-module\nstatus: 灰度\ndate: 2026-01-01\nupdated: 2026-01-01\naliases: [mint]\ntags: [mint]\n---\n\n# Mint Component\n");
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "mint-data-"));
   write(dataDir, "master_graph.db", "sqlite-fixture");
   // 种子＝staging 文件（管线产物落点）——服务 boot 会摄取进自己的库（NODE_TEST_CONTEXT 内存/文件模式皆然，

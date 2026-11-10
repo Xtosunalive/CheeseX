@@ -166,6 +166,7 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
   const currentStatus = status?.status ?? "draft";
   const stepIndex = activeWorkflowStep(currentStatus);
   const selectedCandidate = candidates.find((c) => c.id === activeArticleId) ?? null;
+  const checkBlocked = selectedCandidate?.standardizationStatus === "blocked";
   // PR-047：pending 态源文件变化检测——存储 revision（standardize 时绑定的哈希）与候选当前
   // formalContentHash 不一致 = 旧审批绑定失效，confirm 必被 assertSourceUnchanged 拦。
   // 此时展示「重新标准化」按钮（走 standardizeAndSubmit：文章准入页重标准化 + 状态机 standardize 重绑，仍回待审）。
@@ -238,6 +239,26 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
 
       {error && <p role="alert" className="whitespace-pre-line rounded-md bg-status-error-2 px-3 py-2 text-xs text-status-error ring-1 ring-status-error-6">{error}</p>}
 
+      {status?.changeSummary && currentStatus === "pending" && (
+        <details open className="rounded-lg bg-surface-root p-3 text-xs ring-1 ring-border-thin" data-testid="approval-change-summary">
+          <summary className="cursor-pointer font-medium">{APPROVAL_WORKBENCH_COPY.CHANGE_SUMMARY}</summary>
+          {status.changeSummary.fields.length > 0 && <div className="mt-2 space-y-2">
+            <p>{APPROVAL_WORKBENCH_COPY.CHANGED_FIELDS}</p>
+            {status.changeSummary.fields.map((change) => <div key={change.field} className="rounded bg-surface-hover p-2">
+              <p className="font-medium">{change.field}</p>
+              <p>{APPROVAL_WORKBENCH_COPY.BEFORE}：{change.before}</p>
+              <p>{APPROVAL_WORKBENCH_COPY.AFTER}：{change.after}</p>
+            </div>)}
+          </div>}
+          {status.changeSummary.bodyChanged && <div className="mt-2 space-y-1">
+            <p className="font-medium">{APPROVAL_WORKBENCH_COPY.BODY_CHANGED}</p>
+            <p className="whitespace-pre-wrap">{APPROVAL_WORKBENCH_COPY.BEFORE}：{status.changeSummary.beforeExcerpt}</p>
+            <p className="whitespace-pre-wrap">{APPROVAL_WORKBENCH_COPY.AFTER}：{status.changeSummary.afterExcerpt}</p>
+          </div>}
+        </details>
+      )}
+      {currentStatus === "pending" && checkBlocked && <p role="alert" className="text-xs text-status-error">{APPROVAL_WORKBENCH_COPY.CHECK_BLOCKED}</p>}
+
       {/* 操作按钮：标准化（draft→pending）/ 确认（approved）/ 驳回（rejected）/ 发布（snapshot）*/}
       {status && !loading && currentStatus === "draft" && activeArticleId && (
         <div className="flex flex-wrap gap-2">
@@ -250,7 +271,7 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
       {status && !loading && currentStatus === "pending" && (
         <div className="flex flex-wrap gap-2">
           {bindingStale && recoveryButton}
-          <Button size="sm" data-action-id="approval-confirm" disabled={busy || bindingStale} title={bindingStale ? APPROVAL_WORKBENCH_COPY.CONFIRM_BLOCKED_TITLE : undefined} onClick={() => void operate("confirm")}>
+          <Button size="sm" data-action-id="approval-confirm" disabled={busy || bindingStale || checkBlocked} title={bindingStale ? APPROVAL_WORKBENCH_COPY.CONFIRM_BLOCKED_TITLE : undefined} onClick={() => void operate("confirm")}>
             <CheckCircle2 className="mr-1.5 h-4 w-4" />{APPROVAL_WORKBENCH_COPY.CONFIRM_ACTION}
           </Button>
           <Button size="sm" variant="outline" data-action-id="approval-reject" disabled={busy || !rejectReason.trim()} onClick={() => void operate("reject")}>

@@ -12,8 +12,6 @@
 const crypto = require("node:crypto");
 const { writeRepoFileAtomic } = require("../../shared/repo-file-io.cjs");
 const articleLifecycle = require("../../shared/article-lifecycle-paths.cjs");
-const fs = require("node:fs");
-const path = require("node:path");
 const { createStandardVersion } = require("../article-workflow/article-workflow-store.cjs");
 
 const { bindErrorFactory } = require("../../shared/error-factory.cjs");
@@ -50,27 +48,6 @@ function snapshotSingleFile({ articleId, contentHash, raw, sourcePath, document 
       now,
       { allowedDomains: allowedDomainsFor(vaultPath) }
     );
-    // S5（#1050 场景⑧）＋SPEC-030 派②扩面：正式区是「当前快照」暂存区，不是追加日志——
-    // scanFormalReleaseSources 按 article_id 判重，同 articleId 两快照并存会让 collectCompleteArtifacts
-    // 抛 DUPLICATE_DOCUMENT_ID。取代语义随域段扩为全域：清同 articleId 的一切旧快照（含跨域残留——
-    // category-path 改域后旧域目录的文章）。先写新再删旧（写失败不删旧，fail-closed）；历史版本字节
-    // 保留在 Release 产物（releasesDir/{releaseId}/artifacts/），删工作树旧快照不影响已发布 Release 不可变性。
-    const snapshotAbs = path.join(vaultPath, result.version.snapshotPath);
-    const targetName = path.basename(snapshotAbs);
-    const articleDirName = path.basename(path.dirname(snapshotAbs));
-    const formalRootAbs = articleLifecycle.formalArticlesDir(vaultPath);
-    for (const domainEntry of fs.readdirSync(formalRootAbs, { withFileTypes: true })) {
-      if (!domainEntry.isDirectory()) continue;
-      for (const articleEntry of fs.readdirSync(path.join(formalRootAbs, domainEntry.name), { withFileTypes: true })) {
-        if (!articleEntry.isDirectory() || articleEntry.name !== articleDirName) continue;
-        const dirAbs = path.join(formalRootAbs, domainEntry.name, articleEntry.name);
-        for (const fileEntry of fs.readdirSync(dirAbs, { withFileTypes: true })) {
-          if (fileEntry.isFile() && fileEntry.name.endsWith(".md") && fileEntry.name !== targetName) {
-            fs.rmSync(path.join(dirAbs, fileEntry.name), { force: true });
-          }
-        }
-      }
-    }
     return { snapshotPath: result.version.snapshotPath, contentHash: result.version.contentHash, domainSegment: result.version.domainSegment, decisionId: result.decision.decisionId };
   }
 

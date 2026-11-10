@@ -73,7 +73,7 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
   function getStatus(articleId) {
     ensureStore();
     const record = readRecord(articleId);
-    return record ? { status: record.status, revision: record.revision, updatedAt: record.updatedAt } : { status: "draft", revision: null, updatedAt: null };
+    return record ? { status: record.status, revision: record.revision, updatedAt: record.updatedAt, changeSummary: record.changeSummary || null } : { status: "draft", revision: null, updatedAt: null, changeSummary: null };
   }
 
   // 追加审计记录（decisions.jsonl，append-only；schema 复用 normalizeDecision 字段集）
@@ -216,6 +216,23 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
     }
   }
 
+  // Obsidian 正式文件变化：旧 Release 保留，新字节进入同一身份的新审批轮次。
+  function recordExternalEdit(articleId, contentHash, sourceHash = contentHash, changeSummary = null) {
+    ensureStore();
+    if (typeof contentHash !== "string" || !/^[0-9a-f]{64}$/.test(contentHash)) {
+      throw stateError("ARTICLE_REVISION_CONFLICT", "外部编辑内容哈希不可用", 409, { articleId });
+    }
+    const current = readRecord(articleId);
+    if (!current || !["approved", "snapshot", "pending"].includes(current.status)) return { changed: false, status: current?.status || "draft" };
+    const nextRevision = `sha256:${contentHash}`;
+    if (current.revision === nextRevision && current.status === "pending" && current.externalSourceHash === sourceHash) return { changed: false, status: "pending" };
+    if (current.approval?.contentHash === contentHash && current.status !== "pending") return { changed: false, status: current.status };
+    const next = { ...current, status: "pending", revision: nextRevision, externalSourceHash: sourceHash, changeSummary, approval: null, updatedAt: new Date().toISOString() };
+    delete next.releaseId;
+    writeRecordChecked(articleId, next);
+    return { changed: true, status: "pending", revision: nextRevision };
+  }
+
   // B2/D3：标准化管线——standardize 与 resubmit 共用（probe 校验 → 快照 → revision 刷新），
   // 同一函数组合不写第二套（规则 30）；既有路径保持，approved 恢复边由 SPEC-080 增补。
   // snapshot contentHash 一律服务端现算（B2/D2：不采信客户端哈希）。
@@ -312,6 +329,12 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
 
     if (operation === "confirm") {
       assertRevision(current, input.revision);
+      if (typeof standardizationProbe === "function") {
+        const candidate = standardizationProbe(articleId);
+        if (!candidate || candidate.standardizationStatus !== "standardized" || !candidate.formalContentHash) {
+          throw stateError("ARTICLE_NOT_STANDARDIZED", "当前内容检查未通过，不能确认；请修正后重新标准化", 409, { articleId });
+        }
+      }
       assertSourceUnchanged(articleId, current);
       const freshReceipt = assertValidationPassed(articleId, input); // B3：现场计算，失败且无豁免 → fail-closed
       const decision = await appendDecision(articleId, { ...input, decision: "approved", rulesHash: freshReceipt ? freshReceipt.rulesHash : null });
@@ -435,7 +458,7 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
   }
 
   // readCategoryPath 随接口出射（WP-116 批1：纯函数无闭包依赖——publish 落位域段解析的边界钉测试缝）
-  return { STATUSES, APPROVAL_TRANSITIONS, assertTransition, getStatus, transition, readRecord, decisionsPath, readCategoryPath };
+  return { STATUSES, APPROVAL_TRANSITIONS, assertTransition, getStatus, transition, recordExternalEdit, readRecord, decisionsPath, readCategoryPath };
 }
 
 module.exports = { createApprovalStateMachine, APPROVAL_TRANSITIONS, STATUSES };

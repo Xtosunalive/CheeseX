@@ -12,6 +12,11 @@ const { execFileSync } = require("node:child_process");
 const { gitFixtureEnv } = require("../../../scripts/quality/shared/git-fixture-env.cjs");
 
 const { registerApprovalStateMachine } = require("../release-governance/approval-state-machine-assembly.cjs");
+const { createArticleWorkflowService } = require("../article-workflow/article-workflow-service.cjs");
+const { createFormalEditService } = require("../article-workflow/formal-edit-service.cjs");
+const { createVaultWatcherService } = require("../governance/vault-watcher-service.cjs");
+const { createReleaseBuilderService } = require("../release-governance/release-builder-service.cjs");
+const { createReleaseReaderService } = require("../release-governance/release-reader-service.cjs");
 
 function git(args, cwd) {
   return execFileSync("git", args, { env: gitFixtureEnv(process.env), cwd, encoding: "utf8", stdio: ["ignore", "pipe", "pipe"]}).trim();
@@ -47,6 +52,8 @@ function fixtureVault() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "asm-assembly-")); process.env.DECISIONS_MIRROR_DIR = path.join(os.tmpdir(), "dm-pin-"); // Master 加固批：镜像写通道钉 /tmp
   const source = path.resolve(__dirname, "../../../test/fixtures/minimal-vault");
   fs.cpSync(source, root, { recursive: true });
+  write(root, "知识库/wiki/entities/fixture-component.md", "---\ntitle: Fixture Component\narchitecture-node-id: fixture-component\narch_component: true\nmodule: fixture-module\ndate: 2026-10-08\nupdated: 2026-10-08\nstatus: 灰度\ntags: [entity]\n---\n\n# Fixture Component\n");
+  write(root, "知识库/wiki/entities/incomplete-component.md", "---\ntitle: Incomplete Component\narchitecture-node-id: incomplete-component\narch_component: true\ndate: 2026-10-08\nupdated: 2026-10-08\nstatus: 灰度\ntags: [entity]\n---\n\n# Incomplete Component\n");
   git(["init", "-b", "main"], root);
   git(["config", "user.email", "test@example.invalid"], root);
   git(["config", "user.name", "Asm Test"], root);
@@ -95,6 +102,60 @@ async function standardizeToApproved(sm, articleId, H) { // PR-056：transition 
   });
   await sm.transition(articleId, "confirm", { contentHash: H });
 }
+
+test("正式文章外部修改重检待审，旧 Release 不变，重新确认后再发布", async () => {
+  const vaultPath = fixtureVault();
+  try {
+    let reader = null;
+    const warnings = [];
+    const logger = { info() {}, warn(entry) { warnings.push(entry); }, error() {} };
+    const workflow = createArticleWorkflowService({ vaultPath, logger, getReleaseReader: () => reader });
+    const articleId = "fixture-candidate-001";
+    const candidate = workflow.getPrecleaned(articleId);
+    workflow.standardize(articleId, true);
+    const standardized = workflow.getPrecleaned(articleId);
+    const sm = registerApprovalStateMachine({ vaultPath, logger, articleWorkflowService: workflow });
+    await sm.transition(articleId, "standardize", { sourcePath: candidate.sourcePath, contentHash: standardized.formalContentHash });
+    await sm.transition(articleId, "confirm", { sourcePath: candidate.sourcePath, contentHash: standardized.formalContentHash });
+    const first = await sm.transition(articleId, "publish", { sourcePath: candidate.sourcePath, title: candidate.title });
+    assert.equal(first.status, "snapshot");
+    const releasesDir = path.join(vaultPath, ".releases");
+    const builder = createReleaseBuilderService({ releasesDir, logger });
+    reader = createReleaseReaderService({ builderService: builder, releasesDir });
+    const oldVersion = workflow.readPublishedContent(articleId);
+    const formalFile = path.join(vaultPath, first.snapshotPath);
+    const edited = fs.readFileSync(formalFile, "utf8").replace("#", "# 外部编辑\n\n#");
+    fs.writeFileSync(formalFile, edited);
+    const processor = createFormalEditService({ vaultPath, articleWorkflowService: workflow, approvalStateMachine: sm, logger });
+    const watcher = createVaultWatcherService({ vaultPath, logger, gitLedger: { scheduleLedger() {}, markSystemFile() {} }, onExternalWrite: (paths) => processor.handle(paths) });
+    watcher.handleEventNow(formalFile);
+    assert.equal(sm.getStatus(articleId).status, "pending", JSON.stringify(warnings));
+    assert.equal(sm.getStatus(articleId).status, "pending");
+    assert.equal(sm.getStatus(articleId).changeSummary.bodyChanged, true);
+    assert.equal(workflow.readPublishedContent(articleId), oldVersion);
+    assert.equal(processor.handle([formalFile])[0].changed, false);
+    const changedCandidate = workflow.getPrecleaned(articleId);
+    await sm.transition(articleId, "confirm", { sourcePath: changedCandidate.sourcePath, contentHash: changedCandidate.formalContentHash });
+    const second = await sm.transition(articleId, "publish", { sourcePath: changedCandidate.sourcePath, title: changedCandidate.title });
+    assert.notEqual(second.releaseId, first.releaseId);
+    assert.match(workflow.readPublishedContent(articleId), /外部编辑/);
+    assert.equal(sm.getStatus(articleId).status, "snapshot");
+    const beforeBlocked = workflow.readPublishedContent(articleId);
+    fs.appendFileSync(path.join(vaultPath, changedCandidate.sourcePath), "\n工作副本未提交改动\n");
+    fs.writeFileSync(formalFile, fs.readFileSync(formalFile, "utf8").replace("product: FixtureProduct", "product: 不存在的产品"));
+    watcher.handleEventNow(formalFile);
+    const backups = fs.readdirSync(path.join(vaultPath, "知识库/raw/drafts")).filter((name) => name.includes("修改备份"));
+    assert.equal(backups.length, 1, "正式文件同步前保留独立工作副本");
+    assert.match(fs.readFileSync(path.join(vaultPath, "知识库/raw/drafts", backups[0]), "utf8"), /工作副本未提交改动/);
+    assert.equal(sm.getStatus(articleId).status, "pending", "检查失败也必须撤销旧批准");
+    assert.equal(workflow.getPrecleaned(articleId).standardizationStatus, "blocked");
+    assert.equal(workflow.readPublishedContent(articleId), beforeBlocked);
+    await assert.rejects(() => sm.transition(articleId, "confirm", { sourcePath: workflow.getPrecleaned(articleId).sourcePath }), /校验|变化|标准化/);
+    fs.writeFileSync(formalFile, fs.readFileSync(formalFile, "utf8").replace("article_id: fixture-candidate-001", "article_id: changed-id"));
+    watcher.handleEventNow(formalFile);
+    assert.equal(sm.getStatus(articleId).status, "pending", "身份字段变更仍归旧审批身份待处理");
+  } finally { cleanTree(vaultPath); }
+});
 
 // S4（gherkin 场景⑧）：publish 失败必须落持久 Issue（release_publication_failure，listIssues 可读）。
 // 缺必需产物 master_graph.db → collectCompleteArtifacts 抛 RELEASE_ARTIFACT_MISSING →
@@ -193,14 +254,11 @@ architecture_associations: []
     const result = await sm.transition("fixture-candidate-002", "publish", { sourcePath: src002, title: "测试候选文章二", product: "FixtureProduct", version: "1.0.0" });
     assert.ok(result.releaseId, "重新审批后 publish 应成功（取代语义不得 DUPLICATE_DOCUMENT_ID）");
     assert.equal(sm.getStatus("fixture-candidate-002").status, "snapshot");
-    // 工作树只保留当前快照（旧哈希被取代）
-    // SPEC-030 派②两层：<域>/<articleId>/——先定位域目录
     const formalRootA5 = path.join(vaultPath, "知识库", "wiki", "articles");
-    const domainEntryA5 = fs.readdirSync(formalRootA5, { withFileTypes: true }).find((e) => e.isDirectory() && fs.existsSync(path.join(formalRootA5, e.name, "fixture-candidate-002")));
-    const articleDir = path.join(formalRootA5, domainEntryA5.name, "fixture-candidate-002");
-    const snapshots = fs.readdirSync(articleDir).filter((name) => name.endsWith(".md"));
-    assert.equal(snapshots.length, 1, `同 articleId 应只保留 1 个快照，实际: ${JSON.stringify(snapshots)}`);
-    assert.equal(snapshots[0], `${HB2}.md`, "应保留当前源哈希快照");
+    const readableFiles = fs.readdirSync(formalRootA5).flatMap((domain) => fs.readdirSync(path.join(formalRootA5, domain)).filter((name) => name.endsWith(".md")).map((name) => path.join(formalRootA5, domain, name)));
+    const thisArticle = readableFiles.filter((file) => fs.readFileSync(file, "utf8").includes("article_id: fixture-candidate-002"));
+    assert.equal(thisArticle.length, 1, "同 articleId 只保留一份可编辑正式文件");
+    assert.equal(sha256(fs.readFileSync(thisArticle[0])), HB2, "正式文件为本次获批内容");
     // current 指针已切换
     const currentPath = path.join(vaultPath, ".releases", "current.json");
     assert.ok(fs.existsSync(currentPath), "publish 成功后 current.json 应存在");

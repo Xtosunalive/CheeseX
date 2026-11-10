@@ -54,6 +54,8 @@ function fixtureVault() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "a1-parity-")); process.env.DECISIONS_MIRROR_DIR = path.join(os.tmpdir(), "dm-pin-"); // Master 加固批：含 approval 装配——镜像写通道钉 /tmp
   const source = path.resolve(__dirname, "../../../test/fixtures/minimal-vault");
   fs.cpSync(source, root, { recursive: true });
+  write(root, "知识库/wiki/entities/fixture-component.md", "---\ntitle: Fixture Component\narchitecture-node-id: fixture-component\narch_component: true\nmodule: fixture-module\ndate: 2026-10-08\nupdated: 2026-10-08\nstatus: 灰度\ntags: [entity]\n---\n\n# Fixture Component\n");
+  write(root, "知识库/wiki/entities/incomplete-component.md", "---\ntitle: Incomplete Component\narchitecture-node-id: incomplete-component\narch_component: true\ndate: 2026-10-08\nupdated: 2026-10-08\nstatus: 灰度\ntags: [entity]\n---\n\n# Incomplete Component\n");
   git(["init", "-b", "main"], root);
   git(["config", "user.email", "test@example.invalid"], root);
   git(["config", "user.name", "A1 Test"], root);
@@ -221,13 +223,9 @@ test("A1 双投影等价：list 选项与 save 校验同源（保存死锁）+ �
 
     // —— TC-frozen（#1776 冻结语义守护）：文章目录必须仍来自冻结 Release，不随活源漂移 ——
     const frozenBefore = (await getJSON(port, "/api/article-associations")).body.data.articles[0];
-    // SPEC-030 派②两层：域/<articleId>/——先定位文章目录再取快照
     const formalRoot = path.join(vaultPath, "知识库", "wiki", "articles");
-    const domainDir = fs.readdirSync(formalRoot, { withFileTypes: true }).find((e) => e.isDirectory() && fs.existsSync(path.join(formalRoot, e.name, articleId)));
-    const liveSnapshots = path.join(formalRoot, domainDir.name, articleId);
-    const snapshotFile = fs.readdirSync(liveSnapshots).find((name) => name.endsWith(".md"));
-    const snapshotPath = path.join(liveSnapshots, snapshotFile);
-    fs.chmodSync(snapshotPath, 0o644); // 发布器把快照写为 0o444 不可变（builder :124-125）——模拟活源漂移先解只读
+    const snapshotPath = fs.readdirSync(formalRoot).flatMap((domain) => fs.readdirSync(path.join(formalRoot, domain)).filter((name) => name.endsWith(".md")).map((name) => path.join(formalRoot, domain, name))).find((file) => fs.readFileSync(file, "utf8").includes(`article_id: ${articleId}`));
+    assert.ok(snapshotPath, "正式文章须按 article_id 找到可编辑文件");
     fs.writeFileSync(snapshotPath, fs.readFileSync(snapshotPath, "utf8") + "\n活源漂移行\n");
     const frozenAfter = (await getJSON(port, "/api/article-associations")).body.data.articles[0];
     assert.equal(frozenAfter.sourceHash, frozenBefore.sourceHash, "list 的文章 sourceHash 必须仍来自冻结快照（活源漂移不得穿透）");

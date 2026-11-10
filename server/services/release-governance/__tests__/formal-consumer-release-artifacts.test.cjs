@@ -27,7 +27,8 @@ function fixture() {
   // 进程生命周期，requiredDataArtifactFile 经 resolveDataDir 读到）
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "formal-release-data-"));
   process.env.KB_DATA_DIR = dataDir;
-  write(root, "知识库/wiki/entities/fixture-component.md", "---\narchitecture-node-id: fixture-component\nmodule: [fixture-module, shared-module]\n---\n\n# Fixture Component\n");
+  write(root, "知识库/wiki/entities/fixture-component.md", "---\ntitle: Fixture Component\narchitecture-node-id: fixture-component\narch_component: true\nmodule: [fixture-module, shared-module]\ndate: 2026-10-08\nupdated: 2026-10-08\nstatus: 灰度\ntags: [entity]\n---\n\n# Fixture Component\n");
+  write(root, "知识库/wiki/entities/incomplete-component.md", "---\ntitle: Incomplete Component\narchitecture-node-id: incomplete-component\narch_component: true\ndate: 2026-10-08\nupdated: 2026-10-08\nstatus: 灰度\ntags: [entity]\n---\n\n# Incomplete Component\n");
   write(dataDir, "master_graph.db", "sqlite-fixture");
   const store = getDerivedIndexStore(root);
   store.artifacts.put("extract_manifest", '{"generatedAt":"volatile","files":{}}\n');
@@ -95,6 +96,18 @@ test("complete artifacts contain deterministic formal search, schema, version an
   assert.equal(semantic.entities.find((entity) => entity.entityId === "shared-service").projectionPaths.length, 2);
   const provenance = JSON.parse(first["indexes/provenance.json"]);
   assert.equal(provenance.relations[0].sourcePath, "知识库/wiki/entities/fixture-component.md");
+});
+
+test("实体缺项可留在库内，但不能进入正式 Release；补齐后可重试", (t) => {
+  const data = fixture();
+  t.after(() => fs.rmSync(data.root, { recursive: true, force: true }));
+  const source = "知识库/wiki/entities/fixture-component.md";
+  const original = fs.readFileSync(path.join(data.root, source), "utf8");
+  write(data.root, source, original.replace("tags: [entity]\n", ""));
+  assert.throws(() => collectCompleteArtifacts(data.root), (error) => error.code === "ENTITY_COMPLIANCE_BLOCKED"
+    && error.details.pending.some((item) => item.sourcePath === source && item.rules.some((rule) => rule.ruleId === "F16")));
+  write(data.root, source, original);
+  assert.ok(collectCompleteArtifacts(data.root)["indexes/document-search.json"]);
 });
 
 test("version snapshot hash mismatch blocks the Release artifact set", (t) => {

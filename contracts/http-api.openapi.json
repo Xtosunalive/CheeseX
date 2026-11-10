@@ -9037,6 +9037,29 @@
               "string",
               "null"
             ]
+          },
+          "changeSummary": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["fields", "bodyChanged", "beforeExcerpt", "afterExcerpt"],
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["field", "before", "after"],
+                  "properties": {
+                    "field": { "type": "string" },
+                    "before": { "type": "string" },
+                    "after": { "type": "string" }
+                  }
+                }
+              },
+              "bodyChanged": { "type": "boolean" },
+              "beforeExcerpt": { "type": "string" },
+              "afterExcerpt": { "type": "string" }
+            }
           }
         }
       },

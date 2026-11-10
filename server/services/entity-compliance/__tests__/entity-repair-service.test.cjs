@@ -79,20 +79,19 @@ const RAW = "---\ntitle: Target\narchitecture-node-id: target\narch_component: t
     assert.throws(() => env.service.preview({ sourceKey: env.sourceKey, createIfMissing: true, changes: { title: "Again" } }), (e) => e.code === "SOURCE_CHANGED");
   } finally { fs.rmSync(env.vault, { recursive: true, force: true }); }
 
-  // #1803：新建实体的 preview 必须与 apply 同语义（绝对门禁提前到预览）——缺 F16 标签在预览阶段即拦+明细
+  // 缺项允许创建，预览继续返回 F16 待处理明细。
   env = setup(RAW);
   try {
     fs.unlinkSync(env.file);
-    assert.throws(() => env.service.preview({
+    const incomplete = env.service.preview({
       sourceKey: env.sourceKey,
       createIfMissing: true,
       initialTitle: "Target",
       changes: { title: "Target", arch_component: true, date: "2026-07-20", updated: "2026-07-20", status: "有效" },
-    }), (e) => {
-      if (e.code !== "ENTITY_COMPLIANCE_BLOCKED") return false;
-      const blockers = (e.details && e.details.blockers) || [];
-      return blockers.some((b) => b.ruleId === "F16");
-    }, "create preview must surface strict violations with details");
+    });
+    assert((incomplete.postCheck.blockers || []).some((b) => b.ruleId === "F16"));
+    env.service.apply({ previewId: incomplete.previewId, confirmed: true });
+    assert(fs.existsSync(env.file));
   } finally { fs.rmSync(env.vault, { recursive: true, force: true }); }
 
   env = setup(RAW + "\n- 关联::[[强制入主]]\n- 关联::[[强制入主]]\n正文提到 [[强制入主]]，不得删除。\n");

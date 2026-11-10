@@ -2,7 +2,7 @@
 // @responsible: SPEC-013 文章生命周期路径角色契约的静态执法面——契约良构＋server 侧裸拼四族路径
 //   字面量即红（必须经 server/shared/article-lifecycle-paths.cjs 单源取用）。
 //   SPEC-028 扩面：可变性档三面——角色行 mutability 必填且合法（枚举单源 schema definitions）、
-//   证据角色档位映射（formal/source-archive=read-only-evidence，draft/working=human-editable）、
+//   证据角色档位映射（source-archive=read-only-evidence，draft/working/formal=human-editable）、
 //   read-only 档执法测试在册（vault-io 测试含 0o444 断言）。
 // @inputs: contracts/article-lifecycle.json（+schema 形态断言）、server/**/*.cjs 源码
 // @outputs: article_lifecycle=ok|FAIL（exit 0/1）
@@ -60,7 +60,7 @@ for (const r of roles) {
 const MUTABILITY_MAP = { // SPEC-028 §四：档位映射（证据角色只读、过程角色人可改）
   draft: "human-editable",
   "standard-working": "human-editable",
-  "standard-formal": "read-only-evidence",
+  "standard-formal": "human-editable",
   "source-archive": "read-only-evidence",
 };
 let mutabilityEnum = null;

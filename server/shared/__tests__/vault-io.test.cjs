@@ -331,12 +331,24 @@ test("SPEC-028 read-only-evidence：全权替换拒绝（fail-closed，模块级
   const dir = makeTmpVault();
   try {
     const io = initVaultIO({ vaultPath: dir, gitLedger: makeNoopLedger() });
-    const target = path.join(dir, "知识库", "wiki", "articles", "a1", "h.md");
+    const target = path.join(dir, "知识库", "raw", "archive", "投稿", "h.md");
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.writeFileSync(target, "orig");
     assert.throws(() => replaceVault(target, "x"), { code: "VAULT_IMMUTABLE_PATH" }, "模块级 replaceVault 须按档拒绝");
     assert.throws(() => io.replaceVaultFile(target, "x"), { code: "VAULT_IMMUTABLE_PATH" }, "工厂 replaceVaultFile 须按档拒绝");
     assert.equal(fs.readFileSync(target, "utf8"), "orig");
+  } finally { cleanup(dir); }
+});
+
+test("ADR-020 正式文章可经统一写入口更新，归档仍只读", () => {
+  const dir = makeTmpVault();
+  try {
+    initVaultIO({ vaultPath: dir, gitLedger: makeNoopLedger() });
+    const target = path.join(dir, "知识库", "wiki", "articles", "运维", "说明.md");
+    fs.mkdirSync(path.dirname(target), { recursive: true });
+    fs.writeFileSync(target, "原文");
+    writeVault(target, "修改", { expectedContentHash: contentRevision("原文"), domain: "workflow" });
+    assert.equal(fs.readFileSync(target, "utf8"), "修改");
   } finally { cleanup(dir); }
 });
 

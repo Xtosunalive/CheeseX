@@ -33,7 +33,7 @@ function write(root, relative, content) {
 // 新世界 Vault：只有受管文档，没有 知识库/TheSchema、没有任何 Vault 侧 SA/layout 文件
 function newWorldVault() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "pr101-vault-"));
-  write(root, "知识库/wiki/entities/fixture-component.md", "---\narchitecture-node-id: fixture-component\nmodule: [fixture-module]\n---\n\n# Fixture Component\n");
+  write(root, "知识库/wiki/entities/fixture-component.md", "---\ntitle: Fixture Component\narchitecture-node-id: fixture-component\narch_component: true\nmodule: [fixture-module]\ndate: 2026-10-08\nupdated: 2026-10-08\nstatus: 灰度\ntags: [entity]\n---\n\n# Fixture Component\n");
   // PR-159 夹具密封：vault 侧 TheSchema＝密封基线拷贝＋versions 置空——仓内活注册表（通用/1.0
   // 已冻结带快照）不得渗入夹具（packer 对 released 版本必索快照工件，仓内指针指向真库才存在
   // 的文件，夹具永远给不出）。WP-049 余量批改拷贝源为基线夹具：拷自仓内主源会使断言随仓内
