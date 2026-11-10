@@ -122,11 +122,11 @@ def test_dotted_bad_relation_cli_reports_summary_and_continues(tmp_path):
     schema.mkdir(parents=True)
     ontology_path = schema / "ontology.yaml"
     ontology_path.write_text(yaml.safe_dump(ontology), encoding="utf-8")
-    graph_path = knowledge / "architecture/AnyShare.architecture.json"
-    graph_path.parent.mkdir()
-    graph_path.write_text(json.dumps({"knowledgeGraph": {
-        "moduleNodes": nodes, "semanticEdges": edges,
-    }}), encoding="utf-8")
+    graph_path = tmp_path / "data/staging/master_graph.json"
+    graph_path.parent.mkdir(parents=True)
+    connections = [{"from": edge["source"], "to": edge["target"], "relationType": edge["type"]}
+                   for edge in edges]
+    graph_path.write_text(json.dumps({"nodes": nodes, "connections": connections}), encoding="utf-8")
     # WP-049 L3：为本 vault 物化信封（子进程经 env 继承——外层信封属别的库，不得串台）；
     # 快照在安装后拍（助手重写 fixture 属测试供数，不属被测行为）
     from _vocab_fixture import install_vocab_envelope
@@ -149,3 +149,69 @@ def test_dotted_bad_relation_cli_reports_summary_and_continues(tmp_path):
         assert "HEALTHY" in result.stdout and "source 类型应为" in result.stdout
         for path, snapshot in snapshots.items():
             assert path.read_bytes() == snapshot
+
+
+@pytest.mark.parametrize("payload,code", [
+    ({"components": [], "dependencies": [], "layers": []}, 0),
+    ({}, 1),
+])
+def test_projection_reads_current_staging(tmp_path, payload, code):
+    """Local CLI integration with only the current projection output in the vault."""
+    (tmp_path / "知识库").mkdir()
+    data = tmp_path / "data"
+    projection = data / "staging/sa/semantic_architecture.json"
+    projection.parent.mkdir(parents=True)
+    projection.write_text(json.dumps(payload), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(_HERE / "validate_graph.py"), "--architecture-projection"],
+        env={**os.environ, "KB_VAULT": str(tmp_path), "KB_DATA_DIR": str(data)},
+        capture_output=True, text=True, timeout=20,
+    )
+    assert result.returncode == code, (result.stdout, result.stderr)
+
+
+@pytest.mark.parametrize("payload,code", [
+    (None, 1),
+    ({}, 1),
+    ({"nodes": [], "connections": []}, 0),
+    ({"nodes": [], "connections": [{"from": "missing-a", "to": "missing-b", "relationType": "USES"}]}, 1),
+    ({"nodes": [{"id": "orphan", "labels": ["Good"]}], "connections": []}, 0),
+])
+def test_structural_exit_distinguishes_bad_graph_and_quality_findings(tmp_path, payload, code):
+    """Local CLI integration using current staging graph shapes and exit codes."""
+    (tmp_path / "知识库").mkdir()
+    data = tmp_path / "data"
+    graph = data / "staging/master_graph.json"
+    graph.parent.mkdir(parents=True)
+    if payload is not None:
+        graph.write_text(json.dumps(payload), encoding="utf-8")
+    result = subprocess.run(
+        [sys.executable, str(_HERE / "validate_graph.py"), "--structural"],
+        env={**os.environ, "KB_VAULT": str(tmp_path), "KB_DATA_DIR": str(data)},
+        capture_output=True, text=True, timeout=20,
+    )
+    assert result.returncode == code, (result.stdout, result.stderr)
+
+
+def test_auto_fix_keeps_unrelated_entity_with_same_name(tmp_path, monkeypatch):
+    """Local CLI integration for the deletion boundary."""
+    monkeypatch.delenv("DOC_ENVELOPE_PATH", raising=False)
+    from _vocab_fixture import install_doc_envelope
+
+    entity = tmp_path / "知识库/wiki/entities/FixtureProduct.md"
+    entity.parent.mkdir(parents=True)
+    entity.write_text("---\nstatus: 制定中\n---\n", encoding="utf-8")
+    data = tmp_path / "data"
+    graph = data / "staging/master_graph.json"
+    graph.parent.mkdir(parents=True)
+    graph.write_text(json.dumps({"nodes": [
+        {"id": "product", "labels": ["Product"], "properties": {"name": "FixtureProduct"}}
+    ], "connections": []}), encoding="utf-8")
+    envelope = install_doc_envelope(str(tmp_path))
+    result = subprocess.run(
+        [sys.executable, str(_HERE / "validate_graph.py"), "--auto-fix"],
+        env={**os.environ, "KB_VAULT": str(tmp_path), "KB_DATA_DIR": str(data), "DOC_ENVELOPE_PATH": str(envelope)},
+        capture_output=True, text=True, timeout=20,
+    )
+    assert result.returncode == 0, (result.stdout, result.stderr)
+    assert entity.is_file(), result.stdout

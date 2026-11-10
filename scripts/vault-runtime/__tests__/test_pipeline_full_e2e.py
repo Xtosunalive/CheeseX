@@ -244,22 +244,23 @@ version: "1.0"
             # WP-049 L3：直拉 runner 前先物化词表信封（生产链由 Node 拉起点自动做；手工/测试
             # 直拉须先跑 dump——信封含钉扎 TheSchema 阶梯解析的真词表）
             envelope = vault / ".ledger" / "vocab-envelope.json"
-            dump = subprocess.run(
-                ["node", str(REBUILD_ROOT / "scripts" / "vault-runtime" / "dump-vocab-envelope.mjs"),
-                 "--vault", str(vault), "--out", str(envelope)],
-                capture_output=True, text=True, env=env,
-            )
-            self.assertEqual(dump.returncode, 0, dump.stderr)
-            env["VOCAB_ENVELOPE_PATH"] = str(envelope)
-            run = subprocess.run(
-                [sys.executable, str(scripts / "pipeline-runner.py"), "--force", "--article-admission-manifest", str(admission_manifest)],
-                cwd=scripts,
-                env=env,
-                capture_output=True,
-                text=True,
-                timeout=180,
-            )
-            self.assertEqual(run.returncode, 0, run.stdout + "\n" + run.stderr)
+            for _ in range(2):
+                dump = subprocess.run(
+                    ["node", str(REBUILD_ROOT / "scripts" / "vault-runtime" / "dump-vocab-envelope.mjs"),
+                     "--vault", str(vault), "--out", str(envelope)],
+                    capture_output=True, text=True, env=env,
+                )
+                self.assertEqual(dump.returncode, 0, dump.stderr)
+                env["VOCAB_ENVELOPE_PATH"] = str(envelope)
+                run = subprocess.run(
+                    [sys.executable, str(scripts / "pipeline-runner.py"), "--force", "--article-admission-manifest", str(admission_manifest)],
+                    cwd=scripts,
+                    env=env,
+                    capture_output=True,
+                    text=True,
+                    timeout=180,
+                )
+                self.assertEqual(run.returncode, 0, run.stdout + "\n" + run.stderr)
 
             # SPEC-012 wave-2 落位：staging 两件＋document_index 库住 KB_DATA_DIR
             master_path = data_dir / "staging" / "master_graph.json"
