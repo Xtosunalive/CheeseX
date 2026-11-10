@@ -18,8 +18,20 @@ describe("document inventory API", () => {
     }));
     const result = await searchDocuments({});
     expect(result.documents).toEqual([]);
+    if (!("releaseId" in result)) throw new Error("expected a Release-backed search result");
     expect(result.releaseId).toBe(`release-${"a".repeat(64)}`);
     expect(result.sourceCommit).toBe("b".repeat(40));
+  });
+
+  it("accepts an empty worktree result before the first Release", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
+      ok: true, status: 200,
+      json: async () => ({ success: true, trace_id: "t", data: { dataSource: "worktree", filters: {}, summary: {}, availableFilters: {}, documents: [], limit: 50, offset: 0, generatedAt: "now" } }),
+    }));
+    const result = await searchDocuments({});
+    expect(result.documents).toEqual([]);
+    if (!("dataSource" in result)) throw new Error("expected a worktree search result");
+    expect(result.dataSource).toBe("worktree");
   });
 
   it("surfaces network errors", async () => {

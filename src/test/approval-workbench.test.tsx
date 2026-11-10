@@ -42,7 +42,7 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
     expect(await screen.findByText("正式文章变动（请核对后确认）")).toBeInTheDocument();
     expect(screen.getByText("发布版：旧标题")).toBeInTheDocument();
     expect(screen.getByText("当前文件：新正文")).toBeInTheDocument();
-    expect(screen.getByText("确认（批准）")).toBeDisabled();
+    expect(await screen.findByText("确认（批准）")).toBeDisabled();
   });
 
   it("pending 状态显示确认/驳回按钮（调用 /api/approval/*）", async () => {
