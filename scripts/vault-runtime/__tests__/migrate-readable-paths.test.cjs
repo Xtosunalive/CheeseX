@@ -40,3 +40,21 @@ test("旧文件与现行文件 article_id 重复时迁移拒绝且不改原件",
   assert.throws(() => buildPlan(root), /article_id 重复/);
   assert(fs.existsSync(old) && fs.existsSync(readable));
 });
+
+test("第二个目标在预览后出现时回滚已移动的第一个文件", (t) => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "readable-rollback-"));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  for (const id of ["a1", "a2"]) {
+    const raw = `---\narticle_id: ${id}\ntitle: ${id}\n---\n正文`;
+    const file = path.join(root, "知识库/wiki/articles/ops", id, `${crypto.createHash("sha256").update(raw).digest("hex")}.md`);
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, raw, { mode: 0o444 });
+  }
+  const plan = buildPlan(root);
+  const occupied = path.join(root, plan.moves[1].to);
+  fs.writeFileSync(occupied, "新占用文件");
+  assert.throws(() => applyPlan(plan, plan.planHash), /目标已存在/);
+  assert(fs.existsSync(path.join(root, plan.moves[0].from)));
+  assert.equal(fs.statSync(path.join(root, plan.moves[0].from)).mode & 0o777, plan.moves[0].mode);
+  assert.equal(fs.readFileSync(occupied, "utf8"), "新占用文件");
+});

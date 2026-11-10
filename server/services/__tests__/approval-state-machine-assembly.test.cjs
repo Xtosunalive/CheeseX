@@ -8,7 +8,8 @@ const crypto = require("node:crypto");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
+const { execFileSync, spawn } = require("node:child_process");
+const net = require("node:net");
 const { gitFixtureEnv } = require("../../../scripts/quality/shared/git-fixture-env.cjs");
 
 const { registerApprovalStateMachine } = require("../release-governance/approval-state-machine-assembly.cjs");
@@ -41,7 +42,7 @@ function cleanTree(root) {
       else { try { fs.chmodSync(absolute, 0o644); } catch {} }
     }
   }
-  fs.rmSync(root, { recursive: true, force: true });
+  fs.rmSync(root, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
 }
 
 // 可被 collectCompleteArtifacts 完整消费的 git 仓库 fixture（minimal-vault + 必需派生产物）
@@ -65,8 +66,12 @@ function fixtureVault() {
   const { getDerivedIndexStore } = require("../../shared/persistence/derived-index-store.cjs");
   const store = getDerivedIndexStore(root);
   // fixture 图原文入行（minimal-vault 自带 .ledger/master_graph.json；物化走 stable 变换后与旧盘读等价）
-  store.artifacts.put("master_graph", fs.readFileSync(path.join(source, ".ledger", "master_graph.json"), "utf8"));
-  store.artifacts.put("extract_manifest", '{"generatedAt":"volatile","files":{}}\n');
+  const graphRaw = fs.readFileSync(path.join(source, ".ledger", "master_graph.json"), "utf8");
+  const extractRaw = '{"generatedAt":"volatile","files":{}}\n';
+  store.artifacts.put("master_graph", graphRaw);
+  store.artifacts.put("extract_manifest", extractRaw);
+  write(fixtureDataDir, "staging/master_graph.json", graphRaw);
+  write(fixtureDataDir, "staging/extract_manifest.json", extractRaw);
   return root;
 }
 
@@ -155,6 +160,75 @@ test("正式文章外部修改重检待审，旧 Release 不变，重新确认�
     watcher.handleEventNow(formalFile);
     assert.equal(sm.getStatus(articleId).status, "pending", "身份字段变更仍归旧审批身份待处理");
   } finally { cleanTree(vaultPath); }
+});
+
+test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开接口可读", { timeout: 90_000 }, async () => {
+  const vaultPath = fixtureVault();
+  const port = await new Promise((resolve, reject) => { const socket = net.createServer(); socket.once("error", reject); socket.listen(0, "127.0.0.1", () => { const value = socket.address().port; socket.close(() => resolve(value)); }); });
+  const child = spawn(process.execPath, [path.resolve(__dirname, "../../../server/main.cjs")], {
+    env: { ...process.env, VAULT_PATH: vaultPath, API_PORT: String(port), THESCHEMA_DIR: path.join(vaultPath, "知识库/TheSchema"), VAULT_GIT_LEDGER_DISABLE: "1" },
+    stdio: ["ignore", "pipe", "pipe"],
+  });
+  let log = "";
+  let vite = null;
+  let browser = null;
+  child.stdout.on("data", (value) => { log += value; });
+  child.stderr.on("data", (value) => { log += value; });
+  const request = async (method, endpoint, body) => {
+    const response = await fetch(`http://127.0.0.1:${port}${endpoint}`, { method, headers: body ? { "Content-Type": "application/json" } : undefined, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(10_000) });
+    return { status: response.status, body: await response.json() };
+  };
+  try {
+    let ready = false;
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      try { const response = await request("GET", "/api/health"); if (response.body?.data?.readyState === "ready") { ready = true; break; } } catch { /* still booting */ }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+    assert(ready, `server 未 ready: ${log.slice(-1200)}`);
+    const id = "fixture-candidate-001";
+    const standardized = await request("POST", `/api/articles/precleaned/${id}/standardization`, { confirmed: true });
+    assert.equal(standardized.status, 200, JSON.stringify(standardized.body).slice(0, 500));
+    const sourcePath = standardized.body.data.sourcePath;
+    const contentHash = standardized.body.data.formalContentHash;
+    for (const operation of ["standardize", "confirm", "publish"]) {
+      const result = await request("POST", `/api/approval/${id}/transition`, { operation, input: { sourcePath, contentHash, title: "测试候选文章" } });
+      assert.equal(result.status, 200, `${operation}: ${JSON.stringify(result.body).slice(0, 500)}`);
+    }
+    const formalDir = path.join(vaultPath, "知识库/wiki/articles/ops");
+    const formal = path.join(formalDir, fs.readdirSync(formalDir).find((name) => name.endsWith(".md")));
+    fs.appendFileSync(formal, "\n外部新增正文\n");
+    let pending = null;
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      const response = await request("GET", `/api/approval/status/${id}`);
+      if (response.body?.data?.status === "pending") { pending = response.body.data; break; }
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    assert(pending, `外部编辑未进入待审: ${log.slice(-1200)}`);
+    assert.equal(pending.changeSummary.bodyChanged, true);
+    assert.match(pending.changeSummary.afterExcerpt, /外部新增正文/);
+    const uiPort = await new Promise((resolve, reject) => { const socket = net.createServer(); socket.once("error", reject); socket.listen(0, "127.0.0.1", () => { const value = socket.address().port; socket.close(() => resolve(value)); }); });
+    vite = spawn(process.execPath, [path.resolve(__dirname, "../../../node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", String(uiPort), "--strictPort"], {
+      cwd: path.resolve(__dirname, "../../.."), env: { ...process.env, API_PORT: String(port) }, stdio: ["ignore", "pipe", "pipe"],
+    });
+    let uiReady = false;
+    for (let attempt = 0; attempt < 80; attempt += 1) {
+      try { if ((await fetch(`http://127.0.0.1:${uiPort}/`)).ok) { uiReady = true; break; } } catch { /* vite boot */ }
+      await new Promise((resolve) => setTimeout(resolve, 250));
+    }
+    assert(uiReady, "前端服务未就绪");
+    browser = await require("playwright").chromium.launch({ headless: true });
+    const page = await browser.newPage();
+    await page.goto(`http://127.0.0.1:${uiPort}/#/article-workflow`);
+    await page.getByRole("button", { name: /发布.*测试候选文章/ }).click({ timeout: 15_000 });
+    await page.getByTestId("approval-change-summary").waitFor({ timeout: 15_000 });
+    assert.match(await page.getByTestId("approval-change-summary").innerText(), /外部新增正文/);
+  } finally {
+    if (browser) await browser.close();
+    if (vite) { vite.kill("SIGTERM"); await new Promise((resolve) => vite.once("exit", resolve)); }
+    child.kill("SIGTERM");
+    await new Promise((resolve) => child.once("exit", resolve));
+    cleanTree(vaultPath);
+  }
 });
 
 // S4（gherkin 场景⑧）：publish 失败必须落持久 Issue（release_publication_failure，listIssues 可读）。
