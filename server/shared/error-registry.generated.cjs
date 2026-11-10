@@ -90,7 +90,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:237"
+        "server/services/entity-compliance/entity-repair-service.cjs:239"
       ]
     },
     "ANOMALY_ACTION_INPUT_REQUIRED": {
@@ -110,7 +110,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:383"
+        "server/services/anomaly/anomaly-workbench-service.cjs:385"
       ]
     },
     "ANOMALY_LEDGER_CORRUPT": {
@@ -118,7 +118,7 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:192"
+        "server/services/anomaly/anomaly-workbench-service.cjs:194"
       ]
     },
     "ANOMALY_LEDGER_WRITE_FAILED": {
@@ -126,7 +126,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:196"
+        "server/services/anomaly/anomaly-workbench-service.cjs:198"
       ]
     },
     "ANOMALY_NOT_FOUND": {
@@ -134,7 +134,7 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:328"
+        "server/services/anomaly/anomaly-workbench-service.cjs:330"
       ]
     },
     "ANOMALY_PREVIEW_REQUIRED": {
@@ -142,7 +142,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:418"
+        "server/services/anomaly/anomaly-workbench-service.cjs:420"
       ]
     },
     "ANOMALY_SOURCE_CHANGED": {
@@ -152,6 +152,14 @@ module.exports = {
       "sites": [
         "server/services/anomaly/anomaly-action-adapter.cjs:23",
         "server/services/anomaly/anomaly-action-adapter.cjs:120"
+      ]
+    },
+    "ANOMALY_STATE_TRANSITION_FORBIDDEN": {
+      "statuses": [
+        409
+      ],
+      "sites": [
+        "server/services/anomaly/anomaly-workbench-service.cjs:31"
       ]
     },
     "APPROVAL_EVIDENCE_STALE": {
@@ -208,7 +216,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:623"
+        "server/services/article-workflow/article-workflow-service.cjs:636"
       ]
     },
     "ARTICLE_NOT_FOUND": {
@@ -228,8 +236,9 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:227",
-        "server/services/release-governance/approval-state-machine-service.cjs:339"
+        "server/services/release-governance/approval-state-machine-service.cjs:244",
+        "server/services/release-governance/approval-state-machine-service.cjs:335",
+        "server/services/release-governance/approval-state-machine-service.cjs:362"
       ]
     },
     "ARTICLE_REVISION_CONFLICT": {
@@ -244,7 +253,8 @@ module.exports = {
         "server/services/release-governance/approval-state-machine-service.cjs:134",
         "server/services/release-governance/approval-state-machine-service.cjs:141",
         "server/services/release-governance/approval-state-machine-service.cjs:192",
-        "server/services/release-governance/approval-state-machine-service.cjs:215"
+        "server/services/release-governance/approval-state-machine-service.cjs:215",
+        "server/services/release-governance/approval-state-machine-service.cjs:223"
       ]
     },
     "ARTICLE_SOURCE_NOT_FOUND": {
@@ -274,7 +284,7 @@ module.exports = {
     "ARTICLE_VALIDATION_FAILED": {
       "statuses": [],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:296"
+        "server/services/release-governance/approval-state-machine-service.cjs:313"
       ]
     },
     "ARTICLE_WORKFLOW_ERROR": {
@@ -345,7 +355,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/snapshot-store-service.cjs:80"
+        "server/services/release-governance/snapshot-store-service.cjs:57"
       ]
     },
     "BUILD_FAILED": {
@@ -478,7 +488,7 @@ module.exports = {
     "DOCUMENT_INDEX_UNAVAILABLE": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:177",
+        "server/services/projection/document-inventory-service.cjs:176",
         "server/services/projection/document-source-scanner.cjs:170",
         "server/services/projection/document-source-scanner.cjs:183"
       ]
@@ -486,7 +496,7 @@ module.exports = {
     "DOCUMENT_NOT_FOUND": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:224"
+        "server/services/projection/document-inventory-service.cjs:223"
       ]
     },
     "DRAFT_ALREADY_EXISTS": {
@@ -553,9 +563,12 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:381",
-        "server/services/entity-compliance/entity-repair-service.cjs:429",
-        "server/services/entity-compliance/entity-repair-service.cjs:501"
+        "server/services/entity-compliance/entity-repair-service.cjs:384",
+        "server/services/entity-compliance/entity-repair-service.cjs:396",
+        "server/services/entity-compliance/entity-repair-service.cjs:440",
+        "server/services/entity-compliance/entity-repair-service.cjs:512",
+        "server/services/entity-compliance/entity-repair-service.cjs:520",
+        "server/services/release-governance/complete-release-artifact-service.cjs:429"
       ]
     },
     "ENTITY_NOT_FOUND": {
@@ -615,7 +628,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:526"
+        "server/services/entity-compliance/entity-repair-service.cjs:545"
       ]
     },
     "FIELDS_RECIPE_INVALID": {
@@ -740,8 +753,8 @@ module.exports = {
     "INDEX_REBUILD_IN_PROGRESS": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:156",
-        "server/services/projection/document-inventory-service.cjs:167"
+        "server/services/projection/document-inventory-service.cjs:155",
+        "server/services/projection/document-inventory-service.cjs:166"
       ]
     },
     "INTERNAL_ERROR": {
@@ -767,10 +780,10 @@ module.exports = {
     "INVALID_ANOMALY": {
       "statuses": [],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:38",
-        "server/services/anomaly/anomaly-workbench-service.cjs:58",
+        "server/services/anomaly/anomaly-workbench-service.cjs:40",
         "server/services/anomaly/anomaly-workbench-service.cjs:60",
-        "server/services/anomaly/anomaly-workbench-service.cjs:62"
+        "server/services/anomaly/anomaly-workbench-service.cjs:62",
+        "server/services/anomaly/anomaly-workbench-service.cjs:64"
       ]
     },
     "INVALID_ANOMALY_SOURCE": {
@@ -778,8 +791,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:213",
-        "server/services/anomaly/anomaly-workbench-service.cjs:213"
+        "server/services/anomaly/anomaly-workbench-service.cjs:215",
+        "server/services/anomaly/anomaly-workbench-service.cjs:215"
       ]
     },
     "INVALID_ARTIFACT_CONTENT": {
@@ -907,7 +920,7 @@ module.exports = {
     "INVALID_FILE_NAME": {
       "statuses": [],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:636"
+        "server/services/article-workflow/article-workflow-service.cjs:648"
       ]
     },
     "INVALID_ONTOLOGY": {
@@ -961,11 +974,11 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:66",
-        "server/services/release-governance/complete-release-artifact-service.cjs:96",
-        "server/services/release-governance/complete-release-artifact-service.cjs:165",
-        "server/services/release-governance/complete-release-artifact-service.cjs:198",
-        "server/services/release-governance/complete-release-artifact-service.cjs:236"
+        "server/services/release-governance/complete-release-artifact-service.cjs:69",
+        "server/services/release-governance/complete-release-artifact-service.cjs:99",
+        "server/services/release-governance/complete-release-artifact-service.cjs:168",
+        "server/services/release-governance/complete-release-artifact-service.cjs:201",
+        "server/services/release-governance/complete-release-artifact-service.cjs:239"
       ]
     },
     "INVALID_RELEASE_ID": {
@@ -1016,7 +1029,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/release-builder-service.cjs:60",
-        "server/services/release-governance/snapshot-store-service.cjs:83"
+        "server/services/release-governance/snapshot-store-service.cjs:60"
       ]
     },
     "INVALID_STRUCTURED_DECISION": {
@@ -1124,7 +1137,7 @@ module.exports = {
     "NODE_NOT_FOUND": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:239"
+        "server/services/projection/document-inventory-service.cjs:238"
       ]
     },
     "NON_ENTITY_TARGET": {
@@ -1177,16 +1190,16 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:450",
-        "server/services/anomaly/anomaly-workbench-service.cjs:495"
+        "server/services/anomaly/anomaly-workbench-service.cjs:452",
+        "server/services/anomaly/anomaly-workbench-service.cjs:497"
       ]
     },
     "PATH_OUTSIDE_ALLOWED_ROOT": {
       "statuses": [],
       "sites": [
         "server/services/article-workflow/article-draft-workflow.cjs:29",
-        "server/services/article-workflow/article-workflow-service.cjs:591",
-        "server/services/article-workflow/article-workflow-service.cjs:731"
+        "server/services/article-workflow/article-workflow-service.cjs:604",
+        "server/services/article-workflow/article-workflow-service.cjs:743"
       ]
     },
     "PERSISTENT_ISSUE_REQUIRED": {
@@ -1194,8 +1207,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:502",
-        "server/services/anomaly/anomaly-workbench-service.cjs:517"
+        "server/services/anomaly/anomaly-workbench-service.cjs:504",
+        "server/services/anomaly/anomaly-workbench-service.cjs:519"
       ]
     },
     "PIPELINE_CANCEL_FAILED": {
@@ -1211,8 +1224,8 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:319",
-        "server/services/entity-compliance/entity-repair-service.cjs:422"
+        "server/services/entity-compliance/entity-repair-service.cjs:321",
+        "server/services/entity-compliance/entity-repair-service.cjs:433"
       ]
     },
     "PREVIEW_EXPIRED": {
@@ -1220,8 +1233,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:449",
-        "server/services/entity-compliance/entity-repair-service.cjs:477"
+        "server/services/entity-compliance/entity-repair-service.cjs:460",
+        "server/services/entity-compliance/entity-repair-service.cjs:488"
       ]
     },
     "PREVIEW_NOT_REQUIRED": {
@@ -1277,7 +1290,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:470"
+        "server/services/entity-compliance/entity-repair-service.cjs:481"
       ]
     },
     "PUBLISH_BUSY": {
@@ -1301,8 +1314,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:458",
-        "server/services/entity-compliance/entity-repair-service.cjs:484"
+        "server/services/entity-compliance/entity-repair-service.cjs:469",
+        "server/services/entity-compliance/entity-repair-service.cjs:495"
       ]
     },
     "RELATIONS_INVALID": {
@@ -1375,7 +1388,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:448"
+        "server/services/anomaly/anomaly-workbench-service.cjs:450"
       ]
     },
     "RELATION_CANDIDATE_STATUS_INVALID": {
@@ -1433,7 +1446,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:452"
+        "server/services/anomaly/anomaly-workbench-service.cjs:454"
       ]
     },
     "RELATION_REVIEW_BLOCKED": {
@@ -1473,7 +1486,7 @@ module.exports = {
     "RELATION_TYPE_UNREGISTERED": {
       "statuses": [],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:343"
+        "server/services/release-governance/complete-release-artifact-service.cjs:346"
       ]
     },
     "RELEASED_VERSION_IMMUTABLE": {
@@ -1489,7 +1502,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:246"
+        "server/services/release-governance/complete-release-artifact-service.cjs:249"
       ]
     },
     "RELEASE_ARTIFACT_INVALID": {
@@ -1514,11 +1527,11 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:72",
-        "server/services/release-governance/complete-release-artifact-service.cjs:80",
-        "server/services/release-governance/complete-release-artifact-service.cjs:91",
-        "server/services/release-governance/complete-release-artifact-service.cjs:103",
-        "server/services/release-governance/complete-release-artifact-service.cjs:378",
+        "server/services/release-governance/complete-release-artifact-service.cjs:75",
+        "server/services/release-governance/complete-release-artifact-service.cjs:83",
+        "server/services/release-governance/complete-release-artifact-service.cjs:94",
+        "server/services/release-governance/complete-release-artifact-service.cjs:106",
+        "server/services/release-governance/complete-release-artifact-service.cjs:381",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:46",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:191"
       ]
@@ -1528,8 +1541,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:111",
-        "server/services/release-governance/complete-release-artifact-service.cjs:115",
+        "server/services/release-governance/complete-release-artifact-service.cjs:114",
+        "server/services/release-governance/complete-release-artifact-service.cjs:118",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:101",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:106",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:110"
@@ -1554,8 +1567,8 @@ module.exports = {
     "RELEASE_INDEX_IMMUTABLE": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:155",
-        "server/services/projection/document-inventory-service.cjs:166"
+        "server/services/projection/document-inventory-service.cjs:154",
+        "server/services/projection/document-inventory-service.cjs:165"
       ]
     },
     "RELEASE_INPUT_MISMATCH": {
@@ -1569,7 +1582,7 @@ module.exports = {
     "RELEASE_MANIFEST_ORPHAN": {
       "statuses": [],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:449"
+        "server/services/release-governance/complete-release-artifact-service.cjs:462"
       ]
     },
     "RELEASE_NOT_FOUND": {
@@ -1585,7 +1598,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:177",
+        "server/services/release-governance/complete-release-artifact-service.cjs:180",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:130"
       ]
     },
@@ -1822,7 +1835,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/snapshot-store-service.cjs:41"
+        "server/services/release-governance/snapshot-store-service.cjs:39"
       ]
     },
     "SNAPSHOT_INPUT_INVALID": {
@@ -1830,7 +1843,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/release-governance/snapshot-store-service.cjs:35"
+        "server/services/release-governance/snapshot-store-service.cjs:33"
       ]
     },
     "SNAPSHOT_INVALID": {
@@ -1874,13 +1887,13 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:304",
-        "server/services/entity-compliance/entity-repair-service.cjs:308",
-        "server/services/entity-compliance/entity-repair-service.cjs:451",
-        "server/services/entity-compliance/entity-repair-service.cjs:454",
-        "server/services/entity-compliance/entity-repair-service.cjs:478",
-        "server/services/entity-compliance/entity-repair-service.cjs:480",
-        "server/services/entity-compliance/entity-repair-service.cjs:514"
+        "server/services/entity-compliance/entity-repair-service.cjs:306",
+        "server/services/entity-compliance/entity-repair-service.cjs:310",
+        "server/services/entity-compliance/entity-repair-service.cjs:462",
+        "server/services/entity-compliance/entity-repair-service.cjs:465",
+        "server/services/entity-compliance/entity-repair-service.cjs:489",
+        "server/services/entity-compliance/entity-repair-service.cjs:491",
+        "server/services/entity-compliance/entity-repair-service.cjs:533"
       ]
     },
     "SOURCE_FILE_NOT_FOUND": {
@@ -1924,7 +1937,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/approval-state-machine-service.cjs:49",
-        "server/services/release-governance/approval-state-machine-service.cjs:342",
+        "server/services/release-governance/approval-state-machine-service.cjs:365",
         "server/shared/status-transition-guard.cjs:54"
       ]
     },
@@ -1966,7 +1979,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/approval-state-machine-service.cjs:47",
-        "server/services/release-governance/approval-state-machine-service.cjs:434"
+        "server/services/release-governance/approval-state-machine-service.cjs:457"
       ]
     },
     "UNKNOWN_PARENT": {
@@ -1991,7 +2004,7 @@ module.exports = {
         415
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:638"
+        "server/services/article-workflow/article-workflow-service.cjs:650"
       ]
     },
     "UNSUPPORTED_RELATION_TYPE": {
@@ -2016,7 +2029,7 @@ module.exports = {
         413
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:645"
+        "server/services/article-workflow/article-workflow-service.cjs:657"
       ]
     },
     "VALIDATION_ERROR": {
@@ -2055,11 +2068,11 @@ module.exports = {
         "server/services/article-workflow/article-workflow-service.cjs:348",
         "server/services/article-workflow/article-workflow-service.cjs:354",
         "server/services/article-workflow/article-workflow-service.cjs:358",
-        "server/services/article-workflow/article-workflow-service.cjs:634",
-        "server/services/article-workflow/article-workflow-service.cjs:643",
         "server/services/article-workflow/article-workflow-service.cjs:646",
-        "server/services/article-workflow/article-workflow-service.cjs:740",
-        "server/services/article-workflow/article-workflow-service.cjs:740",
+        "server/services/article-workflow/article-workflow-service.cjs:655",
+        "server/services/article-workflow/article-workflow-service.cjs:658",
+        "server/services/article-workflow/article-workflow-service.cjs:752",
+        "server/services/article-workflow/article-workflow-service.cjs:752",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:90",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:93",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:95",
@@ -2094,12 +2107,12 @@ module.exports = {
         "server/services/entity-compliance/entity-repair-service.cjs:204",
         "server/services/entity-compliance/entity-repair-service.cjs:205",
         "server/services/entity-compliance/entity-repair-service.cjs:207",
-        "server/services/entity-compliance/entity-repair-service.cjs:302",
-        "server/services/entity-compliance/entity-repair-service.cjs:311",
+        "server/services/entity-compliance/entity-repair-service.cjs:304",
         "server/services/entity-compliance/entity-repair-service.cjs:313",
-        "server/services/entity-compliance/entity-repair-service.cjs:359",
-        "server/services/entity-compliance/entity-repair-service.cjs:447",
-        "server/services/entity-compliance/entity-repair-service.cjs:475",
+        "server/services/entity-compliance/entity-repair-service.cjs:315",
+        "server/services/entity-compliance/entity-repair-service.cjs:361",
+        "server/services/entity-compliance/entity-repair-service.cjs:458",
+        "server/services/entity-compliance/entity-repair-service.cjs:486",
         "server/services/pipeline/obsidian-open-service.cjs:15",
         "server/services/pipeline/obsidian-open-service.cjs:18",
         "server/services/pipeline/obsidian-open-service.cjs:22",
@@ -2159,7 +2172,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/article-workflow/validation-stamp-service.cjs:19",
-        "server/services/release-governance/approval-state-machine-service.cjs:292"
+        "server/services/release-governance/approval-state-machine-service.cjs:309"
       ]
     },
     "VAULT_ID_MISMATCH": {
@@ -2340,8 +2353,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/entity-compliance/entity-repair-service.cjs:507",
-        "server/services/entity-compliance/entity-repair-service.cjs:515"
+        "server/services/entity-compliance/entity-repair-service.cjs:526",
+        "server/services/entity-compliance/entity-repair-service.cjs:534"
       ]
     },
     "YAML_PARSE_FAILED": {

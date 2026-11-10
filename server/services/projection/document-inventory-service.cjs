@@ -117,9 +117,8 @@ function validateParams(raw = {}) {
   return params;
 }
 
-function canonicalDocument(document, includeDebugPhysicalPath = false) {
-  const { searchText: _searchText, nodeId: _nodeId, nodeLabel: _nodeLabel, architectureNodeId: _architectureNodeId, identitySource: _identitySource, sourcePath, ...dto } = document;
-  if (includeDebugPhysicalPath) dto.sourcePath = sourcePath;
+function canonicalDocument(document) {
+  const { searchText: _searchText, nodeId: _nodeId, nodeLabel: _nodeLabel, architectureNodeId: _architectureNodeId, identitySource: _identitySource, ...dto } = document;
   return dto;
 }
 

@@ -93,15 +93,28 @@ function test(name, fn) {
     } finally { fs.rmSync(vault, { recursive: true, force: true }); }
   });
 
-  test("T2 新建实体 tags 空数组（F16）→ preview 阶段即拒绝（#1803 门禁前移）", () => {
+  test("T2 新建实体 tags 空数组（F16）→ 允许保存并保留待处理阻断", () => {
     const { vault, service } = setupVault();
     try {
-      assert.throws(() => previewCreate(service, createChanges({ tags: [] })), (e) => {
-        if (e.code !== "ENTITY_COMPLIANCE_BLOCKED") return false;
-        const blockers = (e.details && e.details.blockers) || [];
-        return blockers.some((b) => b.ruleId === "F16");
-      });
-      assert(!fs.existsSync(path.join(vault, ENTITY_SOURCE_KEY)));
+      const preview = previewCreate(service, createChanges({ tags: [] }));
+      assert((preview.postCheck.blockers || []).some((b) => b.ruleId === "F16"));
+      service.apply({ previewId: preview.previewId, confirmed: true });
+      assert(fs.existsSync(path.join(vault, ENTITY_SOURCE_KEY)));
+    } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+  });
+
+  test("T2b 非组件实体可空字段创建，且不占用组件身份", () => {
+    const { vault, service } = setupVault();
+    try {
+      const preview = previewCreate(service, { arch_component: false, tags: [] });
+      assert.equal(preview.entityId, null);
+      assert((preview.postCheck.blockers || []).some((b) => b.ruleId === "F03"));
+      const applied = service.apply({ previewId: preview.previewId, confirmed: true });
+      assert.equal(applied.entityId, null);
+      assert(!/architecture-node-id:/.test(fs.readFileSync(path.join(vault, ENTITY_SOURCE_KEY), "utf8")));
+      const activation = service.preview({ sourceKey: ENTITY_SOURCE_KEY, sourceRevision: applied.sourceRevision, changes: { arch_component: true } });
+      const activated = service.apply({ previewId: activation.previewId, confirmed: true });
+      assert(activated.entityId, "激活组件时才应铸造身份");
     } finally { fs.rmSync(vault, { recursive: true, force: true }); }
   });
 

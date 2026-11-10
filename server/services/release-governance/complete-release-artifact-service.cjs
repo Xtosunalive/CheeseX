@@ -21,6 +21,9 @@ const { resolveTheSchemaDir } = require("../../shared/theschema-root.cjs"); // P
 const { readFrozenArtifactSnapshot } = require("../../shared/frozen-artifact-reader.cjs"); // PR-101：SA/layout 冻结槽读侧唯一咽喉（PR-082/084）
 const { readEnums } = require("../../shared/schema-config.cjs"); // PR-101：architecture_projection（槽物化落点寻址）
 const articleLifecycle = require("../../shared/article-lifecycle-paths.cjs"); // 正式文章快照家族寻址（FORMAL_ROOT 单源）
+const { scanEntities } = require("../entity-compliance/entity-source-scanner.cjs");
+const { checkAllEntities } = require("../entity-compliance/entity-compliance-service.cjs");
+const { loadRuleSetForVault } = require("../schema-manager/compliance-rule-set-service.cjs");
 const artifactError = bindErrorFactory({ status: 400 });
 
 function canonical(value) {
@@ -415,6 +418,16 @@ function collectCompleteArtifacts(root) {
   const masterGraph = JSON.parse(artifacts[".ledger/master_graph.json"].toString("utf8"));
   assertRegisteredRelationTypes(root, masterGraph);
   const documents = normalizedDocuments(root, masterGraph);
+  // 创建时允许缺项；铸版前按现行规则重新扫描原始实体文件，缺项仍在就拒绝。
+  const entitySources = scanEntities(root);
+  if (entitySources.length) {
+    const checks = checkAllEntities(entitySources.map((item) => item.doc), loadRuleSetForVault(root));
+    const pending = checks.flatMap((result, index) => result.blockerCount > 0
+      ? [{ sourcePath: path.relative(root, entitySources[index].file).split(path.sep).join("/"), blockerCount: result.blockerCount,
+        rules: (result.groups || []).flatMap((group) => group.checks || []).filter((check) => check.passed === false && check.severity === "error").slice(0, 10).map((check) => ({ ruleId: check.ruleId, field: check.field, message: check.message })) }]
+      : []);
+    if (pending.length) throw artifactError("ENTITY_COMPLIANCE_BLOCKED", "实体缺项或不合规，发布前须处理", 422, { pending: pending.slice(0, 20) });
+  }
   artifacts["indexes/document-search.json"] = Buffer.from(jsonBytes({ documents }));
   artifacts["schema/ontology-capabilities.json"] = Buffer.from(jsonBytes(normalizedCapabilities(root)));
   const versions = versionArtifacts(root, artifacts);

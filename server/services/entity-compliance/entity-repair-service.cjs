@@ -219,6 +219,8 @@ function createEntityRepairService(options) {
   // WP-113 M2 测试缝（仅单元层，沿 growCategoryMatrix 注入先例）：取号器可替换以走通「64 次全占用」异常路径；
   // 生产不注入＝真 mintEntityId（唯一取号点不被第二实现顶替）。
   const mintIdentity = typeof options.mintIdentity === "function" ? options.mintIdentity : mintEntityId;
+  // 缺项是创建后的待处理事项；唯一性和非法值仍在创建时拒绝。
+  const DEFERRED_CREATE_GAPS = new Set(["F01", "F02", "F03", "F16"]);
   const ttlMs = options.ttlMs || 5 * 60 * 1000;
   const previews = new Map();
 
@@ -376,15 +378,24 @@ function createEntityRepairService(options) {
       // 取号耗尽（64 次全占用）＝异常状态：按在册冲突码报（ENTITY_COMPLIANCE_BLOCKED/422 承载 F02b
       // 唯一性冲突，本端点契约在册；零新码零契约改动），throw 发生在任何落盘动作之前，不留半成品。
       const mintIndexes = compliance.buildEntityIndexes(entityDocsForGate({ fileName: path.basename(sourcePath), sourcePath, frontmatter: {} }, sourcePath));
-      const mintedId = mintIdentity({ taken: (candidate) => Boolean(mintIndexes.ids[compliance.normalizeString(candidate)]) });
-      if (!mintedId) {
-        throw repairError("ENTITY_COMPLIANCE_BLOCKED", "组件身份取号失败：连续 64 个候选号都已被占用（F02b 全库唯一），请重试", 422, {
-          blockers: [{ ruleId: "F02b", field: DK.ENTITY.architectureNodeId, message: "取号 64 次候选全部已被其他实体占用" }],
-        });
+      if (effectiveChanges[DK.ENTITY.archComponent] === true) {
+        const mintedId = mintIdentity({ taken: (candidate) => Boolean(mintIndexes.ids[compliance.normalizeString(candidate)]) });
+        if (!mintedId) {
+          throw repairError("ENTITY_COMPLIANCE_BLOCKED", "组件身份取号失败：连续 64 个候选号都已被占用（F02b 全库唯一），请重试", 422, {
+            blockers: [{ ruleId: "F02b", field: DK.ENTITY.architectureNodeId, message: "取号 64 次候选全部已被其他实体占用" }],
+          });
+        }
+        effectiveChanges[DK.ENTITY.architectureNodeId] = mintedId;
       }
-      effectiveChanges[DK.ENTITY.architectureNodeId] = mintedId;
     } else {
       if (existingDate) effectiveChanges[DK.ENTITY.date] = existingDate; // 编辑：永续保留旧值（防手改漂移自愈）
+      // 非组件渐进补齐后首次激活，才给它组件身份；历史已有身份保持原值。
+      if (effectiveChanges[DK.ENTITY.archComponent] === true && !current[DK.ENTITY.architectureNodeId] && !current[DK.ENTITY.architectureNodeIdLegacy]) {
+        const indexes = compliance.buildEntityIndexes(entityDocsForGate({ fileName: path.basename(sourcePath), sourcePath, frontmatter: {} }, sourcePath));
+        const mintedId = mintIdentity({ taken: (candidate) => Boolean(indexes.ids[compliance.normalizeString(candidate)]) });
+        if (!mintedId) throw repairError("ENTITY_COMPLIANCE_BLOCKED", "组件身份取号失败，请重试", 422, { blockers: [{ ruleId: "F02b", field: DK.ENTITY.architectureNodeId, message: "候选号均已被占用" }] });
+        effectiveChanges[DK.ENTITY.architectureNodeId] = mintedId;
+      }
       // status：保持现值优先（现值在受管表内=不动）；旧值域且新表已换（Vault 对账后）→ 归一自愈映射；
       // 显式迁移须带事件（问题状态机内部通道）——repair 用户路径只能保持现值。
       const rawStatus = typeof current[DK.ENTITY.status] === "string" ? current[DK.ENTITY.status].trim() : "";
@@ -425,7 +436,7 @@ function createEntityRepairService(options) {
     // 最后一步「应用修复」才被 F16 等拦住（巡检 J9b 实录 tr_37a67daa）。同一 strict 规则集（规则 8）+ 同一错误码明细契约。
     if (creating && !isArticle) {
       const strict = writeGatePolicy.strictRuleIds(WRITE_GATE_ID_APPLY_CREATE);
-      const violations = (after.blockers || []).filter((b) => strict.has(b.ruleId)).slice(0, 10);
+      const violations = (after.blockers || []).filter((b) => strict.has(b.ruleId) && !DEFERRED_CREATE_GAPS.has(b.ruleId)).slice(0, 10);
       if (violations.length) throw repairError("ENTITY_COMPLIANCE_BLOCKED", "新建实体存在 " + violations.length + " 项合规阻断，禁止写入", 422, { blockers: violations });
     }
     const previewId = crypto.randomUUID(); const expiresAtMs = Date.now() + ttlMs;
@@ -496,9 +507,17 @@ function createEntityRepairService(options) {
       // 同身份可双双落盘（实测 TOCTOU）。落盘前按当前盘态复算。
       const strict = writeGatePolicy.strictRuleIds(WRITE_GATE_ID_APPLY_CREATE);
       const freshCheck = postCheck(item.nextRaw, item.sourcePath, false);
-      const violations = (freshCheck.blockers || []).filter((b) => strict.has(b.ruleId)).slice(0, 10);
+      const violations = (freshCheck.blockers || []).filter((b) => strict.has(b.ruleId) && !DEFERRED_CREATE_GAPS.has(b.ruleId)).slice(0, 10);
       if (violations.length) {
         throw repairError("ENTITY_COMPLIANCE_BLOCKED", "新建实体存在 " + violations.length + " 项合规阻断，禁止写入", 422, { blockers: violations });
+      }
+    }
+    if (!item.creating && item.isArticle === false) {
+      const beforeId = (loadDocument(raw, item.sourcePath).frontmatter || {})[DK.ENTITY.architectureNodeId];
+      const nextId = (loadDocument(item.nextRaw, item.sourcePath).frontmatter || {})[DK.ENTITY.architectureNodeId];
+      if (!beforeId && nextId) {
+        const collisions = (postCheck(item.nextRaw, item.sourcePath, false).blockers || []).filter((b) => b.ruleId === "F02b");
+        if (collisions.length) throw repairError("ENTITY_COMPLIANCE_BLOCKED", "组件身份已被占用，请重新预览", 422, { blockers: collisions.slice(0, 10) });
       }
     }
     if (!item.creating) {

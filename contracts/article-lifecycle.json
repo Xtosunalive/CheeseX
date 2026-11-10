@@ -25,8 +25,8 @@
       "root": "知识库/wiki/articles",
       "steady_state_copies": 1,
       "retire_on": "文章退役动作（事务性沿 source_file 链全清）",
-      "note": "标准文章最终形态（发布代次，<域>/<articleId>/<内容哈希>.md——域=category-path 首段；落位唯一驱动＝审批 publish→snapshot，SPEC-030 派生②〔2026-10-28 PD-2 修订〕）",
-      "mutability": "read-only-evidence"
+      "note": "Obsidian 可编辑的当前正式文章；发布版字节保存在不可变 Release。首次发布落位，后续外部编辑触发重检和重新审批（ADR-020）",
+      "mutability": "human-editable"
     },
     {
       "id": "source-archive",

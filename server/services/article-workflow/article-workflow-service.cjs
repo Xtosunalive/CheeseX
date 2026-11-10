@@ -581,6 +581,19 @@ function createArticleWorkflowService(options) {
   return {
     upload, getTask, listUploads, listPrecleaned, getPrecleaned,
     searchCandidates, standardize, updateCandidateFields, getFieldCompletionOptions,
+    readPublishedContent(articleId) {
+      const version = currentStandardVersion(articleId);
+      const reader = getReleaseReader();
+      return version && reader ? reader.withPinnedRelease(() => reader.readArtifact(version.snapshotPath)) : null;
+    },
+    publishedArticleIdForPath(relativePath) {
+      try { return listCurrentStandardVersions().find((version) => version.snapshotPath === relativePath)?.articleId || null; }
+      catch (error) {
+        if (error && NO_USABLE_RELEASE_CODES.has(error.code)) return null;
+        throw error;
+      }
+    },
+    listPublishedVersions: listCurrentStandardVersions,
     validateDraft: (filePath, options) => draftWorkflow.validateDraft(filePath, options), promoteDraft: promoteDraftWithSync,
     digestUploadTasks,
   };
@@ -611,19 +624,18 @@ function createArticleWorkflowService(options) {
   function listCurrentStandardVersions() {
     const releaseReaderService = getReleaseReader();
     if (!releaseReaderService) return [];
-    // SPEC-030 派②位置维：快照路径两层（域/articleId目录）——match[1]=域段、match[2]=articleId
-    const articleSnapshotRegex = new RegExp(`^${articleLifecycle.FORMAL_ROOT}/([^/]+)/([^/]+)/([0-9a-f]{64})\\.md$`);
     const byArticle = new Map();
     releaseReaderService.withPinnedRelease((releaseId) => {
       const manifest = releaseReaderService.readRelease(releaseId);
       for (const artifact of manifest.artifacts || []) {
-        const match = articleSnapshotRegex.exec(artifact.name);
-        if (!match) continue;
-        const id = match[2];
+        if (!artifact.name.startsWith(`${articleLifecycle.FORMAL_ROOT}/`) || !artifact.name.endsWith(".md")) continue;
+        const raw = releaseReaderService.readArtifact(artifact.name);
+        const doc = loadDocument(raw, artifact.name);
+        const id = typeof doc.frontmatter?.[DK.ARTICLE.articleId] === "string" ? doc.frontmatter[DK.ARTICLE.articleId].trim() : "";
+        if (!id) continue;
         if (byArticle.has(id)) throw workflowError("ARTICLE_FORMAL_IDENTITY_AMBIGUOUS", "Current Release contains more than one active version for an article", 500, { articleId: id });
-        // match[3]＝文件名哈希段（FORMAL_ROOT/域/articleId/{hash}.md）——原 match[2]（articleId）是
-        // 错位取段，致 isCurrent（发布识别）对 Release 链恒 false（2026-11-01 半成品区过滤批探针实证）
-        byArticle.set(id, { articleId: id, contentHash: match[3], snapshotPath: artifact.name, title: id, releaseId });
+        const title = doc.frontmatter[DK.ARTICLE.title] || id;
+        byArticle.set(id, { articleId: id, contentHash: crypto.createHash("sha256").update(raw).digest("hex"), snapshotPath: artifact.name, title, releaseId });
       }
     });
     return [...byArticle.values()].sort((left, right) => left.articleId.localeCompare(right.articleId));
@@ -688,7 +700,7 @@ function articleWithWorkflow(item, record, currentStandardVersion = null) {
   const recordBased = record.standardizationStatus === "standardized";
   return {
     ...item,
-    formalContentHash: currentStandardVersion?.contentHash || (recordBased ? record.contentHash : null),
+    formalContentHash: recordBased ? record.contentHash : (isCurrent ? currentStandardVersion?.contentHash : null),
     // SPEC-030 机②（PD-2）：standardized 身份由 standardize 动作持久写入 record（存储层事实）；
     // Release 判定（isCurrent）只升级不降级——发布识别缺席不得推翻已标准化身份（否则快照延后落位
     // 会让重载后一切标准化文章回退 pending）。

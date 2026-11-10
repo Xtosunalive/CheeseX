@@ -344,9 +344,11 @@ test("published-and-current candidates leave the draft-name list while edited so
   writeCandidate(vaultPath, "published.md", raw);
   const formalRoot = "知识库/wiki/articles/排错指南/published-article";
   let formalHash = null; // 发布时刻冻结的正式内容哈希（真实链＝发布快照文件名）
+  let formalRaw = null;
   const fakeReader = {
     withPinnedRelease: (cb) => cb("release-" + "a".repeat(64)),
     readRelease: (releaseId) => ({ releaseId, artifacts: formalHash ? [{ name: `${formalRoot}/${formalHash}.md` }] : [] }),
+    readArtifact: () => formalRaw,
   };
   const service = createArticleWorkflowService({ vaultPath, logger: { info() {}, error() {} }, getReleaseReader: () => fakeReader });
 
@@ -358,11 +360,10 @@ test("published-and-current candidates leave the draft-name list while edited so
   assert.deepEqual(service.searchCandidates({ keyword: "已发布" }).items, [{ title: "已发布文章" }], "未发布候选在半成品区");
 
   // 第二步：发布（清单冻结盖章后内容哈希）——published=true，移出半成品区
-  formalHash = crypto.createHash("sha256").update(
-    fs.readFileSync(path.join(vaultPath, "知识库", "raw", "precleaned", "published.md"), "utf8"),
-  ).digest("hex");
+  formalRaw = fs.readFileSync(path.join(vaultPath, "知识库", "raw", "precleaned", "published.md"), "utf8");
+  formalHash = crypto.createHash("sha256").update(formalRaw).digest("hex");
   const listed = service.listPrecleaned().items[0];
-  assert.equal(listed.currentStandardVersion.contentHash, formalHash, "①哈希取段＝文件名哈希（match[3]）");
+  assert.equal(listed.currentStandardVersion.contentHash, formalHash, "Release 内容哈希来自冻结字节");
   assert.equal(listed.published, true, "②Release 在场且哈希一致→published");
   assert.deepEqual(service.searchCandidates({ keyword: "已发布" }).items, [], "③已发布候选不在半成品区");
 
@@ -397,6 +398,7 @@ test("published recognition survives article-id drift via content-hash fallback"
   const fakeReader = {
     withPinnedRelease: (cb) => cb("release-" + "a".repeat(64)),
     readRelease: (releaseId) => ({ releaseId, artifacts: [{ name: `${formalRoot}/${fileHash}.md` }] }),
+    readArtifact: () => fs.readFileSync(path.join(vaultPath, "知识库", "raw", "precleaned", "drifted.md"), "utf8"),
   };
   const service = createArticleWorkflowService({ vaultPath, logger: { info() {}, error() {} }, getReleaseReader: () => fakeReader });
   const listed = service.listPrecleaned().items[0];

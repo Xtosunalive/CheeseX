@@ -318,7 +318,7 @@ tags: [e2e]
 `);
 // 缺字段实体：F01 title / F02 node-id / F03 arch_component / F16 tags 等多条 !passed∧editable∧field
 // 检查——Step 6b 断言「应呈现中文名」的驱动数据（抽屉里中文控件名须逐个可见）。
-write("知识库/wiki/entities/e2e-incomplete-component.md", `---
+const incompleteEntity = `---
 title: E2E Incomplete Component
 arch_component: true
 ---
@@ -326,7 +326,7 @@ arch_component: true
 # E2E Incomplete Component
 
 缺 arch_layer/arch_category/module/status/date/tags 的可修复实体（e2e 常驻造数，勿删）。
-`);
+`;
 
 // ── 4. 候选文章（Step 4 兜底造数目录同源；本身合法不产生阻断）──
 write("知识库/raw/precleaned/e2e-candidate-article.md", `---
@@ -512,6 +512,9 @@ try {
 } catch (error) {
   fail(`发布快照构建失败（PR-015 Step 4 依赖）：${error.message}`);
 }
+
+// 初始 Release 只包含合规实体；随后加入待处理实体，用于验证新内容能编辑但下次发布会拦截。
+write("知识库/wiki/entities/e2e-incomplete-component.md", incompleteEntity);
 
 // ── 8. 自检：关键路径逐项断言（产物即契约，缺一即废）──
 const required = [

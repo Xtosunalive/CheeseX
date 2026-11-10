@@ -20,6 +20,7 @@ const { loadDocument, docField } = require("../../shared/document-load-port.cjs"
 const DK = require("../../shared/document-keys.cjs");
 const { safeArticleDirectory } = require("./article-workflow-store.cjs");
 const { getDerivedIndexStore } = require("../../shared/persistence/derived-index-store.cjs");
+const { getRuntimeStateStore } = require("../../shared/persistence/runtime-state-store.cjs");
 const { writeVault, writeVaultExclusive, ABSENT_REVISION } = require("../../shared/vault-io.cjs");
 
 function createArticleLifecycleReconciler({ vaultPath, logger, removeDecisions, digestUploadTasks }) {
@@ -61,25 +62,19 @@ function createArticleLifecycleReconciler({ vaultPath, logger, removeDecisions, 
     const root = lifecycle.formalArticlesDir(vaultPath);
     assertManagedPath(root, root);
     const articles = [];
-    let domainEntries;
-    try { domainEntries = fs.readdirSync(root, { withFileTypes: true }); } catch (error) { if (error.code === "ENOENT") return articles; throw error; }
-    for (const domainEntry of domainEntries) {
-      if (!domainEntry.isDirectory()) continue;
-      let entries;
-      try { entries = fs.readdirSync(path.join(root, domainEntry.name), { withFileTypes: true }); } catch { continue; }
-      for (const entry of entries) {
-        if (!entry.isDirectory()) continue;
-        let files;
-        try { files = fs.readdirSync(path.join(root, domainEntry.name, entry.name), { withFileTypes: true }); } catch { continue; }
-        for (const f of files) {
-          if (!f.isFile() || !f.name.endsWith(".md")) continue;
-          const absolute = path.join(root, domainEntry.name, entry.name, f.name);
+    const visit = (dir) => {
+      if (!fs.existsSync(dir)) return;
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const absolute = path.join(dir, entry.name);
+        if (entry.isDirectory()) { assertManagedPath(absolute, root); visit(absolute); }
+        else if (entry.isFile() && entry.name.endsWith(".md")) {
           assertManagedPath(absolute, root, true);
           const raw = fs.readFileSync(absolute, "utf8");
-          articles.push({ absolute, name: f.name, directoryId: entry.name, articleId: documentText(raw, DK.ARTICLE.articleId), hash: crypto.createHash("sha256").update(raw).digest("hex") });
+          articles.push({ absolute, name: entry.name, directoryId: path.basename(dir), articleId: documentText(raw, DK.ARTICLE.articleId), hash: crypto.createHash("sha256").update(raw).digest("hex") });
         }
       }
-    }
+    };
+    visit(root);
     return articles;
   }
 
@@ -114,7 +109,12 @@ function createArticleLifecycleReconciler({ vaultPath, logger, removeDecisions, 
         try {
           const workingAbs = path.join(workingDir, name);
           assertManagedPath(workingAbs, workingDir, true);
-          if (matchingFormalArticles(name, workingAbs, published).length === 0) {
+          const workingRaw = fs.readFileSync(workingAbs);
+          const articleId = documentText(workingRaw.toString("utf8"), DK.ARTICLE.articleId);
+          const currentApproval = articleId ? getRuntimeStateStore(vaultPath).approval.get(articleId) : null;
+          const matches = matchingFormalArticles(name, workingAbs, published);
+          const exactPublished = matches.some((file) => published.find((item) => item.absolute === file)?.hash === crypto.createHash("sha256").update(workingRaw).digest("hex"));
+          if (!exactPublished || (currentApproval && currentApproval.status !== "snapshot")) {
             result.skipped += 1;
             continue;
           }

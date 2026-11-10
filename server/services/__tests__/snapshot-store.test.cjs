@@ -6,7 +6,7 @@ const path = require("node:path");
 const { createSnapshotStore } = require("../release-governance/snapshot-store-service.cjs");
 const { createReleaseBuilderService } = require("../release-governance/release-builder-service.cjs");
 
-test("单文件快照复用 createStandardVersion（contentHash 命名 + 0o444 权限）", () => {
+test("单文件发布生成可读、可编辑的正式文章", () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ss-test-"));
   const ss = createSnapshotStore({ vaultPath: tmp, builderService: null, logger: {} });
   const raw = "# 测试\\n正文";
@@ -16,10 +16,10 @@ test("单文件快照复用 createStandardVersion（contentHash 命名 + 0o444 �
     sourcePath: "知识库/raw/precleaned/test-a.md",
     document: { articleId: "test-a", title: "测试", product: "AnyShare", version: "1.0", categoryPath: "ops:maintain:test-a" }, // SPEC-030 派②域段
   });
-  assert.ok(snap.snapshotPath.includes("知识库/wiki/articles/ops/test-a/"));
+  assert.ok(snap.snapshotPath.includes("知识库/wiki/articles/ops/测试-1.0.md"));
   const real = path.join(tmp, snap.snapshotPath);
   assert.ok(fs.existsSync(real), "快照文件应存在");
-  assert.equal(fs.statSync(real).mode & 0o444, 0o444, "权限应为只读 0o444");
+  assert.equal(fs.statSync(real).mode & 0o200, 0o200, "正式文章应可编辑");
   fs.chmodSync(tmp, 0o755); 
   const clean = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const a = path.join(d, e.name); if (e.isDirectory()) { fs.chmodSync(a, 0o755); clean(a); } else fs.chmodSync(a, 0o644); } }; 
   clean(tmp); 
@@ -64,18 +64,18 @@ test("快照输入不完整 fail-closed（缺 contentHash）", () => {
 test("S5 绿灯：snapshotSingleFile 写新哈希时取代同 articleId 旧快照（单快照不变式）", () => {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "ss-supersede-"));
   const ss = createSnapshotStore({ vaultPath: tmp, builderService: null, logger: {} });
-  const rawA = "# A\n正文 A\n";
-  const rawB = "# A\n正文 B（源已更新）\n";
+  const rawA = "---\narticle_id: sup-a\ntitle: A\n---\n# A\n正文 A\n";
+  const rawB = "---\narticle_id: sup-a\ntitle: A\n---\n# A\n正文 B（源已更新）\n";
   const hashA = require("node:crypto").createHash("sha256").update(rawA).digest("hex");
   const hashB = require("node:crypto").createHash("sha256").update(rawB).digest("hex");
   const document = { articleId: "sup-a", title: "A", product: "", version: "", categoryPath: "ops:maintain:sup-a" }; // SPEC-030 派②域段
   const snapA = ss.snapshotSingleFile({ articleId: "sup-a", contentHash: hashA, raw: rawA, sourcePath: "知识库/raw/precleaned/sup-a.md", document });
   const snapB = ss.snapshotSingleFile({ articleId: "sup-a", contentHash: hashB, raw: rawB, sourcePath: "知识库/raw/precleaned/sup-a.md", document });
-  assert.equal(snapB.snapshotPath, `知识库/wiki/articles/ops/sup-a/${hashB}.md`);
-  const snapshotDir = path.join(tmp, "知识库", "wiki", "articles", "ops", "sup-a");
+  assert.equal(snapB.snapshotPath, "知识库/wiki/articles/ops/A.md");
+  const snapshotDir = path.join(tmp, "知识库", "wiki", "articles", "ops");
   const files = fs.readdirSync(snapshotDir).filter((name) => name.endsWith(".md"));
-  assert.deepEqual(files, [`${hashB}.md`], "同 articleId 应只保留当前快照（旧哈希被取代）");
-  assert.ok(!fs.existsSync(path.join(tmp, snapA.snapshotPath)), "旧哈希快照文件应已移除");
+  assert.deepEqual(files, ["A.md"], "同 articleId 应只保留当前可编辑文件");
+  assert.equal(snapA.snapshotPath, snapB.snapshotPath);
   fs.chmodSync(tmp, 0o755);
   const clean = (d) => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const a = path.join(d, e.name); if (e.isDirectory()) { fs.chmodSync(a, 0o755); clean(a); } else fs.chmodSync(a, 0o644); } };
   clean(tmp);

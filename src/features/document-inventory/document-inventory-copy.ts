@@ -58,6 +58,11 @@ export const ARTICLE_PANORAMA_COPY = {
   DETAIL_UNAVAILABLE: "正式文章详情不可用",
   ARIA: "文章全景",
   UNSCOPED: "未限定",
+  RELEASE_ONLY_NOTICE: "下列字段属于已发布版本；当前正式文件如有新改动，需重新审核并发布后才会进入此结果。",
+  RELEASE_SOURCE_LABEL: "发布时来源路径（改名后可能已失效）：",
+  APPROVAL_STATUS_PREFIX: "当前文件审批状态：",
+  PENDING_GUIDANCE: "。请在文章工作台查看变更并完成审批。",
+  APPROVAL_UNAVAILABLE: "当前文件审批状态暂不可用；下列已发布版本信息不受影响。",
   /** 跳待处理问题页（页名取 TERM.PENDING_ISSUES；impact-analysis 关系依据卡同句同源） */
   ANOMALY_HANDOFF_ACTION: `在${TERM.PENDING_ISSUES}中查看`,
 } as const;
