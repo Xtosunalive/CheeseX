@@ -8,11 +8,13 @@ import { buildAnomalyHandoffHash, matchAnomalyHandoff, parseAnomalyHandoff } fro
 import { useAnomalyWorkbenchStore } from "@/features/anomaly-workbench/anomaly-workbench-store";
 import { useTopologyStore } from "@/lib/topology-store";
 import { fetchDocument } from "@/features/document-inventory/document-inventory-api";
+import { getApprovalStatus } from "@/features/approval-workbench/approval-api";
 import { fetchAnomalies } from "@/features/anomaly-workbench/anomaly-workbench-api";
 import type { AnomalyIssue } from "@/features/anomaly-workbench/anomaly-workbench-types";
 import type { ImpactAnalysisResult } from "@/features/impact-analysis/impact-analysis-types";
 
 vi.mock("@/features/document-inventory/document-inventory-api", () => ({ fetchDocument: vi.fn() }));
+vi.mock("@/features/approval-workbench/approval-api", () => ({ getApprovalStatus: vi.fn() }));
 vi.mock("@/features/anomaly-workbench/anomaly-workbench-api", () => ({ fetchAnomalies: vi.fn(), performAnomalyOperation: vi.fn() }));
 vi.mock("@/components/obsidian", () => ({ ObsidianLink: ({ children }: { children: React.ReactNode }) => <span>{children}</span> }));
 
@@ -69,6 +71,7 @@ describe("shared read-only detail and maintenance handoff", () => {
   });
 
   it("loads the existing formal document detail without falling back to search-card data", async () => {
+    vi.mocked(getApprovalStatus).mockResolvedValue({ status: "pending", revision: "sha256:changed", changeSummary: null });
     vi.mocked(fetchDocument).mockResolvedValue({
       releaseId,
       sourceCommit,
@@ -82,6 +85,10 @@ describe("shared read-only detail and maintenance handoff", () => {
     });
     render(<ArticlePanorama documentId="article:ART-1" />);
     expect(await screen.findByRole("region", { name: "文章全景" })).toHaveTextContent(releaseId);
+    expect(screen.getByText(/下列字段属于已发布版本/)).toBeInTheDocument();
+    expect(screen.getByText(/发布时来源路径/)).toBeInTheDocument();
+    expect(await screen.findByText(/当前文件审批状态：待审/)).toBeInTheDocument();
+    expect(getApprovalStatus).toHaveBeenCalledWith("ART-1");
     expect(fetchDocument).toHaveBeenCalledWith("article:ART-1");
     fireEvent.click(screen.getByRole("button", { name: "在待处理问题中查看" }));
     expect(window.location.hash).toContain("#/anomalies?handoff=formal-detail");

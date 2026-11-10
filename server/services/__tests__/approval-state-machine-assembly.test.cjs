@@ -210,6 +210,10 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     const unpublishedSearch = await request("GET", `/api/documents/search?keyword=${encodeURIComponent("外部新增正文")}`);
     assert.equal(unpublishedSearch.status, 200, JSON.stringify(unpublishedSearch.body).slice(0, 400));
     assert.equal(unpublishedSearch.body.data.documents.length, 0, "未再发布的正文不得进入正式文档清单");
+    const movedFormal = path.join(formalDir, "测试候选文章-改名.md");
+    fs.renameSync(formal, movedFormal);
+    assert.equal(fs.existsSync(formal), false);
+    assert.equal(fs.existsSync(movedFormal), true);
     child.kill("SIGTERM");
     await new Promise((resolve) => child.once("exit", resolve));
     child = spawn(process.execPath, [path.resolve(__dirname, "../../../server/main.cjs")], { env: serverEnv, stdio: ["ignore", "pipe", "pipe"] });
@@ -239,6 +243,18 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     await page.getByRole("button", { name: /发布.*测试候选文章/ }).click({ timeout: 15_000 });
     await page.getByTestId("approval-change-summary").waitFor({ timeout: 15_000 });
     assert.match(await page.getByTestId("approval-change-summary").innerText(), /外部新增正文/);
+    const formalSearch = await request("GET", "/api/documents/search");
+    assert.equal(formalSearch.status, 200, JSON.stringify(formalSearch.body).slice(0, 600));
+    assert(formalSearch.body.data.documents.some((document) => document.documentKind === "standard-article"), JSON.stringify(formalSearch.body.data).slice(0, 1200));
+    await page.goto(`http://127.0.0.1:${uiPort}/#/document-inventory`);
+    await page.getByRole("button", { name: /测试候选文章/ }).first().click({ timeout: 15_000 });
+    const formalDetail = page.getByRole("region", { name: "文章全景" });
+    await formalDetail.waitFor({ timeout: 15_000 });
+    await formalDetail.getByText(/当前文件审批状态：待审/).waitFor({ timeout: 15_000 });
+    assert.match(await formalDetail.innerText(), /下列字段属于已发布版本/);
+    assert.match(await formalDetail.innerText(), /当前文件审批状态：待审/);
+    assert.match(await formalDetail.innerText(), /发布时来源路径/);
+    assert.equal(await formalDetail.getByRole("link").count(), 0, "Release 的旧路径不得伪装成当前文件链接");
   } finally {
     if (browser) await browser.close();
     if (vite) { vite.kill("SIGTERM"); await new Promise((resolve) => vite.once("exit", resolve)); }

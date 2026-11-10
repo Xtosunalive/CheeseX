@@ -488,7 +488,7 @@ module.exports = {
     "DOCUMENT_INDEX_UNAVAILABLE": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:177",
+        "server/services/projection/document-inventory-service.cjs:176",
         "server/services/projection/document-source-scanner.cjs:170",
         "server/services/projection/document-source-scanner.cjs:183"
       ]
@@ -496,7 +496,7 @@ module.exports = {
     "DOCUMENT_NOT_FOUND": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:224"
+        "server/services/projection/document-inventory-service.cjs:223"
       ]
     },
     "DRAFT_ALREADY_EXISTS": {
@@ -753,8 +753,8 @@ module.exports = {
     "INDEX_REBUILD_IN_PROGRESS": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:156",
-        "server/services/projection/document-inventory-service.cjs:167"
+        "server/services/projection/document-inventory-service.cjs:155",
+        "server/services/projection/document-inventory-service.cjs:166"
       ]
     },
     "INTERNAL_ERROR": {
@@ -1137,7 +1137,7 @@ module.exports = {
     "NODE_NOT_FOUND": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:239"
+        "server/services/projection/document-inventory-service.cjs:238"
       ]
     },
     "NON_ENTITY_TARGET": {
@@ -1567,8 +1567,8 @@ module.exports = {
     "RELEASE_INDEX_IMMUTABLE": {
       "statuses": [],
       "sites": [
-        "server/services/projection/document-inventory-service.cjs:155",
-        "server/services/projection/document-inventory-service.cjs:166"
+        "server/services/projection/document-inventory-service.cjs:154",
+        "server/services/projection/document-inventory-service.cjs:165"
       ]
     },
     "RELEASE_INPUT_MISMATCH": {

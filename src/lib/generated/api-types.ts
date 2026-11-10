@@ -10763,8 +10763,6 @@ export interface components {
             pendingExtraction: number;
         };
         CanonicalDocumentSearchData: {
-            releaseId: string;
-            sourceCommit: string;
             filters: components["schemas"]["DocumentSearchParams"];
             summary: components["schemas"]["CanonicalDocumentSummary"];
             availableFilters: components["schemas"]["DocumentAvailableFilters"];
@@ -10774,7 +10772,14 @@ export interface components {
             /** Format: date-time */
             generatedAt: string;
             availability?: components["schemas"]["AvailabilityGuide"];
-        };
+        } & ({
+            releaseId: string;
+            sourceCommit: string;
+        } | {
+            /** @enum {string} */
+            dataSource: "worktree";
+            workingRevision?: string;
+        });
         CanonicalDocumentDetailData: {
             releaseId: string;
             sourceCommit: string;
