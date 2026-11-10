@@ -8324,19 +8324,25 @@
           "documents",
           "limit",
           "offset",
-          "generatedAt",
-          "releaseId",
-          "sourceCommit"
+          "generatedAt"
+        ],
+        "oneOf": [
+          {
+            "required": ["releaseId", "sourceCommit"],
+            "properties": {
+              "releaseId": { "type": "string", "pattern": "^release-[0-9a-f]{64}$" },
+              "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+            }
+          },
+          {
+            "required": ["dataSource"],
+            "properties": {
+              "dataSource": { "type": "string", "enum": ["worktree"] },
+              "workingRevision": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+            }
+          }
         ],
         "properties": {
-          "releaseId": {
-            "type": "string",
-            "pattern": "^release-[0-9a-f]{64}$"
-          },
-          "sourceCommit": {
-            "type": "string",
-            "pattern": "^[0-9a-f]{40}$"
-          },
           "filters": {
             "$ref": "#/components/schemas/DocumentSearchParams"
           },
@@ -9037,6 +9043,29 @@
               "string",
               "null"
             ]
+          },
+          "changeSummary": {
+            "type": ["object", "null"],
+            "additionalProperties": false,
+            "required": ["fields", "bodyChanged", "beforeExcerpt", "afterExcerpt"],
+            "properties": {
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["field", "before", "after"],
+                  "properties": {
+                    "field": { "type": "string" },
+                    "before": { "type": "string" },
+                    "after": { "type": "string" }
+                  }
+                }
+              },
+              "bodyChanged": { "type": "boolean" },
+              "beforeExcerpt": { "type": "string" },
+              "afterExcerpt": { "type": "string" }
+            }
           }
         }
       },

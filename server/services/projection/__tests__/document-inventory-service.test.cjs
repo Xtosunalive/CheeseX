@@ -209,6 +209,8 @@ test("immutable Release snapshot is the only formal article inventory", () => {
   const result = service.searchDocuments({ keyword: "immutable", limit: 20, offset: 0 });
   assert.strictEqual(result.summary.totalResults, 1);
   assert.strictEqual(result.documents[0].articleId, "ART-REL");
+  assert.strictEqual(result.documents[0].sourcePath, "知识库/wiki/articles/ART-REL/hash.md");
+  assert.strictEqual(service.getDocument("article:ART-REL").document.sourcePath, "知识库/wiki/articles/ART-REL/hash.md");
   assert.throws(() => service.rebuildSync(), (error) => error.code === "RELEASE_INDEX_IMMUTABLE");
 });
 

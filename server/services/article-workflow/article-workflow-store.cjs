@@ -6,7 +6,9 @@ const path = require("path");
 const { normalizeUploadStatus, stringArray } = require("./article-upload-status.cjs");
 // WP-138 R5b：frontmatter 派生键名经文档键源单点（本文件零手抄字段名清单）
 const DK = require("../../shared/document-keys.cjs");
-const { writeVault, writeVaultExclusive } = require("../../shared/vault-io.cjs"); // PR-057：vault 唯一写通道（原子写＋归属取证日志；noLedger=记账归属维持现状）
+const { writeVault, writeVaultExclusive, contentRevision } = require("../../shared/vault-io.cjs"); // PR-057：vault 唯一写通道（原子写＋归属取证日志；noLedger=记账归属维持现状）
+const { loadDocument } = require("../../shared/document-load-port.cjs");
+const { buildFileName } = require("../../shared/readable-path-mapper.cjs");
 
 const STORE_VERSION = "6.0";
 const STANDARDIZATION_STATUSES = ["pending_standardization", "blocked", "standardized"];
@@ -176,15 +178,39 @@ function createStandardVersion(vaultPath, candidate, raw, document, now, options
     documentCategoryPath(document),
     options && options.allowedDomains
   );
-  const snapshotDirectory = path.join(articleLifecycle.formalDomainDir(vaultPath, domainSegment), safeArticleDirectory(document.articleId));
-  const snapshotPath = path.join(snapshotDirectory, `${candidate.contentHash}.md`);
-  fs.mkdirSync(snapshotDirectory, { recursive: true });
-  if (fs.existsSync(snapshotPath)) {
-    if (!fs.readFileSync(snapshotPath).equals(Buffer.from(raw, "utf8"))) {
-      const error = new Error("标准文章快照路径已存在但内容哈希不一致"); error.code = "ARTICLE_SNAPSHOT_CONFLICT"; error.status = 409; throw error;
+  const formalRoot = articleLifecycle.formalArticlesDir(vaultPath);
+  const existing = [];
+  const visit = (dir) => {
+    if (!fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const file = path.join(dir, entry.name);
+      if (entry.isDirectory()) visit(file);
+      else if (entry.isFile() && entry.name.endsWith(".md")) {
+        const doc = loadDocument(fs.readFileSync(file, "utf8"), file);
+        if (doc.frontmatter && doc.frontmatter[DK.ARTICLE.articleId] === document.articleId) existing.push(file);
+      }
     }
+  };
+  visit(formalRoot);
+  if (existing.length > 1) {
+    const error = new Error("同一文章身份有多个正式文件，请先修复重复文件"); error.code = "ARTICLE_FORMAL_IDENTITY_AMBIGUOUS"; error.status = 409; throw error;
+  }
+  let snapshotPath = existing[0];
+  if (snapshotPath && /[0-9a-f]{64}\.md$/.test(snapshotPath)) {
+    const error = new Error("正式文件仍为旧哈希路径，请先运行可读路径迁移预览与切换"); error.code = "ARTICLE_REVISION_CONFLICT"; error.status = 409; throw error;
+  }
+  if (!snapshotPath) {
+    const directory = articleLifecycle.formalDomainDir(vaultPath, domainSegment);
+    fs.mkdirSync(directory, { recursive: true });
+    const fileName = buildFileName({ title: document.title, version: document.version });
+    const base = fileName.replace(/\.md$/, "");
+    let suffix = 0;
+    do { snapshotPath = path.join(directory, `${base}${suffix ? `-${suffix}` : ""}.md`); suffix += 1; }
+    while (fs.existsSync(snapshotPath));
+    writeVaultExclusive(snapshotPath, raw, { domain: "workflow", summary: "创建可编辑正式文章" }, { encoding: "utf8", flag: "wx", mode: 0o644 });
   } else {
-    writeVaultExclusive(snapshotPath, raw, { domain: "workflow", summary: "发布快照（只读）" }, { encoding: "utf8", flag: "wx", mode: 0o444 }); // SPEC-012 WP-I：记账归通道
+    const previous = fs.readFileSync(snapshotPath, "utf8");
+    if (previous !== raw) writeVault(snapshotPath, raw, { expectedContentHash: contentRevision(previous), domain: "workflow", summary: "更新可编辑正式文章" });
   }
   const decisionId = crypto.randomUUID();
   return {

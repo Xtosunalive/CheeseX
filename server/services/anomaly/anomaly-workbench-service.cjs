@@ -27,7 +27,9 @@ const OPERATION_PRECONDITIONS = {
 function assertOperationPrecondition(operation, status, code, message) {
   const allowed = OPERATION_PRECONDITIONS[operation];
   if (allowed && !allowed.includes(status)) {
-    throw serviceError(code || "ANOMALY_STATE_TRANSITION_FORBIDDEN", message || `操作 ${operation} 不允许从状态 ${status} 执行`, 409, { operation, status, allowed });
+    const details = { operation, status, allowed };
+    if (!code) throw serviceError("ANOMALY_STATE_TRANSITION_FORBIDDEN", message || `操作 ${operation} 不允许从状态 ${status} 执行`, 409, details);
+    throw serviceError(code, message || `操作 ${operation} 不允许从状态 ${status} 执行`, 409, details);
   }
 }
 

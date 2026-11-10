@@ -86,6 +86,7 @@ function getDownloadFileName(path) {
 
 module.exports = {
   sanitizeNamePart,
+  buildFileName,
   buildReadablePhysicalPath,
   buildUniqueReadablePaths,
   buildPathMap,

@@ -48,7 +48,7 @@ test("SPEC-028 resolveMutability：四角色根与子路径命中归档 lane", (
   assert.equal(resolveMutability("知识库/raw/drafts/a.md"), "human-editable");
   assert.equal(resolveMutability("知识库/raw/drafts/投稿/a.md"), "human-editable");
   assert.equal(resolveMutability("知识库/raw/precleaned/g.md"), "human-editable");
-  assert.equal(resolveMutability("知识库/wiki/articles/article-x/abc.md"), "read-only-evidence");
+  assert.equal(resolveMutability("知识库/wiki/articles/article-x/abc.md"), "human-editable");
   assert.equal(resolveMutability("知识库/raw/archive/投稿/" + "f".repeat(64) + "-原文.md"), "read-only-evidence");
   assert.equal(resolveMutability("知识库/raw/archive"), null, "角色根本身非文件落点——不执法（文件级语义）");
   assert.equal(resolveMutability("知识库/wiki/entities/a.md"), null, "实体页族不在文章四角色面（SPEC-028 第二落地另立）");
@@ -57,6 +57,6 @@ test("SPEC-028 resolveMutability：四角色根与子路径命中归档 lane", (
   assert.equal(resolveMutability(null), null, "非字符串不炸");
   assert.deepEqual(ROLE_MUTABILITY, {
     draft: "human-editable", "standard-working": "human-editable",
-    "standard-formal": "read-only-evidence", "source-archive": "read-only-evidence",
+    "standard-formal": "human-editable", "source-archive": "read-only-evidence",
   }, "角色档位映射与 SPEC-028 §四一致");
 });

@@ -8439,6 +8439,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/articles/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 文章健康度读模型：按契约全量校验规则筛违规文章清单（WP-156——存量覆盖，不依赖变更事件） */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 健康度清单（响应即 JSON 导出物） */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            scope: string;
+                            total: number;
+                            healthy: number;
+                            unhealthyCount: number;
+                            generatedAt: string;
+                            files: {
+                                file: string;
+                                ok: boolean;
+                                violations: {
+                                    ruleId: string;
+                                    field: string;
+                                    error: string;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description 健康度读模型不可用；ARTICLES_HEALTH_UNAVAILABLE（WP-156 查询面——读模型计算失败显式上报） */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ArticleHealthUnavailableErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -10703,8 +10763,6 @@ export interface components {
             pendingExtraction: number;
         };
         CanonicalDocumentSearchData: {
-            releaseId: string;
-            sourceCommit: string;
             filters: components["schemas"]["DocumentSearchParams"];
             summary: components["schemas"]["CanonicalDocumentSummary"];
             availableFilters: components["schemas"]["DocumentAvailableFilters"];
@@ -10714,7 +10772,14 @@ export interface components {
             /** Format: date-time */
             generatedAt: string;
             availability?: components["schemas"]["AvailabilityGuide"];
-        };
+        } & ({
+            releaseId: string;
+            sourceCommit: string;
+        } | {
+            /** @enum {string} */
+            dataSource: "worktree";
+            workingRevision?: string;
+        });
         CanonicalDocumentDetailData: {
             releaseId: string;
             sourceCommit: string;
@@ -10896,6 +10961,16 @@ export interface components {
             status: components["schemas"]["ApprovalStatusEnum"];
             revision?: string | null;
             updatedAt?: string | null;
+            changeSummary?: {
+                fields: {
+                    field: string;
+                    before: string;
+                    after: string;
+                }[];
+                bodyChanged: boolean;
+                beforeExcerpt: string;
+                afterExcerpt: string;
+            } | null;
         };
         ApprovalStatusEnvelope: {
             /** @constant */
@@ -12798,6 +12873,16 @@ export interface components {
         ArticleWriteFailedErrorResponse: components["schemas"]["ApiError"] & {
             /** @enum {string} */
             error_code?: "ARTICLE_WRITE_FAILED";
+        };
+        ArticleHealthUnavailableErrorResponse: {
+            /** @constant */
+            success: false;
+            error: string;
+            /** @enum {string} */
+            error_code: "ARTICLES_HEALTH_UNAVAILABLE";
+            message: string;
+            trace_id: string;
+            details?: unknown;
         };
     };
     responses: never;
