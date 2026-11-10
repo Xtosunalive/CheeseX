@@ -165,8 +165,9 @@ test("正式文章外部修改重检待审，旧 Release 不变，重新确认�
 test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开接口可读", { timeout: 90_000 }, async () => {
   const vaultPath = fixtureVault();
   const port = await new Promise((resolve, reject) => { const socket = net.createServer(); socket.once("error", reject); socket.listen(0, "127.0.0.1", () => { const value = socket.address().port; socket.close(() => resolve(value)); }); });
-  const child = spawn(process.execPath, [path.resolve(__dirname, "../../../server/main.cjs")], {
-    env: { ...process.env, VAULT_PATH: vaultPath, API_PORT: String(port), THESCHEMA_DIR: path.join(vaultPath, "知识库/TheSchema"), VAULT_GIT_LEDGER_DISABLE: "1" },
+  const serverEnv = { ...process.env, VAULT_PATH: vaultPath, API_PORT: String(port), THESCHEMA_DIR: path.join(vaultPath, "知识库/TheSchema"), VAULT_GIT_LEDGER_DISABLE: "1" };
+  let child = spawn(process.execPath, [path.resolve(__dirname, "../../../server/main.cjs")], {
+    env: serverEnv,
     stdio: ["ignore", "pipe", "pipe"],
   });
   let log = "";
@@ -206,6 +207,22 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     assert(pending, `外部编辑未进入待审: ${log.slice(-1200)}`);
     assert.equal(pending.changeSummary.bodyChanged, true);
     assert.match(pending.changeSummary.afterExcerpt, /外部新增正文/);
+    const unpublishedSearch = await request("GET", `/api/documents/search?keyword=${encodeURIComponent("外部新增正文")}`);
+    assert.equal(unpublishedSearch.status, 200, JSON.stringify(unpublishedSearch.body).slice(0, 400));
+    assert.equal(unpublishedSearch.body.data.documents.length, 0, "未再发布的正文不得进入正式文档清单");
+    child.kill("SIGTERM");
+    await new Promise((resolve) => child.once("exit", resolve));
+    child = spawn(process.execPath, [path.resolve(__dirname, "../../../server/main.cjs")], { env: serverEnv, stdio: ["ignore", "pipe", "pipe"] });
+    child.stdout.on("data", (value) => { log += value; });
+    child.stderr.on("data", (value) => { log += value; });
+    let restarted = false;
+    for (let attempt = 0; attempt < 100; attempt += 1) {
+      try { const response = await request("GET", "/api/health"); if (response.body?.data?.readyState === "ready") { restarted = true; break; } } catch { /* restarting */ }
+      await new Promise((resolve) => setTimeout(resolve, 300));
+    }
+    assert(restarted, `服务重启未 ready: ${log.slice(-1200)}`);
+    const afterRestart = await request("GET", `/api/approval/status/${id}`);
+    assert.equal(afterRestart.body.data.status, "pending", "重启不能恢复旧批准");
     const uiPort = await new Promise((resolve, reject) => { const socket = net.createServer(); socket.once("error", reject); socket.listen(0, "127.0.0.1", () => { const value = socket.address().port; socket.close(() => resolve(value)); }); });
     vite = spawn(process.execPath, [path.resolve(__dirname, "../../../node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", String(uiPort), "--strictPort"], {
       cwd: path.resolve(__dirname, "../../.."), env: { ...process.env, API_PORT: String(port) }, stdio: ["ignore", "pipe", "pipe"],
