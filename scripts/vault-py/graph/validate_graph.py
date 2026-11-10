@@ -31,13 +31,9 @@ import sys
 from collections import Counter, defaultdict
 from datetime import datetime
 
-from kb_paths import vault_roots, ledger_dir
+from kb_paths import vault_roots, ledger_dir, staging_path
 
 VAULT_ROOT, VAULT = vault_roots()
-ARCH_JSON = os.path.join(VAULT, "architecture", "AnyShare.architecture.json")
-SEMANTIC_ARCH_JSON = os.path.join(VAULT, "architecture", "AnyShare", "master", "semantic_architecture.json")
-ARCH_LAYOUT_JSON = os.path.join(VAULT, "architecture", "AnyShare", "master", "architecture_layout.json")
-
 WEAK_THRESHOLD = 0.3
 POORLY_CONNECTED_THRESHOLD = 2  # fewer than N strong edges → poorly connected
 
@@ -143,41 +139,52 @@ def _align_validate(align_ontology, rt, fc, tc):
 
 
 def load_graph():
-    if not os.path.exists(ARCH_JSON):
-        print(f"❌ 架构图文件不存在: {ARCH_JSON}")
+    graph_path = staging_path("master_graph.json")
+    try:
+        with open(graph_path, encoding="utf-8") as f:
+            graph = json.load(f)
+        nodes = graph["nodes"]
+        connections = graph["connections"]
+        if not isinstance(nodes, list) or not isinstance(connections, list):
+            raise ValueError("nodes 和 connections 必须是数组")
+        if any(not isinstance(node["id"], str) or not node["id"] for node in nodes):
+            raise ValueError("节点必须有非空字符串 id")
+        edges = [
+            {"source": conn["from"], "target": conn["to"], "type": conn["relationType"],
+             "properties": conn.get("properties", {})}
+            for conn in connections
+        ]
+        if any(not all(isinstance(edge[key], str) and edge[key] for key in ("source", "target", "type"))
+               or not isinstance(edge["properties"], dict) for edge in edges):
+            raise ValueError("连接的端点和关系类型必须是非空字符串，properties 必须是对象")
+    except (OSError, KeyError, TypeError, ValueError) as error:
+        print(f"❌ 图谱产物不可用: {graph_path}（{error}）", file=sys.stderr)
         return None, None
-    with open(ARCH_JSON, "r", encoding="utf-8") as f:
-        data = json.load(f)
-    kg = data.get("knowledgeGraph", {})
-    edges = kg.get("semanticEdges", [])
-    nodes = []
-    for key in ("domainNodes", "subdomainNodes", "conceptNodes",
-                "moduleNodes", "documentNodes", "teamNodes"):
-        nodes.extend(kg.get(key, []))
-    # System nodes are in architecture visual nodes, also check moduleNodes
-    for n in data.get("nodes", []):
-        nodes.append({
-            "id": n["id"],
-            "labels": ["System"],
-            "properties": {"name": n.get("title", ""), "category": n.get("style", "")},
-        })
     return nodes, edges
 
 
 def validate_architecture_projection():
-    if not os.path.exists(SEMANTIC_ARCH_JSON):
-        print(f"❌ 语义架构投影不存在: {SEMANTIC_ARCH_JSON}")
+    semantic_path = staging_path("sa/semantic_architecture.json")
+    layout_path = staging_path("sa/architecture_layout.json")
+    try:
+        with open(semantic_path, encoding="utf-8") as f:
+            semantic = json.load(f)
+        components = semantic["components"]
+        dependencies = semantic["dependencies"]
+        layers = semantic["layers"]
+        if any(not isinstance(rows, list) or any(not isinstance(row, dict) for row in rows)
+               for rows in (components, dependencies, layers)):
+            raise ValueError("components、dependencies 和 layers 必须是对象数组")
+        layout = {"nodes": {}, "groups": {}}
+        if os.path.exists(layout_path):
+            with open(layout_path, encoding="utf-8") as f:
+                layout = json.load(f)
+        if any(not isinstance(layout[key], dict) for key in ("nodes", "groups")):
+            raise ValueError("布局的 nodes 和 groups 必须是对象")
+    except (OSError, KeyError, TypeError, ValueError) as error:
+        print(f"❌ 架构投影不可用: {semantic_path}（{error}）", file=sys.stderr)
         return 1
-    with open(SEMANTIC_ARCH_JSON, "r", encoding="utf-8") as f:
-        semantic = json.load(f)
-    layout = {"nodes": {}, "groups": {}}
-    if os.path.exists(ARCH_LAYOUT_JSON):
-        with open(ARCH_LAYOUT_JSON, "r", encoding="utf-8") as f:
-            layout = json.load(f)
 
-    components = semantic.get("components", [])
-    dependencies = semantic.get("dependencies", [])
-    layers = semantic.get("layers", [])
     component_ids = {c.get("id") for c in components}
     layer_ids = {l.get("id") for l in layers}
 
@@ -395,34 +402,33 @@ def _node_name(node_map, nid):
     return nid
 
 
-def _auto_fix(nodes):
+def _auto_fix(nodes, edges):
     """Auto-fix safe issues: remove empty stub pages with 0 edges."""
-    node_map = {n["id"]: n for n in nodes}
-    node_ids = set(node_map.keys())
-
-    edges = []
-    if os.path.exists(ARCH_JSON):
-        with open(ARCH_JSON, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        edges = data.get("knowledgeGraph", {}).get("semanticEdges", [])
     edge_endpoints = set()
     for e in edges:
         edge_endpoints.add(e["source"])
         edge_endpoints.add(e["target"])
 
     removed = 0
-    entities_dir = os.path.join(VAULT, "wiki", "entities")
-    concepts_dir = os.path.join(VAULT, "wiki", "concepts")
-
     for n in nodes:
-        nid = n["id"]
-        labels = n.get("labels", [])
-        if nid in edge_endpoints:
+        if n["id"] in edge_endpoints:
             continue
-        if "Document" in labels or "Team" in labels or "Subdomain" in labels:
+        labels = n.get("labels") or []
+        if "Concept" in labels:
+            prefix = "知识库/wiki/concepts/"
+        elif "Entity" in labels or "System" in labels:
+            prefix = "知识库/wiki/entities/"
+        else:
             continue
-        name = n.get("properties", {}).get("name", "")
-        if not name:
+        # 只考虑图节点自身标注的源文档，同名不能建立删除依据。
+        rel = (n.get("properties") or {}).get("file_path") or ""
+        if not isinstance(rel, str) or not rel.startswith(prefix):
+            continue
+        filename = rel[len(prefix):]
+        if not filename.endswith(".md") or "/" in filename or "\\" in filename:
+            continue
+        fp = os.path.join(VAULT_ROOT, rel)
+        if os.path.realpath(fp) != os.path.join(os.path.realpath(VAULT_ROOT), rel):
             continue
 
         # WP-117 批3：占位页内容改信封供给（fmText＋body 逐字节还原原文件）；删除与
@@ -440,24 +446,22 @@ def _auto_fix(nodes):
                 "（vault-runtime 拉起 docEnvelope:true 自动物化）；主校验结果不受影响。"
             )
             return 0
-        for sub, base_dir in (("wiki/entities", entities_dir), ("wiki/concepts", concepts_dir)):
-            rel = "知识库/" + sub + "/" + name + ".md"
-            hit = _env.get_document(rel)
-            if hit["state"] != "present":
-                continue
-            content = hit["value"]["fmText"] + hit["value"]["body"]
-            fp = os.path.join(base_dir, f"{name}.md")
-            if "status: 制定中" in content and content.count("\n") < 25:
-                # WP-015/SPEC-077：删前裁决——有基线且被手改的页拒删（不可逆动作从严）
-                from human_edit_guard import check_delete as _heg_check_delete, HumanEditConflict as _HEC
-                try:
-                    _heg_check_delete(fp)
-                except _HEC as _conflict:
-                    print(f"⚠️ 跳过（人改保护）: {name}——{_conflict}")
-                    continue
-                os.remove(fp)
-                print(f"✅ 自动修复: 删除空占位页 {name}")
-                removed += 1
+        hit = _env.get_document(rel)
+        if hit["state"] != "present":
+            continue
+        content = hit["value"]["fmText"] + hit["value"]["body"]
+        if "status: 制定中" not in content or content.count("\n") >= 25:
+            continue
+        from human_edit_guard import check_delete, HumanEditConflict
+
+        try:
+            check_delete(fp)
+        except HumanEditConflict as error:
+            print(f"⚠️ 跳过（人改保护）: {rel}——{error}")
+            continue
+        os.remove(fp)
+        print(f"✅ 自动修复: 删除空占位页 {rel}")
+        removed += 1
 
     if removed > 0:
         print(f"✅ 自动修复完成: 清理 {removed} 个空占位页")
@@ -635,9 +639,19 @@ def main():
     if nodes is None:
         return 1
 
+    if "--structural" in sys.argv:
+        node_ids = {node["id"] for node in nodes}
+        if len(node_ids) != len(nodes):
+            print("❌ 主图有重复节点标识", file=sys.stderr)
+            return 1
+        dangling = next((edge for edge in edges if edge["source"] not in node_ids or edge["target"] not in node_ids), None)
+        if dangling:
+            print(f"❌ 主图存在悬空连接: {dangling['source']} → {dangling['target']}", file=sys.stderr)
+            return 1
+
     # Auto-fix mode: only run fixable checks, apply safe fixes silently
     if auto_fix:
-        return _auto_fix(nodes)
+        return _auto_fix(nodes, edges)
 
     print(f"知识图谱关系合理性校验\n"
           f"{'='*50}\n"
@@ -661,7 +675,7 @@ def main():
     # 6. Ontology compliance (only with --ontology flag)
     ont_errors = []
     ont_warnings = []
-    if "--ontology" in sys.argv:
+    if "--ontology" in sys.argv or "--structural" in sys.argv:
         sys.path.insert(0, os.path.join(os.path.dirname(__file__)))
         import schema_loader as sl
         ont_errors, ont_warnings = check_ontology_compliance(nodes, edges, sl)
@@ -698,7 +712,9 @@ def main():
             print(f"3. 补齐 {len(docs_missing)} 个文档的 module 字段：")
             print(f"   方案: 在 frontmatter 中补充 module 映射")
 
-    return 1 if (high + mid) > 0 else 0
+    if "--structural" in sys.argv:
+        return int(bool(ont_errors))
+    return int((high + mid) > 0)
 
 
 if __name__ == "__main__":

@@ -117,14 +117,15 @@ scripts:
     stages: [validate]
     flags:
       - {name: "--ontology", type: flag, desc: "运行本体合规检查"}
+      - {name: "--structural", type: flag, desc: "结构校验失败才返回非零"}
       - {name: "--threshold", type: value, desc: "弱边权重阈值"}
       - {name: "--fix", type: flag, desc: "输出修复建议"}
       - {name: "--auto-fix", type: flag, desc: "自动应用安全修复"}
       - {name: "--architecture-projection", type: flag, desc: "架构投影契约校验"}
     reads:
-      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json}
-      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json, condition: "--architecture-projection"}
-      - {path: "$KB_VAULT/知识库/architecture/AnyShare.architecture.json", format: json, note: "⚠ 此文件不存在 — 主校验路径已损坏"}
+      - {path: "$KB_DATA_DIR/staging/master_graph.json", format: json}
+      - {path: "$KB_DATA_DIR/staging/sa/semantic_architecture.json", format: json, condition: "--architecture-projection"}
+      - {path: "$KB_DATA_DIR/staging/sa/architecture_layout.json", format: json, condition: "--architecture-projection"}
     writes: []  # 只读诊断，--auto-fix 可写 entity stub 但那是修复动作非管道阶段
 
   pipeline-check.py:
@@ -140,8 +141,9 @@ scripts:
       - {path: "$KB_VAULT/知识库/raw/precleaned/**/*.md", format: markdown}
       - {path: "$KB_VAULT/知识库/raw/archive/**/*", format: all}
       - {path: "$KB_VAULT/知识库/raw/drafts/**/*", format: all}
-      - {path: "$KB_VAULT/.ledger/master_graph.json", format: json}
-      - {path: "$KB_VAULT/知识库/architecture/<product>/<version>/semantic_architecture.json", format: json}
+      - {path: "$KB_DATA_DIR/staging/master_graph.json", format: json}
+      - {path: "$KB_DATA_DIR/staging/sa/semantic_architecture.json", format: json}
+      - {path: "$KB_DATA_DIR/staging/sa/architecture_layout.json", format: json}
       - {path: "$KB_VAULT/知识库/wiki/entities/*.md", format: markdown}
       - {path: "$KB_VAULT/知识库/TheSchema/enums.yaml", format: yaml}
     writes: []  # 只读诊断
