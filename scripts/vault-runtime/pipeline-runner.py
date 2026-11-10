@@ -733,7 +733,9 @@ def stage_1_5_infer(mode=None):
     status = {"body": "ok", "wiki": "ok", "config": "ok", "merge": "ok"}
 
     def _run_infer(label, script):
-        cmd = f'{shlex.quote(sys.executable)} "{script}" --mode {mode} --output "{label}"'
+        # Wiki 推断的 quick 模式要求文件清单，编排入口统一重建这一路结果。
+        infer_mode = "full" if os.path.basename(script) == "infer-from-wiki.py" else mode
+        cmd = f'{shlex.quote(sys.executable)} "{script}" --mode {infer_mode} --output "{label}"'
         exit_code, stdout, stderr = run(cmd, timeout=INFER_TIMEOUT)
         _print_subprocess_output(f"infer:{os.path.basename(label).replace('.json','')}", stdout, stderr, exit_code)
         if exit_code == -1:
@@ -767,9 +769,11 @@ def stage_1_5_infer(mode=None):
     print(f"    合并推断结果 ...")
     pipe_mode = os.environ.get("PIPELINE_DEBUG", "0") != "1"
     merge_script = os.path.join(SCRIPTS_DIR, "merge-inferred.py")
+    # 失败的 Wiki 路径可能留着上一轮（另一产品）的输出，合并只消费本轮成功结果。
+    wiki_input = wiki_json if status["wiki"] == "ok" else ""
     merge_cmd = (
         f'{shlex.quote(sys.executable)} "{merge_script}" '
-        f'--body "{body_json}" --wiki "{wiki_json}" --config "{config_json}" '
+        f'--body "{body_json}" --wiki "{wiki_input}" --config "{config_json}" '
         f'--output "{merged_json}"'
     )
     if pipe_mode:
@@ -819,26 +823,19 @@ def validate_explicit_versions(mg_path):
 def stage_2_validate():
     banner("2", "VALIDATE — 图谱质量校验")
 
-    # 2.0 版本字段只校验不注入，避免把未知版本污染成某个产品版本
-    mg_path = REQUIRED_PATHS["master_graph.json"]
-    validate_explicit_versions(mg_path)
-
-    # 2.1 validate_graph.py --ontology
-    print("    运行 validate_graph.py --ontology ...")
+    # 先校验结构，再检查显式版本字段，保持缺失版本为未知。
+    print("    运行 validate_graph.py --structural ...")
     exit_code, stdout, stderr = run(
-        f"{shlex.quote(sys.executable)} validate_graph.py --ontology", cwd=GRAPH_DIR, timeout=120
+        f"{shlex.quote(sys.executable)} validate_graph.py --structural", cwd=GRAPH_DIR, timeout=120
     )
+    if exit_code != 0:
+        _print_subprocess_output("validate_graph", stdout, stderr, exit_code)
+        return False, f"validate_graph 结构校验失败（exit={exit_code}）", {}
 
-    # 合并 stdout/stderr 检查 ERROR
-    combined = (stdout or "") + (stderr or "")
-    has_error = "ERROR" in combined
-
-    if has_error:
-        error_lines = [l for l in combined.split("\n") if "ERROR" in l]
-        print(f"    {red('✗')} validate_graph 发现 {len(error_lines)} 个 ERROR:")
-        for l in error_lines[:5]:
-            print(f"       {l}")
-        return False, f"validate_graph 发现 {len(error_lines)} 个 ERROR", {}
+    try:
+        validate_explicit_versions(REQUIRED_PATHS["master_graph.json"])
+    except (OSError, TypeError, AttributeError, ValueError) as error:
+        return False, f"图谱版本字段校验失败：{error}", {}
 
     print(f"    {green('✓')} validate_graph 通过")
 

@@ -27,6 +27,8 @@ import re
 import sys
 from datetime import datetime, timezone
 
+from schema_loader import architecture_projection, resolve_product_identity
+
 from schema import (
     INTERMEDIATES_DIR, METHODS, InferredEdge, Source,
     edges_to_json, load_entity_names,
@@ -62,10 +64,10 @@ def _doc_full_text(rel: str):
 
 def _extract_frontmatter_value(body: str, key: str) -> str | None:
     """Extract a frontmatter field value (strips [[ ]])."""
-    m = re.search(rf'^{key}:\s*\'?\[?\[?([^\]]*?)\]?\]?\'?\s*$', body, re.MULTILINE)
+    m = re.search(rf"^{key}:[ \t]*(.*)$", body, re.MULTILINE)
     if not m:
         return None
-    val = m.group(1).strip()
+    val = m.group(1).strip().strip("'\"").strip("[]").strip()
     return val if val else None
 
 
@@ -75,8 +77,16 @@ def _parse_wikilinks(text: str) -> list[str]:
 
 
 def scan_precleaned(precleaned_files: list[str], mode: str) -> list[InferredEdge]:
-    entity_names = load_entity_names()
-    all_names = set(entity_names.keys())
+    projection = architecture_projection()
+    configured_product = (projection.get("product") or "").strip()
+    configured_version = (projection.get("version") or "").strip()
+    if bool(configured_product) != bool(configured_version):
+        raise ValueError("架构投影的 product 和 version 必须同时配置")
+    if not configured_product:
+        print(f"{LOG_PREFIX} 无挂载产品，跳过文章引用推断")
+        return []
+    active_product = resolve_product_identity(configured_product)["canonical"]
+    all_names = set(load_entity_names(product=active_product))
 
     edges: list[InferredEdge] = []
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -91,29 +101,25 @@ def scan_precleaned(precleaned_files: list[str], mode: str) -> list[InferredEdge
 
         vrel = rel
 
-        # Product filter: only articles with product=AnyShare (D-17)
-        product = _extract_frontmatter_value(body, "product")
-        if product != "AnyShare":
+        # D-17：只推断当前产品范围内的文章。
+        fm, main_body = "", body
+        if body.startswith("---"):
+            parts = body.split("---", 2)
+            if len(parts) == 3:
+                _, fm, main_body = parts
+        product = _extract_frontmatter_value(fm, "product")
+        if resolve_product_identity(product)["canonical"] != active_product:
             continue
 
         # Page→Entity mapping from module frontmatter
-        module_entity = _extract_frontmatter_value(body, "module")
+        module_entity = _extract_frontmatter_value(fm, "module")
         if not module_entity or module_entity not in all_names:
             continue
-
-        # Split frontmatter from body
-        if body.startswith("---"):
-            parts = body.split("---", 2)
-            fm = parts[1] if len(parts) >= 3 else ""
-            main_body = parts[2] if len(parts) >= 3 else body
-        else:
-            fm = ""
-            main_body = body
 
         # Collect wikilinks from frontmatter (module_wikilink, conf=0.8) — exclude module/product keys
         fm_excluded = set()
         for key in ("module", "product"):
-            val = _extract_frontmatter_value(body, key)
+            val = _extract_frontmatter_value(fm, key)
             if val:
                 fm_excluded.add(val)
 

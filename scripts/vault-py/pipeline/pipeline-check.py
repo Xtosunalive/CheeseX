@@ -32,7 +32,7 @@ from datetime import datetime, timezone
 
 import yaml
 
-from kb_paths import vault_roots, normalize_vault_cli
+from kb_paths import vault_roots, normalize_vault_cli, staging_path
 
 VAULT, KNOWLEDGE = vault_roots()
 IMPORTED = os.path.join(KNOWLEDGE, "raw", "imported")
@@ -40,9 +40,9 @@ PRECLEANED = os.path.join(KNOWLEDGE, "raw", "precleaned")
 ARCHIVE = os.path.join(KNOWLEDGE, "raw", "archive")
 DRAFTS = os.path.join(KNOWLEDGE, "raw", "drafts")
 ENTITIES = os.path.join(KNOWLEDGE, "wiki", "entities")
-MASTER_GRAPH = os.path.join(VAULT, ".ledger", "master_graph.json")
-SA = os.path.join(KNOWLEDGE, "architecture", "AnyShare", "master", "semantic_architecture.json")
-LAYOUT = os.path.join(KNOWLEDGE, "architecture", "AnyShare", "master", "architecture_layout.json")
+MASTER_GRAPH = staging_path("master_graph.json")
+SA = staging_path("sa/semantic_architecture.json")
+LAYOUT = staging_path("sa/architecture_layout.json")
 
 VALID_LAYERS = {
     "external", "gateway", "application", "service",
@@ -401,8 +401,7 @@ def cmd_audit(args):
     enums = schema_loader.load_the_schema("enums")[0] or {}
     enums_modules = enums.get("modules", {})
 
-    sa_path = os.path.join(KNOWLEDGE, "architecture", "AnyShare", "master", "semantic_architecture.json")
-    sa = load_json(sa_path) if os.path.exists(sa_path) else None
+    sa = load_json(SA) if os.path.exists(SA) else None
 
     issues = []
     dirty = []
@@ -690,16 +689,13 @@ def main():
     args = parser.parse_args()
 
     global VAULT, KNOWLEDGE, IMPORTED, PRECLEANED, ARCHIVE, DRAFTS
-    global ENTITIES, MASTER_GRAPH, SA, LAYOUT
+    global ENTITIES
     VAULT, KNOWLEDGE = normalize_vault_cli(args.vault)
     IMPORTED = os.path.join(KNOWLEDGE, "raw", "imported")
     PRECLEANED = os.path.join(KNOWLEDGE, "raw", "precleaned")
     ARCHIVE = os.path.join(KNOWLEDGE, "raw", "archive")
     DRAFTS = os.path.join(KNOWLEDGE, "raw", "drafts")
     ENTITIES = os.path.join(KNOWLEDGE, "wiki", "entities")
-    MASTER_GRAPH = os.path.join(VAULT, ".ledger", "master_graph.json")
-    SA = os.path.join(KNOWLEDGE, "architecture", "AnyShare", "master", "semantic_architecture.json")
-    LAYOUT = os.path.join(KNOWLEDGE, "architecture", "AnyShare", "master", "architecture_layout.json")
 
     if args.cmd == "health":
         cmd_health(args)

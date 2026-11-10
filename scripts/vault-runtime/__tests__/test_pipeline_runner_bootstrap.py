@@ -153,3 +153,31 @@ class GraphFamilyCwdAnchor(unittest.TestCase):
             runner.shutil, "rmtree", side_effect=OSError("read-only")
         ):
             runner.cleanup_old_snapshots(keep=5)
+
+
+class ValidateStageTest(unittest.TestCase):
+    def test_nonzero_structural_check_stops_stage(self):
+        with tempfile.TemporaryDirectory() as temp_dir, patch.dict(os.environ, {"KB_DATA_DIR": temp_dir}):
+            runner = load_runner()
+            with patch.object(runner, "run", return_value=(1, "架构图文件不存在", "")) as run:
+                ok, message, _ = runner.stage_2_validate()
+            self.assertFalse(ok, message)
+            self.assertEqual(run.call_count, 1)
+
+
+    def test_failed_wiki_inference_does_not_merge_stale_output(self):
+        with tempfile.TemporaryDirectory() as temp_dir, patch.dict(os.environ, {"KB_DATA_DIR": temp_dir}):
+            runner = load_runner()
+
+            def execute(cmd, **_kwargs):
+                return (1, "", "bad product scope") if "infer-from-wiki.py" in cmd else (0, "", "")
+
+            with patch.object(runner, "INFER_DIR", temp_dir), \
+                 patch.object(runner, "inject_skeleton_data"), \
+                 patch.object(runner, "run", side_effect=execute) as run:
+                ok, _, data = runner.stage_1_5_infer(mode="quick")
+            self.assertTrue(ok)
+            self.assertEqual(data["inference_status"]["wiki"], "degraded")
+            wiki_command = next(call.args[0] for call in run.call_args_list if "infer-from-wiki.py" in call.args[0])
+            self.assertIn("--mode full", wiki_command)
+            self.assertIn('--wiki ""', run.call_args.args[0])

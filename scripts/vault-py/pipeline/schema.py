@@ -115,12 +115,16 @@ def edges_to_json(edges: list[InferredEdge], path: str) -> None:
 _DOC_ENV_CACHE = None  # WP-117 批3：信封惰性缓存（None＝未载）
 
 
-def load_entity_names(vault_root: str | None = None) -> dict[str, str]:
+def load_entity_names(vault_root: str | None = None, *, product: str | None = None) -> dict[str, str]:
     root = vault_root or VAULT_ROOT
     entity_dir = os.path.join(root, "知识库", "wiki", "entities")
     if not os.path.isdir(entity_dir):
         return {}
     names = {}
+    seen_names = set()
+    if product is not None:
+        from doc_consumption import parse_frontmatter
+        from schema_loader import resolve_product_identity
     # WP-117 批3：文档供给收进信封——entities 顶层 .md 清单与全文均经信封（惰性载入＋缓存：
     # 不读文档的 schema 消费者不受 DOC_ENVELOPE_PATH 影响；信封不可用即 raise＝供给面问题，
     # 与「空实体集返回 {}」（空数据态）分型）。全文＝fmText＋body 逐字节还原原文件，
@@ -147,6 +151,23 @@ def load_entity_names(vault_root: str | None = None) -> dict[str, str]:
             eid = ""
         stem = os.path.splitext(rel.rsplit("/", 1)[-1])[0]
         name = re.sub(r"^\d{2,4}-", "", stem).strip()
+        if product is not None:
+            # 推断边使用实体名，全库重名时无法安全定位端点。
+            if name in seen_names:
+                names.pop(name, None)
+                continue
+            seen_names.add(name)
+            fm_text = hit["value"]["fmText"]
+            parsed = parse_frontmatter(fm_text, "")
+            if fm_text and (not parsed or not isinstance(parsed[0], dict)):
+                continue
+            declared = parsed[0].get("product") if parsed else None
+            if isinstance(declared, list) and len(declared) == 1:
+                declared = declared[0]
+            if isinstance(declared, list) and len(declared) == 1:
+                declared = declared[0]
+            if declared and resolve_product_identity(str(declared).strip("[]"))["canonical"] != product:
+                continue
         names[name] = eid if eid else name
     return names
 
