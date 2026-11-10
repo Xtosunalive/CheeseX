@@ -12,6 +12,8 @@ set -u
 
 BRANCH="${1:?用法: safe-merge.sh <branch> [--push]}"
 PROJ_PATHS="docs/dev-log/dashboard docs/dev-log/progress.json data/governance/decisions-mirror.jsonl"
+# 合并前基线：供第④段按 git 历史重建台账（冲突后由 git commit 完成合并的路径不触发 post-merge）
+BACKFILL_SINCE="$(git merge-base HEAD "$BRANCH" 2>/dev/null || true)"
 
 regen() {
   node scripts/dev-log/fold-progress.mjs >/dev/null 2>&1 || true
@@ -51,6 +53,12 @@ if [ "$STASHED_ENTRIES" = "1" ]; then
   git stash pop 2>/dev/null || echo "safe-merge: 台账尾巴 stash 回放冲突——手工并集：git stash show -p | git apply；丢stash=丢事件，勿 drop"
 fi
 regen
+# 台账投影重建：补齐合并带入的产品提交事件（守卫＝仅代码仓；幂等，只补不删）
+if [ -f .governance-kit ] && [ -n "$BACKFILL_SINCE" ] && [ -f scripts/quality/dev-log/backfill-commit-events.mjs ]; then
+  node scripts/quality/dev-log/backfill-commit-events.mjs \
+    --since "$BACKFILL_SINCE" --include-merged --write >/dev/null \
+    || echo "safe-merge: 台账重建失败——手工补账见上" >&2
+fi
 if ! git diff --quiet -- $PROJ_PATHS docs/dev-log/entries 2>/dev/null; then
   git add docs/dev-log data/governance/decisions-mirror.jsonl
   git diff --cached --quiet || git commit -m "chore(ledger): 合并后台账与投影尾巴入账（safe-merge 自动）" --no-edit
