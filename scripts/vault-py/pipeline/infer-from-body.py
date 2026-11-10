@@ -27,6 +27,8 @@ import re
 import sys
 from datetime import datetime, timezone
 
+from schema_loader import architecture_projection, products
+
 from schema import (
     INTERMEDIATES_DIR, METHODS, InferredEdge, Source,
     edges_to_json, load_entity_names, load_aliases,
@@ -34,7 +36,7 @@ from schema import (
 
 LOG_PREFIX = "[Infer:body]"
 BLACKLIST = {"客户端", "主模块", "访问控制"}
-CONTEXT_KEYWORDS = {"AnyShare", "AnyBackup", "ECMS", "OSS", "AnyRobot"}
+CONTEXT_KEYWORDS = {"ECMS", "OSS"}
 
 VAULT_ROOT = os.environ.get("KB_VAULT") or os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))  # W3 迁仓：env 优先（kb_paths 同源纪律），__file__ 上溯兜底
 ENTITY_DIR = os.path.join(VAULT_ROOT, "知识库", "wiki", "entities")
@@ -65,6 +67,8 @@ def _doc_full_text(rel: str):
 def scan_entities(entity_files: list[str], mode: str) -> list[InferredEdge]:
     entity_names = load_entity_names()
     aliases = load_aliases()
+    product_aliases = architecture_projection().get("product_aliases") or {}
+    context_keywords = CONTEXT_KEYWORDS | products() | set(product_aliases) | set(product_aliases.values())
     all_names = set(entity_names.keys()) | set(aliases.keys())
 
     edges: list[InferredEdge] = []
@@ -109,7 +113,7 @@ def scan_entities(entity_files: list[str], mode: str) -> list[InferredEdge]:
                     continue
                 if name not in section_text:
                     continue
-                if _is_blacklisted(name, section_text):
+                if _is_blacklisted(name, section_text, context_keywords):
                     continue
                 edges.append(InferredEdge(
                     source=entity_name, target=name, type="REFERENCES", confidence=0.7,
@@ -157,13 +161,13 @@ def _containing_section(body: str, pos: int) -> str | None:
     return section
 
 
-def _is_blacklisted(name: str, context: str) -> bool:
+def _is_blacklisted(name: str, context: str, context_keywords: set[str]) -> bool:
     if name not in BLACKLIST:
         return False
     idx = context.index(name)
     before = context[max(0, idx - 50):idx]
     after = context[idx + len(name):idx + len(name) + 50]
-    return not any(kw in before + after for kw in CONTEXT_KEYWORDS)
+    return not any(kw in before + after for kw in context_keywords if kw)
 
 
 def _deduplicate(edges: list[InferredEdge]) -> list[InferredEdge]:
