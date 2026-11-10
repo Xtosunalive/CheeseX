@@ -16,6 +16,40 @@ const { createVaultWatcherService, parseFrontmatter } = require(
 );
 const { CHANNEL_LOG_REL } = require(path.join(ROOT, "server", "shared", "vault-io.cjs"));
 
+test("外部正文和字段变更只更新一次稳定哈希，桥接读到新值", () => {
+  const dir = makeTmpDir();
+  try {
+    const file = path.join(dir, "知识库", "raw", "precleaned", "文章.md");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, "---\ntitle: 初稿\ncontent_hash: sha256:old\n---\n正文一\n");
+    const observed = [];
+    const svc = createVaultWatcherService({ vaultPath: dir, gitLedger: makeTestLedger([]), onExternalWrite: () => observed.push(fs.readFileSync(file, "utf8")) });
+    svc.handleEventNow(file);
+    const first = fs.readFileSync(file, "utf8");
+    assert.match(first, /content_hash: sha256:[0-9a-f]{64}/);
+    assert.equal(observed[0], first);
+    svc.handleEventNow(file);
+    assert.equal(fs.readFileSync(file, "utf8"), first, "自身派生字段不得造成第二次改写");
+    fs.writeFileSync(file, first.replace("正文一", "正文二"));
+    svc.handleEventNow(file);
+    const changed = fs.readFileSync(file, "utf8");
+    assert.notEqual(changed.match(/content_hash: (\S+)/)[1], first.match(/content_hash: (\S+)/)[1]);
+    assert.equal(observed[2], changed);
+  } finally { cleanup(dir); }
+});
+
+test("原文归档外部变更不会被监听器二次改写", () => {
+  const dir = makeTmpDir();
+  try {
+    const file = path.join(dir, "知识库", "raw", "archive", "稿.md");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    const original = "---\ntitle: 原稿\n---\n正文\n";
+    fs.writeFileSync(file, original);
+    createVaultWatcherService({ vaultPath: dir, gitLedger: makeTestLedger([]) }).handleEventNow(file);
+    assert.equal(fs.readFileSync(file, "utf8"), original);
+  } finally { cleanup(dir); }
+});
+
 function makeTmpDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "vault-watcher-test-"));
 }

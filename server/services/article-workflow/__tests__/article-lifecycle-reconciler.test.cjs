@@ -92,7 +92,9 @@ test("WP-093 空态及真实哈希正式件：身份匹配支持内容演进，�
     fs.writeFileSync(path.join(working, "exact.md"), exact);
     publishSnapshot(vaultPath, "generated-id", exact);
     fs.writeFileSync(path.join(working, "unpublished.md"), "---\narticle_id: other\n---\nkeep");
-    assert.deepEqual(r.reconcileWorkingCopies().retired.sort(), ["exact.md", "guide.md", "source.md"]);
+    assert.deepEqual(r.reconcileWorkingCopies().retired.sort(), ["exact.md"]);
+    assert.equal(fs.existsSync(path.join(working, "guide.md")), true, "内容变化的工作副本须保留待审");
+    assert.equal(fs.existsSync(path.join(working, "source.md")), true, "内容变化的同身份工作副本须保留待审");
     assert.equal(fs.readFileSync(path.join(working, "unpublished.md"), "utf8"), "---\narticle_id: other\n---\nkeep");
     assert.equal(fs.existsSync(path.join(working, "sibling.md")), true, "同源不等于同篇，不连坐拆分稿");
     assert.equal(fs.existsSync(path.join(working, "directory-collision.md")), true, "审批目录名不得覆盖正式字节的真实身份");
@@ -134,17 +136,17 @@ test("WP3 读时对账：已发布工作副本退场＋清单行清；未发布�
     fs.writeFileSync(path.join(working, "published.md"), "same");
     fs.writeFileSync(path.join(working, "unpublished.md"), "draft state");
     fs.writeFileSync(path.join(working, "divergent.md"), "newer edits");
-    publish(vaultPath, "published.md", "same");
+    fs.writeFileSync(publish(vaultPath, "published.md", "same"), "same");
     publish(vaultPath, "divergent.md", "older version"); // 同名正式件在（内容已演进）——仍退场（正式代次是权威版本）
     getDerivedIndexStore(vaultPath).articleManifests.put("published", { manifestKey: "published", title: "x" });
 
     const r = createArticleLifecycleReconciler({ vaultPath, logger: { info() {}, warn() {}, error() {} } });
     const result = r.reconcileWorkingCopies();
 
-    assert.deepEqual([...result.retired].sort(), ["divergent.md", "published.md"], "同名正式件在即退场（正式代次权威）");
+    assert.deepEqual([...result.retired].sort(), ["published.md"], "只有同字节的已发布工作副本退场");
     assert.ok(!fs.existsSync(path.join(working, "published.md")));
     assert.ok(fs.existsSync(path.join(working, "unpublished.md")), "未发布保留");
-    assert.ok(!fs.existsSync(path.join(working, "divergent.md")));
+    assert.ok(fs.existsSync(path.join(working, "divergent.md")), "有新编辑的工作副本保留待审");
     assert.equal(getDerivedIndexStore(vaultPath).articleManifests.get("published"), undefined, "清单行随退场清理");
     // 幂等
     const again = r.reconcileWorkingCopies();
@@ -271,7 +273,7 @@ test("WP4 退役（P3-c）：archive 搬移中途失败触发 undo——正式�
     for (const dom of fs.readdirSync(formalDir)) for (const d of fs.readdirSync(path.join(formalDir, dom))) for (const f of fs.readdirSync(path.join(formalDir, dom, d))) formalFiles.push(path.join(formalDir, dom, d, f));
     assert.equal(formalFiles.length, 1, "正式件唯一");
     assert.ok(fs.readFileSync(formalFiles[0], "utf8").includes("正式"), "正式件内容经 undo 还原（排他重建路径，含 publish 夹具 frontmatter）");
-    assert.equal(fs.statSync(formalFiles[0]).mode & 0o777, 0o444, "重建的正式件为只读 0o444（read-only-evidence 档）");
+    assert.equal(fs.statSync(formalFiles[0]).mode & 0o200, 0o200, "回滚后的正式件仍可编辑");
     assert.ok(fs.existsSync(archiveAbs), "归档件原地未动（第 3 次搬移被注入失败）");
     resetVaultIO();
   } finally {

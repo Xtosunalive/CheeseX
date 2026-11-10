@@ -56,7 +56,7 @@ function vault() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "identity-states-vault-"));
   for (const def of SOURCE_ROOTS) fs.mkdirSync(path.join(root, def.relativePath), { recursive: true });
   fs.mkdirSync(path.join(root, "知识库/wiki/articles"), { recursive: true });
-  fs.writeFileSync(path.join(root, "知识库/wiki/entities/fixture-component.md"), "---\narchitecture-node-id: fixture-component\nmodule: [fixture-module]\n---\n\n# Fixture Component\n");
+  fs.writeFileSync(path.join(root, "知识库/wiki/entities/fixture-component.md"), "---\ntitle: Fixture Component\narchitecture-node-id: fixture-component\narch_component: true\nmodule: [fixture-module]\ndate: 2026-10-08\nupdated: 2026-10-08\nstatus: 灰度\ntags: [entity]\n---\n\n# Fixture Component\n");
   const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "identity-states-data-"));
   fs.writeFileSync(path.join(dataDir, "master_graph.db"), "sqlite-fixture");
   const store = getDerivedIndexStore(root);

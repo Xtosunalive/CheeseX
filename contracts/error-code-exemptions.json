@@ -1159,14 +1159,6 @@
       "reviewCondition": "迁移分批清理后复核"
     },
     {
-      "code": "ANOMALY_STATE_TRANSITION_FORBIDDEN",
-      "reason": "w4 新立契约（状态迁移禁例响应）无抛点——会话间门禁兜底，实现落地日移出",
-      "owner": "w4-refocus 后续批次",
-      "expires": "2026-11-09",
-      "expiresAt": "2026-11-09",
-      "reviewCondition": "w4 后续批次落地抛点后移出；到期未实现则契约撤码"
-    },
-    {
       "code": "SOURCE_ARCHIVE_MISSING",
       "reason": "workflowError=bindErrorFactory 别名，pattern 不识别（PR-108 盲区）——真实抛点在 article-draft-workflow.cjs（:47/:54/:58）；门禁纳别名后回炉",
       "owner": "server-api-engineer",

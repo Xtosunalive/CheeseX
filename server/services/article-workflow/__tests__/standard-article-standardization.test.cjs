@@ -49,6 +49,29 @@ function writeCandidate(vaultPath, fileName, raw) {
 
 function storePath(vaultPath) { return path.join(vaultPath, ".ledger", "article-upload-tasks.json"); }
 
+test("首次发布生成可读可编辑正式文件，再发布沿同一位置更新", function (t) {
+  const vaultPath = fixture();
+  t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));
+  const doc = { articleId: "readable-1", title: "架构说明", version: "7.0.1.1", categoryPath: "ops:maintain" };
+  const firstRaw = validArticle(doc.articleId, doc.title);
+  const firstHash = require("node:crypto").createHash("sha256").update(firstRaw).digest("hex");
+  const first = createStandardVersion(vaultPath, { contentHash: firstHash, sourcePath: "working" }, firstRaw, doc, new Date().toISOString(), { allowedDomains: ["ops"] });
+  assert.match(first.version.snapshotPath, /知识库\/wiki\/articles\/ops\/架构说明-7\.0\.1\.1\.md$/);
+  const file = path.join(vaultPath, first.version.snapshotPath);
+  assert.notEqual(fs.statSync(file).mode & 0o200, 0);
+  const nextRaw = firstRaw.replace("标准文章正文", "再次发布正文");
+  const nextHash = require("node:crypto").createHash("sha256").update(nextRaw).digest("hex");
+  const next = createStandardVersion(vaultPath, { contentHash: nextHash, sourcePath: "working" }, nextRaw, doc, new Date().toISOString(), { allowedDomains: ["ops"] });
+  assert.equal(next.version.snapshotPath, first.version.snapshotPath);
+  assert.equal(fs.readFileSync(file, "utf8"), nextRaw);
+  const moved = path.join(vaultPath, "知识库/wiki/articles/ops/改名后的文章.md");
+  fs.renameSync(file, moved);
+  const thirdRaw = nextRaw.replace("再次发布正文", "移动后发布正文");
+  const third = createStandardVersion(vaultPath, { contentHash: require("node:crypto").createHash("sha256").update(thirdRaw).digest("hex"), sourcePath: "working" }, thirdRaw, doc, new Date().toISOString(), { allowedDomains: ["ops"] });
+  assert.equal(path.join(vaultPath, third.version.snapshotPath), moved, "改名移动后按 article_id 复用同一文件");
+  assert.equal(fs.readFileSync(moved, "utf8"), thirdRaw);
+});
+
 
 test("standardization ERROR blocks with 409 and produces no searchable version", function (t) {
   const vaultPath = fixture();

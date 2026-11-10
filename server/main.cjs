@@ -194,6 +194,7 @@ const schemaSelfcheckReady = Promise.resolve()
 // SPEC-011-W11 WP3：vault 文件监听服务（Obsidian/外部写入 → external: 账，装配失败只告警不阻断启动）
 // WP-041：投放自动链消费者占位——监听先起、服务后建（同一 boot tick 内完成注入，事件到达时必已就位）
 let draftDropAutomation = null;
+let formalEditProcessor = null;
 const vaultWatcher = createVaultWatcherService({
     vaultPath, gitLedger: vaultGitLedger, vaultIO, logger,
     // WP-156 必修修复（红队⑤）：实时面词表提供者真实装配——与查询面 health 读模型同源
@@ -204,6 +205,7 @@ const vaultWatcher = createVaultWatcherService({
     graphDriftRefresher.noteExternalActivity(paths); // 图族漂移自动刷新（知识库/ 域内事件，去抖合并）
     pipelineDue.noteExternalWrite(); // SPEC-025 C2（W1b）：外部写计数 +1（1 篇即 due，Master 2026-10-23 阈值）
     if (draftDropAutomation) void draftDropAutomation.onExternalWrite(paths); // WP-041：投稿投放自动校验＋提升（装配于 articleWorkflowService 之后注入）
+    if (formalEditProcessor) formalEditProcessor.handle(paths);
   },
   // WP-027（PR-142）：图输入 schema 写事件桥（内部写早退于 onExternalWrite，本桥独立于归属判定）
   onSchemaInputWrite: (paths) => {
@@ -308,6 +310,8 @@ setInterval(() => { try { articleLifecycleReconciler.reconcileWorkingCopies(); }
 // ADR-004 / W2-WP2：审批状态机由服务层装配返回，端点注册归本层（routes 职责）
 // vaultGitLedger 已在管线服务前创建（SPEC-010-W10 WP2/WP3 共用实例）
 const approvalStateMachine = registerApprovalStateMachine({ vaultPath, logger, articleWorkflowService, pipelineRunService, gitLedger: vaultGitLedger });
+formalEditProcessor = require("./services/article-workflow/formal-edit-service.cjs").createFormalEditService({ vaultPath, articleWorkflowService, approvalStateMachine, logger });
+formalEditProcessor.reconcile(); // 停机期间 Obsidian 保存的正式文章在启动时重新检测
 require("./routes/approval-state-machine-routes.cjs").register(registerRoute, { approvalStateMachine });
 // WP-156：查询面健康度读模型（按契约全量规则筛违规文章＋JSON 导出——与实时面同引擎同契约）
 require("./routes/article-health-routes.cjs").register(registerRoute, { vaultPath });

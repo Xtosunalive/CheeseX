@@ -29,7 +29,7 @@ export const APPROVAL_WORKBENCH_COPY = {
   /** ROLE_DENIED 角色说明尾句 */
   ROLE_DENIED_GUIDANCE: "请联系系统维护者核对账号角色配置；如需调整，由维护者处理，配置生效后再重试。",
   /** 候选文章选择 */
-  SELECT_ARTICLE_LABEL: "选择投稿文章",
+  SELECT_ARTICLE_LABEL: "选择待审文章",
   SELECT_ARTICLE_ARIA: "选择审批文章",
   CANDIDATES_LOADING: `（${TERM.LOADING}）`,
   /** 当前文章信息 */
@@ -37,6 +37,12 @@ export const APPROVAL_WORKBENCH_COPY = {
   STATUS_SUMMARY_PREFIX: "审批状态：",
   NOT_SUBMITTED: "尚未送审",
   LOADING_INFO: "正在读取审批与文章信息…",
+  CHANGE_SUMMARY: "正式文章变动（请核对后确认）",
+  CHANGED_FIELDS: "字段变动",
+  BODY_CHANGED: "正文已变化",
+  BEFORE: "发布版",
+  AFTER: "当前文件",
+  CHECK_BLOCKED: "当前内容检查未通过；请修改后重新检查，再确认。",
   /** 源变化后的重新标准化恢复按钮 */
   RESTANDARDIZE_TITLE: "源文件在标准化之后发生了变化，旧审批绑定已失效；重新标准化后回到待审，再执行确认",
   RESTANDARDIZE_ACTION: "重新标准化（源已变化，刷新绑定）",

@@ -44,6 +44,9 @@ const { validateFrontmatter } = require("../../shared/frontmatter-rule-engine.cj
 // BOM+序列 frontmatter 退化形（旧静默跳过，新沿既有退化写路径——非映射 frontmatter 旧码本就如此）。
 const { frontmatterBounds, loadDocument } = require("../../shared/document-load-port.cjs");
 const YAML = require("yaml");
+const { patchFrontmatter } = require("../../shared/document-load-port.cjs");
+const { writeVault, contentRevision } = require("../../shared/vault-io.cjs");
+const { resolveMutability, READ_ONLY_EVIDENCE } = require("../../shared/article-lifecycle-paths.cjs");
 
 // YAML frontmatter 解析（PR-058 结构解：经仓内 yaml 库——列表值/多行值/嵌套引号不再静默丢失；
 // WP-116 批1：切分经 loadDocument 宿主单点，无 frontmatter/非法 YAML/非映射产物 → null 不触发校验）
@@ -176,15 +179,13 @@ function createVaultWatcherService({ vaultPath, gitLedger, vaultIO, logger, rule
     // 外部写：以 external: 域调 scheduleLedger
     ledger.scheduleLedger("external", `外部写入: ${path.relative(vaultPath, absPath)}`, [absPath]);
     log.info({ event: "vault-watcher-external-write", path: path.relative(vaultPath, absPath) });
-    // SPEC-012 WP-C：外部写事件桥接给②类同步器（listener 失败不阻断监听主链路）
-    if (typeof onExternalWrite === "function") {
-      try { onExternalWrite([absPath]); } catch (err) { log.warn({ event: "vault-watcher-external-bridge-failed", error: err.message }); }
-    }
-
-    // 若涉及 .md 文件，自动重算哈希并更新元数据，再触发校验
+    // 先把外部字节的派生哈希稳定写回，再通知读者；只读证据档不得被监听器改写。
     if (absPath.endsWith(".md")) {
       updateContentHash(absPath);
       checkFrontmatter(absPath);
+    }
+    if (typeof onExternalWrite === "function") {
+      try { onExternalWrite([absPath]); } catch (err) { log.warn({ event: "vault-watcher-external-bridge-failed", error: err.message }); }
     }
   }
 
@@ -192,20 +193,22 @@ function createVaultWatcherService({ vaultPath, gitLedger, vaultIO, logger, rule
   function updateContentHash(absPath) {
     try {
       if (!fs.existsSync(absPath)) return;
+      const relative = path.relative(vaultPath, absPath).split(path.sep).join("/");
+      if (resolveMutability(relative) === READ_ONLY_EVIDENCE) return;
       const raw = fs.readFileSync(absPath, "utf8");
-      const hash = "sha256:" + crypto.createHash("sha256").update(raw, "utf8").digest("hex");
-      // 哈希按全文算（WP-112 authored 口径，先于界判）；闭合界经宿主 frontmatterBounds——
-      // 无 frontmatter/缺界 throw → catch 静默 return（与原手写 startsWith/indexOf 判同效）
       let end;
       try { end = frontmatterBounds(raw).close; } catch { return; }
       const fmText = raw.slice(3, end);
       const body = raw.slice(end);
       let fm;
       try { fm = YAML.parse(fmText) || {}; } catch { return; }
-      if (fm.content_hash === hash) return;
-      fm.content_hash = hash;
-      const newFm = YAML.stringify(fm).trimEnd();
-      fs.writeFileSync(absPath, `---\n${newFm}\n${body}`, "utf8");
+      if (!fm || typeof fm !== "object" || Array.isArray(fm)) return;
+      const previous = fm.content_hash;
+      delete fm.content_hash;
+      const hash = "sha256:" + crypto.createHash("sha256").update(JSON.stringify(fm) + body, "utf8").digest("hex");
+      if (previous === hash) return;
+      const next = patchFrontmatter(raw, { content_hash: hash });
+      writeVault(absPath, next, { expectedContentHash: contentRevision(raw), domain: "workflow", summary: "外部编辑内容哈希更新" });
       log.info({ event: "vault-watcher-hash-updated", path: path.relative(vaultPath, absPath) });
     } catch (err) {
       log.warn({ event: "vault-watcher-hash-update-failed", path: absPath, error: err.message });

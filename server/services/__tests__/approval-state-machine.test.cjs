@@ -51,6 +51,31 @@ test("主链路：standardize→confirm→publish 状态流转（B1 重写：rel
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
+test("已发布正式文件变化回待审，旧批准留历史且重复事件不重复推进", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "asm-external-"));
+  const file = path.join(dir, "知识库/raw/precleaned/a1.md");
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, "# 原文");
+  const originalHash = require("node:crypto").createHash("sha256").update("# 原文").digest("hex");
+  const sm = createApprovalStateMachine({ vaultPath: dir, logger: { info() {}, warn() {}, error() {} },
+    standardizationProbe: () => ({ standardizationStatus: "standardized", formalContentHash: originalHash }),
+    publishArticle: () => ({ releaseId: "old-release" }) });
+  try {
+    await sm.transition("a1", "standardize", { sourcePath: "知识库/raw/precleaned/a1.md" });
+    await sm.transition("a1", "confirm", { sourcePath: "知识库/raw/precleaned/a1.md" });
+    await sm.transition("a1", "publish", { sourcePath: "知识库/raw/precleaned/a1.md" });
+    const before = sm.readRecord("a1");
+    const nextHash = require("node:crypto").createHash("sha256").update("# 修改").digest("hex");
+    const result = sm.recordExternalEdit("a1", nextHash);
+    assert.equal(result.status, "pending");
+    const after = sm.readRecord("a1");
+    assert.equal(after.approval, null);
+    assert.deepEqual(after.decisions, before.decisions);
+    assert.equal(sm.recordExternalEdit("a1", nextHash).changed, false);
+    await assert.rejects(() => sm.transition("a1", "publish", { sourcePath: "知识库/raw/precleaned/a1.md" }), { code: "STATE_TRANSITION_FORBIDDEN" });
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
 test("非法转移 fail-closed（approved 后不能再次 confirm）", async () => {
   const { dir, sm } = fixtureVault();
   await sm.transition("a1", "standardize", { revision: "sha256:r" });
@@ -236,9 +261,8 @@ test("S3 绿灯：源未变化时 confirm 正常通过（probe 哈希 == 存储 
   fs.rmSync(dir, { recursive: true, force: true });
 });
 
-// S3 边界：probe 返回 null（文章不存在/探针不可用）→ 不额外拦截（保持 assertRevision 调用方协议），
-// revision 一致时 confirm 正常通过——源哈希重算只在「存储 revision 与 probe 哈希均为 64 位 hex」时可验证时生效。
-test("S3 边界：probe 返回 null 时不额外拦截（revision 一致则 confirm 通过）", async () => {
+// 正式文件重检后，探针不可用不能凭历史 revision 确认。
+test("probe 返回 null 时确认拒绝，旧 revision 不构成新内容校验证据", async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "asm-s3-null-"));
   let probeOk = true; // standardize 时 probe 有效（否则 standardize 自身会 ARTICLE_NOT_STANDARDIZED）；confirm 时模拟探针不可用
   const sm = createApprovalStateMachine({
@@ -248,8 +272,8 @@ test("S3 边界：probe 返回 null 时不额外拦截（revision 一致则 conf
   });
   await sm.transition("a1", "standardize"); // 存储 revision = sha256:eee…
   probeOk = false; // confirm 时 probe 返回 null（源暂不可验证）
-  const result = await sm.transition("a1", "confirm", { revision: `sha256:${"e".repeat(64)}` });
-  assert.equal(result.status, "approved", "probe 不可验证时不应被源哈希重算拦截");
+  await assert.rejects(() => sm.transition("a1", "confirm", { revision: `sha256:${"e".repeat(64)}` }), (error) => error.code === "ARTICLE_NOT_STANDARDIZED");
+  assert.equal(sm.getStatus("a1").status, "pending");
   fs.rmSync(dir, { recursive: true, force: true });
 });
 

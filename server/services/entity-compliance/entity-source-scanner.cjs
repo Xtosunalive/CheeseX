@@ -14,11 +14,16 @@ const { normalizeFrontmatterFields } = require("../../shared/frontmatter-normali
 function scanEntities(vaultPath) {
   const dir = path.join(vaultPath, "知识库", "wiki", "entities");
   if (!fs.existsSync(dir)) return [];
-  return fs.readdirSync(dir)
-    .filter((name) => name.endsWith(".md"))
-    .sort()
-    .map((name) => {
-      const file = path.join(dir, name);
+  const files = [];
+  const visit = (current) => {
+    for (const entry of fs.readdirSync(current, { withFileTypes: true })) {
+      const file = path.join(current, entry.name);
+      if (entry.isDirectory()) visit(file);
+      else if (entry.isFile() && entry.name.endsWith(".md")) files.push(file);
+    }
+  };
+  visit(dir);
+  return files.sort().map((file) => {
       const stat = fs.statSync(file);
       const raw = fs.readFileSync(file, "utf8");
       const doc = loadDocument(raw, file);
