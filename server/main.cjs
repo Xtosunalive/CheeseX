@@ -39,7 +39,7 @@ if (!vaultPath) {
   console.error("FATAL: VAULT_PATH environment variable is required but not set.");
   process.exit(1);
 }
-const stagingBasePath = path.join(os.tmpdir(), "anyshare-article-graph-staging", computeVaultId(vaultPath));
+const stagingBasePath = path.join(os.tmpdir(), "article-graph-staging", computeVaultId(vaultPath));
 const auth = createAuthFromEnv(process.env);
 logger.info({ subsystem: "auth", event: "auth-layer-configured", ...auth.describe() });
 // operator-context 自第 2 步起从请求上下文 Principal 读身份（5 个消费点签名不变）

@@ -63,11 +63,11 @@ export async function fetchPipelineStatus(): Promise<PipelineJob> {
   const envelope = await readEnvelope<StatusEnvelope>(response);
   const job = envelope.data;
   if (job.state === "succeeded" && job.jobId && typeof window !== "undefined") {
-    const marker = `anyshare:pipeline-completed:${job.jobId}`;
+    const marker = `pipeline-completed:${job.jobId}`;
     try {
       if (window.sessionStorage.getItem(marker) !== "1") {
         window.sessionStorage.setItem(marker, "1");
-        window.dispatchEvent(new CustomEvent("anyshare:pipeline-completed", { detail: job }));
+        window.dispatchEvent(new CustomEvent("pipeline-completed", { detail: job }));
       }
     } catch (_error) {
       // Refresh remains best-effort when browser storage is unavailable.
