@@ -19,8 +19,19 @@ function syncUploadTasks(tasks, articles, sourceByArticleId, vaultPath, approval
     matches.push(article);
     articlesByDraftPath.set(sourceDraftPath, matches);
   });
+  // WP-169 红队P1-1 实证补：本地草稿可落 drafts 根或任意子目录（含 本地草稿/），归档 lane 统一
+  // 「本地草稿」无法还原原位——归一产物固定 drafts 根形态，任务键在子目录时直配失配。
+  // 兜底＝非投稿任务按文件名在根/子目录两候选试探（lane 语义＝非投稿 drafts；同名跨子目录取首个，边界已注）。
+  const localLaneMatches = function (task) {
+    if (articleLifecycle.isSubmissionDraft(task.draftPath)) return [];
+    const base = task.draftPath.split("/").pop();
+    for (const key of [`${articleLifecycle.DRAFT_ROOT}/${base}`, `${articleLifecycle.LOCAL_DRAFT_PREFIX}${base}`]) {
+      if (articlesByDraftPath.has(key)) return articlesByDraftPath.get(key);
+    }
+    return [];
+  };
   tasks.forEach(function (task) {
-    const matches = (articlesByDraftPath.get(task.draftPath) || []).slice().sort((left, right) => left.sourcePath.localeCompare(right.sourcePath));
+    const matches = (articlesByDraftPath.get(task.draftPath) || localLaneMatches(task)).slice().sort((left, right) => left.sourcePath.localeCompare(right.sourcePath));
     const precleanedPaths = matches.map((article) => article.sourcePath);
     const articleIds = matches.map((article) => article.id);
     const next = {

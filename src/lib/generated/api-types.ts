@@ -10491,6 +10491,7 @@ export interface components {
             standardizationWarningCount: number;
             /** @description 正式版已在 current Release 且内容与工作区一致（源文件再改动即回落 false） */
             published: boolean;
+            fieldProvenance?: components["schemas"]["FieldProvenanceMap"];
         };
         CandidateSearchItem: {
             /** @description 只读用户可见的半成品名称；不携带详情坐标 */
@@ -10590,6 +10591,7 @@ export interface components {
             };
             /** @description 可上报字段问题（validate 分级的非结构问题，如 version/module 缺失）——不阻断提升，供前端待处理问题消费 */
             reportable: string[];
+            fieldProvenance?: components["schemas"]["FieldProvenanceMap"];
         };
         DraftValidateResultEnvelope: {
             /** @constant */
@@ -12883,6 +12885,17 @@ export interface components {
             message: string;
             trace_id: string;
             details?: unknown;
+        };
+        /** @description WP-169（SPEC-095 §3.1 首批）：受管字段来源三态——auto＝机械确定性自动生成（已落盘）、human＝人工值、not-extracted＝未提取到（显式空态，不静默留空）；suggestion＝词表推测建议（B12：永不落盘为确认值） */
+        FieldProvenanceMap: {
+            [key: string]: {
+                /** @enum {string} */
+                source: "auto" | "human" | "not-extracted";
+                /** @description 快照时刻值（草稿响应通道携带；标准化报告不含 value 键） */
+                value?: unknown;
+                /** @description 仅 not-extracted 态可能附带：机器建议值，未落盘 */
+                suggestion?: string;
+            };
         };
     };
     responses: never;

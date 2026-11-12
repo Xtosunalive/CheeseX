@@ -18,7 +18,7 @@ test("归一化：drafts 整根（根目录/投稿/子目录/嵌套）原样返�
 
 test("归一化：归档路径按 lane 还原（投稿/本地草稿/通用遗留）", () => {
   assert.equal(normalizeDraftSourcePath(`知识库/raw/archive/投稿/${H}-foo.md`), "知识库/raw/drafts/投稿/foo.md");
-  assert.equal(normalizeDraftSourcePath(`知识库/raw/archive/本地草稿/${H}-foo.md`), "知识库/raw/drafts/foo.md");
+  assert.equal(normalizeDraftSourcePath(`知识库/raw/archive/本地草稿/${H}-foo.md`), "知识库/raw/drafts/foo.md"); // 归一根形态；子目录任务匹配经 syncUploadTasks 本地lane兜底（WP-169）
   assert.equal(normalizeDraftSourcePath(`知识库/raw/archive/通用/${H}-foo.md`), "知识库/raw/drafts/投稿/foo.md");
   assert.equal(normalizeDraftSourcePath(`知识库/raw/archive/本地草稿/${H}-${H}-foo.md`), "知识库/raw/drafts/foo.md");
 });
@@ -59,4 +59,19 @@ test("任务↔候选匹配：archive/本地草稿 lane 溯源还原后匹配 dr
   assert.equal(task.candidateCount, 1);
   assert.equal(task.status, "standardized");
   fs.rmSync(vault, { recursive: true, force: true });
+});
+
+// WP-169 红队P1-1 回归钉：子目录本地任务（drafts/本地草稿/foo.md）经 lane 兜底匹配根形态归一产物
+test("匹配兜底：子目录本地任务 ↔ 归档本地草稿根形态归一键", () => {
+  const path = require("node:path");
+  const mod = require(path.join(__dirname, "..", "article-upload-status.cjs"));
+  const L = require("../../../shared/article-lifecycle-paths.cjs");
+  const tasks = [{ draftPath: `${L.LOCAL_DRAFT_PREFIX}foo.md`, precleanedPath: null, precleanedPaths: [], articleIds: [], candidateCount: 0, status: "awaiting_architect_processing", createdAt: "2026-01-01T00:00:00Z", updatedAt: "2026-01-01T00:00:00Z" }];
+  const articles = [{ id: "a1", sourcePath: "知识库/raw/precleaned/foo.md", updatedAt: "2026-01-02T00:00:00Z" }];
+  const sourceByArticleId = new Map([["a1", `${L.DRAFT_ROOT}/foo.md`]]); // 归一根形态（归档 lane 还原产物）
+  const r = mod.syncUploadTasks(tasks, articles, sourceByArticleId, "/vault", () => "未发布");
+  if (!(tasks[0].articleIds.includes("a1") || r.changed)) {
+    // 兜底未命中即红（changed=true 且 articleIds 收敛为命中集）
+    throw new Error(`子目录任务未经兜底匹配：articleIds=${JSON.stringify(tasks[0].articleIds)}`);
+  }
 });

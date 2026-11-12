@@ -90,6 +90,8 @@ function normalizeArticleRecord(value) {
     standardizationWarnings: Array.isArray(value.standardizationWarnings) ? value.standardizationWarnings.map(normalizeStandardizationWarning).filter(Boolean) : [],
     lastStandardizationCheck: normalizeStandardizationCheck(value.lastStandardizationCheck),
     updatedAt: textValue(value.updatedAt, null),
+    // WP-169：字段来源三态（标准化时刻合并视图）——对象原样透传（读侧归一不得剥键）
+    fieldProvenance: value.fieldProvenance && typeof value.fieldProvenance === "object" ? value.fieldProvenance : undefined,
   };
 }
 
@@ -117,6 +119,8 @@ function normalizeTaskRecord(value) {
           .map((item) => ({ issue: textValue(item.issue, ""), source: textValue(item.source, "promote-validation"), resolved: Boolean(item.resolved) }))
           .filter((item) => item.issue)
       : undefined,
+    // WP-169：字段来源三态快照——对象原样透传（读侧归一不得剥键，否则快照永读不回＝携带失效）
+    fieldProvenance: value.fieldProvenance && typeof value.fieldProvenance === "object" ? value.fieldProvenance : undefined,
   };
 }
 
