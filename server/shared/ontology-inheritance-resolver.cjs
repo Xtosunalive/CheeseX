@@ -585,6 +585,7 @@ function reconcileRetirementReferences(registry, options = {}) {
 module.exports = {
   OntologyInheritanceError,
   resolveClassInheritance,
+  lifecycleOf,
   resolveOntologyInheritance,
   normalizeRetiredReference,
   reconcileRetirementReferences,

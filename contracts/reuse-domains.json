@@ -275,7 +275,8 @@
         "src/test/article-retire-dialog.test.tsx",
         "server/services/governance/__tests__/dangling-ref-convergence.test.cjs",
         "server/shared/__tests__/article-lifecycle-transitions.test.cjs",
-        "server/shared/__tests__/readable-path-mapper.test.cjs"
+        "server/shared/__tests__/readable-path-mapper.test.cjs",
+        "server/services/article-workflow/__tests__/article-individual.test.cjs"
       ],
       "guide": "server/shared/article-lifecycle-paths.cjs",
       "register_entry": "docs/plans/problem-register.md#PR-065",

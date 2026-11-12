@@ -147,7 +147,7 @@ architecture_associations: []
     articleWorkflowService: {
       getPrecleaned: (articleId) => {
         const abs = path.join(vaultPath, "知识库", "raw", "precleaned", `${articleId}.md`);
-        if (fs.existsSync(abs)) return { standardizationStatus: "standardized", formalContentHash: sha256Hex(fs.readFileSync(abs, "utf8")) };
+        if (fs.existsSync(abs)) return { standardizationStatus: "standardized", formalContentHash: sha256Hex(fs.readFileSync(abs, "utf8")), sourcePath: `知识库/raw/precleaned/${articleId}.md` };
         return { standardizationStatus: "pending_standardization", formalContentHash: null };
       },
     },

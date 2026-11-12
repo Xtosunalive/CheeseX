@@ -493,3 +493,44 @@ test("WP-116 readCategoryPath 边界钉：宿主切分与旧正则同产出（�
     assert.equal(rcp("---\ncategory-path:\nvalidation_override:\n---\nbody"), "");
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
 });
+
+// SPEC-095 §3.0「身份与审批键不同」：正文自带另一稳定身份 → confirm 拒绝且状态不动（防 A 文件顶 B 审批键）
+test("WP-161 候选身份与审批键不同：confirm 拒绝并停留 pending", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "asm-identity-"));
+  try {
+    fs.mkdirSync(path.join(dir, "知识库/raw/precleaned"), { recursive: true });
+    const raw = "---\narticle_id: other-article\ntitle: 顶号样本\n---\n正文";
+    fs.writeFileSync(path.join(dir, "知识库/raw/precleaned/a1.md"), raw, "utf8");
+    const hash = require("node:crypto").createHash("sha256").update(raw).digest("hex");
+    const sm = createApprovalStateMachine({
+      vaultPath: dir, logger: { info() {}, error() {} },
+      standardizationProbe: () => ({ standardizationStatus: "standardized", formalContentHash: hash, sourcePath: "知识库/raw/precleaned/a1.md" }),
+      validateIndividual: () => ({ articleId: "other-article", classId: null, properties: {}, relations: [], errors: [] }),
+    });
+    await sm.transition("a1", "standardize", { revision: "sha256:rev1", sourcePath: "知识库/raw/precleaned/a1.md" });
+    await assert.rejects(
+      sm.transition("a1", "confirm", { revision: "sha256:rev1", sourcePath: "知识库/raw/precleaned/a1.md" }),
+      (error) => error.code === "ARTICLE_NOT_STANDARDIZED" && error.message.includes("候选身份与审批键不一致"),
+    );
+    assert.equal(sm.getStatus("a1").status, "pending", "拒绝后状态不动");
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});
+
+// 未归类（正文无稳定身份）不因身份比对被拒——仅当身份存在且不同才拦
+test("WP-161 未归类候选：无 article_id 时身份比对放行（未归类≠拒绝）", async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "asm-unclassified-"));
+  try {
+    fs.mkdirSync(path.join(dir, "知识库/raw/precleaned"), { recursive: true });
+    const raw = "# 无 frontmatter 正文";
+    fs.writeFileSync(path.join(dir, "知识库/raw/precleaned/a1.md"), raw, "utf8");
+    const hash = require("node:crypto").createHash("sha256").update(raw).digest("hex");
+    const sm = createApprovalStateMachine({
+      vaultPath: dir, logger: { info() {}, error() {} },
+      standardizationProbe: () => ({ standardizationStatus: "standardized", formalContentHash: hash, sourcePath: "知识库/raw/precleaned/a1.md" }),
+      validateIndividual: () => ({ articleId: null, classId: null, properties: {}, relations: [], errors: [] }),
+    });
+    await sm.transition("a1", "standardize", { revision: "sha256:rev1", sourcePath: "知识库/raw/precleaned/a1.md" });
+    await sm.transition("a1", "confirm", { revision: "sha256:rev1", sourcePath: "知识库/raw/precleaned/a1.md" });
+    assert.equal(sm.getStatus("a1").status, "approved", "未归类候选正常确认");
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+});

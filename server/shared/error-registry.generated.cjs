@@ -167,7 +167,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:91"
+        "server/services/release-governance/approval-state-machine-service.cjs:91",
+        "server/services/release-governance/approval-state-machine-service.cjs:375"
       ]
     },
     "ARTICLES_HEALTH_UNAVAILABLE": {
@@ -236,9 +237,12 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:244",
-        "server/services/release-governance/approval-state-machine-service.cjs:335",
-        "server/services/release-governance/approval-state-machine-service.cjs:362"
+        "server/services/release-governance/approval-state-machine-service.cjs:245",
+        "server/services/release-governance/approval-state-machine-service.cjs:336",
+        "server/services/release-governance/approval-state-machine-service.cjs:348",
+        "server/services/release-governance/approval-state-machine-service.cjs:362",
+        "server/services/release-governance/approval-state-machine-service.cjs:372",
+        "server/services/release-governance/approval-state-machine-service.cjs:407"
       ]
     },
     "ARTICLE_REVISION_CONFLICT": {
@@ -252,9 +256,9 @@ module.exports = {
         "server/services/article-workflow/article-association-service.cjs:375",
         "server/services/release-governance/approval-state-machine-service.cjs:134",
         "server/services/release-governance/approval-state-machine-service.cjs:141",
-        "server/services/release-governance/approval-state-machine-service.cjs:192",
-        "server/services/release-governance/approval-state-machine-service.cjs:215",
-        "server/services/release-governance/approval-state-machine-service.cjs:223"
+        "server/services/release-governance/approval-state-machine-service.cjs:193",
+        "server/services/release-governance/approval-state-machine-service.cjs:216",
+        "server/services/release-governance/approval-state-machine-service.cjs:224"
       ]
     },
     "ARTICLE_SOURCE_NOT_FOUND": {
@@ -282,9 +286,12 @@ module.exports = {
       ]
     },
     "ARTICLE_VALIDATION_FAILED": {
-      "statuses": [],
+      "statuses": [
+        409
+      ],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:313"
+        "server/services/release-governance/approval-state-machine-service.cjs:314",
+        "server/services/release-governance/approval-state-machine-service.cjs:340"
       ]
     },
     "ARTICLE_WORKFLOW_ERROR": {
@@ -1937,7 +1944,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/approval-state-machine-service.cjs:49",
-        "server/services/release-governance/approval-state-machine-service.cjs:365",
+        "server/services/release-governance/approval-state-machine-service.cjs:410",
         "server/shared/status-transition-guard.cjs:54"
       ]
     },
@@ -1979,7 +1986,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/approval-state-machine-service.cjs:47",
-        "server/services/release-governance/approval-state-machine-service.cjs:457"
+        "server/services/release-governance/approval-state-machine-service.cjs:504"
       ]
     },
     "UNKNOWN_PARENT": {
@@ -2172,7 +2179,8 @@ module.exports = {
       ],
       "sites": [
         "server/services/article-workflow/validation-stamp-service.cjs:19",
-        "server/services/release-governance/approval-state-machine-service.cjs:309"
+        "server/services/release-governance/approval-state-machine-service.cjs:310",
+        "server/services/release-governance/approval-state-machine-service.cjs:332"
       ]
     },
     "VAULT_ID_MISMATCH": {
