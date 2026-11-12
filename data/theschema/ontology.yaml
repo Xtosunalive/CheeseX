@@ -32,6 +32,13 @@ node_types:
       - APPLIES_TO
       - BELONGS_TO
       - HAS_SYMPTOM
+  KnowledgeArticle:
+    description: 受管知识文章的个体类型
+    category: 文档
+    subClassOf: Document
+    data_properties:
+      title:
+        required: true
   Concept:
     description: 抽象概念、方法论、术语定义
     category: 概念

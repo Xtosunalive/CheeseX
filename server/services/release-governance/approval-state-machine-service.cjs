@@ -50,7 +50,7 @@ function assertTransition(operation, status) {
   }
 }
 
-function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, publishArticle, snapshotArticle, recordFailure, gitLedger, runtimeState }) {
+function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, validateIndividual, publishArticle, snapshotArticle, recordFailure, gitLedger, runtimeState }) {
   const decisionsPath = path.join(vaultPath, ".ledger", "decisions.jsonl");
   // SPEC-012 WP-A：状态账本经 runtime-state store（真事务）；recordPath 随迁移退役
   const approvalStore = (runtimeState || getRuntimeStateStore(vaultPath)).approval;
@@ -106,7 +106,7 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
     return "local-architect";
   }
 
-  async function appendDecision(articleId, input, expectedRecord = null) { // PR-056：随 resolveDecidedBy 异步化
+  async function appendDecision(articleId, input, expectedRecord = null, assertCurrent = null) { // PR-056：随 resolveDecidedBy 异步化
     const derivedHash = resolveContentHash(input);
     if (!derivedHash) throw stateError("INVALID_DECISION", "审批决策缺少 contentHash 证据绑定", 400);
     const decision = normalizeDecision({
@@ -143,6 +143,7 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
         });
       }
     }
+    if (assertCurrent) assertCurrent();
     const dayBucket = new Date().toISOString().slice(0, 10);
     decision.decisionId = crypto
       .createHash("sha256")
@@ -322,6 +323,33 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
     };
   }
 
+  function assertIndividualValid(articleId, raw) {
+    if (!validateIndividual) return;
+    let result;
+    try {
+      result = validateIndividual(raw);
+    } catch (error) {
+      throw stateError("VALIDATOR_UNAVAILABLE", "文章本体校验不可用：" + error.message, 503, { articleId });
+    }
+    // SPEC-095 §3.0「身份与审批键不同」：正文自带另一稳定身份时拒绝（防 A 文件顶 B 审批键放行）；无身份＝未归类，放行
+    if (result.articleId != null && result.articleId !== articleId) {
+      throw stateError("ARTICLE_NOT_STANDARDIZED", "候选身份与审批键不一致，请重新标准化后确认或发布", 409,
+        { articleId, observed: { contentIdentity: result.articleId } });
+    }
+    if (result.errors.length) {
+      throw stateError("ARTICLE_VALIDATION_FAILED", result.errors.map((error) => error.message).join("；"), 409,
+        { articleId, validationStatus: "failed" });
+    }
+  }
+
+  function candidateSource(articleId, candidate, requestedPath) {
+    const sourcePath = candidate?.sourcePath;
+    if (!sourcePath || (requestedPath && path.resolve(vaultPath, requestedPath) !== path.resolve(vaultPath, sourcePath))) {
+      throw stateError("ARTICLE_NOT_STANDARDIZED", "当前候选来源不可用，请重新预览后确认或发布", 409, { articleId, observed: null });
+    }
+    return sourcePath;
+  }
+
   async function transition(articleId, operation, input = {}) { // PR-056：随 appendDecision 异步化
     ensureStore();
     const current = readRecord(articleId) || { status: "draft", revision: input.revision || null, updatedAt: null, decisions: [] };
@@ -329,15 +357,32 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
 
     if (operation === "confirm") {
       assertRevision(current, input.revision);
-      if (typeof standardizationProbe === "function") {
-        const candidate = standardizationProbe(articleId);
-        if (!candidate || candidate.standardizationStatus !== "standardized" || !candidate.formalContentHash) {
-          throw stateError("ARTICLE_NOT_STANDARDIZED", "当前内容检查未通过，不能确认；请修正后重新标准化", 409, { articleId });
-        }
+      const candidate = standardizationProbe?.(articleId);
+      if (standardizationProbe && (!candidate || candidate.standardizationStatus !== "standardized" || !candidate.formalContentHash)) {
+        throw stateError("ARTICLE_NOT_STANDARDIZED", "当前内容检查未通过，不能确认；请修正后重新标准化", 409, {
+          articleId, observed: candidate ? { status: candidate.standardizationStatus, hasHash: Boolean(candidate.formalContentHash) } : null,
+        });
       }
       assertSourceUnchanged(articleId, current);
-      const freshReceipt = assertValidationPassed(articleId, input); // B3：现场计算，失败且无豁免 → fail-closed
-      const decision = await appendDecision(articleId, { ...input, decision: "approved", rulesHash: freshReceipt ? freshReceipt.rulesHash : null });
+      let evidence = input;
+      let raw;
+      if (validateIndividual) {
+        const sourcePath = candidateSource(articleId, candidate, input.sourcePath);
+        try { raw = fs.readFileSync(path.resolve(vaultPath, sourcePath), "utf8"); }
+        catch { throw stateError("ARTICLE_NOT_STANDARDIZED", "当前候选不可读取，请重新标准化", 409, { articleId, observed: null }); }
+        const actual = crypto.createHash("sha256").update(raw).digest("hex");
+        if (actual !== candidate.formalContentHash || (input.contentHash && input.contentHash !== actual)) {
+          throw stateError("APPROVAL_EVIDENCE_STALE", "当前候选内容已变化，请重新标准化", 409,
+            { expected: candidate.formalContentHash, actual });
+        }
+        assertIndividualValid(articleId, raw); // 早期拒绝（身份比对＋字段/关系校验）；决策点另复验防 TOCTOU
+        evidence = { ...input, sourcePath, contentHash: actual };
+      }
+      const freshReceipt = assertValidationPassed(articleId, evidence);
+      const decision = await appendDecision(articleId,
+        { ...evidence, decision: "approved", rulesHash: freshReceipt ? freshReceipt.rulesHash : null },
+        validateIndividual ? current : null,
+        validateIndividual ? () => assertIndividualValid(articleId, raw) : null);
       current.status = "approved"; current.revision = input.revision || current.revision;
       current.updatedAt = new Date().toISOString(); current.decisions.push(decision.decisionId);
       current.approval = { decidedBy: decision.decidedBy, decidedAt: decision.decidedAt, contentHash: decision.contentHash };
@@ -419,6 +464,7 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
           sourceFileExists: sourceIsFile,
         });
       }
+      if (validateIndividual) candidateSource(articleId, standardizationProbe(articleId), input.sourcePath);
       // CI 切片：真打包（激活 snapshot-store，ADR043 D5'）——后端从 Vault 读候选文件 → Release → 原子 current
       const raw = fs.readFileSync(abs, "utf8");
       const actualHash = crypto.createHash("sha256").update(raw).digest("hex");
@@ -432,6 +478,7 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, p
       if (approvedHash !== actualHash) {
         return failPublish("APPROVAL_EVIDENCE_STALE", "文章内容已变化，旧审批资格已失效；请修改后重新标准化并重新审批", { articleId, expected: approvedHash, actual: actualHash });
       }
+      assertIndividualValid(articleId, raw);
       const article = {
         articleId,
         contentHash: actualHash,
