@@ -70,10 +70,27 @@ test("发射器：；有基底则追加+补文章节点+触发摄取；异常降
   const r1 = await emit({ body: "提到 Fixture Component", articleId: "a-1" });
   assert.equal(r1.added, 1);
   assert.equal(afterStagedCalls, 1, "追加后触发摄取/投影");
-  assert.ok(staged.nodes.some((n) => n.id === "a-1"), "文章节点缺席则补位");
+  assert.ok(staged.nodes.some((n) => n.id === "doc-article-a-1"), "文章节点缺席则补位（py 规范形 doc-article-<slug>——红队P1-3）");
   assert.equal((await emit({ body: "提到 Fixture Component", articleId: "a-1" })).added, 0, "重复标准化零追加");
   io.readLiveGraph = () => { throw new Error("boom"); };
   const degraded = await emit({ body: "x", articleId: "a-2" });
   assert.equal(degraded.staged, false);
   assert.ok(events.some((e) => e.event === "relation-candidates-failed"), "异常留痕降级");
+});
+
+// 红队P1-2/P1-3 回归钉：目标类域执法＋规范文章节点挂接
+test("P1-2 目标类域：target_types 声明不含 Entity → 零生成并留痕；含 → 放行", () => {
+  const base = { body: "提到 Fixture Component", articleNodeId: "doc-article-x", entityIndex: ENTITIES.slice(0, 1) };
+  const blocked = generateRelationCandidates(base.body, base.articleNodeId, base.entityIndex, WHITELIST, {
+    relationTargetTypes: { MENTIONS: ["Concept", "System"] }, targetClassByNode: { "fixture-component": "Entity" },
+  });
+  assert.equal(blocked.edges.length, 0);
+  assert.equal(blocked.skippedOutOfTypeScope, 1, "范围拦截留痕（合同验收条款3）");
+  const allowed = generateRelationCandidates(base.body, base.articleNodeId, base.entityIndex, WHITELIST, {
+    relationTargetTypes: { MENTIONS: ["Entity", "Concept"] }, targetClassByNode: { "fixture-component": "Entity" },
+  });
+  assert.equal(allowed.edges.length, 1);
+  assert.equal(allowed.skippedOutOfTypeScope, 0);
+  const unconstrained = generateRelationCandidates(base.body, base.articleNodeId, base.entityIndex, WHITELIST, {});
+  assert.equal(unconstrained.edges.length, 1, "关系未声明 target_types＝无该维约束（白名单仍执法）");
 });

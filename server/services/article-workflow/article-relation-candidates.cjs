@@ -14,6 +14,13 @@ function candidateEdgeId(source, target, type) {
   return [GENERATOR, source, target, type].join("::");
 }
 
+// 红队P1-3：文章节点挂 py 规范形 doc-article-<slug>（extract_graph.py L1774 同构——
+// slugify=小写＋非\w→连字符；py \w 含 Unicode 字母数字，JS 以 \p{L}\p{N} 镜像，禁影子裸 articleId 节点）
+function canonicalArticleNodeId(articleId) {
+  const slug = String(articleId).toLowerCase().replace(/[^\p{L}\p{N}_]/gu, "-");
+  return `doc-article-${slug}`;
+}
+
 /**
  * @param {string} body 文章正文
  * @param {string} articleNodeId 文章节点 id（source）
@@ -25,10 +32,13 @@ function candidateEdgeId(source, target, type) {
 function generateRelationCandidates(body, articleNodeId, entityIndex, allowedRelations, options = {}) {
   const relation = options.relation || CANDIDATE_RELATION;
   const whitelist = new Set(allowedRelations || []);
+  const relationTargetTypes = options.relationTargetTypes || null; // {类型: [目标类]}——本体 relation_types.target_types 单源
+  const targetClassByNode = options.targetClassByNode || null; // {节点id: 类id}
   const text = typeof body === "string" ? body : "";
   const edges = [];
   const seen = new Set();
   let skippedOutOfWhitelist = 0;
+  let skippedOutOfTypeScope = 0; // 红队P1-2：SHACL 范围拦截留痕（目标类不在关系声明域内）
   if (!whitelist.has(relation)) {
     // 白名单不含首批关系类型＝该文章类不允许提及关系：零生成（构造保证，非过滤）
     return { edges, skippedOutOfWhitelist: 1 };
@@ -44,6 +54,15 @@ function generateRelationCandidates(body, articleNodeId, entityIndex, allowedRel
       return textLower.includes(lower) || textLower.includes(lower.replace(/[-_]/g, " "));
     });
     if (!matched) continue;
+    // 红队P1-2：关系声明的目标类域（target_types）在场即执法——目标类不合法零生成并留痕（合同验收条款3）
+    if (relationTargetTypes && Array.isArray(relationTargetTypes[relation]) && targetClassByNode) {
+      const allowedTargets = relationTargetTypes[relation];
+      const targetClass = targetClassByNode[target];
+      if (!targetClass || !allowedTargets.includes(targetClass)) {
+        skippedOutOfTypeScope += 1;
+        continue;
+      }
+    }
     const id = candidateEdgeId(articleNodeId, target, relation);
     if (seen.has(id)) continue;
     seen.add(id);
@@ -60,7 +79,7 @@ function generateRelationCandidates(body, articleNodeId, entityIndex, allowedRel
       },
     });
   }
-  return { edges, skippedOutOfWhitelist };
+  return { edges, skippedOutOfWhitelist, skippedOutOfTypeScope };
 }
 
 // 合并候选进既有边集：生成器域幂等去重（properties.source+source+target+type）；
@@ -160,7 +179,14 @@ function createRelationCandidateEmitter({ vaultPath, dataDir, afterStaged, logge
         const nodeId = fm[DK.ENTITY.architectureNodeId] || entity.sourceKey || entity.fileName || "";
         return { nodeId, names: [fm[DK.ENTITY.title], nodeId, ...(entity.aliases || [])].filter(Boolean) };
       });
-      const generated = generateRelationCandidates(String(body || ""), articleId, entityIndex, whitelist).edges;
+      const articleNodeId = canonicalArticleNodeId(articleId);
+      // 目标类映射单事实：scanEntities 扫的是 wiki/entities＝本体 Entity 类管辖（node_types 定义）；
+      // 关系目标类域（target_types）经装配件单源注入——在场即执法（P1-2）
+      const targetClassByNode = Object.fromEntries(entityIndex.map((entity) => [entity.nodeId, "Entity"]));
+      const generated = generateRelationCandidates(String(body || ""), articleNodeId, entityIndex, whitelist, {
+        relationTargetTypes: typeof io.readRelationTargetTypes === "function" ? io.readRelationTargetTypes() : null,
+        targetClassByNode,
+      }).edges;
       const candidates = form === "connections"
         ? generated.map((e) => {
             const connection = { from: e.source, to: e.target, relationType: e.type, properties: e.properties };
@@ -177,8 +203,8 @@ function createRelationCandidateEmitter({ vaultPath, dataDir, afterStaged, logge
       graph[form] = merged;
       // 文章节点缺席则补位（py 节点形状同源：labels+properties.name）——悬边会被 normalizeTopology 丢弃
       const nodeIds = new Set((graph.nodes || []).map((n) => n && n.id));
-      if (!nodeIds.has(articleId)) {
-        graph.nodes = [...(graph.nodes || []), { id: articleId, labels: ["Document"], properties: { name: articleId } }];
+      if (!nodeIds.has(articleNodeId)) {
+        graph.nodes = [...(graph.nodes || []), { id: articleNodeId, labels: ["Document"], properties: { name: articleId } }];
       }
       writeStagedGraph(dataDir, graph);
       if (typeof afterStaged === "function") afterStaged();
