@@ -2,7 +2,7 @@
 
 const { docField, parseEntityDocumentStrict } = require("../../shared/document-load-port.cjs");
 const { ARTICLE } = require("../../shared/document-keys.cjs");
-const { resolveClassInheritance } = require("../../shared/ontology-inheritance-resolver.cjs");
+const { resolveClassInheritance, lifecycleOf } = require("../../shared/ontology-inheritance-resolver.cjs");
 const { loadVocabBundle } = require("../../shared/vocab-load-port.cjs");
 
 const ARTICLE_CLASS = "KnowledgeArticle";
@@ -19,7 +19,11 @@ function projectArticleIndividual(raw, ontology, fields) {
   if (diagnostics.length || !articleId) return individual;
 
   const definition = ontology.node_types?.[ARTICLE_CLASS];
-  if (!definition || (definition.lifecycle_status && definition.lifecycle_status !== "approved")) return individual;
+  if (!definition) return individual;
+  // 红队P1-1：lifecycle_status 枚举外的无法解释值必须报告（lifecycleOf 抛 INVALID_LIFECYCLE_STATUS，
+  // 经 assertIndividualValid 落 503 VALIDATOR_UNAVAILABLE）——不得静默视作无匹配绕过硬校验；
+  // 枚举内非 approved（draft/retired 等）才按 SPEC-095 §3.0 未归类放行
+  if (lifecycleOf(definition, "class", ARTICLE_CLASS) !== "approved") return individual;
   const resolved = resolveClassInheritance(ontology, ARTICLE_CLASS, fields);
   individual.classId = resolved.class_id;
   if (resolved.constraints.length) throw new Error("文章类含当前执行器未登记的约束");
