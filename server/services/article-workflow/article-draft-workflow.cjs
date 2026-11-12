@@ -14,6 +14,8 @@ const DK = require("../../shared/document-keys.cjs");
 const { unwrapPathReference } = require("../../shared/frontmatter-normalize.cjs");
 const { subdomainEntryId } = require("../../shared/enums-loader.cjs");
 const { loadArticleRuleSet } = require("../schema-manager/compliance-rule-set-service.cjs");
+// WP-169（SPEC-095 §3.1 首批）：字段来源三态标记（auto/human/not-extracted）——纯函数单点
+const { computeDraftProvenance } = require("./article-field-provenance.cjs");
 // PR-016 方案甲：运行时脚本路径解析单点（仓内 scripts/vault-runtime 优先，vault 旧位回退）。
 const { resolveVaultRuntimeScript } = require("../../shared/vault-runtime-resolver.cjs");
 const { writeVault, writeVaultExclusive, readVault, contentRevision, ABSENT_REVISION } = require("../../shared/vault-io.cjs"); // PR-057：vault 唯一写通道（原子写＋归属取证日志；noLedger=记账归属维持现状）；PR-083：凭据制
@@ -22,7 +24,7 @@ const { writeVault, writeVaultExclusive, readVault, contentRevision, ABSENT_REVI
 // 改为复用 loadArticleRuleSet（读 enums.yaml + buildRuleSet 单源），消除「同一事实多份来源」。
 // 注意语义差异：buildRuleSet.domains 是对象（非原副本的数组）、subdomains 是对象，消费处需 Object.keys()。
 
-function createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUploadTask, relativeVaultPath }) {
+function createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUploadTask, relativeVaultPath, saveDraftProvenance }) {
   function resolveVaultRelative(relativePath, allowedRoot) {
     const candidate = path.resolve(vaultPath, ...relativePath.split("/"));
     const root = path.resolve(allowedRoot);
@@ -143,10 +145,12 @@ function createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUp
       if (subdomain) suggest(DK.ARTICLE.categoryPath, `${domain}:${subdomain}`);
     }
 
-    if (!filled.length) return { changed: false, filled: [], suggested };
+    const provenance = computeDraftProvenance(fm, filled, suggested, changes); // 快照基准＝改动前 frontmatter；auto 值＝机器写入值（changes）
+    if (!filled.length) return { changed: false, filled: [], suggested, provenance };
     writeVault(absolutePath, patchFrontmatter(raw, changes), { expectedContentHash: contentRevision(raw), domain: "workflow", summary: "草稿元数据自动补全" }); // SPEC-012 WP-I＋PR-083：读改写带凭据（raw 为函数入口读取）
-    logger.info({ event: "draft-frontmatter-auto-filled", filePath: relativeVaultPath(absolutePath), filled, suggested: Object.keys(suggested) });
-    return { changed: true, filled, suggested };
+    logger.info({ event: "draft-frontmatter-auto-filled", filePath: relativeVaultPath(absolutePath), filled, suggested: Object.keys(suggested),
+      provenanceSummary: Object.fromEntries(Object.entries(provenance).map(([field, entry]) => [field, entry.source])) }); // WP-169：来源留痕随既有事件
+    return { changed: true, filled, suggested, provenance };
   }
 
   async function validateDraft(filePath, options) { // PR-056：python 校验异步化；WP-021 options＝乐观锁透传
@@ -155,6 +159,10 @@ function createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUp
     ensureUploadTask(relativePath, options);
     archiveDraftSource(relativePath);
     const autoFillResult = autoFillDraftFrontmatter(absolute);
+    // WP-169：来源快照随任务持久化（供 promote→标准化链路合并；无快照的存量按保守口径报 human/not-extracted）
+    if (typeof saveDraftProvenance === "function" && autoFillResult.provenance) {
+      saveDraftProvenance(relativePath, autoFillResult.provenance);
+    }
     // SPEC-022 波 B：校验器切统一客户端 validate-article 操作面（Node 唯一语义；Python 侧随波 C 退役）。
     // KB_VAULT 注入保留（桩测试契约＋子进程兜底观测）；客户端自身走显式 --vault（写路径无回落纪律）。
     const validatorPath = resolveVaultRuntimeScript("schema-write-client.mjs", { vaultPath });
@@ -177,6 +185,7 @@ function createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUp
       reportable: payload.reportable || [],
       autoFilled: autoFillResult.changed ? autoFillResult.filled : [],
       suggested: autoFillResult.suggested || {},
+      fieldProvenance: autoFillResult.provenance || {}, // WP-169：受管字段来源三态＋建议附注（不落盘为确认值）
     };
   }
 
