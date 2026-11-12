@@ -168,7 +168,9 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/approval-state-machine-service.cjs:91",
-        "server/services/release-governance/approval-state-machine-service.cjs:375"
+        "server/services/release-governance/approval-state-machine-service.cjs:375",
+        "server/services/release-governance/approval-state-machine-service.cjs:476",
+        "server/services/release-governance/approval-state-machine-service.cjs:479"
       ]
     },
     "ARTICLES_HEALTH_UNAVAILABLE": {
@@ -1306,6 +1308,18 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/release-publisher-service.cjs:165"
+      ]
+    },
+    "PUBLISH_RELEASE_INVALID": {
+      "statuses": [],
+      "sites": [
+        "server/services/release-governance/approval-state-machine-service.cjs:494"
+      ]
+    },
+    "PUBLISH_SOURCE_UNAVAILABLE": {
+      "statuses": [],
+      "sites": [
+        "server/services/release-governance/approval-state-machine-service.cjs:461"
       ]
     },
     "REASONING_CONFLICT_UNRESOLVED": {

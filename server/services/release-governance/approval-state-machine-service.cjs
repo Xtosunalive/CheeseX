@@ -436,7 +436,7 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, v
       assertRevision(current, input.revision);
       // B1/D1 fail-closed（INV-05）：「发布已生效」唯一判定 = publishArticle 返回非空 releaseId；
       // releaseId 只能来自发布器（N1 内容寻址），状态机不自造第二判定、不信任 input.releaseId 自报。
-      const failPublish = (code, message, details) => {
+      const failPublish = (code, message, details) => { // PR-298：域包装（recordFailure S4 副作用＋stateError 包装）——码经 error-throw-scan 显式认列覆盖，非本地工厂
         const error = stateError(code, message, 409, details);
         // 失败落持久 Issue（S4 单源：assembly 注入 publisherService.recordFailure）；记档失败不掩盖主错误。
         if (typeof recordFailure === "function") {
