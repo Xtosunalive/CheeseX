@@ -166,7 +166,28 @@ test("正式文章外部修改重检待审，旧 Release 不变，重新确认�
 test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开接口可读", { timeout: 90_000 }, async () => {
   const vaultPath = fixtureVault();
   const port = await new Promise((resolve, reject) => { const socket = net.createServer(); socket.once("error", reject); socket.listen(0, "127.0.0.1", () => { const value = socket.address().port; socket.close(() => resolve(value)); }); });
-  const serverEnv = { ...process.env, VAULT_PATH: vaultPath, API_PORT: String(port), THESCHEMA_DIR: path.join(vaultPath, "知识库/TheSchema"), VAULT_GIT_LEDGER_DISABLE: "1" };
+  // WP-170：夹具基底本体缺 KnowledgeArticle（minimal-vault 精简 TheSchema）——注入（与 WP-161 节同款手法）
+  {
+    const yaml = require("yaml");
+    const ontologyPath = path.join(vaultPath, "知识库/TheSchema/ontology.yaml");
+    const definitions = yaml.parse(fs.readFileSync(ontologyPath, "utf8"));
+    definitions.node_types = definitions.node_types || {};
+    definitions.node_types.Document = { ...definitions.node_types.Document, allows_relations: ["DOCUMENTS", "REFERENCES", "MENTIONS", "APPLIES_TO", "BELONGS_TO", "HAS_SYMPTOM"] };
+    definitions.node_types.KnowledgeArticle = { subClassOf: "Document", data_properties: { title: { required: true } } };
+    fs.writeFileSync(ontologyPath, yaml.stringify(definitions));
+  }
+  const wp170DataDir = fs.mkdtempSync(path.join(os.tmpdir(), "wp170-data-"));
+  fs.mkdirSync(path.join(wp170DataDir, "staging"), { recursive: true });
+  // 生产形态种子：py 落库形（nodes/connections）——与真实管线产物同构（review 路由读 connections）
+  fs.writeFileSync(path.join(wp170DataDir, "staging", "master_graph.json"), JSON.stringify({
+    _format_version: "1.0",
+    nodes: [
+      { id: "fixture-component", labels: ["Entity"], properties: { name: "Fixture Component" } },
+      { id: "incomplete-component", labels: ["Entity"], properties: { name: "Incomplete Component" } },
+    ],
+    connections: [],
+  }));
+  const serverEnv = { ...process.env, VAULT_PATH: vaultPath, API_PORT: String(port), THESCHEMA_DIR: path.join(vaultPath, "知识库/TheSchema"), VAULT_GIT_LEDGER_DISABLE: "1", KB_DATA_DIR: wp170DataDir, GRAPH_DRIFT_REFRESH: "0" }; // WP-170：断图族自刷新（防枚举同步洗注入本体＋基底窗口），候选链确定性
   let child = spawn(process.execPath, [path.resolve(__dirname, "../../../server/main.cjs")], {
     env: serverEnv,
     stdio: ["ignore", "pipe", "pipe"],
@@ -203,7 +224,7 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
       fs.mkdirSync(path.join(vaultPath, "知识库/raw/drafts/投稿"), { recursive: true });
       // 必填骨架对齐预置候选（product/version 等标准化硬门），受控变量：tags=人工、title/date/updated 留空（机械 auto）、module 留空（未提取到）
       fs.writeFileSync(path.join(vaultPath, ...draftRel.split("/")),
-        "---\narticle_id: wp169-全链来源\nproduct: FixtureProduct\nversion: \"1.0.0\"\nmodule: fixture-module\ncategory-path: ops:maintain\ntags:\n  - 人工标签\narchitecture_associations: []\n---\n全链正文\n", "utf8");
+        "---\narticle_id: wp169-全链来源\nproduct: FixtureProduct\nversion: \"1.0.0\"\nmodule: fixture-module\ncategory-path: ops:maintain\ntags:\n  - 人工标签\narchitecture_associations: []\n---\n全链正文：本篇详述 Fixture Component 与 Incomplete Component 的协作。\n", "utf8");
       const validated = await request("POST", "/api/articles/drafts/validate", { filePath: draftRel });
       assert.equal(validated.status, 200, JSON.stringify(validated.body).slice(0, 400));
       const vfp = validated.body.data.fieldProvenance;
@@ -228,6 +249,27 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
       assert.equal(cfp.article_type.source, "human", "全链漂移合并：快照 not-extracted→人工补填→human");
       assert.equal(cfp.article_type.source, "human", "全链漂移合并：快照 not-extracted→人工补填→human");
       assert.equal(cfp["doc-type"].source, "human", "全链漂移合并：doc-type 同");
+      // WP-170（SPEC-095 §3.2 首批）：标准化自动生成关系候选——正文提及实体→MENTIONS 待审边进既有审查流
+      {
+        // 候选异步落位（发射器有界重试＋摄取链）——轮询至出现或超时
+        let pendingResp = null;
+        let candidates = [];
+        for (let i = 0; i < 30 && candidates.length === 0; i += 1) {
+          pendingResp = await request("GET", "/api/kg/pending-review");
+          const pendingEdges = (pendingResp.body.data && (pendingResp.body.data.edges || pendingResp.body.data.pendingEdges)) || [];
+          candidates = pendingEdges.filter((e) => e.properties && e.properties.source === "wp170-standardize-candidates");
+          if (candidates.length === 0) await new Promise((resolve) => setTimeout(resolve, 300));
+        }
+        assert.equal(pendingResp.status, 200, JSON.stringify(pendingResp.body).slice(0, 400));
+        assert.equal(candidates.length, 2, `提及两实体应各生成一条候选（实得 ${candidates.length}）`);
+        const approve = await request("POST", "/api/kg/review", { edgeId: candidates[0].edgeId, action: "approved", reason: "WP-170全链验收" });
+        assert.equal(approve.status, 200, JSON.stringify(approve.body).slice(0, 400));
+        assert.equal(approve.body.data.reviewStatus, "approved");
+        const after = await request("GET", "/api/kg/pending-review");
+        const afterEdges = (after.body.data && (after.body.data.edges || after.body.data.pendingEdges)) || [];
+        const left = afterEdges.filter((e) => e.properties && e.properties.source === "wp170-standardize-candidates");
+        assert.equal(left.length, 1, "批准一条后待审候选减一（人工裁决生效、账本主权）");
+      }
     }
     // WP-169 红队P1-1/P1-2 回归钉：本地草稿 lane 全链＋重复校验——机器署名不冒认 human
     {
