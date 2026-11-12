@@ -275,3 +275,32 @@ test("validate and promote subprocesses receive KB_VAULT = vaultPath (design 5)"
   await assert.rejects(() => createWorkflow(vaultPath).promoteDraft(relative, true), (error) => error.code === "PROMOTE_FAILED");
   assert.equal(fs.readFileSync(marker, "utf8"), vaultPath, "promote 子进程应收到 KB_VAULT=vaultPath");
 });
+
+// WP-169（SPEC-095 §3.1 首批）：草稿校验响应带受管字段来源三态，快照经回调落任务通道
+test("WP-169 validateDraft 响应含 fieldProvenance 三态且快照回调收到同份", async function (t) {
+  const { vaultPath } = fixture();
+  t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));
+  // 新草稿：tags＝人工预填（human），其余无信号——title/date/updated 由机械填（auto）、module 等＝未提取到
+  const relative = "知识库/raw/drafts/投稿/wp169-来源标记.md";
+  fs.writeFileSync(path.join(vaultPath, ...relative.split("/")), "---\ntags:\n  - 人工标签\n---\n正文\n", "utf8");
+  const snapshots = [];
+  const error = (code, message, status = 400) => Object.assign(new Error(message), { code, status });
+  const wf = createArticleDraftWorkflow({
+    vaultPath, logger: { info() {} }, workflowError: error,
+    ensureUploadTask() {},
+    relativeVaultPath: (absolute) => path.relative(vaultPath, absolute).split(path.sep).join("/"),
+    saveDraftProvenance: (draftPath, provenance) => snapshots.push({ draftPath, provenance }),
+  });
+  const result = await wf.validateDraft(relative);
+  const fp = result.fieldProvenance;
+  assert.ok(fp && typeof fp === "object", "响应必须带 fieldProvenance");
+  for (const source of ["auto", "human", "not-extracted"]) {
+    assert.ok(Object.values(fp).some((entry) => entry.source === source), `三态之一 ${source} 应在场`);
+  }
+  assert.ok(["title", "date", "updated"].every((field) => fp[field].source === "auto"), "机械填字段＝auto（title←文件名、date/updated←当日）");
+  assert.equal(fp.tags.source, "human", "人工预填 tags＝human");
+  assert.equal(fp.module.source, "not-extracted", "module 无词表信号＝未提取到（B12：不自动填）");
+  assert.equal(snapshots.length, 1, "快照回调恰好一次");
+  assert.equal(snapshots[0].draftPath, relative);
+  assert.equal(snapshots[0].provenance, fp, "快照与响应同源同引用（不重算）");
+});

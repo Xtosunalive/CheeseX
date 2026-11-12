@@ -190,6 +190,44 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     const id = "fixture-candidate-001";
     const standardized = await request("POST", `/api/articles/precleaned/${id}/standardization`, { confirmed: true });
     assert.equal(standardized.status, 200, JSON.stringify(standardized.body).slice(0, 500));
+    // WP-169（SPEC-095 §3.1 首批）：预置候选无草稿快照→保守口径（有值=human/无值=not-extracted），三态闭合
+    {
+      const fp = standardized.body.data.fieldProvenance;
+      assert.ok(fp && fp.title && fp.date && fp.module, "标准化响应必须携带受管字段来源标记");
+      assert.ok(Object.values(fp).every((entry) => ["auto", "human", "not-extracted"].includes(entry.source)), "来源三态闭合");
+      assert.equal(fp.title.source, "human", "无快照存量候选：有值按保守口径报 human（不冒认 auto）");
+    }
+    // WP-169 全链：直写草稿→真进程 validate（autoFill+快照落任务）→promote→标准化（快照合并报告）
+    {
+      const draftRel = "知识库/raw/drafts/投稿/wp169-全链来源.md";
+      fs.mkdirSync(path.join(vaultPath, "知识库/raw/drafts/投稿"), { recursive: true });
+      // 必填骨架对齐预置候选（product/version 等标准化硬门），受控变量：tags=人工、title/date/updated 留空（机械 auto）、module 留空（未提取到）
+      fs.writeFileSync(path.join(vaultPath, ...draftRel.split("/")),
+        "---\narticle_id: wp169-全链来源\nproduct: FixtureProduct\nversion: \"1.0.0\"\nmodule: fixture-module\ncategory-path: ops:maintain\ntags:\n  - 人工标签\narchitecture_associations: []\n---\n全链正文\n", "utf8");
+      const validated = await request("POST", "/api/articles/drafts/validate", { filePath: draftRel });
+      assert.equal(validated.status, 200, JSON.stringify(validated.body).slice(0, 400));
+      const vfp = validated.body.data.fieldProvenance;
+      assert.ok(vfp, "草稿校验响应必须携带 fieldProvenance");
+      assert.equal(vfp.title.source, "auto", "空白标题→机械填（文件名）＝auto");
+      assert.equal(vfp.tags.source, "human", "人工预填 tags＝human");
+      assert.equal(vfp.module.source, "human", "人工 module＝human");
+      assert.ok(vfp["doc-type"].source === "not-extracted" || vfp.article_type.source === "not-extracted", "留空可选字段＝未提取到");
+      // 真实用户流：校验报告「未提取到」→人补填（模拟采纳建议的人工动作）
+      const draftAbs = path.join(vaultPath, ...draftRel.split("/"));
+      fs.writeFileSync(draftAbs, fs.readFileSync(draftAbs, "utf8").replace("module: fixture-module", "module: fixture-module\narticle_type: 排错指南\ndoc-type: 用户手册"), "utf8");
+      const promoted = await request("POST", "/api/articles/drafts/promote", { filePath: draftRel, confirmed: true });
+      assert.equal(promoted.status, 200, JSON.stringify(promoted.body).slice(0, 400));
+      const newId = "wp169-全链来源";
+      const chainStandardized = await request("POST", `/api/articles/precleaned/${encodeURIComponent(newId)}/standardization`, { confirmed: true });
+      assert.equal(chainStandardized.status, 200, JSON.stringify(chainStandardized.body).slice(0, 400));
+      const cfp = chainStandardized.body.data.fieldProvenance;
+      assert.equal(cfp.title.source, "auto", "全链：快照携带 title=auto 到标准化报告");
+      assert.equal(cfp.date.source, "auto", "全链：快照携带 date=auto");
+      assert.equal(cfp.tags.source, "human", "全链：人工 tags 保持 human");
+      assert.equal(cfp.module.source, "human", "全链：人工 module 保持 human");
+      assert.equal(cfp.article_type.source, "human", "全链漂移合并：快照 not-extracted→人工补填→human");
+      assert.equal(cfp["doc-type"].source, "human", "全链漂移合并：doc-type 同");
+    }
     const sourcePath = standardized.body.data.sourcePath;
     const contentHash = standardized.body.data.formalContentHash;
     const transition = (operation, input = {}) => request("POST", `/api/approval/${id}/transition`, {
