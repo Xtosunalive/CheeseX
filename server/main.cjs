@@ -246,10 +246,38 @@ pipelineRunService.addCompletionHook((finished) => {
   ]);
 });
 let releaseRuntimeRef = null;
+const { createRelationCandidateEmitter, GENERATOR: WP170_GENERATOR } = require("./services/article-workflow/article-relation-candidates.cjs");
+const { scanEntities } = require("./services/entity-compliance/entity-source-scanner.cjs");
+const { buildAliasIndex, aliasesOf } = require("./services/entity-compliance/entity-alias-index.cjs");
+const { loadVocabBundle } = require("./shared/vocab-load-port.cjs");
+const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
+const { readReviewActions } = require("./services/governance/review-action-store.cjs");
+// WP-170（SPEC-095 §3.2 首批）：标准化成功 → 正文实体×类白名单 → 候选边进 staging 图 → 既有摄取/投影/审查链
+const emitRelationCandidates = createRelationCandidateEmitter({
+  vaultPath, dataDir: graphDataDir, afterStaged: ingestGraphStaging, logger,
+  io: {
+    // 与 pending-review 路由同源读取器（库优先＋vault 工作件文件兜底）——禁另起第二读口径
+    readLiveGraph: () => {
+      const { readMasterGraphArtifact } = require("./shared/working-artifact-snapshot.cjs");
+      const snapshot = readMasterGraphArtifact(vaultPath);
+      return snapshot && snapshot.exists ? snapshot.data : null;
+    },
+    scanEntities: () => scanEntities(vaultPath),
+    resolveWhitelist: () => {
+      const { files } = loadVocabBundle(vaultPath, { files: ["ontology", "fields"] });
+      const ontology = files.ontology.state === "present" ? files.ontology.data : null;
+      const fields = files.fields.state === "present" ? files.fields.data : null;
+      if (!ontology || !fields) return []; // 词表不可用＝零生成（fail-closed：白名单单源缺席不猜）
+      return resolveClassInheritance(ontology, "KnowledgeArticle", fields).allows_relations.relation_ids;
+    },
+    readDecidedEdgeIds: () => readReviewActions(vaultPath).map((d) => d.edgeId),
+  },
+});
 const articleWorkflowService = createArticleWorkflowService({
   vaultPath,
   logger,
   getReleaseReader: () => releaseRuntimeRef?.readerService || null,
+  emitRelationCandidates,
 });
 // WP-041（Master 2026-10-29「接」）：监听器外部写 → drafts/**.md 自动 validate+promote（Obsidian 投放与网页上传同链）
 draftDropAutomation = createDraftDropAutomation({ vaultPath, articleWorkflowService, logger });
