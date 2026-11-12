@@ -461,7 +461,7 @@ export async function main(argv, { logger = console, env = process.env, repoRoot
             fs.copyFileSync(template, target);
             fs.chmodSync(target, 0o755);
           });
-          logger.log(`  + .git/hooks/${name}（提交后自动 push；失败写 .git/anyshare-health/backup-stalled.json）`);
+          logger.log(`  + .git/hooks/${name}（提交后自动 push；失败写 .git/backup-health/backup-stalled.json）`);
         }
         hooksState = installed > 0 ? "installed" : "present";
       } else {

@@ -9,20 +9,22 @@
 #
 # 行为：
 #   - 提交后后台 push（非阻塞）
-#   - push 失败 → 写 .git/anyshare-health/backup-stalled.json（stalledAt + reason）
+#   - push 失败 → 写 .git/backup-health/backup-stalled.json（stalledAt + reason）
 #   - push 成功 → 确保 stalled 文件不存在（清除旧告警）
 #   - 不阻断 git commit，退出码永远为 0
 #
 # SPEC-012 WP-B（2026-10-14）：stalled 落点从 .ledger/health/ 迁 .git/anyshare-health/——
 # 观测域已翻反向断言（vault 内禁止观测痕迹）；shell 钩子够不到 telemetry.db，.git 内落点
 # 不进版本树不进监听（沿 anyshare-releases 先例），属④类的诚实例外。
+# 2026-11-13（PR-243 批次）：目录随 AnyShare 退役改名 anyshare-health → backup-health；
+# 存量 vault 已装钩子仍写旧址，直至重装本模板。
 #
 # 递归安全：git push 不触发 post-commit，此路径无递归风险（2026-10-12 临时仓验证）
 
 # stalled 文件落在主仓 .git 目录：worktree 内 <toplevel>/.git 是指针文件而非目录（2026-10-25 实发 mkdir: Not a directory），
 # 必须经 --git-common-dir 解析；主仓返回相对 ".git"，worktree 返回主仓绝对路径，cd+pwd 统一成绝对。
 GIT_COMMON_DIR="$(cd "$(git rev-parse --git-common-dir)" && pwd)"
-HEALTH_DIR="$GIT_COMMON_DIR/anyshare-health"
+HEALTH_DIR="$GIT_COMMON_DIR/backup-health"
 STALLED_FILE="$HEALTH_DIR/backup-stalled.json"
 
 # 后台 push + 等待结果；HTTP/2 路径到 github 两次实测失败（10-23 HTTP2 framing、10-25 TLS SSL_ERROR_SYSCALL）
