@@ -261,7 +261,10 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
           if (candidates.length === 0) await new Promise((resolve) => setTimeout(resolve, 300));
         }
         assert.equal(pendingResp.status, 200, JSON.stringify(pendingResp.body).slice(0, 400));
-        assert.equal(candidates.length, 2, `提及两实体应各生成一条候选（实得 ${candidates.length}）`);
+        const evidence = candidates.length === 0
+          ? log.split("\n").filter((l) => /relation-candidates/.test(l)).slice(-6).join(" | ")
+          : "";
+        assert.equal(candidates.length, 2, `提及两实体应各生成一条候选（实得 ${candidates.length}）｜服务端证据：${evidence}`);
         const approve = await request("POST", "/api/kg/review", { edgeId: candidates[0].edgeId, action: "approved", reason: "WP-170全链验收" });
         assert.equal(approve.status, 200, JSON.stringify(approve.body).slice(0, 400));
         assert.equal(approve.body.data.reviewStatus, "approved");

@@ -271,6 +271,15 @@ const emitRelationCandidates = createRelationCandidateEmitter({
       return resolveClassInheritance(ontology, "KnowledgeArticle", fields).allows_relations.relation_ids;
     },
     readDecidedEdgeIds: () => readReviewActions(vaultPath).map((d) => d.edgeId),
+    // 红队P1-2：关系目标类域单源（本体 relation_types.target_types；实体目标类=Entity 由发射器单事实内联）
+    readRelationTargetTypes: () => {
+      const { files } = loadVocabBundle(vaultPath, { files: ["ontology"] });
+      if (files.ontology.state !== "present") return null;
+      const relationTypes = files.ontology.data.relation_types || {};
+      return Object.fromEntries(Object.entries(relationTypes)
+        .filter(([, def]) => Array.isArray(def && def.target_types))
+        .map(([id, def]) => [id, def.target_types]));
+    }
   },
 });
 const articleWorkflowService = createArticleWorkflowService({
