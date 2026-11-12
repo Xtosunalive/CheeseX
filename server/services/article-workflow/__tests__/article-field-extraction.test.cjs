@@ -55,3 +55,17 @@ test("合并规则：值未变保留来源；被改写→human；被清空→not
   assert.equal(legacy.status.source, "human");
   assert.equal(mergeProvenanceWithCurrent(null, {}).title.source, "not-extracted", "无快照且无值→未提取到");
 });
+
+// 红队P1-2回归钉：重复校验不冒认——上轮机器写入且值未变的字段携带回 auto
+test("机器署名携带：上轮auto×值未变→auto；值被改→human；无上轮→原样", () => {
+  const { carryForwardMachineAuthorship } = require("../article-field-provenance.cjs");
+  const previous = computeDraftProvenance({}, ["title", "date"], {}, { title: "机器题", date: "2026-11-13" });
+  const fresh = computeDraftProvenance({ title: "机器题", date: "2026-11-13", tags: "后来人工" }, [], {});
+  const carried = carryForwardMachineAuthorship(previous, fresh);
+  assert.equal(carried.title.source, "auto", "机器写入且未改→携带 auto");
+  assert.equal(carried.date.source, "auto");
+  assert.equal(carried.tags.source, "human", "人工新值不携带");
+  const edited = carryForwardMachineAuthorship(previous, computeDraftProvenance({ title: "人改了" }, [], {}));
+  assert.equal(edited.title.source, "human", "值改写→不携带");
+  assert.equal(carryForwardMachineAuthorship(null, fresh), fresh, "无上轮原样");
+});
