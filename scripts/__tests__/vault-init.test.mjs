@@ -130,7 +130,7 @@ test("L1 hookTemplatePath：模板存在、可执行、与 HOOK_NAMES 两钩子�
   const template = hookTemplatePath(rootDir);
   assert.ok(fs.existsSync(template), template);
   assert.ok(fs.statSync(template).mode & 0o111, "模板须带可执行位");
-  assert.match(fs.readFileSync(template, "utf8"), /anyshare-health\/backup-stalled\.json|backup-stalled\.json/);
+  assert.match(fs.readFileSync(template, "utf8"), /backup-health\/backup-stalled\.json/);
   assert.deepEqual(HOOK_NAMES, ["post-commit", "post-merge"]);
 });
 
@@ -412,7 +412,7 @@ test("L3 修订2 --remote 本地裸仓：origin＋上游＋钩子安装；Vault 
   execFileSync("git", ["add", "-A"], { cwd: vault, stdio: "ignore" });
   execFileSync("git", ["commit", "-q", "-m", "user content"], { cwd: vault, env: gitEnv, stdio: "ignore" });
   assert.equal(gitOut(bare, ["rev-parse", "main"]), headOf(vault, gitEnv), "钩子应把 HEAD 推到裸仓 main");
-  assert.equal(fs.existsSync(path.join(vault, ".git", "anyshare-health", "backup-stalled.json")), false, "推送成功不得有 stalled 告警");
+  assert.equal(fs.existsSync(path.join(vault, ".git", "backup-health", "backup-stalled.json")), false, "推送成功不得有 stalled 告警");
 
   // 幂等：二次运行 remote=present hooks=present，钩子不被覆盖
   fs.writeFileSync(path.join(vault, ".git", "hooks", "post-commit"), "# user-customized\n");
