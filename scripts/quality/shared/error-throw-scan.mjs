@@ -6,7 +6,9 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const THROW_RE = /\b(createError|serviceError|repairError|contractError|gateError|[a-zA-Z]+Error)\s*\(\s*["']([A-Z][A-Z0-9_]+)["']/g;
+// PR-298：failPublish＝发布域包装（recordFailure S4 持久 Issue 副作用＋stateError 包装，approval-state-machine-service）
+// ——非本地错误工厂（收敛测试禁），但首参即抛点错误码、与 throw 行同源，显式认列入注册物覆盖
+const THROW_RE = /\b(createError|serviceError|repairError|contractError|gateError|failPublish|[a-zA-Z]+Error)\s*\(\s*["']([A-Z][A-Z0-9_]+)["']/g;
 const STATUS_RE = /,\s*(\d{3})\s*(?:,|\))/;
 
 /** 递归收集 server/ 下 .cjs（跳过 __tests__）。 */
@@ -36,7 +38,7 @@ export function scanThrowSites(root) {
         THROW_RE.lastIndex = 0;
         let rm;
         while ((rm = THROW_RE.exec(line))) {
-          if (!/[Ee]rror/.test(rm[1])) continue;
+          if (!/[Ee]rror|^failPublish$/.test(rm[1])) continue; // PR-298：failPublish＝发布域包装显式认列
           const code = rm[2];
           const statusMatch = STATUS_RE.exec(line.slice(rm.index));
           const detailKeys = [...line.slice(rm.index).matchAll(/[{,]\s*([A-Za-z_][A-Za-z0-9_]*)\s*:/g)].map((x) => x[1]).filter((k) => k !== "error");
@@ -44,7 +46,7 @@ export function scanThrowSites(root) {
           found.get(code).push({ file: rel, line: i + 1, status: statusMatch ? Number(statusMatch[1]) : null, detailKeys });
         }
         // return 多行形态（guard 类：return { error: createError(\n "CODE", ...）——码在后续行
-        const openRet = line.match(/(?:return|error\s*:)[^;]*[Ee]rror\s*\(\s*$/); // guard 形态＝对象成员 error: createError(
+        const openRet = line.match(/(?:return|error\s*:)[^;]*(?:[Ee]rror|failPublish)\s*\(\s*$/); // guard 形态＝对象成员 error: createError(
         if (openRet) {
           const window = lines.slice(i + 1, i + 4);
           for (let j = 0; j < window.length; j++) {
@@ -62,7 +64,7 @@ export function scanThrowSites(root) {
       let m;
       THROW_RE.lastIndex = 0;
       while ((m = THROW_RE.exec(line))) {
-        if (!/[Ee]rror/.test(m[1])) continue;
+        if (!/[Ee]rror|^failPublish$/.test(m[1])) continue; // PR-298 同上
         const code = m[2];
         const statusMatch = STATUS_RE.exec(line.slice(m.index));
         const detailKeys = [...line.slice(m.index).matchAll(/[{,]\s*([A-Za-z_][A-Za-z0-9_]*)\s*:/g)].map((x) => x[1]);
