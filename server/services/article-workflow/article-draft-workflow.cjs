@@ -159,9 +159,13 @@ function createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUp
     ensureUploadTask(relativePath, options);
     archiveDraftSource(relativePath);
     const autoFillResult = autoFillDraftFrontmatter(absolute);
-    // WP-169：来源快照随任务持久化（供 promote→标准化链路合并；无快照的存量按保守口径报 human/not-extracted）
+    // WP-169：来源快照随任务持久化（供 promote→标准化链路合并；无快照的存量按保守口径报 human/not-extracted）；
+    // 红队P1-2：save 返回与既有快照合并后的视图（机器署名携带），响应与快照同源
+    let fieldProvenance = autoFillResult.provenance;
     if (typeof saveDraftProvenance === "function" && autoFillResult.provenance) {
-      saveDraftProvenance(relativePath, autoFillResult.provenance);
+      // 返回对象＝合并视图（服务端携带机器署名）；其余（undefined/桩返回值）回落本视图，不误用
+      const mergedView = saveDraftProvenance(relativePath, autoFillResult.provenance);
+      if (mergedView && typeof mergedView === "object") fieldProvenance = mergedView;
     }
     // SPEC-022 波 B：校验器切统一客户端 validate-article 操作面（Node 唯一语义；Python 侧随波 C 退役）。
     // KB_VAULT 注入保留（桩测试契约＋子进程兜底观测）；客户端自身走显式 --vault（写路径无回落纪律）。
@@ -185,7 +189,7 @@ function createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUp
       reportable: payload.reportable || [],
       autoFilled: autoFillResult.changed ? autoFillResult.filled : [],
       suggested: autoFillResult.suggested || {},
-      fieldProvenance: autoFillResult.provenance || {}, // WP-169：受管字段来源三态＋建议附注（不落盘为确认值）
+      fieldProvenance: fieldProvenance || {}, // WP-169：受管字段来源三态＋建议附注（不落盘为确认值；机器署名携带后视图）
     };
   }
 

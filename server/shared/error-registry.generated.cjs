@@ -217,7 +217,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:657"
+        "server/services/article-workflow/article-workflow-service.cjs:662"
       ]
     },
     "ARTICLE_NOT_FOUND": {
@@ -412,7 +412,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:193",
+        "server/services/article-workflow/article-draft-workflow.cjs:197",
         "server/services/article-workflow/article-workflow-service.cjs:240"
       ]
     },
@@ -927,7 +927,7 @@ module.exports = {
     "INVALID_FILE_NAME": {
       "statuses": [],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:669"
+        "server/services/article-workflow/article-workflow-service.cjs:674"
       ]
     },
     "INVALID_ONTOLOGY": {
@@ -1119,7 +1119,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:201"
+        "server/services/article-workflow/article-draft-workflow.cjs:205"
       ]
     },
     "MISSING_CHILD_ID": {
@@ -1205,8 +1205,8 @@ module.exports = {
       "statuses": [],
       "sites": [
         "server/services/article-workflow/article-draft-workflow.cjs:31",
-        "server/services/article-workflow/article-workflow-service.cjs:625",
-        "server/services/article-workflow/article-workflow-service.cjs:766"
+        "server/services/article-workflow/article-workflow-service.cjs:630",
+        "server/services/article-workflow/article-workflow-service.cjs:771"
       ]
     },
     "PERSISTENT_ISSUE_REQUIRED": {
@@ -1265,7 +1265,7 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:197"
+        "server/services/article-workflow/article-draft-workflow.cjs:201"
       ]
     },
     "PROMOTE_FAILED": {
@@ -1273,7 +1273,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:215"
+        "server/services/article-workflow/article-draft-workflow.cjs:219"
       ]
     },
     "PROMOTE_POSTCONDITION_FAILED": {
@@ -1281,7 +1281,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:219"
+        "server/services/article-workflow/article-draft-workflow.cjs:223"
       ]
     },
     "PROMOTE_SPAWN_FAILED": {
@@ -1289,7 +1289,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:211"
+        "server/services/article-workflow/article-draft-workflow.cjs:215"
       ]
     },
     "PROPOSAL_EDIT_NOT_AVAILABLE": {
@@ -2011,7 +2011,7 @@ module.exports = {
         415
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:671"
+        "server/services/article-workflow/article-workflow-service.cjs:676"
       ]
     },
     "UNSUPPORTED_RELATION_TYPE": {
@@ -2036,7 +2036,7 @@ module.exports = {
         413
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:678"
+        "server/services/article-workflow/article-workflow-service.cjs:683"
       ]
     },
     "VALIDATION_ERROR": {
@@ -2075,11 +2075,11 @@ module.exports = {
         "server/services/article-workflow/article-workflow-service.cjs:353",
         "server/services/article-workflow/article-workflow-service.cjs:359",
         "server/services/article-workflow/article-workflow-service.cjs:363",
-        "server/services/article-workflow/article-workflow-service.cjs:667",
-        "server/services/article-workflow/article-workflow-service.cjs:676",
-        "server/services/article-workflow/article-workflow-service.cjs:679",
-        "server/services/article-workflow/article-workflow-service.cjs:775",
-        "server/services/article-workflow/article-workflow-service.cjs:775",
+        "server/services/article-workflow/article-workflow-service.cjs:672",
+        "server/services/article-workflow/article-workflow-service.cjs:681",
+        "server/services/article-workflow/article-workflow-service.cjs:684",
+        "server/services/article-workflow/article-workflow-service.cjs:780",
+        "server/services/article-workflow/article-workflow-service.cjs:780",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:90",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:93",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:95",
@@ -2146,7 +2146,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:179"
+        "server/services/article-workflow/article-draft-workflow.cjs:183"
       ]
     },
     "VALIDATION_SPAWN_FAILED": {
@@ -2154,7 +2154,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:176"
+        "server/services/article-workflow/article-draft-workflow.cjs:180"
       ]
     },
     "VALIDATION_STAMP_UNWRITABLE": {
@@ -2170,7 +2170,7 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/article-workflow/article-draft-workflow.cjs:169"
+        "server/services/article-workflow/article-draft-workflow.cjs:173"
       ]
     },
     "VALIDATOR_UNAVAILABLE": {

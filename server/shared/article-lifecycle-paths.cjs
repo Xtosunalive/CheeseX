@@ -20,6 +20,7 @@ function role(id) {
 
 const DRAFT_ROOT = role("draft").root;                       // 知识库/raw/drafts
 const SUBMISSION_DRAFT_PREFIX = `${role("draft").submission_dir}/`; // 知识库/raw/drafts/投稿/
+const LOCAL_DRAFT_PREFIX = `${role("draft").local_draft_dir}/`; // 知识库/raw/drafts/本地草稿/（WP-169：本地 lane 一等化）
 const WORKING_ROOT = role("standard-working").root;          // 知识库/raw/precleaned
 const FORMAL_ROOT = role("standard-formal").root;            // 知识库/wiki/articles
 const ARCHIVE_ROOT = role("source-archive").root;            // 知识库/raw/archive
@@ -91,6 +92,7 @@ function assertTransitionState(relPath, expectedState) {
   return current;
 }
 function isSubmissionDraft(relPath) { return typeof relPath === "string" && relPath.startsWith(SUBMISSION_DRAFT_PREFIX); }
+function isLocalDraft(relPath) { return typeof relPath === "string" && relPath.startsWith(LOCAL_DRAFT_PREFIX); }
 function isUnderWorking(relPath) { return isUnder(relPath, WORKING_ROOT); }
 function isUnderFormal(relPath) { return isUnder(relPath, FORMAL_ROOT); }
 function isUnderArchive(relPath) { return isUnder(relPath, ARCHIVE_ROOT); }
@@ -114,5 +116,5 @@ module.exports = {
   DRAFT_ROOT, SUBMISSION_DRAFT_PREFIX, WORKING_ROOT, FORMAL_ROOT, ARCHIVE_ROOT, FORMAL_SEGMENT,
   draftsDir, submissionDraftsDir, workingDir, formalArticlesDir, formalDomainDir, archiveDir, formalSourcePath,
   resolveDomainSegment,
-  isUnderDraft, isSubmissionDraft, isUnderWorking, isUnderFormal, isUnderArchive, hasFormalSegment,
+  isUnderDraft, isSubmissionDraft, isLocalDraft, LOCAL_DRAFT_PREFIX, isUnderWorking, isUnderFormal, isUnderArchive, hasFormalSegment,
   ROLE_MUTABILITY, READ_ONLY_EVIDENCE, resolveMutability, stateOf, assertTransitionState };

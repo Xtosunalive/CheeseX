@@ -97,13 +97,18 @@ function latestWorkflowTime(createdAt, articles) {
 // 投稿源路径归一化：drafts/投稿/ 原样返回；晋升候选的 source_file 指向上传归档路径
 // （archive/投稿|通用/{64位哈希}-原名.md，上传/晋升时写入的溯源路径），剥哈希前缀还原为
 // drafts/投稿/ 路径——任务↔候选匹配（syncUploadTasks）依赖该归一化，否则晋升后匹配断链。
+// WP-169 红队P1-1：本地草稿 lane 同样归一——此前该 lane 归一为 null，任务↔候选断链，
+// 来源快照在标准化时永不命中（auto 错报 human）。lane 前缀单源＝shared/article-lifecycle-paths。
 function normalizeDraftSourcePath(value) {
   if (typeof value !== "string" || !value.trim()) return null;
   const normalized = value.trim().replaceAll("\\", "/").replace(/^\.\//, "").replace(/^\//, "");
   const vaultRelative = normalized.startsWith("知识库/") ? normalized : normalized.startsWith("raw/") ? "知识库/" + normalized : null;
-  if (vaultRelative && articleLifecycle.isSubmissionDraft(vaultRelative)) return vaultRelative;
-  const archiveMatch = vaultRelative ? vaultRelative.match(new RegExp(`^${articleLifecycle.ARCHIVE_ROOT}/(?:投稿|通用)/(?:[0-9a-f]{64}-)+([^/]+)$`)) : null;
-  if (archiveMatch) return articleLifecycle.SUBMISSION_DRAFT_PREFIX + archiveMatch[1];
+  if (vaultRelative && (articleLifecycle.isSubmissionDraft(vaultRelative) || articleLifecycle.isLocalDraft(vaultRelative))) return vaultRelative;
+  const archiveMatch = vaultRelative ? vaultRelative.match(new RegExp(`^${articleLifecycle.ARCHIVE_ROOT}/(投稿|通用|本地草稿)/(?:[0-9a-f]{64}-)+([^/]+)$`)) : null;
+  if (archiveMatch) {
+    const lane = archiveMatch[1] === "本地草稿" ? articleLifecycle.LOCAL_DRAFT_PREFIX : articleLifecycle.SUBMISSION_DRAFT_PREFIX;
+    return lane + archiveMatch[2];
+  }
   return null;
 }
 

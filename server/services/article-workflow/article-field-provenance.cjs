@@ -79,4 +79,20 @@ function mergeProvenanceWithCurrent(snapshot, currentFrontmatter) {
   return merged;
 }
 
-module.exports = { MANAGED_FIELDS, computeDraftProvenance, mergeProvenanceWithCurrent };
+// 机器署名携带（红队P1-2）：重复校验时，上一轮机器写入且值未变的字段在「填前基准」视角下
+// 形似人工值——按上一轮快照携带回 auto（值比对，改过即不携带；无上一轮＝首校验原样）。
+function carryForwardMachineAuthorship(previous, fresh) {
+  if (!previous || typeof previous !== "object") return fresh;
+  const carried = { ...fresh };
+  for (const field of MANAGED_FIELDS) {
+    const prev = previous[field];
+    const now = fresh && fresh[field];
+    if (!prev || !now || now.source !== "human" || prev.source !== "auto") continue;
+    if (prev.value !== undefined && JSON.stringify(prev.value) === JSON.stringify(now.value)) {
+      carried[field] = { source: "auto", value: now.value };
+    }
+  }
+  return carried;
+}
+
+module.exports = { MANAGED_FIELDS, computeDraftProvenance, mergeProvenanceWithCurrent, carryForwardMachineAuthorship };

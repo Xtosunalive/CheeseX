@@ -282,8 +282,8 @@
       "register_entry": "docs/plans/problem-register.md#PR-065",
       "verification_evidence": "先红后绿：门禁首跑 30 处裸拼红→迁移后 ok；红绿自测 3/3（含契约缺角色红）",
       "metrics": null,
-      "last_updated": "2026-11-08",
-      "note": "SPEC-013 L1（Master 裁「一篇＝标准文章×1＋原文归档×1」）。与 vault-write-destinations 分层：彼管写通道合法落点，本域管生命周期角色（何时存在/谁清理/稳态份数）。Python 侧（vault-runtime）路径迁移为后续波次，不在本域执法面（契约 $comment 声明）。｜2026-10-25 扩域立契（WP-007／SPEC-028／PR-098，Master 批准；立契时号 WP-006/PR-095 因并行会话撞号重编）：角色行增 mutability 字段（枚举单源 schema definitions.mutability：read-only-evidence／append-only／human-editable）——本域继续只管角色/份数/清理，可变性档的数据面归新开 vault-content-data 数据域（一域三族），执法面 vault-io 读档强制 wx＋0o444；施工批已落地（WP-007：schema definitions.mutability＋角色行字段＋vault-io 执法＋check 档面三——矩阵证据 SPEC-028）。｜2026-11-13 WP-161：文章个体本体映射接入确认与发布硬校验（ontology-inheritance-resolver 扩展＋api-types 联动；红队 P1-1 修复＋13 组反例）——域登记补记",
+      "last_updated": "2026-11-13",
+      "note": "SPEC-013 L1（Master 裁「一篇＝标准文章×1＋原文归档×1」）。与 vault-write-destinations 分层：彼管写通道合法落点，本域管生命周期角色（何时存在/谁清理/稳态份数）。Python 侧（vault-runtime）路径迁移为后续波次，不在本域执法面（契约 $comment 声明）。｜2026-10-25 扩域立契（WP-007／SPEC-028／PR-098，Master 批准；立契时号 WP-006/PR-095 因并行会话撞号重编）：角色行增 mutability 字段（枚举单源 schema definitions.mutability：read-only-evidence／append-only／human-editable）——本域继续只管角色/份数/清理，可变性档的数据面归新开 vault-content-data 数据域（一域三族），执法面 vault-io 读档强制 wx＋0o444；施工批已落地（WP-007：schema definitions.mutability＋角色行字段＋vault-io 执法＋check 档面三——矩阵证据 SPEC-028）。｜2026-11-13 WP-161：文章个体本体映射接入确认与发布硬校验（ontology-inheritance-resolver 扩展＋api-types 联动；红队 P1-1 修复＋13 组反例）——域登记补记｜2026-11-13 WP-169 红队P1-1：本地草稿 lane 一等化——契约 draft 角色补 local_draft_dir（note 所述两 lane 的另一半显式入契），lifecycle 模块派生 LOCAL_DRAFT_PREFIX/isLocalDraft 导出，归一器（article-upload-status）接入；哨兵拦裸拼后按单源律走契约派生",
       "description": "｜2026-11-07 WP-138 R5c：上传扩展名入参值域单源＝server/shared/article-upload-extensions.mjs（server 415 校验与前端 accept/预校验同源，顺序即契约）"
     },
     {

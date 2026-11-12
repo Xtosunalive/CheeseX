@@ -226,7 +226,32 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
       assert.equal(cfp.tags.source, "human", "全链：人工 tags 保持 human");
       assert.equal(cfp.module.source, "human", "全链：人工 module 保持 human");
       assert.equal(cfp.article_type.source, "human", "全链漂移合并：快照 not-extracted→人工补填→human");
+      assert.equal(cfp.article_type.source, "human", "全链漂移合并：快照 not-extracted→人工补填→human");
       assert.equal(cfp["doc-type"].source, "human", "全链漂移合并：doc-type 同");
+    }
+    // WP-169 红队P1-1/P1-2 回归钉：本地草稿 lane 全链＋重复校验——机器署名不冒认 human
+    {
+      const draftRel = "知识库/raw/drafts/本地草稿/wp169-本地链.md";
+      fs.mkdirSync(path.join(vaultPath, "知识库/raw/drafts/本地草稿"), { recursive: true });
+      const draftAbs = path.join(vaultPath, ...draftRel.split("/"));
+      fs.writeFileSync(draftAbs,
+        "---\narticle_id: wp169-本地链\nproduct: FixtureProduct\nversion: \"1.0.0\"\nmodule: fixture-module\ncategory-path: ops:maintain\ntags:\n  - 人工标签\narchitecture_associations: []\n---\n本地链正文\n", "utf8");
+      const v1 = await request("POST", "/api/articles/drafts/validate", { filePath: draftRel });
+      assert.equal(v1.status, 200, JSON.stringify(v1.body).slice(0, 300));
+      assert.equal(v1.body.data.fieldProvenance.title.source, "auto", "本地链首校验：title=auto");
+      const v2 = await request("POST", "/api/articles/drafts/validate", { filePath: draftRel }); // 重复校验（设计内循环：校验→查看→再校验）
+      assert.equal(v2.status, 200, JSON.stringify(v2.body).slice(0, 300));
+      assert.equal(v2.body.data.fieldProvenance.title.source, "auto", "P1-2回归：二次校验不把机器值冒认 human");
+      assert.equal(v2.body.data.fieldProvenance.date.source, "auto", "P1-2回归：date 同");
+      fs.writeFileSync(draftAbs, fs.readFileSync(draftAbs, "utf8").replace("module: fixture-module", "module: fixture-module\narticle_type: 排错指南\ndoc-type: 用户手册"), "utf8");
+      const promoted = await request("POST", "/api/articles/drafts/promote", { filePath: draftRel, confirmed: true });
+      assert.equal(promoted.status, 200, JSON.stringify(promoted.body).slice(0, 300));
+      const standardized = await request("POST", `/api/articles/precleaned/${encodeURIComponent("wp169-本地链")}/standardization`, { confirmed: true });
+      assert.equal(standardized.status, 200, JSON.stringify(standardized.body).slice(0, 300));
+      const lfp = standardized.body.data.fieldProvenance;
+      assert.equal(lfp.title.source, "auto", "P1-1回归：本地lane任务↔候选链接修复，快照命中——title=auto 不冒认");
+      assert.equal(lfp.date.source, "auto", "P1-1回归：date=auto");
+      assert.equal(lfp.tags.source, "human");
     }
     const sourcePath = standardized.body.data.sourcePath;
     const contentHash = standardized.body.data.formalContentHash;
