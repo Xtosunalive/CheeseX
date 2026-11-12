@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "vault": "/Users/magic/xqy/cheese/知识库",
+  "generatedAt": "2026-11-10T21:23:11.814360",
+  "files": {
+    ".ledger/vocab/article_associations.yaml": {
+      "mtime_ns": 0,
+      "size": 32,
+      "sha16": "5b928ca75b444858"
+    },
+    ".ledger/vocab/dependencies.yaml": {
+      "mtime_ns": 0,
+      "size": 32,
+      "sha16": "568c092a1d4f2842"
+    },
+    ".ledger/vocab/enums.yaml": {
+      "mtime_ns": 0,
+      "size": 32,
+      "sha16": "cff271aec05631b6"
+    },
+    ".ledger/vocab/fields.yaml": {
+      "mtime_ns": 0,
+      "size": 32,
+      "sha16": "12593378be29f42f"
+    },
+    ".ledger/vocab/ontology.yaml": {
+      "mtime_ns": 0,
+      "size": 32,
+      "sha16": "f0158967141d1257"
+    },
+    ".ledger/vocab/versions.yaml": {
+      "mtime_ns": 0,
+      "size": 32,
+      "sha16": "c557ca58833c16d9"
+    }
+  }
+}
