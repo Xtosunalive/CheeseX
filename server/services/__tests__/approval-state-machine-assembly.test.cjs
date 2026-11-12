@@ -10,6 +10,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { execFileSync, spawn } = require("node:child_process");
 const net = require("node:net");
+const yaml = require("yaml");
 const { gitFixtureEnv } = require("../../../scripts/quality/shared/git-fixture-env.cjs");
 
 const { registerApprovalStateMachine } = require("../release-governance/approval-state-machine-assembly.cjs");
@@ -88,7 +89,7 @@ function buildAssembly(vaultPath) {
         const candidates = [path.join(vaultPath, "知识库", "raw", "precleaned", `${articleId}.md`), path.join(vaultPath, "知识库", "raw", "precleaned", "fixture-candidate.md")];
         for (const abs of candidates) {
           if (fs.existsSync(abs)) {
-            return { standardizationStatus: "standardized", formalContentHash: sha256(fs.readFileSync(abs, "utf8")) };
+            return { standardizationStatus: "standardized", formalContentHash: sha256(fs.readFileSync(abs, "utf8")), sourcePath: path.relative(vaultPath, abs) };
           }
         }
         return { standardizationStatus: "pending_standardization", formalContentHash: null };
@@ -191,10 +192,57 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     assert.equal(standardized.status, 200, JSON.stringify(standardized.body).slice(0, 500));
     const sourcePath = standardized.body.data.sourcePath;
     const contentHash = standardized.body.data.formalContentHash;
-    for (const operation of ["standardize", "confirm", "publish"]) {
-      const result = await request("POST", `/api/approval/${id}/transition`, { operation, input: { sourcePath, contentHash, title: "测试候选文章" } });
-      assert.equal(result.status, 200, `${operation}: ${JSON.stringify(result.body).slice(0, 500)}`);
-    }
+    const transition = (operation, input = {}) => request("POST", `/api/approval/${id}/transition`, {
+      operation, input: { sourcePath, contentHash, title: "测试候选文章", ...input },
+    });
+    const fieldsPath = path.join(serverEnv.THESCHEMA_DIR, "fields.yaml");
+    const fields = yaml.parse(fs.readFileSync(fieldsPath, "utf8"));
+    fields.fields.push({ name: "review_note", label: "测试校对说明", type: "string", required: "否", scope: ["article"], layer: "内容属性", value_domain: { source: "free" } });
+    write(vaultPath, "知识库/TheSchema/fields.yaml", yaml.stringify(fields));
+    const ontologyPath = path.join(serverEnv.THESCHEMA_DIR, "ontology.yaml");
+    const definitions = yaml.parse(fs.readFileSync(ontologyPath, "utf8"));
+    definitions.node_types.KnowledgeArticle = {
+      subClassOf: "Document", data_properties: { title: { required: true } },
+    };
+    const saveOntology = () => write(vaultPath, "知识库/TheSchema/ontology.yaml", yaml.stringify(definitions));
+    saveOntology();
+    assert.equal((await transition("standardize")).status, 200);
+    const wrongSource = await transition("confirm", { sourcePath: sourcePath + ".bak" });
+    assert.equal(wrongSource.status, 409, JSON.stringify(wrongSource.body));
+    assert.equal(wrongSource.body.error_code, "ARTICLE_NOT_STANDARDIZED");
+
+    // 用同一篇文章重试，不改内容或确认哈希。现行类绑定发生变化后必须重新校验。
+    definitions.node_types.KnowledgeArticle.data_properties.version = { required: true };
+    saveOntology();
+    const unavailable = await transition("confirm");
+    assert.equal(unavailable.status, 503, JSON.stringify(unavailable.body));
+    assert.equal(unavailable.body.error_code, "VALIDATOR_UNAVAILABLE");
+    assert.equal((await request("GET", `/api/approval/status/${id}`)).body.data.status, "pending");
+
+    delete definitions.node_types.KnowledgeArticle.data_properties.version;
+    definitions.node_types.KnowledgeArticle.data_properties.review_note = { required: true };
+    saveOntology();
+    const invalid = await transition("confirm");
+    assert.equal(invalid.status, 409, JSON.stringify(invalid.body));
+    assert.equal(invalid.body.error_code, "ARTICLE_VALIDATION_FAILED");
+    assert.equal((await request("GET", `/api/approval/status/${id}`)).body.data.status, "pending");
+
+    delete definitions.node_types.KnowledgeArticle.data_properties.review_note;
+    saveOntology();
+    const confirmed = await transition("confirm");
+    assert.equal(confirmed.status, 200, JSON.stringify(confirmed.body));
+    definitions.node_types.KnowledgeArticle.data_properties.review_note = { required: true };
+    saveOntology();
+    const refusedPublish = await transition("publish");
+    assert.equal(refusedPublish.status, 409, JSON.stringify(refusedPublish.body));
+    assert.equal(refusedPublish.body.error_code, "ARTICLE_VALIDATION_FAILED");
+    assert.equal((await request("GET", `/api/approval/status/${id}`)).body.data.status, "approved");
+    assert.equal(fs.existsSync(path.join(vaultPath, "知识库/wiki/articles/ops")), false);
+
+    delete definitions.node_types.KnowledgeArticle.data_properties.review_note;
+    saveOntology();
+    const published = await transition("publish");
+    assert.equal(published.status, 200, JSON.stringify(published.body));
     const formalDir = path.join(vaultPath, "知识库/wiki/articles/ops");
     const formal = path.join(formalDir, fs.readdirSync(formalDir).find((name) => name.endsWith(".md")));
     fs.appendFileSync(formal, "\n外部新增正文\n");

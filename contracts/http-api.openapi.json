@@ -16264,13 +16264,16 @@
             }
           },
           "503": {
-            "description": "执行工厂未初始化（ACTION_FACTORY_UNAVAILABLE）",
+            "description": "执行工厂未初始化或文章校验不可用",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidatorUnavailableErrorResponse"
                     }
                   ]
                 }
