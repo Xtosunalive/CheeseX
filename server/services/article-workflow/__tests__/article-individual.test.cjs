@@ -65,3 +65,17 @@ test("移动不改身份：身份由正文字节单源派生，与来源路径�
   assert.equal(moved.articleId, original.articleId);
   assert.equal(moved.classId, original.classId);
 });
+
+// 红队P1-1回归钉：lifecycle_status 枚举外的无法解释值必须报告（不得静默未归类绕过硬校验）；
+// 枚举内非 approved 才按 SPEC-095 §3.0 未归类放行
+test("lifecycle_status 非法值显式拒绝，合法非现役才未归类", () => {
+  const retired = ontology();
+  retired.node_types.KnowledgeArticle.lifecycle_status = "retired";
+  assert.equal(projectArticleIndividual(article, retired, fields).classId, null, "retired＝未归类放行");
+  const bogus = ontology();
+  bogus.node_types.KnowledgeArticle.lifecycle_status = "bogus-not-in-enum";
+  assert.throws(() => projectArticleIndividual(article, bogus, fields), { code: "INVALID_LIFECYCLE_STATUS" });
+  const malformed = ontology();
+  malformed.node_types.KnowledgeArticle = "not-a-record";
+  assert.throws(() => projectArticleIndividual(article, malformed, fields), { code: "INVALID_ELEMENT_DEFINITION" });
+});
