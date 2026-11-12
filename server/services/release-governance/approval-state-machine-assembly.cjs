@@ -9,6 +9,7 @@ const { createSnapshotStore } = require("./snapshot-store-service.cjs");
 const { createReleaseBuilderService } = require("./release-builder-service.cjs");
 const { createReleaseReaderService } = require("./release-reader-service.cjs");
 const { createReleasePublisherService } = require("./release-publisher-service.cjs");
+const { validateArticleIndividual } = require("../article-workflow/article-individual.cjs");
 const { collectCompleteArtifacts } = require("./complete-release-artifact-service.cjs");
 
 // Vault HEAD（sourceCommit 内容寻址，ADR043 D5'）
@@ -24,7 +25,7 @@ function registerApprovalStateMachine(options) {
     ? function probe(articleId) {
         try {
           const item = options.articleWorkflowService.getPrecleaned(articleId);
-          return item ? { standardizationStatus: item.standardizationStatus, formalContentHash: item.formalContentHash || null } : null;
+          return item ? { standardizationStatus: item.standardizationStatus, formalContentHash: item.formalContentHash || null, sourcePath: item.sourcePath } : null;
         } catch (error) {
           if (options.logger && typeof options.logger.warn === "function") options.logger.warn({ event: "standardization-probe-failed", articleId, error: error && error.message });
           return null;
@@ -175,6 +176,7 @@ function registerApprovalStateMachine(options) {
     vaultPath: options.vaultPath,
     logger: options.logger,
     standardizationProbe,
+    validateIndividual: standardizationProbe ? (raw) => validateArticleIndividual(options.vaultPath, raw) : null,
     publishArticle: typeof options.disablePublish === "function" && options.disablePublish() ? null : publishArticle,
     snapshotArticle,
     // B1/D1：publish 前置准入失败/releaseId 非法时落持久 Issue（S4 单源 = publisherService.recordFailure）

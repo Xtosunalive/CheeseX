@@ -481,13 +481,13 @@ export interface paths {
                         "application/json": components["schemas"]["InvalidReleaseArtifactErrorResponse"] | components["schemas"]["ReleaseArtifactMissingErrorResponse"] | components["schemas"]["ReleaseDocumentIndexInvalidErrorResponse"] | components["schemas"]["ActionNotActiveErrorResponse"] | components["schemas"]["ActionExecutorUnregisteredErrorResponse"] | components["schemas"]["ActionPreconditionUnknownErrorResponse"] | components["schemas"]["ActionPostcheckFailedErrorResponse"] | components["schemas"]["ActionAuditAppendFailedErrorResponse"];
                     };
                 };
-                /** @description 执行工厂未初始化（ACTION_FACTORY_UNAVAILABLE） */
+                /** @description 执行工厂未初始化或文章校验不可用 */
                 503: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ActionFactoryUnavailableErrorResponse"];
+                        "application/json": components["schemas"]["ActionFactoryUnavailableErrorResponse"] | components["schemas"]["ValidatorUnavailableErrorResponse"];
                     };
                 };
             };
