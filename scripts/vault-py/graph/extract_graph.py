@@ -2327,6 +2327,21 @@ def _policy_forbids_production(edge_type, props, relation_policies):
 
 # ── 缺页自动补链 ──
 
+def _growth_default_status():
+    """实体生长模板初始 status（PR-284）：取词表盖章缺省——TheSchema lifecycle.default_status
+    声明面（状态机语义宿主＝contracts/entity-readiness-rules.json.statusMachine.default，灰度），
+    legacy 三值硬编码退役。缺省缺席或不在受控值域＝写路径硬错，不回落猜测。"""
+    default = schema_loader.default_status()
+    values = schema_loader.status_values()
+    if not default or default not in values:
+        raise RuntimeError(
+            "实体生长模板初始 status 取数失败：词表 lifecycle.default_status 缺席或不在"
+            f" lifecycle.status 受控值域（default={default!r}, values={sorted(values)}）——"
+            "检查 TheSchema enums.lifecycle（status 四受控值＋default_status 盖章缺省）"
+        )
+    return default
+
+
 def _ensure_entity_stubs(name_to_id):
     """Create stub wiki/entity pages for frontmatter wikilinks that have no page."""
     entity_dir = os.path.join(VAULT, "wiki", "entities")
@@ -2342,7 +2357,7 @@ title: {name}
 date: {datetime.now().strftime('%Y-%m-%d')}
 tags:
   - 待分类
-status: 制定中
+status: {_growth_default_status()}
 ---
 
 # {name}
@@ -2408,11 +2423,12 @@ def extract_team_nodes():
 
 
 def _health_from_statuses(statuses: list[str], expires_dates: list[str]) -> str:
-    """聚合文档状态 → Plate 健康灯。
+    """聚合文档状态 → Plate 健康灯（PR-284：legacy 三值经 legacy_status_map 归一到四值状态机再判定，
+    值域单源＝TheSchema lifecycle.status／contracts/entity-readiness-rules.json.statusMachine）。
 
-    green:  全部有效且未过期
-    yellow: 含制定中文档，或 30 天内即将过期
-    red:    含已归档文档，或已过期
+    green:  全部在线且未过期
+    yellow: 含灰度文档（在途），或 30 天内即将过期
+    red:    含退役／已驳回文档（驳族群——reject 主轨落退役、独立值已驳回），或已过期
     """
     from datetime import date, datetime
     today = date.today()
@@ -2421,9 +2437,10 @@ def _health_from_statuses(statuses: list[str], expires_dates: list[str]) -> str:
     has_expiring = False
 
     for i, s in enumerate(statuses):
-        if s == "已归档":
+        normalized = schema_loader.normalize_status(str(s))
+        if normalized in ("退役", "已驳回"):
             has_archived = True
-        if s == "制定中":
+        if normalized == "灰度":
             has_draft = True
         exp_str = expires_dates[i] if i < len(expires_dates) else ""
         if exp_str:

@@ -301,6 +301,30 @@ def status_values():
     return set((lifecycle() or {}).get("status") or [])
 
 
+def default_status():
+    """盖章缺省 status（PR-284）：TheSchema lifecycle.default_status 声明面取数——状态机语义
+    宿主＝contracts/entity-readiness-rules.json.statusMachine.default（灰度），两面对账由
+    server/services/entity-compliance/__tests__/status-domain-ssot.test.cjs 钉住。声明缺席＝None，
+    消费方（写路径）须显式失败，不得回落猜测。"""
+    value = (lifecycle() or {}).get("default_status")
+    return value if isinstance(value, str) and value.strip() else None
+
+
+def legacy_status_map():
+    """旧值→四值映射（PR-284）：TheSchema lifecycle.legacy_status_map 声明单源
+    （制定中→灰度／有效→在线／已归档→退役；缺省空映射＝无存量迁移面）。
+    Node 侧同口径＝server/shared/status-domain.cjs.legacyStatusMap。"""
+    mapping = (lifecycle() or {}).get("legacy_status_map")
+    return mapping if isinstance(mapping, dict) else {}
+
+
+def normalize_status(value):
+    """存量值归一（PR-284）：旧值经 legacy_status_map 映射到四值，新值透传
+    （server/shared/status-domain.cjs.normalizeStatus 同口径）。"""
+    text = value.strip() if isinstance(value, str) else ""
+    return legacy_status_map().get(text, text)
+
+
 def review_cycle_values():
     return set((lifecycle() or {}).get("review_cycle") or [])
 

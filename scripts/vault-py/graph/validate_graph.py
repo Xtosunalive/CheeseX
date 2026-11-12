@@ -450,7 +450,9 @@ def _auto_fix(nodes, edges):
         if hit["state"] != "present":
             continue
         content = hit["value"]["fmText"] + hit["value"]["body"]
-        if "status: 制定中" not in content or content.count("\n") >= 25:
+        # PR-284：生长模板初始 status 改取词表盖章缺省（灰度）后，「status: 制定中」不再是
+        # 占位页指纹——识别改锚模板自带的占位标记句（legacy 制定中模板与新缺省模板同含此句）。
+        if "（自动创建的占位页面，待补充内容）" not in content or content.count("\n") >= 25:
             continue
         from human_edit_guard import check_delete, HumanEditConflict
 
