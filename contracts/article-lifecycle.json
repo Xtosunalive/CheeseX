@@ -10,7 +10,8 @@
       "steady_state_copies": 0,
       "retire_on": "promote 成功即清（失败恢复草稿）",
       "note": "过渡态：投稿/本地草稿。写者=article-workflow 上传与外部草稿",
-      "mutability": "human-editable"
+      "mutability": "human-editable",
+      "local_draft_dir": "知识库/raw/drafts/本地草稿"
     },
     {
       "id": "standard-working",

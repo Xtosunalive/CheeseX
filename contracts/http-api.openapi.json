@@ -7270,6 +7270,9 @@
           "published": {
             "type": "boolean",
             "description": "正式版已在 current Release 且内容与工作区一致（源文件再改动即回落 false）"
+          },
+          "fieldProvenance": {
+            "$ref": "#/components/schemas/FieldProvenanceMap"
           }
         }
       },
@@ -7600,6 +7603,9 @@
               "type": "string"
             },
             "description": "可上报字段问题（validate 分级的非结构问题，如 version/module 缺失）——不阻断提升，供前端待处理问题消费"
+          },
+          "fieldProvenance": {
+            "$ref": "#/components/schemas/FieldProvenanceMap"
           }
         }
       },
@@ -8328,17 +8334,36 @@
         ],
         "oneOf": [
           {
-            "required": ["releaseId", "sourceCommit"],
+            "required": [
+              "releaseId",
+              "sourceCommit"
+            ],
             "properties": {
-              "releaseId": { "type": "string", "pattern": "^release-[0-9a-f]{64}$" },
-              "sourceCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" }
+              "releaseId": {
+                "type": "string",
+                "pattern": "^release-[0-9a-f]{64}$"
+              },
+              "sourceCommit": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{40}$"
+              }
             }
           },
           {
-            "required": ["dataSource"],
+            "required": [
+              "dataSource"
+            ],
             "properties": {
-              "dataSource": { "type": "string", "enum": ["worktree"] },
-              "workingRevision": { "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+              "dataSource": {
+                "type": "string",
+                "enum": [
+                  "worktree"
+                ]
+              },
+              "workingRevision": {
+                "type": "string",
+                "pattern": "^sha256:[0-9a-f]{64}$"
+              }
             }
           }
         ],
@@ -9045,26 +9070,50 @@
             ]
           },
           "changeSummary": {
-            "type": ["object", "null"],
+            "type": [
+              "object",
+              "null"
+            ],
             "additionalProperties": false,
-            "required": ["fields", "bodyChanged", "beforeExcerpt", "afterExcerpt"],
+            "required": [
+              "fields",
+              "bodyChanged",
+              "beforeExcerpt",
+              "afterExcerpt"
+            ],
             "properties": {
               "fields": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
-                  "required": ["field", "before", "after"],
+                  "required": [
+                    "field",
+                    "before",
+                    "after"
+                  ],
                   "properties": {
-                    "field": { "type": "string" },
-                    "before": { "type": "string" },
-                    "after": { "type": "string" }
+                    "field": {
+                      "type": "string"
+                    },
+                    "before": {
+                      "type": "string"
+                    },
+                    "after": {
+                      "type": "string"
+                    }
                   }
                 }
               },
-              "bodyChanged": { "type": "boolean" },
-              "beforeExcerpt": { "type": "string" },
-              "afterExcerpt": { "type": "string" }
+              "bodyChanged": {
+                "type": "boolean"
+              },
+              "beforeExcerpt": {
+                "type": "string"
+              },
+              "afterExcerpt": {
+                "type": "string"
+              }
             }
           }
         }
@@ -15560,6 +15609,33 @@
             "type": "string"
           },
           "details": {}
+        }
+      },
+      "FieldProvenanceMap": {
+        "type": "object",
+        "description": "WP-169（SPEC-095 §3.1 首批）：受管字段来源三态——auto＝机械确定性自动生成（已落盘）、human＝人工值、not-extracted＝未提取到（显式空态，不静默留空）；suggestion＝词表推测建议（B12：永不落盘为确认值）",
+        "additionalProperties": {
+          "type": "object",
+          "required": [
+            "source"
+          ],
+          "properties": {
+            "source": {
+              "type": "string",
+              "enum": [
+                "auto",
+                "human",
+                "not-extracted"
+              ]
+            },
+            "value": {
+              "description": "快照时刻值（草稿响应通道携带；标准化报告不含 value 键）"
+            },
+            "suggestion": {
+              "type": "string",
+              "description": "仅 not-extracted 态可能附带：机器建议值，未落盘"
+            }
+          }
         }
       }
     }

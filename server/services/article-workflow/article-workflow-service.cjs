@@ -294,6 +294,11 @@ function createArticleWorkflowService(options) {
       record.admissionBlockers = null;
       record.contentHash = contentHash;
       record.updatedAt = now;
+      // WP-169：受管字段来源三态——任务快照（draft 提取时刻）×当前 frontmatter 合并：
+      // 值未变→保留快照来源（auto/human）；值被改写→human；被清空→not-extracted；无快照存量→保守两态。
+      // B12 延续：suggestion 只在 draft 响应附注，不在标准化报告伪造确认值。
+      const provenanceTask = state.tasks.find((task) => (task.articleIds || []).includes(record.articleId) || task.precleanedPath === item.sourcePath);
+      record.fieldProvenance = mergeProvenanceWithCurrent(provenanceTask && provenanceTask.fieldProvenance, document.frontmatter);
       persistWorkflowState(vaultPath, state);
       logger.info({ event: "article-standardized", articleId: record.articleId, mode: "plan-b-direct", warningCount: record.standardizationWarnings.length });
       return articleWithWorkflow(item, record, admission.version);
@@ -548,7 +553,28 @@ function createArticleWorkflowService(options) {
     persistWorkflowState(vaultPath, state);
   }
 
-  const draftWorkflow = createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUploadTask, relativeVaultPath });
+  // WP-169：受管字段来源三态合并（标准化时刻报告）
+  const { mergeProvenanceWithCurrent, carryForwardMachineAuthorship } = require("./article-field-provenance.cjs");
+  // WP-169：来源快照落任务记录（状态单写者在本服务；.ledger workflow state 既有家，无新表）
+  function saveDraftProvenance(draftRelativePath, freshProvenance) {
+    let merged = freshProvenance;
+    try {
+      const state = readWorkflowState(vaultPath);
+      const task = state.tasks.find((item) => item.draftPath === draftRelativePath);
+      if (task) {
+        // 红队P1-2：与既有快照合并——上轮机器写入且值未变的字段携带回 auto（重复校验不冒认 human）
+        merged = carryForwardMachineAuthorship(task.fieldProvenance, freshProvenance);
+        task.fieldProvenance = merged;
+        task.updatedAt = new Date().toISOString();
+        persistWorkflowState(vaultPath, state);
+      } // 缺任务＝非正常序（validateDraft 已 ensureUploadTask），不越权补建；返回原值供响应
+    } catch (error) {
+      logger.warn({ event: "draft-provenance-save-failed", draftPath: draftRelativePath, error: error && error.message,
+        consequence: "三态将退化为保守两态（机器auto值报human）——快照为增强面，不阻断校验主链" }); // 红队记档1：后果语义显式化
+    }
+    return merged; // 回传合并视图：校验响应与快照同源（漂移语义一致）
+  }
+  const draftWorkflow = createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUploadTask, relativeVaultPath, saveDraftProvenance });
   // S124收敛/数据流闭环：promote 完成后显式触发状态同步，使 .ledger task 状态立即跟进
   // （promote 前由 validateDraft 的 ensureUploadTask 建初态；promote 后这里同步到 precleaned/ 状态）
   // 这样 Single-Writer=系统写 .ledger，Vault 脚本无需直写（移除 sync_upload_tasks_json）
@@ -709,6 +735,8 @@ function articleWithWorkflow(item, record, currentStandardVersion = null) {
     published,
     validatedAt: currentStandardVersion?.validatedAt || (recordBased ? record.validatedAt || null : null),
     standardizationWarningCount: Array.isArray(record.standardizationWarnings) ? record.standardizationWarnings.length : 0,
+    // WP-169（SPEC-095 §3.1）：受管字段来源三态（auto/human/not-extracted）——存量无记录不添键（增量兼容）
+    ...(record.fieldProvenance ? { fieldProvenance: record.fieldProvenance } : {}),
   };
 }
 
