@@ -191,8 +191,8 @@ export default function App() {
 
   useEffect(() => {
     const onPipelineCompleted = () => window.location.reload();
-    window.addEventListener("anyshare:pipeline-completed", onPipelineCompleted);
-    return () => window.removeEventListener("anyshare:pipeline-completed", onPipelineCompleted);
+    window.addEventListener("pipeline-completed", onPipelineCompleted);
+    return () => window.removeEventListener("pipeline-completed", onPipelineCompleted);
   }, []);
 
   // EntityHub shared state

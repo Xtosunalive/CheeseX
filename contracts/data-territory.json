@@ -32,7 +32,7 @@
       "retention": "local"
     },
     {
-      "id": "vault-anyshare",
+      "id": "vault-ledger",
       "classification": "事实源与流水",
       "paths": [
         ".ledger/decisions.jsonl",
