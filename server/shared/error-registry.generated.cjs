@@ -3,12 +3,20 @@
 // 消费方：server/shared/error-factory.cjs（strict 模式未知码即炸）；check:error-registry 门禁（freshness）。
 module.exports = {
   "codes": {
+    "ACTION_APPROVAL_ERROR": {
+      "statuses": [
+        500
+      ],
+      "sites": [
+        "server/routes/action-approval-routes.cjs:63"
+      ]
+    },
     "ACTION_APPROVAL_REQUIRED": {
       "statuses": [
         403
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:167"
+        "server/shared/action-execution-factory.cjs:196"
       ]
     },
     "ACTION_AUDIT_APPEND_FAILED": {
@@ -16,7 +24,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:212"
+        "server/shared/action-execution-factory.cjs:241"
       ]
     },
     "ACTION_CONFIRM_REQUIRED": {
@@ -24,7 +32,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:166"
+        "server/shared/action-execution-factory.cjs:195"
       ]
     },
     "ACTION_EXECUTOR_UNREGISTERED": {
@@ -32,7 +40,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:176"
+        "server/shared/action-execution-factory.cjs:205"
       ]
     },
     "ACTION_FACTORY_UNAVAILABLE": {
@@ -40,8 +48,8 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:123",
-        "server/shared/action-execution-factory.cjs:132"
+        "server/shared/action-execution-factory.cjs:152",
+        "server/shared/action-execution-factory.cjs:161"
       ]
     },
     "ACTION_NOT_ACTIVE": {
@@ -49,7 +57,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:139"
+        "server/shared/action-execution-factory.cjs:168"
       ]
     },
     "ACTION_POSTCHECK_FAILED": {
@@ -57,8 +65,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:199",
-        "server/shared/action-execution-factory.cjs:205"
+        "server/shared/action-execution-factory.cjs:228",
+        "server/shared/action-execution-factory.cjs:234"
       ]
     },
     "ACTION_PRECONDITION_FAILED": {
@@ -66,7 +74,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:157"
+        "server/shared/action-execution-factory.cjs:186"
       ]
     },
     "ACTION_PRECONDITION_UNKNOWN": {
@@ -74,7 +82,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:151"
+        "server/shared/action-execution-factory.cjs:180"
       ]
     },
     "ACTION_RISK_BLOCKED": {
@@ -82,7 +90,7 @@ module.exports = {
         403
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:168"
+        "server/shared/action-execution-factory.cjs:197"
       ]
     },
     "ALIAS_AMBIGUOUS": {
@@ -162,6 +170,14 @@ module.exports = {
         "server/services/anomaly/anomaly-workbench-service.cjs:31"
       ]
     },
+    "APPROVAL_ALREADY_DECIDED": {
+      "statuses": [
+        409
+      ],
+      "sites": [
+        "server/services/governance/action-approval-store.cjs:92"
+      ]
+    },
     "APPROVAL_EVIDENCE_STALE": {
       "statuses": [
         409
@@ -171,6 +187,14 @@ module.exports = {
         "server/services/release-governance/approval-state-machine-service.cjs:375",
         "server/services/release-governance/approval-state-machine-service.cjs:476",
         "server/services/release-governance/approval-state-machine-service.cjs:479"
+      ]
+    },
+    "APPROVAL_NOT_FOUND": {
+      "statuses": [
+        404
+      ],
+      "sites": [
+        "server/services/governance/action-approval-store.cjs:90"
       ]
     },
     "ARTICLES_HEALTH_UNAVAILABLE": {
@@ -2134,6 +2158,11 @@ module.exports = {
         "server/services/entity-compliance/entity-repair-service.cjs:361",
         "server/services/entity-compliance/entity-repair-service.cjs:458",
         "server/services/entity-compliance/entity-repair-service.cjs:486",
+        "server/services/governance/action-approval-store.cjs:68",
+        "server/services/governance/action-approval-store.cjs:69",
+        "server/services/governance/action-approval-store.cjs:70",
+        "server/services/governance/action-approval-store.cjs:87",
+        "server/services/governance/action-approval-store.cjs:88",
         "server/services/pipeline/obsidian-open-service.cjs:15",
         "server/services/pipeline/obsidian-open-service.cjs:18",
         "server/services/pipeline/obsidian-open-service.cjs:22",

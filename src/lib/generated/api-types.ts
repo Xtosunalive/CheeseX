@@ -8499,6 +8499,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/action-approvals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 审批单清单（折叠当前态） */
+        get: operations["listActionApprovals"];
+        put?: never;
+        /** 创建动作审批单（WP-172/SPEC-095 §3.5） */
+        post: operations["createActionApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/action-approvals/{id}/decision": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 裁决审批单（approved|rejected——角色 review） */
+        post: operations["decideActionApproval"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -12897,6 +12932,45 @@ export interface components {
                 suggestion?: string;
             };
         };
+        ActionApprovalCreateRequest: {
+            action_id: string;
+            requested_by: string;
+            risk_id?: string;
+            /** @description 拟执行动作的完整请求体（服务端算稳定哈希——键序无关） */
+            input: Record<string, never>;
+        };
+        ActionApprovalDecisionRequest: {
+            /** @enum {string} */
+            decision: "approved" | "rejected";
+            decided_by: string;
+            reason?: string;
+        };
+        ActionApproval: {
+            approvalId?: string;
+            /** @enum {string} */
+            status?: "pending" | "approved" | "rejected" | "unknown";
+            actionId?: string;
+            inputHash?: string;
+            used?: boolean;
+            requestedBy?: string;
+            decidedBy?: string;
+            decidedAt?: string;
+        };
+        ActionApprovalEnvelope: {
+            /** @constant */
+            success: true;
+            data: components["schemas"]["ActionApproval"];
+            trace_id: string;
+        };
+        ActionApprovalListEnvelope: {
+            /** @constant */
+            success: true;
+            data: {
+                items?: components["schemas"]["ActionApproval"][];
+                total?: number;
+            };
+            trace_id: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -13129,6 +13203,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ActionFactoryUnavailableErrorResponse"];
+                };
+            };
+        };
+    };
+    listActionApprovals: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 清单 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionApprovalListEnvelope"];
+                };
+            };
+        };
+    };
+    createActionApproval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionApprovalCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description 审批单已创建（pending） */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionApprovalEnvelope"];
+                };
+            };
+            /** @description VALIDATION_ERROR */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    decideActionApproval: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ActionApprovalDecisionRequest"];
+            };
+        };
+        responses: {
+            /** @description 已裁决 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionApprovalEnvelope"];
+                };
+            };
+            /** @description APPROVAL_NOT_FOUND */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description APPROVAL_ALREADY_DECIDED */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
                 };
             };
         };

@@ -126,6 +126,20 @@ const MIGRATIONS = [
       );
     `,
   },
+  {
+    // WP-172（SPEC-095 §3.5）：动作审批账本（追加族——事件流 requested/decided/used，
+    // 读侧重放折叠当前态；并发追加由自增主键构造性消解——B3 同款方案）
+    id: "0006-action-approvals",
+    sql: `
+      CREATE TABLE IF NOT EXISTS action_approvals (
+        seq INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_json TEXT NOT NULL,
+        created_at TEXT NOT NULL,
+        approval_id TEXT
+      );
+      CREATE INDEX IF NOT EXISTS idx_action_approvals_id ON action_approvals (approval_id);
+    `,
+  },
 ];
 
 function createRuntimeStateStore(db, options) {
@@ -251,6 +265,23 @@ function createRuntimeStateStore(db, options) {
     issueIds() {
       return db.prepare("SELECT DISTINCT issue_id FROM review_actions WHERE issue_id IS NOT NULL ORDER BY issue_id").all()
         .map((row) => row.issue_id);
+    },
+  };
+
+  // ── action approvals（动作审批账本：追加族——WP-172/SPEC-095 §3.5。事件流 requested/decided/used，
+  //    读侧重放折叠出当前态；并发追加由自增主键消解（B3 同款构造性方案））──
+  const actionApprovals = {
+    list() {
+      return db.prepare("SELECT event_json FROM action_approvals ORDER BY seq").all()
+        .map((row) => parseJsonColumn(row.event_json));
+    },
+    append(record) {
+      assertRowShape("actionApprovalEvent", record);
+      const approvalId = record && typeof record.approval_id === "string" && record.approval_id ? record.approval_id : null;
+      db.transaction(() => {
+        db.prepare("INSERT INTO action_approvals (event_json, created_at, approval_id) VALUES (?, ?, ?)")
+          .run(JSON.stringify(record), now(), approvalId);
+      });
     },
   };
 
@@ -430,7 +461,7 @@ function createRuntimeStateStore(db, options) {
     },
   };
 
-  const api = { approval, workflow, governance, review, inference, expectations, locks, pipeline, anomaly, migration ,
+  const api = { approval, workflow, governance, review, actionApprovals, inference, expectations, locks, pipeline, anomaly, migration ,
     changes,
   };
   api.raw = api; // 裸句柄自指（journal 包装时经 .raw 取未包装面——重放专用，物理上不触发流水，SPEC-012 F2 修复批防回声）

@@ -46,6 +46,16 @@ const ROW_SHAPES = {
       manifestKey: { type: "string", minLength: 1 },
     },
   },
+  // WP-172（SPEC-095 §3.5）：动作审批事件流（requested/decided/used 三形态——type+approval_id
+  // 结构必填；语义校验归服务层）。在册即被 store 写入口执法（不存在在册不执法的第二态）。
+  actionApprovalEvent: {
+    type: "object",
+    required: ["type", "approval_id"],
+    properties: {
+      type: { type: "string", enum: ["requested", "decided", "used"] },
+      approval_id: { type: "string", minLength: 1 },
+    },
+  },
 };
 
 const ajv = new Ajv({ strict: false, allErrors: true });

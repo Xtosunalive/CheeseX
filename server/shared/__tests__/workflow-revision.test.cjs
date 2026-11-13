@@ -25,6 +25,7 @@ test("L1 迁移注册：0005-runtime-changes 在册（id 递增、与 0001-0004 
   assert.deepEqual(ids, [
     "0001-runtime-core", "0002-pipeline", "0003-anomaly",
     "0004-review-actions-issue-column", "0005-runtime-changes",
+    "0006-action-approvals", // WP-172（SPEC-095 §3.5）：动作审批账本追加族
   ]);
 });
 
