@@ -26,6 +26,10 @@ const { listManifestSources, sourceExists } = require("../article-workflow/artic
 
 const KV_BASELINE = "graph_drift.source_fingerprint";
 const KV_FAIL_STREAK = "graph_drift.fail_streak";
+// PR-301：成功后仍漂移计数——管线成功但指纹仍漂移＝自激励循环（回写/同步面每次跑都变
+// mtime），再跑也无济于事。达上限停手等人工干预，成功且指纹稳定即复位。
+const KV_DRIFT_AFTER_SUCCESS = "graph_drift.drift_after_success";
+const MAX_DRIFT_AFTER_SUCCESS = 3;
 // 连续失败退避：自动触发的重算连续失败 N 次后停手（等人工/后续成功复位）——防「注定失败的跑
 // ×日志事件」自激励循环的第二断路器（第一断路器=指纹排除 log.md；实测：fixture blocker 每
 // 跑必败，无退避则每 14s 一轮直至天荒地老）。
@@ -48,6 +52,9 @@ function createGraphDriftRefresher({ vaultPath, store, pipeline, logger, quietMs
     if (kv.get(KV_FAIL_STREAK) !== null && kv.get(KV_FAIL_STREAK) !== "0") {
       kv.put(KV_FAIL_STREAK, 0);
       log.info({ event: "graph-drift-fail-streak-reset-at-boot" });
+    }
+    if (kv.get(KV_DRIFT_AFTER_SUCCESS) !== null && kv.get(KV_DRIFT_AFTER_SUCCESS) !== "0") {
+      kv.put(KV_DRIFT_AFTER_SUCCESS, 0); // PR-301：重启复位（同失败退避语义）
     }
   } catch (_e) { /* kv 缺表等——退避语义降级为跨重启，无害 */ }
 
@@ -116,6 +123,13 @@ function createGraphDriftRefresher({ vaultPath, store, pipeline, logger, quietMs
       log.warn({ event: "graph-drift-backoff", failStreak, reason });
       return { checked: true, drifted: true, triggered: false, backoff: true, pruned };
     }
+    // PR-301 成功后仍漂移退避：连续 N 次成功但指纹仍漂移＝自激励循环（dev 服务 619 次实录），
+    // 更多管线跑不会收敛。停手等人工处理（改代码/改数据/重启复位）。
+    const driftAfterSuccess = Number(kv.get(KV_DRIFT_AFTER_SUCCESS) || 0);
+    if (driftAfterSuccess >= MAX_DRIFT_AFTER_SUCCESS) {
+      log.warn({ event: "graph-drift-loop-backoff", driftAfterSuccess, reason, hint: "连续成功仍漂移——自激励循环，停自动触发" });
+      return { checked: true, drifted: true, triggered: false, loopBackoff: true, pruned };
+    }
     // 漂移：在途护栏（双保险——状态探测＋启动竞争捕获）
     const status = pipeline.getStatus();
     if (status && (status.state === "running" || status.state === "cancelling")) {
@@ -177,11 +191,38 @@ function createGraphDriftRefresher({ vaultPath, store, pipeline, logger, quietMs
     }
   }
 
+  /** PR-301：管线成功且指纹稳定（下次 check 不再触发）→ 复位自激励计数。 */
+  function noteFingerprintStable() {
+    try {
+      if (kv.get(KV_DRIFT_AFTER_SUCCESS) !== null && kv.get(KV_DRIFT_AFTER_SUCCESS) !== "0") {
+        kv.put(KV_DRIFT_AFTER_SUCCESS, 0);
+        log.info({ event: "graph-drift-loop-counter-reset" });
+      }
+    } catch (_e) { /* kv 缺表等，无害 */ }
+  }
+
+  /** PR-301：管线成功但下次 check 仍将触发（成功未收敛漂移）→ 计数递增。 */
+  function noteDriftAfterSuccess() {
+    try {
+      const count = Number(kv.get(KV_DRIFT_AFTER_SUCCESS) || 0) + 1;
+      kv.put(KV_DRIFT_AFTER_SUCCESS, count);
+      log.warn({ event: "graph-drift-after-success", count, max: MAX_DRIFT_AFTER_SUCCESS });
+    } catch (_e) { /* kv 缺表等，无害 */ }
+  }
+
   /** 管线终态观察（completion 钩子接线，成功/失败均达）：成功复位失败计数，失败累加。 */
   function noteRunOutcome(finished) {
     try {
       if (finished && finished.state === "succeeded") {
         if (kv.get(KV_FAIL_STREAK) !== null && kv.get(KV_FAIL_STREAK) !== "0") kv.put(KV_FAIL_STREAK, 0);
+        // PR-301：成功后立刻重算指纹，与基线（recordRefreshed 已更新）比对——不等 10s 后的
+        // 下次 check 才发现仍在漂移（那又触发一轮）。稳定＝复位计数；仍在变＝递增（自激励候选）
+        try {
+          const current = computeFingerprint();
+          const baseline = kv.get(KV_BASELINE);
+          if (baseline === current) noteFingerprintStable();
+          else noteDriftAfterSuccess();
+        } catch (_e) { /* 指纹计算失败不阻断结果记录 */ }
         return;
       }
       const streak = Number(kv.get(KV_FAIL_STREAK) || 0) + 1;
