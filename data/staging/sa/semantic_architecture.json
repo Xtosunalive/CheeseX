@@ -1,0 +1,60 @@
+{
+  "version": "1.0.0",
+  "_format_version": "1.0",
+  "_generated_by": "generate-sa.py",
+  "_generated_at": "2026-11-13T06:19:29.106413+00:00",
+  "_generated_for_version": "master",
+  "_source": "wiki/entities/ (arch_component: true)",
+  "product": "测试产品",
+  "updatedAt": "2026-11-13T06:19:29.106325+00:00",
+  "components": [],
+  "layers": [
+    {
+      "id": "gateway",
+      "label": "网关与安全边界",
+      "color": "slate"
+    },
+    {
+      "id": "foundation",
+      "label": "基础支撑层",
+      "color": "indigo"
+    },
+    {
+      "id": "data-lake",
+      "label": "内容数据湖",
+      "color": "amber"
+    },
+    {
+      "id": "cloud-native",
+      "label": "云原生基础设施",
+      "color": "slate"
+    },
+    {
+      "id": "service",
+      "label": "核心服务层",
+      "color": "cyan"
+    },
+    {
+      "id": "open",
+      "label": "开放接口层",
+      "color": "indigo"
+    },
+    {
+      "id": "application",
+      "label": "一体化应用层",
+      "color": "teal"
+    },
+    {
+      "id": "external",
+      "label": "外部系统与集成",
+      "color": "gray"
+    },
+    {
+      "id": "crosscutting",
+      "label": "横切能力与安全",
+      "color": "rose"
+    }
+  ],
+  "dependencies": [],
+  "crosscutting": []
+}

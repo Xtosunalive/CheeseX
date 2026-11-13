@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "product": "测试产品",
+  "updatedAt": "2026-11-13T06:19:29.106603+00:00",
+  "nodes": {},
+  "groups": {
+    "gateway": {
+      "x": 235,
+      "y": 80,
+      "width": 820,
+      "height": 117
+    },
+    "foundation": {
+      "x": 235,
+      "y": 215,
+      "width": 820,
+      "height": 117
+    },
+    "data-lake": {
+      "x": 235,
+      "y": 350,
+      "width": 820,
+      "height": 117
+    },
+    "cloud-native": {
+      "x": 235,
+      "y": 485,
+      "width": 820,
+      "height": 117
+    },
+    "service": {
+      "x": 235,
+      "y": 620,
+      "width": 820,
+      "height": 117
+    },
+    "open": {
+      "x": 235,
+      "y": 755,
+      "width": 820,
+      "height": 117
+    },
+    "application": {
+      "x": 235,
+      "y": 890,
+      "width": 820,
+      "height": 117
+    },
+    "external": {
+      "x": 25,
+      "y": 80,
+      "width": 190,
+      "height": 180
+    },
+    "crosscutting": {
+      "x": 1075,
+      "y": 80,
+      "width": 205,
+      "height": 180
+    }
+  }
+}

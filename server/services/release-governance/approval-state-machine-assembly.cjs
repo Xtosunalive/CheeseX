@@ -125,7 +125,8 @@ function registerApprovalStateMachine(options) {
     let artifacts;
     try {
       snapshot = snapshotArticle(article);
-      const baseArtifacts = collectCompleteArtifacts(options.vaultPath);
+      // PR-303：豁免本次快照（其字节即待批内容，其余正式文章须与 current Release 一致）
+      const baseArtifacts = collectCompleteArtifacts(options.vaultPath, { exemptFormalPaths: [snapshot.snapshotPath] });
       artifacts = Object.fromEntries(
         Object.entries(baseArtifacts)
           .filter(([name]) => !IGNORED_ARTIFACT_PREFIXES.some((prefix) => name.startsWith(prefix)))
