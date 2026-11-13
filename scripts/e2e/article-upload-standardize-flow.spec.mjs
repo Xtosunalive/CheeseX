@@ -192,7 +192,7 @@ tags: [test, e2e]
     const approvalPath = `/api/approval/status/${encodeURIComponent(uploaded.id)}`;
     const pending = await api(request, approvalPath);
     const revision = pending.body?.data?.revision;
-    const dialogText = await dialog.innerText();
+    const dialogText = await dialog.textContent(); // PR-297：折叠 details 的 revision 行 innerText 不可见——textContent 按 DOM 内容取（勘察定性，2026-11-13）
     expect(
       pending.ok && typeof revision === "string" && dialogText.includes(`revision ${revision.slice(0, 12)}`),
       "Submitted approval exposes its returned revision",
@@ -235,7 +235,7 @@ tags: [test, e2e]
       restored.ok
         && restored.body?.data?.revision !== revision
         && (await restandardize.count()) === 0
-        && (await dialog.innerText()).includes(`revision ${restored.body?.data?.revision?.slice(0, 12)}`),
+        && (await dialog.textContent()).includes(`revision ${restored.body?.data?.revision?.slice(0, 12)}`),
       "Restandardization restores confirmation with the new revision",
     ).toBe(true);
 
