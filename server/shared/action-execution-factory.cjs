@@ -131,7 +131,9 @@ function evaluateStaticRisk(actionId, action, snapshot, body, previewRequest) {
   // 输入哈希防偷换：审批的是立单时输入的哈希——执行体去掉 approval_id 后须逐字节等价
   const executionHash = channel.stableInputHash(bodyWithoutApprovalId(body));
   if (executionHash !== approval.inputHash) return reject("approval_hash_mismatch");
-  if (typeof channel.consumeActionApproval === "function") channel.consumeActionApproval(state.vaultPath, approvalId, getTraceId());
+  // 核销点＝执行器成功后（executeAction 内 executor 完成处回调）——失败不烧单（红队记档2：
+  // 前置核销把瞬态失败放大成重走全审批）。此处只放行，核销经 state.onRiskApproved 回调。
+  if (state && typeof state.onRiskApproved === "function") state.pendingConsume = () => state.onRiskApproved(state.vaultPath, approvalId, getTraceId());
   return { allowed: true, reasonCode: "risk_approved" };
 }
 
@@ -208,6 +210,7 @@ async function executeAction({ actionId, request, reply, executor: boundExecutor
   let result;
   try {
     result = await executor({ request, body, action, snapshot });
+    if (typeof state.pendingConsume === "function") { const consume = state.pendingConsume; state.pendingConsume = null; consume(); } // WP-172：审批单核销＝执行器成功后（失败不烧单）
   } catch (error) {
     // 执行器失败：沿用领域错误与事务语义——原样上抛；事件 outcome=failed 先行落账
     const outputRevision = error && typeof error.revision === "string" ? error.revision : null;
@@ -264,6 +267,8 @@ function initActionFactory({ vaultPath, logger, approvals } = {}) {
   state = {
     vaultPath,
     approvals: approvals || null, // WP-172：approve 档核验函数注入（ADR-004 层次律——shared 不反向 require services；缺注入＝审批通道未装配，fail-closed）
+    onRiskApproved: (approvals && typeof approvals.consumeActionApproval === "function") ? approvals.consumeActionApproval : null, // 成功后核销（失败不烧单）
+    pendingConsume: null,
     decisionsPath: require("../vault-paths.cjs").getDecisionsLogPath(vaultPath), // PR-243 批B：单源
     logger: logger || null,
     executors: new Map(),

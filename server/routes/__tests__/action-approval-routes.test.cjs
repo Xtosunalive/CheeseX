@@ -118,3 +118,20 @@ test("WP-172 稳定哈希单源：工厂核验与立单共用（嵌套键序递�
     stableInputHash({ y: [3, { p: 5, q: 4 }], x: { a: 2, b: 1 } }));
   assert.notEqual(stableInputHash({ a: 1 }), stableInputHash({ a: 2 }));
 });
+
+// 红队记档2回归钉：执行器失败不烧单——同单重试可用（核销点在成功后）
+test("WP-172 失败烧单修复：执行器失败后同单重试仍可执行", async () => {
+  const { vaultPath, h, approveInput } = fixture();
+  try {
+    const valid = approveInput({ basename: "not-exist.md" }); // 哈希匹配但目标不存在→执行器 404
+    const first = await h.call("POST /api/articles/retire", "/api/articles/retire", { basename: "not-exist.md", approval_id: valid });
+    assert.equal(first.statusCode, 404, "执行器按域错误 404");
+    const retryInput = (() => { const a = require("../../services/governance/action-approval-store.cjs").createActionApproval(vaultPath, { actionId: "articles.retire", input: { basename: "still-here.md" }, requestedBy: "m" }); require("../../services/governance/action-approval-store.cjs").decideActionApproval(vaultPath, a.approvalId, { decision: "approved", decidedBy: "a" }); return a.approvalId; })();
+    void retryInput;
+    // 关键断言：失败那张单【未被核销】——修复前此处会是 approval_reused（403）
+    fs2mk(vaultPath, "still-here.md");
+    const second = await h.call("POST /api/articles/retire", "/api/articles/retire", { basename: "not-exist.md", approval_id: valid });
+    assert.equal(second.statusCode, 404, "同单重试仍到执行器（非 approval_reused 403）——失败不烧单");
+  } finally { await h.close(); fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
+function fs2mk(vp, name) { const fs3 = require("node:fs"); const path3 = require("node:path"); const dir = path3.join(vp, "知识库/raw/precleaned"); fs3.mkdirSync(dir, { recursive: true }); fs3.writeFileSync(path3.join(dir, name), "x"); }

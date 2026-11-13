@@ -16,7 +16,7 @@ module.exports = {
         403
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:196"
+        "server/shared/action-execution-factory.cjs:198"
       ]
     },
     "ACTION_AUDIT_APPEND_FAILED": {
@@ -24,7 +24,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:241"
+        "server/shared/action-execution-factory.cjs:244"
       ]
     },
     "ACTION_CONFIRM_REQUIRED": {
@@ -32,7 +32,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:195"
+        "server/shared/action-execution-factory.cjs:197"
       ]
     },
     "ACTION_EXECUTOR_UNREGISTERED": {
@@ -40,7 +40,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:205"
+        "server/shared/action-execution-factory.cjs:207"
       ]
     },
     "ACTION_FACTORY_UNAVAILABLE": {
@@ -48,8 +48,8 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:152",
-        "server/shared/action-execution-factory.cjs:161"
+        "server/shared/action-execution-factory.cjs:154",
+        "server/shared/action-execution-factory.cjs:163"
       ]
     },
     "ACTION_NOT_ACTIVE": {
@@ -57,7 +57,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:168"
+        "server/shared/action-execution-factory.cjs:170"
       ]
     },
     "ACTION_POSTCHECK_FAILED": {
@@ -65,8 +65,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:228",
-        "server/shared/action-execution-factory.cjs:234"
+        "server/shared/action-execution-factory.cjs:231",
+        "server/shared/action-execution-factory.cjs:237"
       ]
     },
     "ACTION_PRECONDITION_FAILED": {
@@ -74,7 +74,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:186"
+        "server/shared/action-execution-factory.cjs:188"
       ]
     },
     "ACTION_PRECONDITION_UNKNOWN": {
@@ -82,7 +82,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:180"
+        "server/shared/action-execution-factory.cjs:182"
       ]
     },
     "ACTION_RISK_BLOCKED": {
@@ -90,7 +90,7 @@ module.exports = {
         403
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:197"
+        "server/shared/action-execution-factory.cjs:199"
       ]
     },
     "ALIAS_AMBIGUOUS": {
