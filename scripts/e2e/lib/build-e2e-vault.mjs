@@ -335,12 +335,23 @@ tags: [e2e]
 // 检查——Step 6b 断言「应呈现中文名」的驱动数据（抽屉里中文控件名须逐个可见）。
 const incompleteEntity = `---
 title: E2E Incomplete Component
+architecture-node-id: e2e-incomplete-component
 arch_component: true
+arch_layer: service
+arch_category: 服务
+arch_subdomain: maintain
+module: e2-test-module
+status: 灰度
+date: 2026-10-08
+updated: 2026-10-08
+tags: [e2e]
 ---
 
 # E2E Incomplete Component
 
-缺 arch_layer/arch_category/module/status/date/tags 的可修复实体（e2e 常驻造数，勿删）。
+原缺字段可修复实体（常驻造数）。PR-302 批补齐必填：治理流铸版闸（ENTITY_COMPLIANCE_BLOCKED）
+扫全库实体，常驻残缺＝铸版恒红（CI nightly 三连红实录）；修复流的中文 label 驱动数据
+已改为自造测试实体（e2e-test-entity-<pid>，Step4 兜底造数），不依赖此件残缺。
 `;
 
 // ── 4. 候选文章（Step 4 兜底造数目录同源；本身合法不产生阻断）──
