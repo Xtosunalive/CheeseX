@@ -15637,6 +15637,49 @@
             }
           }
         }
+      },
+      "ReleaseCrossArticleDirtyErrorResponse": {
+        "type": "object",
+        "description": "RELEASE_CROSS_ARTICLE_DIRTY 错误响应（按码 allOf 目录单元——PR-303 跨文章脏闸：details.dirty 列脏文章与原因）",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "enum": [
+                  "RELEASE_CROSS_ARTICLE_DIRTY"
+                ]
+              },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "dirty": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "article": {
+                          "type": "string"
+                        },
+                        "reason": {
+                          "type": "string",
+                          "enum": [
+                            "unpublished_formal_file",
+                            "formal_bytes_drift"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       }
     }
   },
@@ -16278,6 +16321,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ReleaseCrossArticleDirtyErrorResponse"
                     }
                   ]
                 }
@@ -26492,6 +26538,9 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ReleaseCrossArticleDirtyErrorResponse"
                     }
                   ]
                 }
