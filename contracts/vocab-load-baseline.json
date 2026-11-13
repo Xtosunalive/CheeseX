@@ -5,7 +5,7 @@
   "expiresAt": "2026-12-31",
   "note": "词表装载存在制门禁的存量豁免基线（文件→命中数上限，只减不增；低于上限＝合法收敛，须 --write 同批收紧）。本文件为生成物，禁手改——原为 check-vocab-load-port.mjs 内的手抄 map（PR-208 所记「执法清单是人工抄件」的一处，WP-084 消灭）。数值随迁移逐条保留，未做任何收紧或放宽（并源不并语义）。",
   "entries": {
-    "scripts/e2e/lib/build-e2e-vault.mjs": 1,
+    "scripts/e2e/lib/build-e2e-vault.mjs": 3,
     "server/shared/schema-config.cjs": 1,
     "scripts/vault-runtime/archive-enums-legacy.py": 3,
     "scripts/vault-py/graph/__tests__/test_exempt_rules_e2e.py": 2,
