@@ -17,7 +17,7 @@ function startApi(vaultPath, dataPath) {
     // KB_DATA_DIR＝SPEC-012 持久层测试缝（data-dir.cjs 注释明示「e2e 临时目录」用途）：
     // 不注入则 spawn 服务端打开所在树共享 data/（dev 服务真实运行态）——夹具检查被树间差异污染
     //（2026-10-16 实证：任务树绿/main 红，property total 1→2）。密闭化后两树判定一致。
-    env: { ...process.env, API_PORT: "0", VAULT_PATH: vaultPath, KB_DATA_DIR: dataPath },
+    env: { ...process.env, API_PORT: "0", VAULT_PATH: vaultPath, KB_DATA_DIR: dataPath, GRAPH_DRIFT_REFRESH: "0" }, // PR-299：断图族自刷新——boot 后 CI 已完成 SA 重建（含 doc 节点入列 total=2）而本机未及（恒 1），两侧读数不可判定形态；断后一致读冻结槽
     stdio: ["ignore", "pipe", "pipe"],
   });
 
