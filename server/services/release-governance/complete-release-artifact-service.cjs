@@ -1,6 +1,7 @@
 // @responsible: 从指定 Git 提交构建完整图事实预览与正式 Release 工件。
 // Builds complete graph-fact Preview and formal Release artifacts from one Git commit.
 const crypto = require("node:crypto");
+const { resolveReleasesDir } = require("../../shared/releases-dir.cjs");
 const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
@@ -352,9 +353,64 @@ function assertRegisteredRelationTypes(root, masterGraph) {
   }
 }
 
-function collectCompleteArtifacts(root) {
+/** 当前 Release 工件内 FORMAL_ROOT 文件的 sha256 基线（无 current.json＝空基线——
+ * 首版发布时唯一非豁免正式文件即脏，fail-closed 方向正确）。PR-303 跨文章脏闸。 */
+function currentReleaseFormalBaseline(root) {
+  const map = new Map();
+  let releasesHome;
+  try { releasesHome = resolveReleasesDir({ vaultPath: root }).dir; } catch { return map; }
+  const pointer = path.join(releasesHome, "current.json");
+  if (!fs.existsSync(pointer)) return map;
+  try {
+    const current = JSON.parse(fs.readFileSync(pointer, "utf8"));
+    if (!current || typeof current.releaseId !== "string") return map;
+    const prefix = `${articleLifecycle.FORMAL_ROOT}/`;
+    const walk = (dir) => {
+      for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+        const abs = path.join(dir, entry.name);
+        if (entry.isDirectory()) walk(abs);
+        else {
+          const rel = path.relative(releasesHome, abs).split(path.sep).join("/");
+          const artifactRel = rel.includes("artifacts/") ? rel.slice(rel.indexOf("artifacts/") + "artifacts/".length) : rel; // 工件住址＝.releases/<id>/artifacts/<vault相对>——剥 id 段
+          if (artifactRel.startsWith(prefix) && artifactRel.endsWith(".md")) {
+            map.set(artifactRel, crypto.createHash("sha256").update(fs.readFileSync(abs)).digest("hex"));
+          }
+        }
+      }
+    };
+    walk(path.join(releasesHome, current.releaseId));
+  } catch { return map; }
+  return map;
+}
+
+/** PR-303 跨文章脏闸：正式区每篇文章当前字节须与 current Release 基线一致（或为本批豁免的
+ * 本次快照）——发布/铸版是全库一致性时点，同批其他文章未决（待审改动）即阻断（409）。
+ * 防未批准字节经旁人发布物理入 Release 工件（Master 2026-11-14 疑点，双文章复现坐实）。 */
+function assertFormalArticlesClean(root, exemptFormalPaths) {
+  const exempt = new Set(exemptFormalPaths || []);
+  const baseline = currentReleaseFormalBaseline(root);
+  const prefix = `${articleLifecycle.FORMAL_ROOT}/`;
+  const dirty = [];
+  for (const relative of filesUnder(root)) {
+    if (!relative.startsWith(prefix) || !relative.endsWith(".md")) continue;
+    if (exempt.has(relative)) continue;
+    const expected = baseline.get(relative);
+    if (expected === undefined) continue; // 无基线＝从未入册（标准化态正本随批首入是既有产品语义——14 发布族测试锚定）；泄漏面＝有基线漂移
+    const actual = crypto.createHash("sha256").update(fs.readFileSync(path.join(root, relative))).digest("hex");
+    if (expected !== actual) dirty.push({ article: relative, reason: "formal_bytes_drift", expected, actual });
+  }
+  if (dirty.length) {
+    throw artifactError("RELEASE_CROSS_ARTICLE_DIRTY",
+      "正式区存在未发布或已变更的文章——发布快照须全库一致，请先处理同批其他文章（重检/确认/发布或恢复）",
+      409, { dirty });
+  }
+}
+
+function collectCompleteArtifacts(root, options = {}) {
   // 半填投影身份不得铸版（护栏本体见 assertProjectionIdentityPaired）
   assertProjectionIdentityPaired(root);
+  // PR-303：跨文章脏闸先行（文章发布链豁免本次快照路径；独立铸版链零豁免全净）
+  assertFormalArticlesClean(root, options.exemptFormalPaths);
   // SPEC-012 wave-2 图族：图/清单原文从 derived-index.db 取（scopeKey=root——生产装配后恒全局
   // 实例，测试懒建按 vault 隔离，与上批 manifests 物化同款取用形态）
   const graphStore = getDerivedIndexStore(root);
