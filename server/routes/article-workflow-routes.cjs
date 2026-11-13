@@ -58,6 +58,14 @@ function register(registerRoute, dependencies) {
     } catch (e) { return rethrowWorkflow(e); }
   };
   registerActionExecutor("article-workflow.drafts-promote", __exec_article_workflow_drafts_promote);;
+  // WP-171（SPEC-095 §3.3 首批）：validate 动作化——最后一个旁路写路径收编（WP-048 同款：逻辑原样迁入）
+  const __exec_article_workflow_drafts_validate = async function (ctx) {
+    try {
+      // WP-022：expectedRevision 乐观锁透传（锁住 ensureUploadTask 建态写）——语义逐字保留
+      return await service.validateDraft(ctx.body.filePath, { expectedRevision: ctx.body && ctx.body.expectedRevision });
+    } catch (e) { return rethrowWorkflow(e); }
+  };
+  registerActionExecutor("article-workflow.drafts-validate", __exec_article_workflow_drafts_validate);;
 
   // WP-048 W1-B 动作化：upload（success_status 201 声明于动作定义）
   registerRoute("POST", "/api/articles/upload", function (req, res) {
@@ -130,10 +138,9 @@ function register(registerRoute, dependencies) {
     return executeAction({ actionId: "articles.patch-fields", executor: __exec_article_workflow_patch_fields, request: req, reply: res });
   });
 
-  registerRoute("POST", "/api/articles/drafts/validate", async function (req, res) {
-    // WP-022：expectedRevision 乐观锁透传（冲突 409——锁住 ensureUploadTask 建态写）
-    try { return sendJSON(res, 200, await service.validateDraft(req.body.filePath, { expectedRevision: req.body && req.body.expectedRevision })); }
-    catch (error) { return sendWorkflowError(res, error); }
+  // WP-171（SPEC-095 §3.3 首批）：articles.drafts-validate 动作化——对外路径/请求/响应形态零变化
+  registerRoute("POST", "/api/articles/drafts/validate", function (req, res) {
+    return executeAction({ actionId: "articles.drafts-validate", executor: __exec_article_workflow_drafts_validate, request: req, reply: res });
   });
 
   // WP-048 W1-B 动作化：articles.drafts-promote

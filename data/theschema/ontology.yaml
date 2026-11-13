@@ -1274,6 +1274,15 @@ action_types:
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/drafts/promote requestBody"
+  # WP-171（SPEC-095 §3.3 首批）：validate 为生命周期首站写操作（归档+自动填+任务快照）——
+  # 最后一个旁路写路径收编，文章写操作六/六全经工厂（登记即执法）
+  articles.drafts-validate:
+    http_route: "POST /api/articles/drafts/validate"
+    executor: article-workflow.drafts-validate
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/articles/drafts/validate requestBody"
   entity.repair-apply:
     http_route: "POST /api/entity/repair/apply"
     executor: entity-compliance.repair-apply
