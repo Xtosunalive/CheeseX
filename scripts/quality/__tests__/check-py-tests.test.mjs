@@ -8,14 +8,26 @@ import { fileURLToPath } from "node:url";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 
-test("绿：真仓全量 pytest 退出码 0，且不污染 git 跟踪的治理数据（pipeline-trajectories.jsonl 跑前后字节一致）", () => {
+test("绿：真仓全量 pytest 退出码 0，且不污染 git 跟踪的治理数据（pipeline-trajectories.jsonl 跑前后字节一致——PR-300 量法修正：环境写入者在场时拒判并点名，不诬告 pytest）", { timeout: 180_000 }, () => {
   const ROOT = path.resolve(HERE, "..", "..", "..");
   const TRAJ = "data/governance/pipeline-trajectories.jsonl";
   const hashOf = () => spawnSync("git", ["hash-object", TRAJ], { cwd: ROOT, encoding: "utf8" }).stdout.trim();
-  const before = hashOf();
+  // PR-300 写入者归因：跑前静默性采样——无 pytest 窗口内账本仍在动＝环境写入者（如常驻 dev
+  // 服务 15s 自循环管线）在场，门禁量法对"跑前后哈希差"失去归因力→拒判（fail-safe 指明
+  // 凶手待排除），不再把窗口内一切写入记到 pytest 头上（诬告即假红）。
+  const quiesceProbe1 = hashOf();
+  spawnSync(process.execPath, ["-e", "setTimeout(()=>{},2500)"]);
+  const quiesceProbe2 = hashOf();
+  const ambientWriter = quiesceProbe1 !== quiesceProbe2;
+  const before = quiesceProbe2;
   const r = spawnSync("node", [path.join(HERE, "../check-py-tests.mjs")], { encoding: "utf8" });
   assert.equal(r.status, 0, r.stdout + r.stderr);
-  assert.equal(hashOf(), before, `全量 pytest 往 ${TRAJ} 写入了测试轨迹——测试必须经 PIPELINE_TRAJECTORIES_DIR 隔离`);
+  const after = hashOf();
+  if (ambientWriter && after !== before) {
+    // 拒判≠放行：显式指出归因不可判定，需排掉环境写入者后重跑（PR-301 处置 dev 自循环）
+    assert.fail(`pipeline-trajectories.jsonl 在无 pytest 窗口已在被写入（环境写入者在场，PR-300 归因失效）——请先停止常驻 dev 服务（PR-301）后重跑本门禁；本次不判定 pytest 泄漏`);
+  }
+  assert.equal(after, before, `全量 pytest 往 ${TRAJ} 写入了测试轨迹——测试必须经 PIPELINE_TRAJECTORIES_DIR 隔离`);
 });
 
 test("红：PATH 无 python3 时 fail-closed 拦截（非静默跳过）", () => {
