@@ -188,6 +188,16 @@ relation_types:
       - 依赖
   DOCUMENTS:
     assertion_policies:
+      # WP-170（Master 裁决B落位，2026-11-13）：正文实体匹配→机器候选，必经人审（reviewed）——
+      # MENTIONS/REFERENCES 均 candidate_enabled=false 禁机器量产，DOCUMENTS 为唯一开放且语义贴合（文档说明组件）的落位
+      - source_kind: document-body
+        producer: article-relation-candidates
+        decision_mode: reviewed
+        required_evidence:
+          - evidence_text
+        formal_consumers:
+          - pending_review
+          - review_actions
       - source_kind: article_association
         producer: article-association-service.approved_association
         decision_mode: inherit_source_approval

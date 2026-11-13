@@ -801,6 +801,11 @@
       "file": "scripts/quality/gen-ui-stat-provenance.mjs",
       "side": "node",
       "reason": "投影生成器（WP-136 b：覆盖写 contracts/ui-stat-provenance.json 的 views[].sourceApis 派生段，写=commit 面）——人写规范半 apiSources（视图↔api 模块#导出函数），机器派生描述半端点清单，手抄面退役；gen-value-domains／gen-readiness-required 同形态先例。缺省即写入、--check 只比对不写（派生纳保由 check:derivation-sync 经 reuse-domains 行 generator 调用）。"
+    },
+    {
+      "file": "server/shared/persistence/article-graph-staging.cjs",
+      "side": "node",
+      "reason": "WP-170（2026-11-13，Master 裁决B落位）：图族 staging 工件瞬态出口（data/staging/master_graph.json，KB_DATA_DIR 侧非 vault）——候选追加经 temp+rename 原子写，读侧与摄取链同源"
     }
   ],
   "spawn_sites_allow": [
