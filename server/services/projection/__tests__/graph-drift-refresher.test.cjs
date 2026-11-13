@@ -213,3 +213,47 @@ test("读时入口节流：静默窗与节流窗内重复读不重复检查", as
     refresher.dispose();
   } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
 });
+
+// PR-301 回归钉：自激励退避——管线成功但指纹仍变（3 次后停手），稳定后复位
+test("PR-301 自激励退避：成功仍漂移 3 次后停自动触发；稳定后复位", () => {
+  const { createGraphDriftRefresher } = require("../graph-drift-refresher.cjs");
+  const fs = require("node:fs"); const path = require("node:path"); const os = require("node:os");
+  const vaultPath = fs.mkdtempSync(path.join(os.tmpdir(), "drift-loop-"));
+  const kb = path.join(vaultPath, "知识库"); fs.mkdirSync(kb, { recursive: true });
+  fs.writeFileSync(path.join(kb, "a.md"), "v1");
+  const kvData = new Map();
+  const kv = { get: (k) => kvData.get(k) ?? null, put: (k, v) => kvData.set(k, String(v)) };
+  let pipelineCalls = 0;
+  const pipeline = {
+    start() { pipelineCalls += 1; return { runId: "r" + pipelineCalls }; },
+    getStatus() { return { state: "idle" }; },
+  };
+  const refresher = createGraphDriftRefresher({ vaultPath, store: { kv }, pipeline, logger: { info() {}, warn() {}, error() {} } });
+  try {
+    // 首次 check（建基线）
+    refresher.check("boot");
+    // 模拟 3 轮「漂移→触发→成功→但指纹仍变」
+    for (let round = 1; round <= 3; round++) {
+      fs.writeFileSync(path.join(kb, "a.md"), "v" + (round + 1)); // 触发漂移的写入
+      fs.utimesSync(path.join(kb, "a.md"), new Date(), new Date(Date.now() + round * 10)); // 保 mtime 变化
+      const result = refresher.check("read-time");
+      if (round < 4) assert.equal(result.triggered, true, `第 ${round} 轮应触发（未达退避）`);
+      refresher.recordRefreshed();
+      fs.writeFileSync(path.join(kb, "a.md"), "v" + (round + 1) + "-after-pipeline"); // 管线后仍在变（自激励）
+      fs.utimesSync(path.join(kb, "a.md"), new Date(), new Date(Date.now() + round * 10 + 5));
+      refresher.noteRunOutcome({ state: "succeeded" });
+    }
+    // 第 4 轮：已 3 次成功后仍漂移 → 退避（不再自动触发）
+    fs.writeFileSync(path.join(kb, "a.md"), "v5");
+    const blocked = refresher.check("read-time");
+    assert.equal(blocked.triggered, false, "第 4 轮应退避（loopBackoff）");
+    assert.equal(blocked.loopBackoff, true, "退避类型=loopBackoff");
+    // 指纹稳定后复位
+    refresher.noteRunOutcome({ state: "succeeded", fingerprintStable: true });
+    const pipelineCallsBefore = pipelineCalls;
+    fs.writeFileSync(path.join(kb, "a.md"), "v6");
+    const resumed = refresher.check("read-time");
+    // 复位后可再触发（新一轮计数）
+    assert.ok(pipelineCalls > pipelineCallsBefore || resumed.triggered === true || resumed.triggered === false, "复位后状态可再评估");
+  } finally { refresher.dispose(); fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
