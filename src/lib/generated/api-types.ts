@@ -442,7 +442,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["StateTransitionForbiddenErrorResponse"] | components["schemas"]["ApprovalEvidenceStaleErrorResponse"] | components["schemas"]["ArticleRevisionConflictErrorResponse"] | components["schemas"]["SnapshotHashMismatchErrorResponse"] | components["schemas"]["ReleaseIdLockedErrorResponse"] | components["schemas"]["ArticleNotStandardizedErrorResponse"] | components["schemas"]["ArticleValidationFailedErrorResponse"] | components["schemas"]["ActionConfirmRequiredErrorResponse"];
+                        "application/json": components["schemas"]["StateTransitionForbiddenErrorResponse"] | components["schemas"]["ApprovalEvidenceStaleErrorResponse"] | components["schemas"]["ArticleRevisionConflictErrorResponse"] | components["schemas"]["SnapshotHashMismatchErrorResponse"] | components["schemas"]["ReleaseIdLockedErrorResponse"] | components["schemas"]["ArticleNotStandardizedErrorResponse"] | components["schemas"]["ArticleValidationFailedErrorResponse"] | components["schemas"]["ActionConfirmRequiredErrorResponse"] | components["schemas"]["ReleaseCrossArticleDirtyErrorResponse"];
                     };
                 };
                 /** @description 请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起 */
@@ -12897,6 +12897,18 @@ export interface components {
                 suggestion?: string;
             };
         };
+        /** @description RELEASE_CROSS_ARTICLE_DIRTY 错误响应（按码 allOf 目录单元——PR-303 跨文章脏闸：details.dirty 列脏文章与原因） */
+        ReleaseCrossArticleDirtyErrorResponse: components["schemas"]["ApiError"] & {
+            /** @enum {string} */
+            error_code?: "RELEASE_CROSS_ARTICLE_DIRTY";
+            details?: {
+                dirty?: {
+                    article?: string;
+                    /** @enum {string} */
+                    reason?: "unpublished_formal_file" | "formal_bytes_drift";
+                }[];
+            };
+        };
     };
     responses: never;
     parameters: never;
@@ -12998,7 +13010,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ActionConfirmRequiredErrorResponse"];
+                    "application/json": components["schemas"]["ActionConfirmRequiredErrorResponse"] | components["schemas"]["ReleaseCrossArticleDirtyErrorResponse"];
                 };
             };
             /** @description 动作前置条件未满足（ACTION_PRECONDITION_FAILED） */

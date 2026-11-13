@@ -577,7 +577,7 @@ module.exports = {
         "server/services/entity-compliance/entity-repair-service.cjs:440",
         "server/services/entity-compliance/entity-repair-service.cjs:512",
         "server/services/entity-compliance/entity-repair-service.cjs:520",
-        "server/services/release-governance/complete-release-artifact-service.cjs:429"
+        "server/services/release-governance/complete-release-artifact-service.cjs:485"
       ]
     },
     "ENTITY_NOT_FOUND": {
@@ -983,11 +983,11 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:69",
-        "server/services/release-governance/complete-release-artifact-service.cjs:99",
-        "server/services/release-governance/complete-release-artifact-service.cjs:168",
-        "server/services/release-governance/complete-release-artifact-service.cjs:201",
-        "server/services/release-governance/complete-release-artifact-service.cjs:239"
+        "server/services/release-governance/complete-release-artifact-service.cjs:70",
+        "server/services/release-governance/complete-release-artifact-service.cjs:100",
+        "server/services/release-governance/complete-release-artifact-service.cjs:169",
+        "server/services/release-governance/complete-release-artifact-service.cjs:202",
+        "server/services/release-governance/complete-release-artifact-service.cjs:240"
       ]
     },
     "INVALID_RELEASE_ID": {
@@ -1507,7 +1507,7 @@ module.exports = {
     "RELATION_TYPE_UNREGISTERED": {
       "statuses": [],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:346"
+        "server/services/release-governance/complete-release-artifact-service.cjs:347"
       ]
     },
     "RELEASED_VERSION_IMMUTABLE": {
@@ -1523,7 +1523,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:249"
+        "server/services/release-governance/complete-release-artifact-service.cjs:250"
       ]
     },
     "RELEASE_ARTIFACT_INVALID": {
@@ -1548,13 +1548,19 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:75",
-        "server/services/release-governance/complete-release-artifact-service.cjs:83",
-        "server/services/release-governance/complete-release-artifact-service.cjs:94",
-        "server/services/release-governance/complete-release-artifact-service.cjs:106",
-        "server/services/release-governance/complete-release-artifact-service.cjs:381",
+        "server/services/release-governance/complete-release-artifact-service.cjs:76",
+        "server/services/release-governance/complete-release-artifact-service.cjs:84",
+        "server/services/release-governance/complete-release-artifact-service.cjs:95",
+        "server/services/release-governance/complete-release-artifact-service.cjs:107",
+        "server/services/release-governance/complete-release-artifact-service.cjs:437",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:46",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:191"
+      ]
+    },
+    "RELEASE_CROSS_ARTICLE_DIRTY": {
+      "statuses": [],
+      "sites": [
+        "server/services/release-governance/complete-release-artifact-service.cjs:403"
       ]
     },
     "RELEASE_DOCUMENT_INDEX_INVALID": {
@@ -1562,8 +1568,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:114",
-        "server/services/release-governance/complete-release-artifact-service.cjs:118",
+        "server/services/release-governance/complete-release-artifact-service.cjs:115",
+        "server/services/release-governance/complete-release-artifact-service.cjs:119",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:101",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:106",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:110"
@@ -1603,7 +1609,7 @@ module.exports = {
     "RELEASE_MANIFEST_ORPHAN": {
       "statuses": [],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:462"
+        "server/services/release-governance/complete-release-artifact-service.cjs:518"
       ]
     },
     "RELEASE_NOT_FOUND": {
@@ -1619,7 +1625,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/complete-release-artifact-service.cjs:180",
+        "server/services/release-governance/complete-release-artifact-service.cjs:181",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:130"
       ]
     },
