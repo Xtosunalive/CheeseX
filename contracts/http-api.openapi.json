@@ -15637,6 +15637,137 @@
             }
           }
         }
+      },
+      "ActionApprovalCreateRequest": {
+        "type": "object",
+        "required": [
+          "action_id",
+          "input",
+          "requested_by"
+        ],
+        "properties": {
+          "action_id": {
+            "type": "string"
+          },
+          "requested_by": {
+            "type": "string"
+          },
+          "risk_id": {
+            "type": "string"
+          },
+          "input": {
+            "type": "object",
+            "description": "拟执行动作的完整请求体（服务端算稳定哈希——键序无关）"
+          }
+        }
+      },
+      "ActionApprovalDecisionRequest": {
+        "type": "object",
+        "required": [
+          "decision",
+          "decided_by"
+        ],
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "approved",
+              "rejected"
+            ]
+          },
+          "decided_by": {
+            "type": "string"
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "ActionApproval": {
+        "type": "object",
+        "properties": {
+          "approvalId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "approved",
+              "rejected",
+              "unknown"
+            ]
+          },
+          "actionId": {
+            "type": "string"
+          },
+          "inputHash": {
+            "type": "string"
+          },
+          "used": {
+            "type": "boolean"
+          },
+          "requestedBy": {
+            "type": "string"
+          },
+          "decidedBy": {
+            "type": "string"
+          },
+          "decidedAt": {
+            "type": "string"
+          }
+        }
+      },
+      "ActionApprovalEnvelope": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "trace_id"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ActionApproval"
+          },
+          "trace_id": {
+            "type": "string"
+          }
+        }
+      },
+      "ActionApprovalListEnvelope": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "trace_id"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ActionApproval"
+                }
+              },
+              "total": {
+                "type": "integer"
+              }
+            }
+          },
+          "trace_id": {
+            "type": "string"
+          }
+        }
       }
     }
   },
@@ -26864,6 +26995,118 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ArticleHealthUnavailableErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/action-approvals": {
+      "post": {
+        "summary": "创建动作审批单（WP-172/SPEC-095 §3.5）",
+        "operationId": "createActionApproval",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionApprovalCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "审批单已创建（pending）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionApprovalEnvelope"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "VALIDATION_ERROR",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "审批单清单（折叠当前态）",
+        "operationId": "listActionApprovals",
+        "responses": {
+          "200": {
+            "description": "清单",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionApprovalListEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/action-approvals/{id}/decision": {
+      "post": {
+        "summary": "裁决审批单（approved|rejected——角色 review）",
+        "operationId": "decideActionApproval",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActionApprovalDecisionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "已裁决",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActionApprovalEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "APPROVAL_ALREADY_DECIDED",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "APPROVAL_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }

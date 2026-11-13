@@ -34,7 +34,7 @@ function mergeW1aActionTypes(ontologyPath) {
 function setupActionRuntime({ vaultPath }) {
   initVaultIO({ vaultPath });
   initActionRegistry({ vaultPath, logger: null });
-  initActionFactory({ vaultPath, logger: null });
+  initActionFactory({ vaultPath, logger: null, approvals: require("../../../services/governance/action-approval-store.cjs") }); // WP-172：审批通道注入（测试同产线装配）
 }
 
 function teardownActionRuntime() {
