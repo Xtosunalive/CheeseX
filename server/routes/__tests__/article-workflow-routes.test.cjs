@@ -36,20 +36,26 @@ test("WP-093 退役公开端点拒绝越界且合法预演/执行可用", async 
   fs0.writeFileSync(path0.join(working, "valid.md"), "working");
   const { createArticleLifecycleReconciler } = require("../../services/article-workflow/article-lifecycle-reconciler.cjs");
   const r = createArticleLifecycleReconciler({ vaultPath });
+  setupActionRuntime({ vaultPath }); // WP-172：本测试自装运行时（审批账本/注册表随本 vault——防进程单例残留指他库）
   const h = createRouteHarness();
   routes.register(h.registerRoute, { articleWorkflowService: {}, retireArticle: r.retireArticle });
   try {
-    for (const query of ["?dryRun=1", ""]) {
-      const bad = await h.call("POST /api/articles/retire", `/api/articles/retire${query}`, { basename: "../../../victim.md" });
-      assert.equal(bad.statusCode, 400);
-      assert.equal(bad.body.error_code, "VALIDATION_ERROR");
-      assert.equal(fs0.readFileSync(path0.join(vaultPath, "victim.md"), "utf8"), "outside role");
-    }
+    const badPreview = await h.call("POST /api/articles/retire", "/api/articles/retire?dryRun=1", { basename: "../../../victim.md" });
+    assert.equal(badPreview.statusCode, 400);
+    assert.equal(badPreview.body.error_code, "VALIDATION_ERROR");
+    assert.equal(fs0.readFileSync(path0.join(vaultPath, "victim.md"), "utf8"), "outside role");
+    const gated = await h.call("POST /api/articles/retire", "/api/articles/retire", { basename: "../../../victim.md" });
+    assert.equal(gated.statusCode, 403);
+    assert.equal(gated.body.error_code, "ACTION_APPROVAL_REQUIRED");
+    assert.equal(fs0.readFileSync(path0.join(vaultPath, "victim.md"), "utf8"), "outside role");
     const preview = await h.call("POST /api/articles/retire", "/api/articles/retire?dryRun=1", { basename: "valid.md" });
     assert.equal(preview.statusCode, 200);
     assert.equal(preview.body.data.dryRun, true);
     assert.equal(fs0.existsSync(path0.join(working, "valid.md")), true);
-    const retire = await h.call("POST /api/articles/retire", undefined, { basename: "valid.md" });
+    const { createActionApproval, decideActionApproval } = require("../../services/governance/action-approval-store.cjs");
+    const approval = createActionApproval(vaultPath, { actionId: "articles.retire", input: { basename: "valid.md" }, requestedBy: "retire-http-test" });
+    decideActionApproval(vaultPath, approval.approvalId, { decision: "approved", decidedBy: "retire-http-test" });
+    const retire = await h.call("POST /api/articles/retire", undefined, { basename: "valid.md", approval_id: approval.approvalId });
     assert.equal(retire.statusCode, 200);
     assert.equal(retire.body.data.retired, true);
     assert.equal(fs0.existsSync(path0.join(working, "valid.md")), false);

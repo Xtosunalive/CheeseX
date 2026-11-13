@@ -61,7 +61,7 @@ const vaultIO = initVaultIO({ vaultPath, gitLedger: vaultGitLedger, logger }); /
 const { initActionRegistry } = require("./shared/action-registry.cjs");
 const { initActionFactory } = require("./shared/action-execution-factory.cjs");
 initActionRegistry({ vaultPath, logger });
-initActionFactory({ vaultPath, logger });
+initActionFactory({ vaultPath, logger, approvals: require("./services/governance/action-approval-store.cjs") });
 // boot 漂移修复扫：启动时扫 vault 工作区 vs git HEAD，有变更补 recovery: 提交（crash window 兜底）
 // PR-056：listen 前 await 完成（SPEC-011 WP0「flush 确保在 server 开始处理请求前落账」的顺序兑现）
 const bootDriftReady = recoverBootDrift(vaultPath, vaultGitLedger, logger).catch(() => {}); // 失败只告警不阻断启动
@@ -375,6 +375,8 @@ require("./routes/review-routes.cjs").register(registerRoute, {
   listOpenIssues,
   getSuggestionService: () => confidenceSuggestionService,
 });
+// WP-172（SPEC-095 §3.5 首批）：动作审批通道——立单/裁决/清单
+require("./routes/action-approval-routes.cjs").register(registerRoute, { vaultPath });
 // EDGE-RELATION-GOV-001 阶段 3（SPEC-026 §十一）：统一读接口 /api/edges——④类查询模块（shared/edge-query，
 // 零 SQL 零连接点）＋路由。门禁三答：正式读 consumer 复用 relation_search（selectFormalRelations 按断言政策
 // 过滤）、stale 分流回落工作态投影、邻域恒工作态现算（runtime_view）

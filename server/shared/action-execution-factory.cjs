@@ -93,7 +93,7 @@ function inputRevisionOf(body, snapshot) {
 /** 静态风险评估（ADR-014 §3.2 风险行：决策只允许声明处置意图）——返回 {allowed, reasonCode} 或
  *  {allowed:false, code, message, status, details}；错误对象在调用点 throw 行构造（PR-158 出生账
  *  扫描器只认 throw 行字面量——返回式错误对象会逃账，红队发现①）。 */
-function evaluateStaticRisk(action, snapshot, body) {
+function evaluateStaticRisk(actionId, action, snapshot, body, previewRequest) {
   if (!action.risk_id) return { allowed: true, reasonCode: "risk_none" };
   const risk = snapshot.risks.get(action.risk_id);
   if (!risk) return { allowed: false, code: "ACTION_RISK_BLOCKED", message: `动作风险 ${action.risk_id} 不可判定（未声明或非现役）——不自动执行`, status: 403, details: { risk_id: action.risk_id, reason: "risk_unresolved" } };
@@ -109,8 +109,39 @@ function evaluateStaticRisk(action, snapshot, body) {
     if (body && body.confirm === true) return { allowed: true, reasonCode: "risk_confirmed" };
     return { allowed: false, code: "ACTION_CONFIRM_REQUIRED", message: `动作须二次确认（风险 ${action.risk_id}）——请求体携带 confirm: true 后重试`, status: 409, details: { risk_id: action.risk_id } };
   }
-  // approve：Wave 1 无审批流接线——恒拒并显式留痕（未来接审批走 change_request，ADR-014 §6.1）
-  return { allowed: false, code: "ACTION_APPROVAL_REQUIRED", message: `动作须审批（风险 ${action.risk_id}）——审批通道未接线`, status: 403, details: { risk_id: action.risk_id } };
+  // WP-172（SPEC-095 §3.5 首批）：approve 档凭审批单核验——approved 且动作匹配且输入哈希一致且未用
+  // （单次有效）→放行并核销；任何不满足仍拒（fail-closed，六分支各留 details.reason 供对账）
+  // dryRun 预览旁路：URL 带 dryRun=1 时执行器语义即「预演不写」（retire 先例）——预览非风险动作本体，放行留痕
+  if (previewRequest && previewRequest.url && /([?&])dryRun=1\b/.test(previewRequest.url)) {
+    return { allowed: true, reasonCode: "risk_dry_run_preview" };
+  }
+  const reject = (reason) => ({ allowed: false, code: "ACTION_APPROVAL_REQUIRED", message: `动作须审批（风险 ${action.risk_id}）——${reason}`, status: 403, details: { risk_id: action.risk_id, reason } });
+  const channel = state && state.approvals;
+  if (!channel || typeof channel.foldActionApprovals !== "function" || typeof channel.stableInputHash !== "function") {
+    return reject("审批通道未装配（装配缺陷——initActionFactory 需注入 approvals）");
+  }
+  const approvalId = body && typeof body.approval_id === "string" ? body.approval_id.trim() : "";
+  if (!approvalId) return reject("审批通道已接线：先立审批单（POST /api/action-approvals），裁决通过后携 approval_id 重试");
+  const approval = channel.foldActionApprovals(state.vaultPath).get(approvalId);
+  if (!approval || approval.status === "unknown") return reject("approval_unknown");
+  if (approval.status === "rejected") return reject("approval_rejected");
+  if (approval.status === "pending") return reject("approval_pending");
+  if (approval.used) return reject("approval_reused");
+  if (approval.actionId !== actionId) return reject("approval_action_mismatch");
+  // 输入哈希防偷换：审批的是立单时输入的哈希——执行体去掉 approval_id 后须逐字节等价
+  const executionHash = channel.stableInputHash(bodyWithoutApprovalId(body));
+  if (executionHash !== approval.inputHash) return reject("approval_hash_mismatch");
+  // 核销点＝执行器成功后（executeAction 内 executor 完成处回调）——失败不烧单（红队记档2：
+  // 前置核销把瞬态失败放大成重走全审批）。此处只放行，核销经 state.onRiskApproved 回调。
+  if (state && typeof state.onRiskApproved === "function") state.pendingConsume = () => state.onRiskApproved(state.vaultPath, approvalId, getTraceId());
+  return { allowed: true, reasonCode: "risk_approved" };
+}
+
+function bodyWithoutApprovalId(body) {
+  if (!body || typeof body !== "object") return body;
+  const clone = { ...body };
+  delete clone.approval_id;
+  return clone;
 }
 
 /**
@@ -159,7 +190,7 @@ async function executeAction({ actionId, request, reply, executor: boundExecutor
   }
 
   // ③ 静态风险（不可判定不自动执行）——错误对象在本 throw 族构造（出生账口径，红队发现①修复）
-  const risk = evaluateStaticRisk(action, snapshot, body);
+  const risk = evaluateStaticRisk(actionId, action, snapshot, body, request);
   if (!risk.allowed) {
     const event = buildEvent({ traceId, actionId, snapshot, inputRevision, outputRevision: null, outcome: "rejected", errorCode: risk.code });
     appendActionEvent(event);
@@ -179,6 +210,7 @@ async function executeAction({ actionId, request, reply, executor: boundExecutor
   let result;
   try {
     result = await executor({ request, body, action, snapshot });
+    if (typeof state.pendingConsume === "function") { const consume = state.pendingConsume; state.pendingConsume = null; consume(); } // WP-172：审批单核销＝执行器成功后（失败不烧单）
   } catch (error) {
     // 执行器失败：沿用领域错误与事务语义——原样上抛；事件 outcome=failed 先行落账
     const outputRevision = error && typeof error.revision === "string" ? error.revision : null;
@@ -228,12 +260,15 @@ async function executeAction({ actionId, request, reply, executor: boundExecutor
   return sendJSON(reply, successStatus, payload);
 }
 
-function initActionFactory({ vaultPath, logger } = {}) {
+function initActionFactory({ vaultPath, logger, approvals } = {}) {
   if (!vaultPath) throw new TypeError("[action-factory] initActionFactory 需要 vaultPath");
   // 不重复 initVaultIO：通道由 main.cjs 统一初始化（重复调用会清掉已装配的 gitLedger）；
   // 测试侧自行 initVaultIO({ vaultPath }) 激活通道后再走工厂成功路径。
   state = {
     vaultPath,
+    approvals: approvals || null, // WP-172：approve 档核验函数注入（ADR-004 层次律——shared 不反向 require services；缺注入＝审批通道未装配，fail-closed）
+    onRiskApproved: (approvals && typeof approvals.consumeActionApproval === "function") ? approvals.consumeActionApproval : null, // 成功后核销（失败不烧单）
+    pendingConsume: null,
     decisionsPath: require("../vault-paths.cjs").getDecisionsLogPath(vaultPath), // PR-243 批B：单源
     logger: logger || null,
     executors: new Map(),

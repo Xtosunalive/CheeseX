@@ -20,7 +20,7 @@ const { createDerivedIndexStore } = require("../persistence/derived-index-store.
 function tmpDir() { return fs.mkdtempSync(path.join(os.tmpdir(), "row-guard-")); }
 
 test("L1 三 schema 在册且可编译；assertRowShape 三分支", () => {
-  assert.deepEqual(Object.keys(ROW_SHAPES).sort(), ["articleManifest", "reviewAction", "workflowState"]);
+  assert.deepEqual(Object.keys(ROW_SHAPES).sort(), ["actionApprovalEvent", "articleManifest", "reviewAction", "workflowState"]); // WP-172：审批事件形状入册
   // 合法放行（静默）
   assert.doesNotThrow(() => assertRowShape("reviewAction", { action: "approved", reviewer: "klena", decidedAt: "2026-10-26T00:00:00Z", source: "a", target: "b", extraHistoryField: 1 }));
   assert.doesNotThrow(() => assertRowShape("reviewAction", { kind: "relation_candidate", candidateId: "c1", action: "approved", reviewer: "k", decidedAt: "t" }));
