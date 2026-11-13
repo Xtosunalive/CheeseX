@@ -124,6 +124,19 @@ export const RELATION_TYPES = {
     "legacyPolicy": "migrate",
     "assertionPolicies": [
       {
+        "sourceKind": "document-body",
+        "producer": "article-relation-candidates",
+        "decisionMode": "reviewed",
+        "requiredEvidence": [
+          "evidence_text"
+        ],
+        "formalConsumers": [
+          "pending_review",
+          "review_actions"
+        ],
+        "workingProjection": "approved_only"
+      },
+      {
         "sourceKind": "article_association",
         "producer": "article-association-service.approved_association",
         "decisionMode": "inherit_source_approval",
@@ -1119,7 +1132,8 @@ export const CATEGORY_CLASSES = {
     "Module"
   ],
   "文档": [
-    "Document"
+    "Document",
+    "KnowledgeArticle"
   ],
   "概念": [
     "Concept"

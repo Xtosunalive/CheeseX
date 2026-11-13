@@ -7,7 +7,7 @@
 // 生效只经既有 review 人工裁决（B12 同族：推测只能建议）。
 // 边 id 确定性（source+target+type+生成器）——重复标准化幂等去重由调用方按 id 合并。
 
-const CANDIDATE_RELATION = "MENTIONS"; // 首批关系类型：文章提及实体（Document 族白名单内）
+const CANDIDATE_RELATION = "DOCUMENTS"; // 首批关系类型（Master 裁决B落位，2026-11-13）：正文实体匹配→「文档说明」候选。MENTIONS/REFERENCES 均候选禁产（candidate_enabled=false），DOCUMENTS 唯一开放且目标域含 Entity、语义贴合
 const GENERATOR = "wp170-standardize-candidates";
 
 function candidateEdgeId(source, target, type) {
@@ -114,27 +114,8 @@ module.exports = { GENERATOR, CANDIDATE_RELATION, candidateEdgeId, generateRelat
 
 // ── 发射器（装配件）：标准化成功 → 生成候选 → 追加进 staging 图 → 触发摄取/投影（经注入回调）──
 // 失败不阻断标准化主链（候选为增强面）；staging 图缺席＝基底不在（空库/管线未跑）→跳过不报错。
-const fs = require("node:fs");
-const path = require("node:path");
 const DK = require("../../shared/document-keys.cjs"); // 键名单点（结构位禁手抄——document-keys 哨兵执法）
-
-function stagingGraphPath(dataDir) {
-  return path.join(dataDir, "staging", "master_graph.json");
-}
-
-function readStagedGraphDefault(dataDir) {
-  const p = stagingGraphPath(dataDir);
-  if (!fs.existsSync(p)) return null;
-  return JSON.parse(fs.readFileSync(p, "utf8"));
-}
-
-function writeStagedGraphDefault(dataDir, graph) {
-  const p = stagingGraphPath(dataDir);
-  fs.mkdirSync(path.dirname(p), { recursive: true });
-  const tmp = `${p}.wp170-tmp`;
-  fs.writeFileSync(tmp, JSON.stringify(graph), "utf8"); // 原子写：temp+rename（与 review-action-store 同款纪律）
-  fs.renameSync(tmp, p);
-}
+const { readStagedGraph: readStagedGraphDefault, writeStagedGraph: writeStagedGraphDefault } = require("../../shared/persistence/article-graph-staging.cjs"); // staging 读写经 persistence 层（SPEC-012 WP-J）
 
 function createRelationCandidateEmitter({ vaultPath, dataDir, afterStaged, logger, io = {} }) {
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));

@@ -8,7 +8,7 @@ const {
   generateRelationCandidates, mergeCandidateEdges, createRelationCandidateEmitter,
 } = require(path.join(__dirname, "..", "article-relation-candidates.cjs"));
 
-const WHITELIST = ["DOCUMENTS", "MENTIONS", "APPLIES_TO"];
+const WHITELIST = ["DOCUMENTS", "REFERENCES", "APPLIES_TO"]; // 裁决B落位：DOCUMENTS 为首批类型
 const ENTITIES = [
   { nodeId: "fixture-component", names: ["Fixture Component", "fixture-component", "FC别名"] },
   { nodeId: "incomplete-component", names: ["Incomplete Component"] },
@@ -30,9 +30,9 @@ test("白名单内生成候选：正文提及实体→MENTIONS 候选（pending 
   assert.equal(edges[0].source, "article-1");
 });
 
-test("白名单红线：类白名单不含 MENTIONS → 零生成（按构造，非过滤）", () => {
+test("白名单红线：类白名单不含 DOCUMENTS → 零生成（按构造，非过滤）", () => {
   const { edges, skippedOutOfWhitelist } = generateRelationCandidates(
-    "正文提到 Fixture Component。", "article-1", ENTITIES, ["DOCUMENTS", "APPLIES_TO"],
+    "正文提到 Fixture Component。", "article-1", ENTITIES, ["REFERENCES", "APPLIES_TO"],
   );
   assert.equal(edges.length, 0);
   assert.ok(skippedOutOfWhitelist >= 1, "留证：白名单缺席被显式记录");
@@ -82,12 +82,12 @@ test("发射器：；有基底则追加+补文章节点+触发摄取；异常降
 test("P1-2 目标类域：target_types 声明不含 Entity → 零生成并留痕；含 → 放行", () => {
   const base = { body: "提到 Fixture Component", articleNodeId: "doc-article-x", entityIndex: ENTITIES.slice(0, 1) };
   const blocked = generateRelationCandidates(base.body, base.articleNodeId, base.entityIndex, WHITELIST, {
-    relationTargetTypes: { MENTIONS: ["Concept", "System"] }, targetClassByNode: { "fixture-component": "Entity" },
+    relationTargetTypes: { DOCUMENTS: ["Concept", "System"] }, targetClassByNode: { "fixture-component": "Entity" },
   });
   assert.equal(blocked.edges.length, 0);
   assert.equal(blocked.skippedOutOfTypeScope, 1, "范围拦截留痕（合同验收条款3）");
   const allowed = generateRelationCandidates(base.body, base.articleNodeId, base.entityIndex, WHITELIST, {
-    relationTargetTypes: { MENTIONS: ["Entity", "Concept"] }, targetClassByNode: { "fixture-component": "Entity" },
+    relationTargetTypes: { DOCUMENTS: ["Entity", "Concept"] }, targetClassByNode: { "fixture-component": "Entity" },
   });
   assert.equal(allowed.edges.length, 1);
   assert.equal(allowed.skippedOutOfTypeScope, 0);

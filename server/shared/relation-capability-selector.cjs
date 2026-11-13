@@ -54,6 +54,8 @@ const ALLOWED_SOURCE_KINDS = new Set([
   "governance-assertion",
 ]);
 const KNOWN_ASSERTION_PRODUCERS = new Set([
+  // WP-170（2026-11-13，Master 裁决B落位）：文章标准化正文实体匹配→DOCUMENTS 候选（reviewed 人审）
+  "article-relation-candidates",
   "extract_graph.entity_typed_wikilink",
   "extract_graph.plain_wikilink",
   "extract_graph.derived_mentions",
