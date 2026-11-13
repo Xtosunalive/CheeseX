@@ -192,6 +192,21 @@ concept_types:
 write("知识库/TheSchema/versions.yaml", fs.readFileSync(path.join(FIXTURE_VAULT, "知识库", "TheSchema", "versions.yaml"), "utf8")
   .replace(/FixtureProduct/g, "E2eProduct"));
 copyFromFixture("知识库/TheSchema/ontology.yaml");
+// WP-171/172：夹具本体是精简快照——仓内 ontology.yaml 的 action_types/risk_types 随立法演进
+// （drafts-validate 动作化、审批通道、retire 风险绑定），动作注册表在 vault 侧解析、缺条目即
+// ACTION_NOT_ACTIVE 500（e2e 实录：WP-171 后 validate 步红、quality 不跑 e2e 故 CI 假绿）。
+// 投影＝route-harness mergeW1aActionTypes 同款：整节以仓内为准覆盖夹具快照。
+{
+  const fs = await import("node:fs").then((m) => m.default);
+  const path = await import("node:path").then((m) => m.default);
+  const YAML = await import("yaml").then((m) => m.default);
+  const repoOntology = YAML.parse(fs.readFileSync(path.join(__dirname, "..", "..", "..", "data", "theschema", "ontology.yaml"), "utf8")) || {};
+  const fixtureOntologyPath = path.join(target, "知识库/TheSchema/ontology.yaml");
+  const fixtureOntology = fs.existsSync(fixtureOntologyPath) ? (YAML.parse(fs.readFileSync(fixtureOntologyPath, "utf8")) || {}) : {};
+  if (repoOntology.action_types) fixtureOntology.action_types = repoOntology.action_types;
+  if (repoOntology.risk_types) fixtureOntology.risk_types = repoOntology.risk_types;
+  fs.writeFileSync(fixtureOntologyPath, YAML.stringify(fixtureOntology));
+}
 write("知识库/TheSchema/dependencies.yaml", "rules: []\n");
 // ADR-008 D2：字段数据字典进夹具（check:fields-registry 声明集——覆盖消费锚点全部字段的最小字典）。
 write("知识库/TheSchema/fields.yaml", `schema_version: 1
