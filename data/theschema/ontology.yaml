@@ -1063,6 +1063,13 @@ confidence_suggestion:
 # input_schema 只是指向契约 requestBody 的文档性指针——传输校验在 http-boundary，工厂不重复校验；
 # effects 声明后置核验（revision_present＝结果须携带非空 revision，仅对结果形状已实测的动作声明）；
 # lifecycle_status 缺省 approved（ADR-014 §3.1），仅 approved 进入活消费面。
+# WP-172（SPEC-095 §3.5 首批）：风险类型首批登记——登记即执法（工厂 evaluateStaticRisk 四档消费）。
+# decision 四档：allow 直过 / confirm 二次确认 / approve 人工审批 / block 静态阻断；不可判定默认阻断。
+risk_types:
+  article-destructive:
+    decision: approve
+    label_cn: 文章破坏性操作
+    description: 不可逆的文章级破坏操作（退役删除沿 source_file 链全清）——必经人工审批后单次放行
 action_types:
   schema.ontology.write:
     http_route: "PUT /api/schema/ontology"
@@ -1251,6 +1258,7 @@ action_types:
     executor: article-workflow.retire
     required_roles: []
     preconditions: []
+    risk_id: article-destructive # WP-172：退役必经审批（approve 档——凭单放行、单次有效、输入哈希防偷换）
     input_schema:
       contract_ref: "POST /api/articles/retire requestBody"
   articles.standardize:
@@ -1283,6 +1291,21 @@ action_types:
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/drafts/validate requestBody"
+  # WP-172（SPEC-095 §3.5 首批）：审批通道自身也是动作（吃狗粮——审计/角色走八步编排）
+  action-approvals.create:
+    http_route: "POST /api/action-approvals"
+    executor: action-approvals.create
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/action-approvals requestBody"
+  action-approvals.decide:
+    http_route: "POST /api/action-approvals/:id/decision"
+    executor: action-approvals.decide
+    required_roles: [ review ]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/action-approvals/:id/decision requestBody"
   entity.repair-apply:
     http_route: "POST /api/entity/repair/apply"
     executor: entity-compliance.repair-apply
