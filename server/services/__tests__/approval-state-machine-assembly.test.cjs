@@ -174,6 +174,15 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     definitions.node_types = definitions.node_types || {};
     definitions.node_types.Document = { ...definitions.node_types.Document, allows_relations: ["DOCUMENTS", "REFERENCES", "MENTIONS", "APPLIES_TO", "BELONGS_TO", "HAS_SYMPTOM"] };
     definitions.node_types.KnowledgeArticle = { subClassOf: "Document", data_properties: { title: { required: true } } };
+    // WP-171：drafts-validate 动作化后，动作注册表（vault 侧本体）须含新条目——夹具同步
+    definitions.action_types = definitions.action_types || {};
+    definitions.action_types["articles.drafts-validate"] = {
+      http_route: "POST /api/articles/drafts/validate",
+      executor: "article-workflow.drafts-validate",
+      required_roles: [],
+      preconditions: [],
+      input_schema: { contract_ref: "POST /api/articles/drafts/validate requestBody" },
+    };
     fs.writeFileSync(ontologyPath, yaml.stringify(definitions));
   }
   const wp170DataDir = fs.mkdtempSync(path.join(os.tmpdir(), "wp170-data-"));
