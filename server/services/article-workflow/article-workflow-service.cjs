@@ -96,6 +96,7 @@ function createArticleWorkflowService(options) {
   const submissionsDir = articleLifecycle.submissionDraftsDir(vaultPath);
   const precleanedDir = articleLifecycle.workingDir(vaultPath);
   const getReleaseReader = options.getReleaseReader || (() => null);
+  const emitRelationCandidates = options.emitRelationCandidates || null; // WP-170：关系候选发射器（装配件注入）
   const persistWorkflowState = options.writeWorkflowState || writeWorkflowState;
 
   // WP-022（PR-112 后续波次）：乐观锁 HTTP 接线——多用户并发防护进真实用户流。
@@ -301,6 +302,10 @@ function createArticleWorkflowService(options) {
       record.fieldProvenance = mergeProvenanceWithCurrent(provenanceTask && provenanceTask.fieldProvenance, document.frontmatter);
       persistWorkflowState(vaultPath, state);
       logger.info({ event: "article-standardized", articleId: record.articleId, mode: "plan-b-direct", warningCount: record.standardizationWarnings.length });
+      if (typeof emitRelationCandidates === "function") {
+        // WP-170：admission 的 document 只带 hasBody 布尔——正文显式取装载宿主（发射器异常自捕获降级，不阻断主链）
+        emitRelationCandidates({ body: loadDocument(raw, item.sourcePath).body, articleId: record.articleId });
+      }
       return articleWithWorkflow(item, record, admission.version);
     }
   }
