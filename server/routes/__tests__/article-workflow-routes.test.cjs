@@ -71,6 +71,7 @@ test("registers Article Proposal admission routes without retired batch producti
     "GET /api/articles/status/:taskId",
     "GET /api/articles/uploads",
     "GET /api/articles/precleaned",
+    "GET /api/articles/:id/status", // WP-173（SPEC-095 §3.6 收窄版）：计算状态只读端点
     "GET /api/articles/candidates/search",
     "GET /api/articles/precleaned/:id",
     "PUT /api/articles/precleaned/:id/approval",

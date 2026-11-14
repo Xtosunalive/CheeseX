@@ -15811,6 +15811,151 @@
             }
           }
         ]
+      },
+      "ArticleStage": {
+        "type": "string",
+        "enum": [
+          "no_draft",
+          "drafting",
+          "checking",
+          "needs_attention",
+          "ready_to_confirm",
+          "confirmed",
+          "published"
+        ],
+        "description": "用户级文章状态（OpenBKN 模式——从五内部状态机计算单值）"
+      },
+      "ArticleStatusBlocker": {
+        "type": "object",
+        "required": [
+          "code",
+          "waiting_for"
+        ],
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "waiting_for": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "editor",
+              "system"
+            ]
+          }
+        }
+      },
+      "ArticleNextAction": {
+        "type": "object",
+        "required": [
+          "action",
+          "allowed"
+        ],
+        "properties": {
+          "action": {
+            "type": "string"
+          },
+          "method": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "allowed": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": "string"
+          },
+          "body": {
+            "type": "object"
+          },
+          "retry_after_s": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      },
+      "ArticleStatus": {
+        "type": "object",
+        "required": [
+          "article_id",
+          "stage",
+          "blockers",
+          "next_actions",
+          "stale",
+          "computed_at"
+        ],
+        "properties": {
+          "article_id": {
+            "type": "string",
+            "nullable": true
+          },
+          "stage": {
+            "$ref": "#/components/schemas/ArticleStage"
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArticleStatusBlocker"
+            }
+          },
+          "hints": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "stale": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "source_changed",
+                "release_outdated"
+              ]
+            }
+          },
+          "next_actions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArticleNextAction"
+            }
+          },
+          "links": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "computed_at": {
+            "type": "integer"
+          }
+        }
+      },
+      "ArticleStatusEnvelope": {
+        "type": "object",
+        "required": [
+          "success",
+          "data",
+          "trace_id"
+        ],
+        "properties": {
+          "success": {
+            "type": "boolean",
+            "const": true
+          },
+          "data": {
+            "$ref": "#/components/schemas/ArticleStatus"
+          },
+          "trace_id": {
+            "type": "string"
+          }
+        }
       }
     }
   },
@@ -27152,6 +27297,44 @@
           },
           "404": {
             "description": "APPROVAL_NOT_FOUND",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/{id}/status": {
+      "get": {
+        "summary": "文章计算状态（WP-173/SPEC-095 §3.6 收窄版——OpenBKN 模式：读时现算不存储）",
+        "operationId": "getArticleStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "计算状态",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArticleStatusEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "ARTICLE_NOT_FOUND",
             "content": {
               "application/json": {
                 "schema": {
