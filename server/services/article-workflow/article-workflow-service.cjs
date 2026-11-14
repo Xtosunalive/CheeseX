@@ -204,9 +204,31 @@ function createArticleWorkflowService(options) {
     return { items: tasks.slice(0, limit).map((task) => ({ ...task })), total: tasks.length, statusCounts: countUploadStatuses(tasks), generatedAt: new Date().toISOString(), revision: revisionNow() };
   }
 
-  function listPrecleaned() {
+  function listPrecleaned(includeStatus = false) {
     if (!fs.existsSync(precleanedDir)) return { items: [], generatedAt: new Date().toISOString() };
-    return { items: synchronizedState().result.items, generatedAt: new Date().toISOString() };
+    const items = synchronizedState().result.items;
+    if (!includeStatus) return { items, generatedAt: new Date().toISOString() }; // WP-174：缺省零变化
+    try {
+      const { resolveArticleStatus } = require("./article-status-resolver.cjs");
+      return { items: items.map((item) => {
+        try {
+          const approvalStatus = (options.getApprovalStatus)?.(item.id) || "draft";
+          const status = resolveArticleStatus({
+            articleId: item.id,
+            standardizationStatus: item.standardizationStatus,
+            approvalStatus,
+            currentContentHash: item.formalContentHash || null,
+            approvedContentHash: null,
+            complianceBlockers: [],
+            hasCurrentRelease: Boolean(item.published),
+            releaseContentHash: item.formalContentHash || null,
+          });
+          return { ...item, stage: status.stage, stale: status.stale, blockers: status.blockers };
+        } catch { return item; }
+      }), generatedAt: new Date().toISOString() };
+    } catch {
+      return { items, generatedAt: new Date().toISOString() };
+    }
   }
 
   function getPrecleaned(id) {

@@ -8534,6 +8534,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/articles/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 文章计算状态（WP-173/SPEC-095 §3.6 收窄版——OpenBKN 模式：读时现算不存储） */
+        get: operations["getArticleStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -10527,6 +10544,10 @@ export interface components {
             /** @description 正式版已在 current Release 且内容与工作区一致（源文件再改动即回落 false） */
             published: boolean;
             fieldProvenance?: components["schemas"]["FieldProvenanceMap"];
+            /** @description WP-174：计算状态（include=status 查询参数可选包含） */
+            stage?: components["schemas"]["ArticleStage"];
+            stale?: string[];
+            blockers?: components["schemas"]["ArticleStatusBlocker"][];
         };
         CandidateSearchItem: {
             /** @description 只读用户可见的半成品名称；不携带详情坐标 */
@@ -12983,6 +13004,44 @@ export interface components {
                 }[];
             };
         };
+        /**
+         * @description 用户级文章状态（OpenBKN 模式——从五内部状态机计算单值）
+         * @enum {string}
+         */
+        ArticleStage: "no_draft" | "drafting" | "checking" | "needs_attention" | "ready_to_confirm" | "confirmed" | "published";
+        ArticleStatusBlocker: {
+            code: string;
+            count?: number;
+            /** @enum {string} */
+            waiting_for: "owner" | "editor" | "system";
+        };
+        ArticleNextAction: {
+            action: string;
+            method?: string;
+            path?: string;
+            allowed: boolean;
+            reason?: string;
+            body?: Record<string, never>;
+            retry_after_s?: number;
+        };
+        ArticleStatus: {
+            article_id: string | null;
+            stage: components["schemas"]["ArticleStage"];
+            blockers: components["schemas"]["ArticleStatusBlocker"][];
+            hints?: Record<string, never>[];
+            stale: ("source_changed" | "release_outdated")[];
+            next_actions: components["schemas"]["ArticleNextAction"][];
+            links?: {
+                [key: string]: string;
+            };
+            computed_at: number;
+        };
+        ArticleStatusEnvelope: {
+            /** @constant */
+            success: true;
+            data: components["schemas"]["ArticleStatus"];
+            trace_id: string;
+        };
     };
     responses: never;
     parameters: never;
@@ -13307,6 +13366,37 @@ export interface operations {
             };
             /** @description APPROVAL_ALREADY_DECIDED */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    getArticleStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 计算状态 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ArticleStatusEnvelope"];
+                };
+            };
+            /** @description ARTICLE_NOT_FOUND */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
