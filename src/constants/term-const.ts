@@ -285,6 +285,8 @@ export const TERM = {
   APPROVAL_DRAFT: "草稿",
   APPROVAL_PENDING: "待审",
   APPROVAL_APPROVED: "已批",
+  APPROVAL_PENDING_CONFIRM: "待确认",
+  STALE_SOURCE_CHANGED: "源已变化",
   APPROVAL_REJECTED: "已驳回",
   APPROVAL_SNAPSHOT: "已发布",
   // 文章标准化机（standardizationStatus，契约三态）

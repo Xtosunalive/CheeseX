@@ -298,3 +298,22 @@ export function uploadHistoryCountText(total: number, active: number): string {
 export function uploadHistoryTerminalToggleText(count: number): string {
   return `终态历史 ${count} 条（已完成/源已删/已消化——完整审计走 vault git）`;
 }
+
+// WP-173（SPEC-095 §3.6 收窄版）：计算状态显示标签与动作文案（term-copy 域闭集消费）
+export const ARTICLE_STAGE_LABEL: Record<string, { label: string; tone: "neutral" | "warn" | "fact" | "error" }> = {
+  no_draft: { label: "不存在", tone: "neutral" },
+  drafting: { label: "草稿中", tone: "warn" },
+  checking: { label: "校验中", tone: "warn" },
+  needs_attention: { label: "需处理", tone: "error" },
+  ready_to_confirm: { label: "待确认", tone: "warn" },
+  confirmed: { label: "已批", tone: "fact" },
+  published: { label: "已发布", tone: "fact" },
+};
+export const ARTICLE_ACTION_LABEL: Record<string, string> = {
+  standardize: "标准化", confirm: "确认", publish: "发布",
+  restandardize: "重新标准化", fix_issues: "去处理", upload_draft: "投稿",
+};
+export const ARTICLE_STATUS_COPY = {
+  STALE_BADGE: "源已变化",
+  BLOCKER_COUNT: (n: number) => `${n} 项阻断`,
+};
