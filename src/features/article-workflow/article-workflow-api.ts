@@ -127,3 +127,16 @@ export const ARTICLE_FIELD_COMPLETION_ACTION = {
   dataChannel: "PATCH /api/articles/precleaned/:id/fields",
   writes: ARTICLE_ACTION_WRITES.FIELD_COMPLETION,
 } as const;
+
+export function getArticleStatus(articleId: string): Promise<ArticleStatusResponse> {
+  return apiFetchEnvelope<ArticleStatusResponse["data"]>(`/api/articles/${encodeURIComponent(articleId)}/status`) as unknown as Promise<ArticleStatusResponse>;
+}
+export type ArticleStatusResponse = {
+  success: boolean; data: {
+    article_id: string | null; stage: string;
+    blockers: Array<{ code: string; waiting_for: string; count?: number }>;
+    hints?: Array<Record<string, unknown>>; stale: string[];
+    next_actions: Array<{ action: string; method?: string; path?: string; allowed: boolean; reason?: string; body?: Record<string, unknown>; retry_after_s?: number }>;
+    links?: Record<string, string>; computed_at: number;
+  }; trace_id?: string;
+};

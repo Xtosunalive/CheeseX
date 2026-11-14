@@ -1292,6 +1292,12 @@ action_types:
     input_schema:
       contract_ref: "POST /api/articles/drafts/validate requestBody"
   # WP-172（SPEC-095 §3.5 首批）：审批通道自身也是动作（吃狗粮——审计/角色走八步编排）
+  # WP-173（SPEC-095 §3.6 收窄版）：计算状态只读端点
+  articles.status:
+    http_route: "GET /api/articles/{id}/status"
+    executor: article-workflow.status
+    required_roles: []
+    preconditions: []
   action-approvals.create:
     http_route: "POST /api/action-approvals"
     executor: action-approvals.create
