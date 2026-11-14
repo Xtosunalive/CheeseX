@@ -71,8 +71,33 @@ function register(registerRoute, deps) {
       let openIssues = [];
       try { openIssues = listOpenIssues() || []; } catch (_issueError) { /* 异常清单不可得时不阻断呈现 */ }
       const suggestionService = getSuggestionService();
+      // WP-175：边数据加 article_stage（计算状态——按 source 路径反查文章）
+      const { resolveArticleStatus } = require("../services/article-workflow/article-status-resolver.cjs");
+      const stageBySource = new Map();
+      const getStage = (sourcePath) => {
+        if (!stageBySource.has(sourcePath)) {
+          try {
+            const articleId = sourcePath ? decodeURIComponent(sourcePath.split("/").pop() || "").replace(/\.md$/, "") : null;
+            const item = deps.listPrecleaned?.().items?.find((c) => c.id === articleId);
+            const approvalStatus = deps.getApprovalStatus?.(articleId) || "draft";
+            const status = resolveArticleStatus({
+              articleId: articleId || null,
+              standardizationStatus: item?.standardizationStatus || "pending_standardization",
+              approvalStatus,
+              currentContentHash: item?.formalContentHash || null,
+              approvedContentHash: null,
+              complianceBlockers: [],
+              hasCurrentRelease: Boolean(item?.published),
+              releaseContentHash: item?.formalContentHash || null,
+            });
+            stageBySource.set(sourcePath, status.stage);
+          } catch { stageBySource.set(sourcePath, undefined); }
+        }
+        return stageBySource.get(sourcePath);
+      };
       const edges = summary.edges.map((edge) => {
         const withSource = ownerSourceRevision(vaultPath, edge, ownerSnapshots, readOwner, nodePathById);
+        const article_stage = getStage(edge.source); // WP-175：来源文章计算状态
         let annotated = withSource;
         try {
           if (suggestionService) {
@@ -82,6 +107,7 @@ function register(registerRoute, deps) {
             if (a.suggestedConfidence !== undefined) { annotated.suggestedConfidence = a.suggestedConfidence; annotated.suggestedConfidenceBand = a.suggestedConfidenceBand; annotated.suggestedConfidenceEvidence = a.suggestedConfidenceEvidence; } // WP-142 批⓪：预填档位随建议同行下发（服务端换算，阈值零手抄）
           }
         } catch (_suggestError) { /* 建议失败不阻断评审列表 */ }
+        annotated.article_stage = article_stage; // WP-175：来源文章计算状态（if 外统一附加）
         return { ...annotated, blockers: openBlockersForEdge(openIssues, annotated) };
       });
       return sendJSON(res, 200, { ...summary, edges, workingRevision: graph.revision, dataSource: "worktree" });
