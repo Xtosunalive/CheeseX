@@ -38,6 +38,8 @@ __pycache__/
 # 未挂载时这些规则同样覆盖真实目录，公开面不因此变化。
 /docs
 .governance-kit
+# 会话工作记录：实体住治理仓 .workbuddy，本仓只留符号链接（2026-11-15 迁移），不入库
+.workbuddy
 
 # ── 内部治理/台账/方案卡/SPEC/ADR/合同（§2-C 组裁剪——在盘但不追踪）──
 docs/dev-log/
