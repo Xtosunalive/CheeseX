@@ -284,7 +284,6 @@
       "contract": null,
       "gate": "npm run test:node（WP-143 波3：哨兵转普通测试——检查逻辑=scripts/quality/__tests__/guards/，node --test 经 test:node 跑）",
       "tests": [
-        "scripts/__tests__/reconcile-status-domain-load-port.test.mjs",
         "scripts/__tests__/vault-init.test.mjs",
         "server/services/article-workflow/__tests__/article-association-ledger.test.cjs",
         "server/services/article-workflow/__tests__/article-draft-workflow.test.cjs",
@@ -293,10 +292,11 @@
         "server/shared/__tests__/prototype-safe-loading.test.cjs",
         "server/shared/__tests__/vault-io.test.cjs",
         "scripts/__tests__/doc-envelope-materializer.test.mjs",
-        "server/shared/__tests__/document-keys.test.cjs"
+        "server/shared/__tests__/document-keys.test.cjs",
+        "scripts/vault-runtime/__tests__/migrate-readable-paths.test.cjs"
       ],
       "register_entry": "docs/plans/problem-register.md#PR-098",
-      "last_updated": "2026-10-26",
+      "last_updated": "2026-11-15",
       "note": "开域动因（2026-10-25 追问链）：promote 不阻塞方案复盘→归档可见可写无保护→0o444 惯例三处散写两处漏→无「写完能不能改」轴→文章内容树四问③答否→盘点 vault 机器脚印发现实体页族写者最多且双写并存→Master 裁一域三族。首落地＝文章族可变性档（WP-007 施工批已落地：vault-io 执法＋归档两写入点收敛＋门禁档面三——证据见 SPEC-028 矩阵）；第二落地＝实体页族（同域，天然满足 candidate→gating 两场景规则）。；账龄审计补记（2026-10-26）：WP-007 对侧尾巴批并入（17f2caf3）触及域资产，原批漏更"
     },
     {
