@@ -11,7 +11,11 @@ const candidateIssue: AnomalyIssue = {
   issueKind: "article_association",
   handling: "fix",
   title: "文章缺少架构关联",
-  status: "open",
+  // PR-308/WP-177：确认钮按状态×操作投影渲染（confirm←previewed）——夹具升到 previewed
+  // 保全「完整页内处理链含确认钮」的 C1 断言；open 态确认钮不渲染＋「下一步」指引
+  // 的口径由 anomaly-peek-action-matrix.test.tsx 承载。
+  status: "previewed",
+  previewId: "pv-cand-1",
   evidence: [{ kind: "relation-candidate", path: "知识库/raw/precleaned/沟通壁垒-数据到信息到知识.md", lineNumber: null, ruleId: "G01" }],
   blockedActions: [],
   relationCandidate: {
@@ -63,8 +67,8 @@ describe("AnomalyWorkbenchView · 候选组页内处理表单（C1）", () => {
     // C1 缺口断言②：ResolutionForm 的关联组件/版本表单可达（AssociationResolution 分支）
     expect(screen.getByText(/关联架构组件/)).toBeInTheDocument();
     expect(screen.getByText(/适用产品版本/)).toBeInTheDocument();
-    // C1 缺口断言③：确认操作按钮在场（open 态禁用属正常——需先 preview；此前整个按钮不存在）
-    expect(screen.getByRole("button", { name: /确认这次处理/ })).toBeInTheDocument();
+    // C1 缺口断言③：确认操作按钮在场（PR-308 口径=previewed 态合法才渲染；文案去向化）
+    expect(screen.getByRole("button", { name: /确认落盘/ })).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 });

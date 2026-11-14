@@ -17,6 +17,7 @@ import {
   peekContentHashLabel,
 } from "@/features/anomaly-workbench/anomaly-workbench-copy";
 import { ANOMALY_RELATION_REJECT_ACTION } from "@/features/anomaly-workbench/anomaly-workbench-api";
+import { isOperationLegal } from "@/features/anomaly-workbench/anomaly-action-registry";
 import { AnomalyResolutionForm } from "./AnomalyResolutionForm";
 import { formatDateTime } from "@/lib/format";
 
@@ -68,12 +69,19 @@ export function AnomalyPeekPanel({ issue, siblingCandidateIssues = [], open, onC
   const isRpf = issue.issueKind === "release_publication_failure";
   const isDerived = action.type === "derived-graph-repair";
   const manualTypedRelation = action.type === "entity-relation-repair" && Array.isArray(action.unresolvedTargets) && action.unresolvedTargets.length === 0;
-  const canConfirm = issue.status === "previewed" && Boolean(issue.previewId) && issue.executionReady !== false;
+  // PR-308/WP-177：确认钮可见性=状态×操作投影（单源在 registry，镜像后端 OPERATION_PRECONDITIONS）
+  // ＋运行时条件（previewId 在场、执行就绪）。「合法才渲染」替代旧「恒渲染只灰掉」口径；
+  // 非法态改显「下一步」指引，信息不丢（Master 2026-11-15「按钮跟着状态走」）。
+  const confirmReady = isOperationLegal("confirm", issue.status) && Boolean(issue.previewId) && issue.executionReady !== false;
   // C1/#1793 分野（契约直迁）：语义关系候选（relation-candidate-review）是架构师拒绝专用流
   // ——入图事实必须走正式链，页内/peek 不得出现批准按钮；文章关联候选（article-association*）
   // 走 A1 页内处理链（表单+确认合法）。
   const isReviewOnlyCandidate = issue.relationCandidate !== undefined && String(action.type || "").startsWith("relation-candidate-review");
-  const showResolutionForm = !isReviewOnlyCandidate && issue.issueKind !== "stale_source" && ["open", "stale", "previewed", "blocked"].includes(issue.status) && (issue.executionReady !== false || manualTypedRelation);
+  const resolutionInScope = !isReviewOnlyCandidate && issue.issueKind !== "stale_source" && ["open", "stale", "previewed", "blocked"].includes(issue.status);
+  const showResolutionForm = resolutionInScope && (issue.executionReady !== false || manualTypedRelation);
+  // 执行未就绪（服务端无此问题的自动执行通道，修复入口改道）：页内处理区与确认钮都不渲染，
+  // footer 显阻断说明——不静默（PR-308 验收分支④）。
+  const showExecutionBlockNote = resolutionInScope && !isDerived && !manualTypedRelation && issue.executionReady === false;
   const candidate = issue.relationCandidate;
 
   return (
@@ -203,14 +211,22 @@ export function AnomalyPeekPanel({ issue, siblingCandidateIssues = [], open, onC
         ) : (
           <>
             {!isDerived && showResolutionForm && (
-              <Button
-                size="sm"
-                disabled={!canConfirm}
-                onClick={() => onOperate("confirm", { previewId: issue.previewId })}
-                title={canConfirm ? ANOMALY_PEEK_COPY.CONFIRM_READY_TITLE : ANOMALY_PEEK_COPY.CONFIRM_BLOCKED_TITLE}
-              >
-                {ANOMALY_PEEK_COPY.CONFIRM_ACTION}
-              </Button>
+              confirmReady ? (
+                <Button
+                  size="sm"
+                  onClick={() => onOperate("confirm", { previewId: issue.previewId })}
+                  title={ANOMALY_PEEK_COPY.CONFIRM_READY_TITLE}
+                >
+                  {ANOMALY_PEEK_COPY.CONFIRM_ACTION}
+                </Button>
+              ) : (
+                <span className="text-kg-xs text-text-hint">
+                  {issue.executionReady === false ? ANOMALY_PEEK_COPY.EXECUTION_NOT_READY_HINT : ANOMALY_PEEK_COPY.NEXT_STEP_PREVIEW_HINT}
+                </span>
+              )
+            )}
+            {!isDerived && showExecutionBlockNote && (
+              <span className="text-kg-xs text-text-hint">{ANOMALY_PEEK_COPY.EXECUTION_NOT_READY_HINT}</span>
             )}
             {candidate && candidate.candidateStatus !== "rejected" && (
               <Button

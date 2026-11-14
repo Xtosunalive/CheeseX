@@ -4,6 +4,7 @@ import {
   projectActionsForIssue,
   projectActionsForIssues,
   ANOMALY_ACTION_PRIORITY,
+  isOperationLegal,
   type AnomalyActionKind,
 } from "@/features/anomaly-workbench/anomaly-action-registry";
 
@@ -155,5 +156,32 @@ describe("anomaly-action-registry: ANOMALY_ACTION_PRIORITY 完整性", () => {
     for (const kind of allKinds) {
       expect(ANOMALY_ACTION_PRIORITY).toContain(kind);
     }
+  });
+});
+
+describe("anomaly-action-registry: isOperationLegal（状态×操作投影面，镜像后端 OPERATION_PRECONDITIONS）", () => {
+  it("preview：open/stale/blocked/previewed 合法，confirmed/verified/closed 等非法", () => {
+    for (const s of ["open", "stale", "blocked", "previewed"] as const) {
+      expect(isOperationLegal("preview", s)).toBe(true);
+    }
+    for (const s of ["confirmed", "rerunning", "executed", "verified", "closed", "reopened"] as const) {
+      expect(isOperationLegal("preview", s)).toBe(false);
+    }
+  });
+
+  it("confirm：仅 previewed 合法（PR-308 渲染矩阵的状态维）", () => {
+    expect(isOperationLegal("confirm", "previewed")).toBe(true);
+    expect(isOperationLegal("confirm", "open")).toBe(false);
+    expect(isOperationLegal("confirm", "stale")).toBe(false);
+    expect(isOperationLegal("confirm", "blocked")).toBe(false);
+    expect(isOperationLegal("confirm", "verified")).toBe(false);
+  });
+
+  it("close/reopen：RPF 显式关闭链（close←open/reopened；reopen←closed）", () => {
+    expect(isOperationLegal("close", "open")).toBe(true);
+    expect(isOperationLegal("close", "reopened")).toBe(true);
+    expect(isOperationLegal("close", "closed")).toBe(false);
+    expect(isOperationLegal("reopen", "closed")).toBe(true);
+    expect(isOperationLegal("reopen", "open")).toBe(false);
   });
 });

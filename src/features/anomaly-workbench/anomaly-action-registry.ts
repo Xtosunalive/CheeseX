@@ -172,3 +172,25 @@ export function selectIssuesForKeys(
 ): AnomalyIssue[] {
   return groups.filter((g) => selectedKeys.includes(g.articleKey)).flatMap((g) => g.issues);
 }
+
+// ─── 状态×操作投影面（WP-177/PR-308）────────────────────────────────────────
+// 镜像后端集中转移表 OPERATION_PRECONDITIONS（server/services/anomaly/anomaly-workbench-service.cjs，
+// 非法转移 fail-closed 409）：操作 → 允许的起始状态。本表状态集禁止手改——与后端单源的
+// 漂移由 scripts/quality/check-action-routing.mjs 第六面对账双向执法。
+// 维度说明：本面管「该状态下哪些操作合法」，与上方 issueKind→动作投影（这个问题有什么动作）正交；
+// UI 组件经 isOperationLegal 取合法性，不再手写状态判断。
+// reject 不属后端状态机约束（候选关账通道，可见性由候选状态决定，不在此表）；
+// rerun/verify 为管道驱动、无页面按钮，不镜像（对账面按白名单跳过）。
+export type GatedOperation = "preview" | "confirm" | "close" | "reopen";
+
+const OPERATION_PRECONDITIONS: Record<GatedOperation, readonly AnomalyIssue["status"][]> = {
+  preview: ["open", "stale", "blocked", "previewed"],
+  confirm: ["previewed"],
+  close: ["open", "reopened"],
+  reopen: ["closed"],
+};
+
+/** 该状态下操作是否合法（状态维度；confirm 另需 previewId 在场且 executionReady≠false——调用方叠加运行时条件） */
+export function isOperationLegal(operation: GatedOperation, status: AnomalyIssue["status"]): boolean {
+  return OPERATION_PRECONDITIONS[operation].includes(status);
+}
