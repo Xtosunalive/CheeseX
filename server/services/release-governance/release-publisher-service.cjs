@@ -27,6 +27,11 @@ function createReleasePublisherService(options) {
   const LOCK_NAME = "publish"; // SPEC-012 WP-A：锁迁 runtime-state.db locks 表（旧 .publish.lock 文件形态退役）
   const issuesPath = path.join(releasesDir, "issues", "publication-issues.json");
   const auditPath = path.join(releasesDir, "issues", "publish-failures.jsonl");
+  // PR-306：源文章批量存在性探针（(articleIds[]) => { [articleId]: boolean }；false = 已不在半成品区）。
+  // 红队必修（2026-11-15）：批量契约——单次销账只装载一次半成品区，禁逐单全量扫描
+  //（实测 200 文件×5 单＝1.98s 同步阻塞事件循环，GET /api/anomalies 读路径线性放大）。
+  // 缺省 null——不注入即不销账（旧装配/测试桩零影响）。
+  const resolveArticlesPresence = typeof options.resolveArticlesPresence === "function" ? options.resolveArticlesPresence : null;
 
   function canonical(value) {
     if (Array.isArray(value)) return value.map(canonical);
@@ -113,6 +118,9 @@ function createReleasePublisherService(options) {
       createdAt: existing?.createdAt || now,
       updatedAt: now,
     };
+    // PR-306 红队记档①：重开的 open 单不得残留销账印章（B3 的 resolvedByReleaseId 族与
+    // PR-306 的 source_article_deleted 同一规则——重开即重新在册，旧退休理由对 open 单失真）。
+    for (const stamp of ["resolvedByReleaseId", "resolvedBySourceCommit", "resolvedReason", "resolvedAt"]) delete issue[stamp];
     const next = issues.filter((item) => item.issueId !== issueId).concat(issue)
       .sort((left, right) => left.issueId.localeCompare(right.issueId));
     writeIssues(next);
@@ -124,6 +132,9 @@ function createReleasePublisherService(options) {
   function listIssues() { return readIssues().map((issue) => ({ ...issue })); }
 
   function listActiveIssues() {
+    // PR-306：读时对账②——源文章已删除的失败单先销账（Master 裁 2026-11-15：发布失败 Issue 是
+    // 文章发布尝试的派生物，文件没了派生物不能赖着；与工作台 §① 源删除销账同型，幂等）。
+    retireDeletedArticleIssues();
     // ADR063 #1746 读时对账（#1794 措辞勘误后语义）：失败记录被其后成功发布取代（status 已退休）
     // 或同 commit 已在 current 指针（兜底）时，不作活检出——publication-issues.json 与
     // publish-failures.jsonl 保留全史供审计。
@@ -136,6 +147,40 @@ function createReleasePublisherService(options) {
         return true;
       })
       .map((issue) => ({ ...issue }));
+  }
+
+  // PR-306：文章绑定的失败单（buildConfiguration.articleId 或 proposalId 引用源文章）在源文章
+  // 已从半成品区消失时销账——该失败不可能再被同一文章的成功发布取代（B3 通道对已删文章死路），
+  // 不销账即僵尸（2026-11-15 实录：文章删除后「Release publication failed」永挂待处理）。
+  // 独立铸版（standalone-mint，无文章引用）不辖——仍由后续成功发布取代。探针异常或返回缺键
+  // 均按文章仍在处理（fail-safe：只有探针明确说不在才销）。审计面 listIssues/publish-failures.jsonl 不动。
+  function retireDeletedArticleIssues() {
+    if (!resolveArticlesPresence) return 0;
+    const issues = readIssues();
+    const timestamp = new Date().toISOString();
+    // 批量探针只对去重后的在册文章引用调用一次（红队必修：禁逐单扫描）
+    const articleRefOf = (issue) => (issue.buildConfiguration && typeof issue.buildConfiguration.articleId === "string" && issue.buildConfiguration.articleId)
+      || (typeof issue.proposalId === "string" && issue.proposalId)
+      || null;
+    const refs = [...new Set(issues
+      .filter((issue) => !issue.status || issue.status === "open")
+      .map(articleRefOf)
+      .filter((ref) => typeof ref === "string" && ref))];
+    if (refs.length === 0) return 0;
+    let presence;
+    try { presence = resolveArticlesPresence(refs) || {}; }
+    catch { return 0; }
+    let retired = 0;
+    const next = issues.map((issue) => {
+      if (issue.status && issue.status !== "open") return issue;
+      const articleRef = articleRefOf(issue);
+      if (!articleRef) return issue;
+      if (presence[articleRef] !== false) return issue;
+      retired += 1;
+      return { ...issue, status: "resolved", resolvedReason: "source_article_deleted", resolvedAt: timestamp, updatedAt: timestamp };
+    });
+    if (retired > 0) writeIssues(next);
+    return retired;
   }
 
   // B3（#1794）：成功发布取代——其后一次成功发布即退休全部在册失败（系统已走出失败态，

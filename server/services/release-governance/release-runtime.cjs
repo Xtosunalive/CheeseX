@@ -9,7 +9,7 @@ const { createReleaseBuilderService } = require("./release-builder-service.cjs")
 const { createReleaseReaderService } = require("./release-reader-service.cjs");
 const { createReleasePublisherService } = require("./release-publisher-service.cjs");
 
-function createReleaseRuntime({ vaultPath, logger, releasesDir }) {
+function createReleaseRuntime({ vaultPath, logger, releasesDir, resolveArticlesPresence }) {
   const dir = resolveReleasesDir({ vaultPath, releasesDir }).dir; // WP-023：经唯一解析点（新家 .releases/，存量自动搬迁）
   const builderService = createReleaseBuilderService({ releasesDir: dir, logger });
   const readerService = createReleaseReaderService({ builderService, releasesDir: dir });
@@ -18,6 +18,7 @@ function createReleaseRuntime({ vaultPath, logger, releasesDir }) {
     readerService,
     releasesDir: dir,
     logger,
+    resolveArticlesPresence, // PR-306：源文章删除读时销账批量探针（main.cjs 注入；缺省不销账）
   });
   return { releasesDir: dir, builderService, readerService, publisherService };
 }
