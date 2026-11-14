@@ -257,3 +257,108 @@ test("PR-301 自激励退避：成功仍漂移 3 次后停自动触发；稳定�
     assert.ok(pipelineCalls > pipelineCallsBefore || resumed.triggered === true || resumed.triggered === false, "复位后状态可再评估");
   } finally { refresher.dispose(); fs.rmSync(vaultPath, { recursive: true, force: true }); }
 });
+
+// ── PR-307 回归钉族：内容寻址指纹（dev 栈实录——graph-status.md ×_enums-cache.md
+//    每 ~15s 一轮空跑管线，mtime 指纹自激励，PR-301 退避因尾巴写在比对后落盘而咬不住）──
+
+test("PR-307 同内容重写不算漂移（mtime 抖动被内容确认吸收），吸收后基线持久", () => {
+  const vaultPath = makeVault();
+  try {
+    const pipeline = makePipeline();
+    const { refresher, events } = makeRefresher(vaultPath, pipeline);
+    refresher.recordRefreshed(); // 全量基线（内容哈希）
+    const cache = path.join(vaultPath, "知识库", "raw", "boards", "_enums-cache.md");
+    fs.mkdirSync(path.dirname(cache), { recursive: true });
+    fs.writeFileSync(cache, "modules: []\n");
+    refresher.recordRefreshed(); // 缓存入基线
+    // 派生同步面无条件重写：同字节＋新 mtime（watcher 桥同步每轮实录形态）
+    fs.writeFileSync(cache, "modules: []\n");
+    fs.utimesSync(cache, new Date(), new Date(Date.now() + 5000));
+    const result = refresher.check("external-write");
+    assert.equal(result.drifted, false, "同内容重写不构成漂移");
+    assert.equal(pipeline.starts.length, 0, "不因 mtime 抖动自触发");
+    // 吸收回写持久：第二次检查不再报漂移（也不因旧 mtime 反复重哈希后误判）
+    const churn2At = Date.now() + 10000;
+    fs.utimesSync(cache, new Date(), new Date(churn2At));
+    assert.equal(refresher.check("external-write").drifted, false, "吸收持久——连续抖动持续不漂移");
+    // 吸收已落 kv（红队记档⑤）：基线条目 mtime 抬升到第二次抖动值（回写真实落账，非仅行为等价）
+    const stored = JSON.parse(getDerivedIndexStore(vaultPath).kv.get(GRAPH_DRIFT_KV_KEY));
+    assert.equal(stored.v, 2, "基线 v2 形态");
+    assert.equal(stored.files["知识库/raw/boards/_enums-cache.md"].mtimeMs, Math.floor(churn2At), "第二次吸收的 mtime 已写入基线");
+    assert.ok(!events.some((e) => e.event === "graph-drift-refresh-triggered"), "全程零触发");
+  } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
+
+test("PR-307 graph-status.md 是管线自有产物：内容变（嵌时间戳）也不算漂移", () => {
+  const vaultPath = makeVault();
+  try {
+    const statusFile = path.join(vaultPath, "知识库", "wiki", "graph-status.md");
+    fs.mkdirSync(path.dirname(statusFile), { recursive: true });
+    fs.writeFileSync(statusFile, "> 自动生成于 2026-11-15 05:00 UTC\n");
+    const pipeline = makePipeline();
+    const { refresher } = makeRefresher(vaultPath, pipeline);
+    refresher.recordRefreshed();
+    // 管线每跑整文件重生成：内容与 mtime 双变（真实形态——extract_graph --apply 后刷新）
+    fs.writeFileSync(statusFile, "> 自动生成于 2026-11-15 05:01 UTC\n");
+    const result = refresher.check("external-write");
+    assert.equal(result.drifted, false, "管线自有状态产物不构成漂移");
+    assert.equal(pipeline.starts.length, 0, "不因状态产物自触发");
+  } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
+
+test("PR-307 内容真变仍照常触发（内容寻址不弱化真漂移检出）", () => {
+  const vaultPath = makeVault();
+  try {
+    const pipeline = makePipeline();
+    const { refresher } = makeRefresher(vaultPath, pipeline);
+    refresher.recordRefreshed();
+    fs.writeFileSync(path.join(vaultPath, "知识库", "raw", "precleaned", "a.md"), "---\ntitle: a2\n---\n");
+    const result = refresher.check("external-write");
+    assert.equal(result.drifted, true, "内容真变＝漂移");
+    assert.equal(result.triggered, true, "照常自动触发");
+    assert.equal(pipeline.starts.length, 1);
+  } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
+
+test("PR-307 v1 字符串基线兼容：视为无基线重立，不触发不炸", () => {
+  const vaultPath = makeVault();
+  try {
+    const store = getDerivedIndexStore(vaultPath);
+    store.kv.put(GRAPH_DRIFT_KV_KEY, "sha256:legacyv1fingerprint0000000000000000000000000000000000000000");
+    const pipeline = makePipeline();
+    const { refresher, events } = makeRefresher(vaultPath, pipeline);
+    const result = refresher.check("read-time");
+    assert.equal(result.baseline, true, "旧形态视为无基线——首检重立");
+    assert.equal(pipeline.starts.length, 0, "重立不触发管线");
+    assert.ok(events.some((e) => e.event === "graph-drift-baseline-established"), "重立留痕");
+    // 重立后正常语义：同内容不漂移
+    assert.equal(refresher.check("read-time").drifted, false);
+  } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
+
+test("PR-307 实录循环形态端到端：管线写面（状态产物内容变＋缓存同内容重写）不再自触发", () => {
+  const vaultPath = makeVault();
+  try {
+    const kb = path.join(vaultPath, "知识库");
+    const cache = path.join(kb, "raw", "boards", "_enums-cache.md");
+    const statusFile = path.join(kb, "wiki", "graph-status.md");
+    fs.mkdirSync(path.dirname(cache), { recursive: true });
+    fs.mkdirSync(path.dirname(statusFile), { recursive: true });
+    fs.writeFileSync(cache, "modules: []\n");
+    fs.writeFileSync(statusFile, "| 上次抽取 | 05:00 UTC |\n");
+    const pipeline = makePipeline();
+    const { refresher } = makeRefresher(vaultPath, pipeline);
+    refresher.recordRefreshed();
+    // 模拟「一轮管线跑完」的全部写面（2026-11-15 实测三文件中 log.md 已排除，余下两个全模拟）：
+    // ① graph-status.md 每跑重生成（内容嵌新时间戳）；② _enums-cache.md 桥同步无条件重写（同内容）
+    for (let round = 1; round <= 3; round++) {
+      fs.writeFileSync(statusFile, `| 上次抽取 | 05:0${round} UTC |\n`);
+      fs.writeFileSync(cache, "modules: []\n");
+      fs.utimesSync(cache, new Date(), new Date(Date.now() + round * 5000));
+      refresher.recordRefreshed(); // post-run 记基线
+      const outcome = refresher.check("read-time"); // 下一轮读/事件触发的检查
+      assert.equal(outcome.drifted, false, `第 ${round} 轮管线写面不再构成漂移`);
+      assert.equal(pipeline.starts.length, 0, `第 ${round} 轮不再自触发（修复前每 ~15s 一轮实录）`);
+    }
+  } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
