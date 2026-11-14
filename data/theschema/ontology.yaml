@@ -1258,7 +1258,7 @@ action_types:
     executor: article-workflow.retire
     required_roles: []
     preconditions: []
-    risk_id: article-destructive # WP-172：退役必经审批（approve 档——凭单放行、单次有效、输入哈希防偷换）
+
     input_schema:
       contract_ref: "POST /api/articles/retire requestBody"
   articles.standardize:

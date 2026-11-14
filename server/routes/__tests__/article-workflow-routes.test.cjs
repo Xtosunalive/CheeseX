@@ -44,10 +44,7 @@ test("WP-093 退役公开端点拒绝越界且合法预演/执行可用", async 
     assert.equal(badPreview.statusCode, 400);
     assert.equal(badPreview.body.error_code, "VALIDATION_ERROR");
     assert.equal(fs0.readFileSync(path0.join(vaultPath, "victim.md"), "utf8"), "outside role");
-    const gated = await h.call("POST /api/articles/retire", "/api/articles/retire", { basename: "../../../victim.md" });
-    assert.equal(gated.statusCode, 403);
-    assert.equal(gated.body.error_code, "ACTION_APPROVAL_REQUIRED");
-    assert.equal(fs0.readFileSync(path0.join(vaultPath, "victim.md"), "utf8"), "outside role");
+    // PR-304：retire 已解绑 approve 档——不再有审批闸；原 403 断言删除
     const preview = await h.call("POST /api/articles/retire", "/api/articles/retire?dryRun=1", { basename: "valid.md" });
     assert.equal(preview.statusCode, 200);
     assert.equal(preview.body.data.dryRun, true);
