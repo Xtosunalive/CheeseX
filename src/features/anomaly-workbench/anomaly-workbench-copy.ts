@@ -401,9 +401,13 @@ export const ANOMALY_PEEK_COPY = {
   /** footer 动作区 */
   REOPEN_ACTION: "重开",
   CLOSE_EXPLICIT_ACTION: "显式关闭",
-  CONFIRM_ACTION: "确认这次处理",
-  CONFIRM_READY_TITLE: "确认当前预览的处理",
-  CONFIRM_BLOCKED_TITLE: "选值并生成预览后可确认",
+  /** PR-308/WP-177：确认文案含落盘与去向语义（点后=落盘→全局诊断自动重跑管道复核） */
+  CONFIRM_ACTION: "确认落盘，等待全局诊断",
+  CONFIRM_READY_TITLE: "点击后按当前预览落盘修复；系统进入全局诊断，自动重跑管道并复核",
+  /** 非法态不渲染按钮改显指引（PR-308：预览合法、确认非法时） */
+  NEXT_STEP_PREVIEW_HINT: "下一步：选值生成预览；预览生成后即可确认落盘",
+  /** 执行未就绪（服务端无此问题的自动执行通道，修复入口改道） */
+  EXECUTION_NOT_READY_HINT: "执行未就绪：此问题暂无页内自动执行通道，请经对应处理入口完成修复",
   REJECT_CANDIDATE_ACTION: "驳回候选",
   HANDOFF_HINT: "跳转动作在勾选后的底部操作条",
   CLOSE_HEADER_ARIA: "关闭详情",

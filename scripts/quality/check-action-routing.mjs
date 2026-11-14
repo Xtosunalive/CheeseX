@@ -230,6 +230,61 @@ for (const [kind, spec] of registered) {
   }
 }
 
+// ── ⑥ 状态×操作前置表对账（WP-177/PR-308）：后端集中转移表 ↔ 前端 registry 镜像 ──
+// 后端单源：server/services/anomaly/anomaly-workbench-service.cjs 的 OPERATION_PRECONDITIONS
+// （操作 → 允许起始状态，非法转移 fail-closed 409）。前端动作区照它渲染（合法才可见），
+// 前端镜像不得手抄漂移——本面对账双向：前端镜像的每个操作，状态集必须与后端逐项相等；
+// 前端多声明后端没有的操作即红；后端 rerun/verify 为管道驱动、无页面按钮，按白名单跳过
+// （结构性豁免，理由即此注释；后端新增页面可见操作而前端未镜像时本面即红）。
+const SERVICE_FILE = path.join(ROOT, "server", "services", "anomaly", "anomaly-workbench-service.cjs");
+const REGISTRY_FILE = path.join(SRC, "features", "anomaly-workbench", "anomaly-action-registry.ts");
+const PIPELINE_ONLY_OPS = new Set(["rerun", "verify"]); // 管道驱动，无页面按钮（见上注释）
+
+function parsePreconditionsTable(source, label) {
+  const anchor = source.match(/OPERATION_PRECONDITIONS[^=]*=\s*\{/);
+  if (!anchor) throw new Error(`[前置表] ${label} 未找到 OPERATION_PRECONDITIONS 表（结构变化需同步对账面）`);
+  const start = anchor.index + anchor[0].length;
+  let depth = 1;
+  let i = start;
+  while (i < source.length && depth > 0) {
+    if (source[i] === "{") depth++;
+    else if (source[i] === "}") depth--;
+    i++;
+  }
+  const body = source.slice(start, i - 1);
+  const table = new Map(); // op → [states]
+  for (const m of body.matchAll(/([a-zA-Z_]+):\s*\[([^\]]*)\]/g)) {
+    const states = [...m[2].matchAll(/"([a-z_]+)"/g)].map((s) => s[1]);
+    if (states.length > 0) table.set(m[1], states);
+  }
+  return table;
+}
+
+try {
+  const backendTable = parsePreconditionsTable(fs.readFileSync(SERVICE_FILE, "utf-8"), "后端 anomaly-workbench-service.cjs");
+  const frontendTable = parsePreconditionsTable(fs.readFileSync(REGISTRY_FILE, "utf-8"), "前端 anomaly-action-registry.ts");
+  // 对账域 = 前端镜像键 ∪ 后端非管道键——两侧缺声明都进镜头
+  const gateOps = new Set([...frontendTable.keys(), ...[...backendTable.keys()].filter((op) => !PIPELINE_ONLY_OPS.has(op))]);
+  for (const op of [...gateOps].sort()) {
+    const backendStates = backendTable.get(op);
+    const frontendStates = frontendTable.get(op);
+    if (!backendStates) {
+      violations.push(`[前置表] 操作 "${op}" 前端镜像声明但后端 OPERATION_PRECONDITIONS 无此操作（镜像不得超前单源）`);
+      continue;
+    }
+    if (!frontendStates) {
+      violations.push(`[前置表] 操作 "${op}" 后端在册且页面可见（非管道驱动），前端镜像缺声明`);
+      continue;
+    }
+    const onlyFront = frontendStates.filter((s) => !backendStates.includes(s));
+    const onlyBack = backendStates.filter((s) => !frontendStates.includes(s));
+    if (onlyFront.length > 0) violations.push(`[前置表] 操作 "${op}" 状态集漂移：前端多出 [${onlyFront.join(",")}]`);
+    if (onlyBack.length > 0) violations.push(`[前置表] 操作 "${op}" 状态集漂移：后端多出 [${onlyBack.join(",")}]`);
+  }
+} catch (e) {
+  violations.push(String(e.message || e));
+}
+
 const counts = [...registered.values()].reduce((acc, s) => {
   acc[s.handling] = (acc[s.handling] || 0) + 1;
   return acc;
