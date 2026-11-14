@@ -336,6 +336,9 @@ const articleLifecycleReconciler = createArticleLifecycleReconciler({
 let associationRetirementPort = null; // loadDashboardRoutes 段赋值
 require("./routes/article-workflow-routes.cjs").register(registerRoute, {
   articleWorkflowService,
+  // WP-173（SPEC-095 §3.6）：计算状态端点的审批探针与合规阻断——从审批状态机与异常工作台取
+  getApprovalStatus: (id) => { try { return approvalStateMachine.getStatus(id).status; } catch { return "draft"; } },
+  getComplianceBlockers: (id) => { try { return anomalyWorkbenchRef?.service?.list?.({ articleId: id })?.blockers || []; } catch { return []; } },
   reconcileAnomalies: (job) => { if (anomalyWorkbenchRef) anomalyWorkbenchRef.reconcileDiagnostic(job); },
   // PR-065/SPEC-013 L2：文章退役动作（预演/事务性沿 source_file 链全清）
   retireArticle: (input) => articleLifecycleReconciler.retireArticle(input),

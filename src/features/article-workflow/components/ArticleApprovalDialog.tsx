@@ -1,3 +1,4 @@
+import { ArticleStatusBadge } from "./ArticleStatusBadge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ApprovalWorkbench } from "@/features/approval-workbench/ApprovalWorkbench";
 import { TERM } from "@/constants/term-const";
@@ -12,6 +13,7 @@ export function ArticleApprovalDialog({ open, articleId, title, onClose }: { ope
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose(); }}>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+        <ArticleStatusBadge articleId={articleId} />
         <DialogHeader>
           <DialogTitle>{TERM.GRAPH_PUBLISH}</DialogTitle>
           <DialogDescription>{ARTICLE_APPROVAL_DIALOG_COPY.DESCRIPTION}</DialogDescription>

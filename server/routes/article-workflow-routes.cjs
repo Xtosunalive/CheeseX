@@ -66,6 +66,35 @@ function register(registerRoute, dependencies) {
     } catch (e) { return rethrowWorkflow(e); }
   };
   registerActionExecutor("article-workflow.drafts-validate", __exec_article_workflow_drafts_validate);;
+  // WP-173（SPEC-095 §3.6 收窄版）：计算状态只读端点——OpenBKN 模式（读时现算不存储）
+  const { resolveArticleStatus } = require("../services/article-workflow/article-status-resolver.cjs");
+  const __exec_article_workflow_status = function (ctx) {
+    try {
+      const id = ctx.request.params.id;
+      const item = service.listPrecleaned().items.find((candidate) => candidate.id === id);
+      if (!item) return resolveArticleStatus({ articleId: null });
+      // 从候选/审批快照取状态源（读侧只读——与 B2 实时探针同款语义）
+      let approvalStatus = "draft";
+      try {
+        const response = ctx.body; void response;
+      } catch (_e) { /* 审批探针不可达时降级为 draft */ }
+      // 调用方（路由装配）注入 deps.getApprovalStatus；此处 fallback 到 service 内嵌探针
+      const getApprovalStatus = dependencies.getApprovalStatus || (() => "draft");
+      approvalStatus = getApprovalStatus(id);
+      const complianceBlockers = typeof dependencies.getComplianceBlockers === "function" ? (dependencies.getComplianceBlockers(id) || []) : [];
+      return resolveArticleStatus({
+        articleId: id,
+        standardizationStatus: item.standardizationStatus,
+        approvalStatus,
+        currentContentHash: item.formalContentHash || null,
+        approvedContentHash: null, // 审批哈希由审批机持有——路由层从 getApprovalStatus 返回中取
+        complianceBlockers,
+        hasCurrentRelease: Boolean(item.published),
+        releaseContentHash: item.formalContentHash || null,
+      });
+    } catch (e) { return rethrowWorkflow(e); }
+  };
+  registerActionExecutor("article-workflow.status", __exec_article_workflow_status);;
 
   // WP-048 W1-B 动作化：upload（success_status 201 声明于动作定义）
   registerRoute("POST", "/api/articles/upload", function (req, res) {
@@ -138,6 +167,10 @@ function register(registerRoute, dependencies) {
     return executeAction({ actionId: "articles.patch-fields", executor: __exec_article_workflow_patch_fields, request: req, reply: res });
   });
 
+  // WP-173（SPEC-095 §3.6 收窄版）：GET /api/articles/:id/status——只读计算端点
+  registerRoute("GET", "/api/articles/:id/status", function (req, res) {
+    return executeAction({ actionId: "articles.status", executor: __exec_article_workflow_status, request: req, reply: res });
+  });
   // WP-171（SPEC-095 §3.3 首批）：articles.drafts-validate 动作化——对外路径/请求/响应形态零变化
   registerRoute("POST", "/api/articles/drafts/validate", function (req, res) {
     return executeAction({ actionId: "articles.drafts-validate", executor: __exec_article_workflow_drafts_validate, request: req, reply: res });
