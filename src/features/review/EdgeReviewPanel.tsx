@@ -3,6 +3,7 @@
 // 行内动作钮换 ui/button（B1，保留 spinner/禁用/动态 title）；关系类型/来源/文档徽章换 ui/tag（D6）。
 // candidates become graph-fact Proposals; facts are approved on the Proposal page.
 import { TableToolbar, TableToolbarSearch } from "@/components/table-toolbar";
+import { ARTICLE_STAGE_LABEL } from "@/features/article-workflow/article-workflow-copy";
 import { useState, useEffect, useCallback } from "react";
 import { useUniqueSorted } from "@/hooks/useUniqueSorted";
 import { Check, X, RefreshCw, Loader2, GitBranch, FileText, Sparkles, Tags, Link2, RotateCcw } from "lucide-react";
@@ -32,7 +33,7 @@ import {
   edgeReviewEvidenceTitle,
   edgeReviewMetaText,
 } from "./review-copy";
-import type { PendingEdge } from "./review-types";
+import type { PendingEdgeWithStage as PendingEdge } from "./review-types";
 
 type EdgeSortField = "source" | "target" | "type";
 
@@ -252,10 +253,12 @@ function EndpointCell({ label, labels }: { label: string; labels?: string[] }) {
 
 function EdgeMeta({ edge }: { edge: PendingEdge }) {
   const kind = relationMeta(edge.type);
+  const stageInfo = edge.article_stage ? ARTICLE_STAGE_LABEL[edge.article_stage] : null;
   const provenance = edgeProvenance(edge);
   return (
     <div className="space-y-1.5">
       <div className="flex flex-wrap items-center gap-1.5">
+        {stageInfo && <Tag className="shrink-0 px-1.5 py-0.5 text-kg-xs" data-testid={`edge-article-stage-${edge.article_stage}`}>{stageInfo.label}</Tag>}
         <Tag className={kind.color} title={kind.description}>
           <kind.icon className="h-3 w-3" />
           {kind.label}
