@@ -690,7 +690,17 @@ function loadDashboardRoutes() {
         return dependencyImpactService.assertWriteAllowed(items);
       },
     };
-    const { releaseRuntime } = require("./services/release-governance/release-governance-assembly.cjs").createReleaseGovernanceFoundation({ vaultPath, logger });
+    const { releaseRuntime } = require("./services/release-governance/release-governance-assembly.cjs").createReleaseGovernanceFoundation({
+      vaultPath,
+      logger,
+      // PR-306：发布失败 Issue 的源文章批量存在性探针——文章从半成品区消失即读时销账（防僵尸）。
+      // 批量契约（红队必修）：单次销账一次 listPrecleaned 装载覆盖全部单，禁逐单全量扫描。
+      // listPrecleaned 内部异常由发布器侧 catch 兜住（fail-safe 不销账）。
+      resolveArticlesPresence: (articleIds) => {
+        const present = new Set(articleWorkflowService.listPrecleaned().items.map((item) => item.id));
+        return Object.fromEntries(articleIds.map((articleId) => [articleId, present.has(articleId)]));
+      },
+    });
     releaseRuntimeRef = releaseRuntime;
     schemaProposalRuntimeHolder = require("./routes/release-runtime-routes.cjs").registerSchemaReleaseRuntime({
       registerRoute,

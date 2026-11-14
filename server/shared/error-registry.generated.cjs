@@ -1331,7 +1331,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/release-publisher-service.cjs:165"
+        "server/services/release-governance/release-publisher-service.cjs:210"
       ]
     },
     "PUBLISH_RELEASE_INVALID": {
@@ -1664,7 +1664,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/release-governance/release-publisher-service.cjs:179"
+        "server/services/release-governance/release-publisher-service.cjs:224"
       ]
     },
     "RELEASE_RESTORE_NOT_FOUND": {
@@ -1672,7 +1672,7 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/release-governance/release-publisher-service.cjs:181"
+        "server/services/release-governance/release-publisher-service.cjs:226"
       ]
     },
     "REPAIR_APPLY_NOT_CONFIGURED": {
@@ -2175,7 +2175,7 @@ module.exports = {
         "server/services/pipeline/obsidian-open-service.cjs:25",
         "server/services/pipeline/obsidian-open-service.cjs:47",
         "server/services/pipeline/version-registry-service.cjs:186",
-        "server/services/release-governance/release-publisher-service.cjs:176",
+        "server/services/release-governance/release-publisher-service.cjs:221",
         "server/services/schema-manager/dependencies-write-service.cjs:254",
         "server/services/schema-manager/dependency-impact-preview-service.cjs:51",
         "server/services/schema-manager/enums-write-service.cjs:128",

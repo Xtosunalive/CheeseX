@@ -6,11 +6,12 @@
 const path = require("node:path");
 const { resolveReleasesDir } = require("../../shared/releases-dir.cjs");
 
-function createReleaseGovernanceFoundation({ vaultPath, logger }) {
+function createReleaseGovernanceFoundation({ vaultPath, logger, resolveArticlesPresence }) {
   const releaseRuntime = require("./release-runtime.cjs").createReleaseRuntime({
     vaultPath,
     logger,
     releasesDir: resolveReleasesDir({ vaultPath }).dir, // WP-023：唯一解析点
+    resolveArticlesPresence, // PR-306：源文章删除读时销账批量探针（main.cjs 注入；缺省不销账）
   });
   return { releaseRuntime };
 }
