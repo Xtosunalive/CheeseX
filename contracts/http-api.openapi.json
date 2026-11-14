@@ -7273,6 +7273,22 @@
           },
           "fieldProvenance": {
             "$ref": "#/components/schemas/FieldProvenanceMap"
+          },
+          "stage": {
+            "$ref": "#/components/schemas/ArticleStage",
+            "description": "WP-174：计算状态（include=status 查询参数可选包含）"
+          },
+          "stale": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArticleStatusBlocker"
+            }
           }
         }
       },

@@ -13,6 +13,7 @@ import { formatDateTime } from "@/lib/format";
 import { TERM } from "@/constants/term-const";
 import { type PrecleanedArticleItem } from "@/features/article-workflow/article-workflow-types";
 import { standardizationStatusDisplay } from "@/lib/domain/StatusDisplay";
+import { ArticleStatusBadge } from "./ArticleStatusBadge";
 import type { ArticleSortField } from "./ArticleAdmissionWorkspace";
 import {
   ARTICLE_SKILL_OUTCOME_COPY,
@@ -86,6 +87,7 @@ export function PrecleanedTable({ items, loading, sortField, sortDirection, empt
       render: (item) => (
         <div>
           <Tag tone={standardizationStatusDisplay(item.standardizationStatus).tone}>{standardizationStatusDisplay(item.standardizationStatus).label}</Tag>
+          {item.stage && <ArticleStatusBadge stage={item.stage} stale={item.stale} blockers={item.blockers} />}
           {item.standardizationWarningCount > 0 && <p className="mt-1 text-xs text-status-warn" title={PRECLEANED_TABLE_COPY.WARNING_TITLE}>{precleanedWarningCountText(item.standardizationWarningCount)}</p>}
         </div>
       ),
