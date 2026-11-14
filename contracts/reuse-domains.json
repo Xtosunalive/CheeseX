@@ -431,8 +431,8 @@
       "register_entry": "docs/plans/problem-register.md#PR-124",
       "verification_evidence": "scripts/quality/__tests__/check-conflict-markers.test.mjs 5/5（门禁面）；两模式各自服务套件绿（decisions-mirror 4/4；pipeline-run-service 全套）",
       "metrics": null,
-      "last_updated": "2026-11-03",
-      "note": "2026-10-26 WP-021 开域（Master「批准」复用机制沉淀三件）。候选期＝登记位形态实验：本域不执法（gate 由各模式所属域管），只做「机制有登记位、消费方找得到」的最小事实源。模式⑤的执法件挂 quality-gates（response-count-parity），不在本域 tests 重复登记。 模式⑥执法件挂 quality-gates（ui-stat-provenance），同模式⑤不在本域 tests 重复登记。；2026-11-07 WP-136 b：模式⑥登记面 contracts/ui-stat-provenance.json 的 sourceApis 转半生成件——人只写 apiSources（视图↔api 模块#导出函数），端点清单由 npm run gen:ui-stat-provenance 派生（本域行 generator 即登记住址，check:derivation-sync 自动入保，零新增门禁）。派生前实测手抄面已有 4 处名实不符（WP-134 清点），生成后与人工纠偏结果 12/12 逐字相同。",
+      "last_updated": "2026-11-15",
+      "note": "2026-10-26 WP-021 开域（Master「批准」复用机制沉淀三件）。候选期＝登记位形态实验：本域不执法（gate 由各模式所属域管），只做「机制有登记位、消费方找得到」的最小事实源。模式⑤的执法件挂 quality-gates（response-count-parity），不在本域 tests 重复登记。 模式⑥执法件挂 quality-gates（ui-stat-provenance），同模式⑤不在本域 tests 重复登记。；2026-11-07 WP-136 b：模式⑥登记面 contracts/ui-stat-provenance.json 的 sourceApis 转半生成件——人只写 apiSources（视图↔api 模块#导出函数），端点清单由 npm run gen:ui-stat-provenance 派生（本域行 generator 即登记住址，check:derivation-sync 自动入保，零新增门禁）。派生前实测手抄面已有 4 处名实不符（WP-134 清点），生成后与人工纠偏结果 12/12 逐字相同。｜2026-11-15 PR-304 模式沉淀批（四模式）：⑦API增量字段opt-in（include=xxx可选包含——WP-174）；⑧自激励退避（成功但指纹仍漂移N次停手——PR-301）；⑨测量归因静默采样（前后对比量法先采样2.5s静默窗——PR-300）；⑩夹具投影守卫（投影机制在场断言——PR-304）。代码事实源：⑦article-workflow-service.cjs；⑧graph-drift-refresher.cjs；⑨shared/assert-quiescent.mjs；⑩guards/fixture-projection-parity.test.mjs",
       "generator": "gen:ui-stat-provenance"
     },
     {
