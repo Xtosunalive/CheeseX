@@ -309,11 +309,8 @@ export const ARTICLE_STAGE_LABEL: Record<string, { label: string; tone: "neutral
   confirmed: { label: "已批", tone: "fact" },
   published: { label: "已发布", tone: "fact" },
 };
-export const ARTICLE_ACTION_LABEL: Record<string, string> = {
-  standardize: "标准化", confirm: "确认", publish: "发布",
-  restandardize: "重新标准化", fix_issues: "去处理", upload_draft: "投稿",
-};
 export const ARTICLE_STATUS_COPY = {
+  BLOCKER_COUNT_TEXT: "项阻断",
   STALE_BADGE: "源已变化",
   BLOCKER_COUNT: (n: number) => `${n} 项阻断`,
 };
