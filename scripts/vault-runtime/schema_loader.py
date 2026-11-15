@@ -403,12 +403,10 @@ def resolve_product_identity(raw):
         return {"canonical": raw_text, "registered": False, "reserved": True}
     product_keys = {str(k).strip() for k in registry.get("products", {}).keys() if isinstance(k, str)}
     aliases = architecture_projection().get("product_aliases") or {}
-    # ①别名键直连（AS→AnyShare：别名表是完整归一链，独立成立）
     if raw_text in aliases:
         target = str(aliases[raw_text]).strip()
         if target:
             return {"canonical": target, "registered": True, "reserved": False}
-    # ②注册键（As）：经别名表大小写不敏感反查其目标全名（AS→AnyShare 先例），无映射则原样
     if raw_text in product_keys:
         canonical = raw_text
         for alias_key, target in aliases.items():
@@ -416,7 +414,6 @@ def resolve_product_identity(raw):
                 canonical = str(target).strip() or raw_text
                 break
         return {"canonical": canonical, "registered": True, "reserved": False}
-    # ③展示全名（AnyShare）：在注册表派生集（products()/别名目标）中即视为注册
     known_full_names = {str(t).strip() for t in aliases.values() if str(t).strip()}
     if raw_text in known_full_names or raw_text in products():
         return {"canonical": raw_text, "registered": True, "reserved": False}

@@ -1,7 +1,6 @@
 'use strict';
 // Component: Vocab-Envelope-Materializer（词表信封物化——WP-049 L3／SPEC-044 C2）
 // @responsible: Node→Python 拉起点的信封物化器：装载入口产出五件词表类型化载荷，
-//   写入执行库运行时槽 <vault>/.ledger/vocab-envelope.json（原 .anyshare，PR-243 批B 退役），路径经 VOCAB_ENVELOPE_PATH
 //   下发——Python 全链零词表文件读取（ADR-016 §四-2 裁决「装载收进同一宿主」）。
 //   每次拉起前重写（无陈旧面：内容恒由本次装载产出）；槽位在 vault 运行时状态区，
 //   不入 git、无跨库碰撞（每库各一份）。

@@ -1241,6 +1241,7 @@ action_types:
     input_schema:
       contract_ref: "POST /api/approval/{articleId}/transition requestBody"
   article-associations.save:
+    class_id: KnowledgeArticle
     http_route: "POST /api/article-associations/save"
     executor: article-associations.save
     required_roles: []
@@ -1248,6 +1249,7 @@ action_types:
     input_schema:
       contract_ref: "POST /api/article-associations/save requestBody"
   article-associations.remove:
+    class_id: KnowledgeArticle
     http_route: "POST /api/article-associations/remove"
     executor: article-associations.remove
     required_roles: []
@@ -1255,6 +1257,7 @@ action_types:
     input_schema:
       contract_ref: "POST /api/article-associations/remove requestBody"
   articles.upload:
+    class_id: KnowledgeArticle
     http_route: "POST /api/articles/upload"
     executor: article-workflow.upload
     required_roles: []
@@ -1263,6 +1266,7 @@ action_types:
     input_schema:
       contract_ref: "POST /api/articles/upload requestBody"
   articles.retire:
+    class_id: KnowledgeArticle
     http_route: "POST /api/articles/retire"
     executor: article-workflow.retire
     required_roles: []
@@ -1271,6 +1275,7 @@ action_types:
     input_schema:
       contract_ref: "POST /api/articles/retire requestBody"
   articles.standardize:
+    class_id: KnowledgeArticle
     http_route: "POST /api/articles/precleaned/{id}/standardization"
     executor: article-workflow.standardize
     required_roles: [ review ]
@@ -1278,6 +1283,7 @@ action_types:
     input_schema:
       contract_ref: "POST /api/articles/precleaned/{id}/standardization requestBody"
   articles.patch-fields:
+    class_id: KnowledgeArticle
     http_route: "PATCH /api/articles/precleaned/{id}/fields"
     executor: article-workflow.patch-fields
     required_roles: []
@@ -1285,6 +1291,7 @@ action_types:
     input_schema:
       contract_ref: "PATCH /api/articles/precleaned/{id}/fields requestBody"
   articles.drafts-promote:
+    class_id: KnowledgeArticle
     http_route: "POST /api/articles/drafts/promote"
     executor: article-workflow.drafts-promote
     required_roles: []
@@ -1294,6 +1301,7 @@ action_types:
   # WP-171（SPEC-095 §3.3 首批）：validate 为生命周期首站写操作（归档+自动填+任务快照）——
   # 最后一个旁路写路径收编，文章写操作六/六全经工厂（登记即执法）
   articles.drafts-validate:
+    class_id: KnowledgeArticle
     http_route: "POST /api/articles/drafts/validate"
     executor: article-workflow.drafts-validate
     required_roles: []
@@ -1303,11 +1311,13 @@ action_types:
   # WP-172（SPEC-095 §3.5 首批）：审批通道自身也是动作（吃狗粮——审计/角色走八步编排）
   # WP-173（SPEC-095 §3.6 收窄版）：计算状态只读端点
   articles.status:
+    class_id: KnowledgeArticle
     http_route: "GET /api/articles/{id}/status"
     executor: article-workflow.status
     required_roles: []
     preconditions: []
   action-approvals.create:
+    class_id: KnowledgeArticle
     http_route: "POST /api/action-approvals"
     executor: action-approvals.create
     required_roles: []
@@ -1315,6 +1325,7 @@ action_types:
     input_schema:
       contract_ref: "POST /api/action-approvals requestBody"
   action-approvals.decide:
+    class_id: KnowledgeArticle
     http_route: "POST /api/action-approvals/:id/decision"
     executor: action-approvals.decide
     required_roles: [ review ]

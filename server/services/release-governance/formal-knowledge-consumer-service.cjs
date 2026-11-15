@@ -13,7 +13,6 @@ const { bindErrorFactory, createError } = require("../../shared/error-factory.cj
 const consumerError = bindErrorFactory({ status: 500 });
 
 // ADR-009 D5（Master 2026-10-25「A」，PR-103）：「无挂载主体」是合法空态——元层 architecture_projection 的
-// product/version 双空（AnyShare 2026-10-17 退役归档后的默认态，也是开源新库的默认态）不再是配置错误；
 // 消费端上下文照常建立，词表/文档/关系等不依赖产品身份的读面照常；只有依赖产品身份的读面（语义架构投影）
 // 以定义过的 409 空态引导拒绝，而不是 500。半身份（只填其一）仍是配置错误，保持 fail-closed。
 // WP-070 §3.3（消费类）：指引文案经空态语义契约单源组装（guidanceFor）——不再内联第二文案源；

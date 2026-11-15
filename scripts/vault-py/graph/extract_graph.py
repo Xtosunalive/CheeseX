@@ -884,7 +884,7 @@ _MODULE_INFERENCE_RULES = [
     (lambda p, t, b: "Calico" in t or "calico" in t.lower() or "证书到期" in t, "Calico"),
     (lambda p, t, b: "Docker" in t or "docker" in t.lower(), "Docker"),
     (lambda p, t, b: "Kubernetes" in t or "kubernetes" in t.lower() or "k8s" in t.lower() or "滚动重启" in t or "ingress" in t.lower() or "负载均衡" in t or "Deployment" in t or "yaml" in t.lower() or "pod" in t.lower() or "容器" in t, "Kubernetes"),
-    (lambda p, t, b: "客户" in t or "Sailor" in t or "sailor" in t.lower() or "同步盘" in t or "用户终端" in t or "兼容性" in t or "PC" in t.upper() or "桌面" in t or "windows" in t.lower() or "mac" in t.lower() or "anyShare同步" in t.lower() or "anyShare客户" in t.lower(), "客户端"),
+    (lambda p, t, b: "客户" in t or "Sailor" in t or "sailor" in t.lower() or "同步盘" in t or "用户终端" in t or "兼容性" in t or "PC" in t.upper() or "桌面" in t or "windows" in t.lower() or "mac" in t.lower(), "客户端"),
     (lambda p, t, b: "亿赛通" in t or "yisaitong" in t.lower(), "亿赛通"),
     (lambda p, t, b: "证书" in t or "cert" in t.lower() or "证书链" in t or "https" in t.lower() or "tls" in t.lower() or "license" in t.lower() or "许可" in t, "证书管理"),
     (lambda p, t, b: "漏洞" in t or "vuln" in t.lower(), "漏洞管理"),
@@ -2956,7 +2956,6 @@ def main():
     all_edges.extend(edges)
     print(f"    → {len(nodes)} 节点, {len(edges)} 边")
 
-    # Step 3 已退役: 旧版 AnyShare.architecture.json 不再作为数据源（2026-05-03）
     arch_node_ids = set()
 
     # Step 4-5: Wiki entities → Module/System补全

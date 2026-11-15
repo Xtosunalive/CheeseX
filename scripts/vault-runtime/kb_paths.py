@@ -67,7 +67,6 @@ def normalize_vault_cli(path: str) -> tuple[str, str]:
 # 图族/运行时工件住 repo 侧 data/（②③④类），落点推导此前散布五处独立实现
 # （pipeline-runner/generate-sa/extract_graph/_runtime_state_db 各拼各的），wave-2 搬家时
 # 漏改即「旧位引用残留」一族的温床。收敛后：搬家＝改这里一处，消费方零感知；
-# 旧 vault .anyshare 位唯一合法读者＝Node 侧 importLegacyGraphArtifacts 迁移链（读完即删）。
 
 _DATA_DIR_GUIDE = (
     "KB_DATA_DIR 未设置：运行时工件（master_graph/extract_manifest/管线状态等）"
@@ -86,7 +85,6 @@ def data_dir() -> str:
 
 
 def ledger_dir(vault_root: str | None = None) -> str:
-    """账本目录唯一出处（PR-243 批B）：`.anyshare` 为实例产品名残留，退役改 `.ledger`。
     Node 侧单源＝server/vault-paths.cjs LEDGER_DIRNAME，两侧同值改须同笔。"""
     root = _abspath(vault_root) if vault_root else None
     if root is None:

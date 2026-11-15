@@ -68,6 +68,7 @@ function register(registerRoute, dependencies) {
   registerActionExecutor("article-workflow.drafts-validate", __exec_article_workflow_drafts_validate);;
   // WP-173（SPEC-095 §3.6 收窄版）：计算状态只读端点——OpenBKN 模式（读时现算不存储）
   const { resolveArticleStatus } = require("../services/article-workflow/article-status-resolver.cjs");
+  const { getPrincipal } = require("../shared/request-context.cjs");
   const __exec_article_workflow_status = function (ctx) {
     try {
       const id = ctx.request.params.id;
@@ -82,15 +83,17 @@ function register(registerRoute, dependencies) {
       const getApprovalStatus = dependencies.getApprovalStatus || (() => "draft");
       approvalStatus = getApprovalStatus(id);
       const complianceBlockers = typeof dependencies.getComplianceBlockers === "function" ? (dependencies.getComplianceBlockers(id) || []) : [];
+      const principal = getPrincipal();
       return resolveArticleStatus({
         articleId: id,
         standardizationStatus: item.standardizationStatus,
         approvalStatus,
         currentContentHash: item.formalContentHash || null,
-        approvedContentHash: null, // 审批哈希由审批机持有——路由层从 getApprovalStatus 返回中取
+        approvedContentHash: null,
         complianceBlockers,
         hasCurrentRelease: Boolean(item.published),
         releaseContentHash: item.formalContentHash || null,
+        roles: principal ? principal.roles : [],
       });
     } catch (e) { return rethrowWorkflow(e); }
   };

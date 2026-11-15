@@ -112,7 +112,6 @@ function createImpactAnalysisService({ getGraph, getNodeDocuments, getDocumentsB
           coordinate: `relation:${edge.edgeId || require("../../shared/identity-port.cjs").makeId("edge", [edge.source, edge.type, edge.target, edge.evidenceHash || ""])}`,
           },
           rule: { ...rule, ruleRevision: "runtime:impact-analysis-v2" },
-          // PR-082：AnyShare 硬编码回退清理——无产品身份（元层态）时不携带 scope（lineage 侧可选）
           ...((rawRequest?.product || rawRequest?.version) ? { scope: { product: rawRequest.product, version: rawRequest.version } } : {}),
           freshness: sourceContext.freshness || unknownFreshness(),
         }),
@@ -231,7 +230,6 @@ function createImpactAnalysisService({ getGraph, getNodeDocuments, getDocumentsB
     const analysisLineage = evidenceService.build({
       source: { kind: "master-graph", path: "derived-index:master_graph", contentHash: analysisContext.contentHash, coordinate: `impact:${resolvedSeeds.join(",")}` }, // WP-060：真实来源标注（原文件时代遗留路径）
       rule: { ruleId: "impact-analysis.traverse", ruleRevision: "runtime:impact-analysis-v2", reasonCode: "RELATION_TRAVERSAL" },
-      // PR-082：AnyShare 硬编码回退清理——无产品身份（元层态）时不携带 scope（lineage 侧可选）
           ...((rawRequest?.product || rawRequest?.version) ? { scope: { product: rawRequest.product, version: rawRequest.version } } : {}),
       freshness: analysisContext.freshness || unknownFreshness(),
     });
