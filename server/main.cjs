@@ -182,6 +182,9 @@ const schemaSelfcheckReady = Promise.resolve()
 // WP-041：投放自动链消费者占位——监听先起、服务后建（同一 boot tick 内完成注入，事件到达时必已就位）
 let draftDropAutomation = null;
 let formalEditProcessor = null;
+// SPEC-030 §十一批2（2026-11-16 监听扩面）：precleaned 候选对账消费者占位——同上注入模式
+let articleWorkflowReconcile = null;
+const precleanedWatchRoot = path.join(vaultPath, require("./shared/article-lifecycle-paths.cjs").WORKING_ROOT) + path.sep; // 路径单源（article-lifecycle 哨兵执法）
 const vaultWatcher = createVaultWatcherService({
     vaultPath, gitLedger: vaultGitLedger, vaultIO, logger,
     // WP-156 必修修复（红队⑤）：实时面词表提供者真实装配——与查询面 health 读模型同源
@@ -193,6 +196,12 @@ const vaultWatcher = createVaultWatcherService({
     pipelineDue.noteExternalWrite(); // SPEC-025 C2（W1b）：外部写计数 +1（1 篇即 due，Master 2026-10-23 阈值）
     if (draftDropAutomation) void draftDropAutomation.onExternalWrite(paths); // WP-041：投稿投放自动校验＋提升（装配于 articleWorkflowService 之后注入）
     if (formalEditProcessor) formalEditProcessor.handle(paths);
+    // SPEC-030 §十一批2（2026-11-16 监听扩面）：precleaned 候选外部写（Obsidian 编辑已入库文章）
+    // → 工作流自动对账（WP-063 链：哈希回退→自动重标准化）——formal 区由 formalEditProcessor 承接，
+    // 本桥补 precleaned 侧；paths 为绝对路径（监听器原样透传），fail-open 只告警（与同族桥一致）。
+    if (articleWorkflowReconcile && paths.some((p) => p.startsWith(precleanedWatchRoot))) {
+      void articleWorkflowReconcile().catch((e) => logger.warn({ event: "article-workflow-external-reconcile-failed", error: e.message }));
+    }
   },
   // WP-027（PR-142）：图输入 schema 写事件桥（内部写早退于 onExternalWrite，本桥独立于归属判定）
   onSchemaInputWrite: (paths) => {
@@ -338,6 +347,8 @@ setInterval(() => { try { articleLifecycleReconciler.reconcileWorkingCopies(); }
 // vaultGitLedger 已在管线服务前创建（SPEC-010-W10 WP2/WP3 共用实例）
 const approvalStateMachine = registerApprovalStateMachine({ vaultPath, logger, articleWorkflowService, pipelineRunService, gitLedger: vaultGitLedger });
 formalEditProcessor = require("./services/article-workflow/formal-edit-service.cjs").createFormalEditService({ vaultPath, articleWorkflowService, approvalStateMachine, logger });
+// SPEC-030 §十一批2：precleaned 候选对账消费者注入（服务就绪后，监听事件到达时必已就位）
+articleWorkflowReconcile = () => Promise.resolve(articleWorkflowService.reconcileExternalEdits());
 formalEditProcessor.reconcile(); // 停机期间 Obsidian 保存的正式文章在启动时重新检测
 require("./routes/approval-state-machine-routes.cjs").register(registerRoute, { approvalStateMachine });
 // WP-156：查询面健康度读模型（按契约全量规则筛违规文章＋JSON 导出——与实时面同引擎同契约）

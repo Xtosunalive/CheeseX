@@ -206,6 +206,26 @@ test("blocked 候选详情透出 complianceBlockers/standardizationWarnings，me
   assert.equal(detail.metadata.product, "通用", "metadata 现读回归钉（读文件现值，非快照）");
 });
 
+// SPEC-030 §十一批2（2026-11-16 监听扩面）：外部编辑已入库文章 → reconcileExternalEdits → WP-063 链自动跑
+test("reconcileExternalEdits：外部编辑 precleaned 文件 → 回退待标准化 → 自动重标准化（监听桥消费面）", (t) => {
+  const vaultPath = fixture();
+  t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));
+  writeCandidate(vaultPath, "外部编辑.md", validArticle("external-edit", "外部编辑"));
+  const service = createArticleWorkflowService({ vaultPath, logger: { info() {}, error() {} } });
+  const id = service.listPrecleaned().items[0].id;
+  service.standardize(id, true);
+  assert.equal(service.listPrecleaned().items[0].standardizationStatus, "standardized", "前置：已标准化");
+
+  // 外部编辑（Obsidian 语义）：绕过服务直接改盘上文件 frontmatter——正文不动，仅 module 值变更
+  const absolute = path.join(vaultPath, "知识库", "raw", "precleaned", "外部编辑.md");
+  fs.writeFileSync(absolute, fs.readFileSync(absolute, "utf8").replace("module: Gateway", "module: Gateway # 外部改"), "utf8");
+
+  const out = service.reconcileExternalEdits();
+  assert.equal(out.changed, true, "对账识别内容变更");
+  assert.ok(typeof out.candidates === "number" && typeof out.articles === "number", "读数形状（监听桥日志用）");
+  assert.equal(service.listPrecleaned().items[0].standardizationStatus, "standardized", "WP-063 链自动跑：回退→自动重标准化（最终态 standardized）");
+});
+
 test("standardize/scan flow survives a missing current pointer (falls back to worktree snapshot)", (t) => {
   const vaultPath = fixture();
   t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));
