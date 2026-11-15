@@ -1,37 +1,47 @@
 {
   "version": 1,
-  "vault": "/Users/magic/xqy/cheese/知识库",
-  "generatedAt": "2026-11-13T14:19:28.866653",
+  "vault": "/tmp/wp185-e2e-vault/知识库",
+  "generatedAt": "2026-11-15T22:12:36.810847",
   "files": {
-    "知识库/raw/boards/_enums-cache.md": {
-      "mtime_ns": 1794550754767849511,
-      "size": 372,
-      "sha16": "ce692d59638cfc2b"
+    "知识库/architecture/E2eProduct/1.0.0/semantic_architecture.json": {
+      "mtime_ns": 1794751807966419658,
+      "size": 84,
+      "sha16": "c9c255b3215fb876"
+    },
+    "知识库/raw/precleaned/e2e-candidate-article.md": {
+      "mtime_ns": 1794751807966822785,
+      "size": 390,
+      "sha16": "ce3e0aa953c299a7"
+    },
+    "知识库/wiki/entities/e2e-complete-component.md": {
+      "mtime_ns": 1794751807966669242,
+      "size": 375,
+      "sha16": "6249b8231a113738"
+    },
+    "知识库/wiki/entities/e2e-incomplete-component.md": {
+      "mtime_ns": 1794751808420129959,
+      "size": 635,
+      "sha16": "42f35269256449de"
     },
     "知识库/wiki/graph-status.md": {
-      "mtime_ns": 1794550768863470160,
-      "size": 1304,
-      "sha16": "644485e83cd8b8ef"
+      "mtime_ns": 1794751956801968271,
+      "size": 1403,
+      "sha16": "f3188a105cdaea0b"
     },
     "知识库/wiki/log.md": {
-      "mtime_ns": 1794550755082001763,
-      "size": 247452,
-      "sha16": "9365daf402886659"
-    },
-    ".ledger/vocab/article_associations.yaml": {
-      "mtime_ns": 0,
-      "size": 32,
-      "sha16": "5b928ca75b444858"
+      "mtime_ns": 1794751886929412834,
+      "size": 218,
+      "sha16": "3192976b52a4f99e"
     },
     ".ledger/vocab/dependencies.yaml": {
       "mtime_ns": 0,
       "size": 32,
-      "sha16": "568c092a1d4f2842"
+      "sha16": "e0dfa70eb69d47fe"
     },
     ".ledger/vocab/enums.yaml": {
       "mtime_ns": 0,
       "size": 32,
-      "sha16": "cff271aec05631b6"
+      "sha16": "5ee1ff2fda96364d"
     },
     ".ledger/vocab/fields.yaml": {
       "mtime_ns": 0,
@@ -41,12 +51,12 @@
     ".ledger/vocab/ontology.yaml": {
       "mtime_ns": 0,
       "size": 32,
-      "sha16": "3e345cdb8b9ff077"
+      "sha16": "f2795dcb8ea79976"
     },
     ".ledger/vocab/versions.yaml": {
       "mtime_ns": 0,
       "size": 32,
-      "sha16": "c557ca58833c16d9"
+      "sha16": "d3c76622c929c851"
     }
   }
 }

@@ -27500,6 +27500,29 @@
         }
       }
     },
+    "/api/derivation/article": {
+      "get": {
+        "summary": "文章类本体派生编译产物（WP-185 Wave3核心）",
+        "operationId": "derivation.article",
+        "tags": ["derivation"],
+        "responses": {
+          "200": {
+            "description": "编译成功，返回路由、字段、UI配置",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean", "const": true },
+                    "data": { "type": "object" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/articles/{id}/status": {
       "get": {
         "summary": "文章计算状态（WP-173/SPEC-095 §3.6 收窄版——OpenBKN 模式：读时现算不存储）",
