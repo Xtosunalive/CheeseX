@@ -890,7 +890,7 @@ logger.info({ subsystem: "api", event: "api_response_schema_enforce_on", contrac
 // SPEC-012 wave-2：图族摄取同样在 listen 前落定
 // PR-109：TheSchema 自检同汇合（fail-open——纯读校验，慢/失败不阻断 listen）
 let articleDerivation = null;
-const registerAutoRoutes = registerDerivedRoutes(registerRoute, executeAction);
+const registerAutoRoutes = registerDerivedRoutes(registerRoute, executeAction, logger);
 const derivationReady = Promise.resolve().then(() => {
   const { files } = loadVocabBundle(vaultPath, { files: ["ontology", "fields"] });
   if (files.ontology.state !== "present" || files.fields.state !== "present") {

@@ -66,17 +66,29 @@ function compileAllClasses(ontology, fields, options = {}) {
   );
 }
 
-function registerDerivedRoutes(registerRoute, executeAction) {
+function registerDerivedRoutes(registerRoute, executeAction, logger = console) {
   return function (compiled) {
+    let registered = 0;
+    let skipped = 0;
     for (const route of compiled.apiRoutes) {
-      registerRoute(route.method, route.pathTemplate, function (req, res) {
-        return executeAction({
-          actionId: route.actionId,
-          request: req,
-          reply: res,
+      try {
+        registerRoute(route.method, route.pathTemplate, function (req, res) {
+          return executeAction({
+            actionId: route.actionId,
+            request: req,
+            reply: res,
+          });
         });
-      });
+        registered += 1;
+      } catch (e) {
+        if (e.message.includes("already declared")) {
+          skipped += 1;
+        } else {
+          throw e;
+        }
+      }
     }
+    logger.warn?.({ event: "derivation-route-skip-duplicate", registered, skipped });
   };
 }
 
