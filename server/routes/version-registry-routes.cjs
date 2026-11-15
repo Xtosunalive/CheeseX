@@ -45,6 +45,19 @@ function register(registerRoute, dependencies) {
   };
   registerActionExecutor("schema-write.versions-freeze", __exec_schema_write_versions_freeze);;
 
+  // PR-319/WP-181：版本废弃（released→deprecated，个体生命周期机补「废弃」边）
+  const __exec_schema_write_versions_deprecate = async function (ctx) {
+    try {
+      if (!schemaWriteService || typeof schemaWriteService.deprecateVersion !== "function") throw createError("SCHEMA_WRITE_UNAVAILABLE", "Schema 直接写回服务不可用", 503);
+      return await schemaWriteService.deprecateVersion(ctx.body);
+    } catch (e) {
+      if (e && e.code) throw e;
+      logger.error({ event: "versions-deprecate-failed", error: e.message, code: e.code });
+      throw createError(e.code || "INTERNAL_ERROR", e.message, e.status || 500, e.details);
+    }
+  };
+  registerActionExecutor("schema-write.versions-deprecate", __exec_schema_write_versions_deprecate);;
+
   const __exec_schema_write_product_identity = function (ctx) {
     try {
       if (!schemaWriteService || typeof schemaWriteService.writeProductIdentity !== "function") throw createError("SCHEMA_WRITE_UNAVAILABLE", "Schema 直接写回服务不可用", 503);
@@ -81,6 +94,10 @@ function register(registerRoute, dependencies) {
   // PR-056：freeze 底层 python 投影异步化（WP-048 W1-A 动作化：schema.versions.freeze）
   registerRoute("POST", "/api/schema/versions/freeze", (req, res) => {
     return executeAction({ actionId: "schema.versions.freeze", executor: __exec_schema_write_versions_freeze, request: req, reply: res });
+  });
+  // PR-319/WP-181：版本废弃（released→deprecated）
+  registerRoute("POST", "/api/schema/versions/deprecate", (req, res) => {
+    return executeAction({ actionId: "schema.versions.deprecate", executor: __exec_schema_write_versions_deprecate, request: req, reply: res });
   });
 }
 

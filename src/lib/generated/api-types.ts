@@ -3511,13 +3511,13 @@ export interface paths {
                         "application/json": components["schemas"]["EdgeNotFoundErrorResponse"];
                     };
                 };
-                /** @description 审批冲突：边端点存在未解决的实体问题（RELATION_REVIEW_BLOCKED） */
+                /** @description 审批冲突：边端点存在未解决的实体问题（RELATION_REVIEW_BLOCKED）或边已裁决非 pending 态（RELATION_REVIEW_STATE_FORBIDDEN——PR-316/WP-178 写门 from-state 校验） */
                 409: {
                     headers: {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["RelationReviewBlockedErrorResponse"] | components["schemas"]["ActionConfirmRequiredErrorResponse"];
+                        "application/json": components["schemas"]["RelationReviewBlockedErrorResponse"] | components["schemas"]["RelationReviewStateForbiddenErrorResponse"] | components["schemas"]["ActionConfirmRequiredErrorResponse"];
                     };
                 };
                 /** @description 请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起 */
@@ -8551,6 +8551,118 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/schema/versions/deprecate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 标记产品版本废弃（released→deprecated——PR-319/WP-181 个体生命周期收尾） */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description 当前 revision（乐观锁） */
+                        revision: string;
+                        product: string;
+                        version: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description 废弃结果 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @constant */
+                            success: true;
+                            data?: Record<string, never>;
+                        };
+                    };
+                };
+                /** @description 参数非法（VALIDATION_ERROR；SCHEMA_REVISION_REQUIRED） */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SchemaRevisionRequiredErrorResponse"] | components["schemas"]["ValidationErrorErrorResponse"];
+                    };
+                };
+                /** @description 未认证（UNAUTHENTICATED） */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UnauthenticatedErrorResponse"];
+                    };
+                };
+                /** @description 写通道风险闸（WRITER_NOT_REGISTERED/ACTION_RISK_BLOCKED/ACTION_APPROVAL_REQUIRED） */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["WriterNotRegisteredErrorResponse"] | components["schemas"]["ActionRiskBlockedErrorResponse"] | components["schemas"]["ActionApprovalRequiredErrorResponse"];
+                    };
+                };
+                /** @description 产品版本不存在（VERSION_NOT_FOUND） */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VersionNotFoundErrorResponse"];
+                    };
+                };
+                /** @description 乐观锁冲突（VERSIONS_REVISION_CONFLICT）或非 released 态（VERSION_NOT_RELEASED——PR-319/WP-181） */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["VersionsRevisionConflictErrorResponse"] | components["schemas"]["VersionNotReleasedErrorResponse"];
+                    };
+                };
+                /** @description 请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE） */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["RequestBodyTooLargeErrorResponse"];
+                    };
+                };
+                /** @description Content-Type 非 application/json（UNSUPPORTED_MEDIA_TYPE） */
+                415: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["UnsupportedMediaTypeErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -8992,6 +9104,11 @@ export interface components {
             release_date: string | null;
             aliases: string[];
             snapshot: null | components["schemas"]["VersionSnapshotReference"];
+            /**
+             * Format: date
+             * @description 废弃日期（PR-319/WP-181：released→deprecated 收尾时间戳；非 deprecated 态恒 null）
+             */
+            deprecated_date?: string | null;
         };
         VersionProductDefinition: {
             versions: components["schemas"]["VersionRegistryEntry"][];
@@ -11645,6 +11762,34 @@ export interface components {
             error_code?: "RELATION_REVIEW_BLOCKED";
             details?: components["schemas"]["RelationReviewBlockedDetails"];
         };
+        /** @description PR-316/WP-178：RELATION_REVIEW_STATE_FORBIDDEN 的 details 形状（抛点 server/routes/review-routes.cjs；写门 from-state 校验，与读侧 pending 行过滤同口径）。 */
+        RelationReviewStateForbiddenDetails: {
+            /** @description 稳定边身份 */
+            edgeId: string;
+            /** @description 当前生效裁决态（账本最新 action 或图内 base reviewStatus；pending 之外拒绝改判——PR-316/WP-178） */
+            from: string;
+            /** @description 被拒的裁决动作（approved | rejected） */
+            action: string;
+        };
+        /** @description RELATION_REVIEW_STATE_FORBIDDEN 错误响应（按码 allOf 目录单元）：边已裁决非 pending 态，仅 pending 可批准/驳回（PR-316/WP-178）。 */
+        RelationReviewStateForbiddenErrorResponse: components["schemas"]["ApiError"] & {
+            /** @enum {string} */
+            error_code?: "RELATION_REVIEW_STATE_FORBIDDEN";
+            details?: components["schemas"]["RelationReviewStateForbiddenDetails"];
+        };
+        /** @description PR-317/WP-178：GAP_ALREADY_RESOLVED 的 details 形状（抛点 server/routes/kg-routes.cjs；治理账本 append-only 幂等拒绝）。 */
+        GapAlreadyResolvedDetails: {
+            /** @description 治理缺口身份 */
+            gapId: string;
+            /** @description 被拒的处置动作（resolved | ignored | exempted） */
+            action: string;
+        };
+        /** @description GAP_ALREADY_RESOLVED 错误响应（按码 allOf 目录单元）：同 gapId 已处置再 resolve 即 409，账本不重复追加（PR-317/WP-178）。 */
+        GapAlreadyResolvedErrorResponse: components["schemas"]["ApiError"] & {
+            /** @enum {string} */
+            error_code?: "GAP_ALREADY_RESOLVED";
+            details?: components["schemas"]["GapAlreadyResolvedDetails"];
+        };
         /** @description RELATION_TARGET_AMBIGUOUS 错误响应（按码 allOf 目录单元）：枚举与 details 形状单点定义，端点以 $ref 引用（规则 8 枚举单点；EG-2 批次3 seq192）。 */
         RelationTargetAmbiguousErrorResponse: components["schemas"]["ApiError"] & {
             /** @enum {string} */
@@ -13041,6 +13186,21 @@ export interface components {
             success: true;
             data: components["schemas"]["ArticleStatus"];
             trace_id: string;
+        };
+        /** @description PR-319/WP-181：VERSION_NOT_RELEASED 的 details 形状（抛点 server/services/pipeline/version-registry-service.cjs deprecateVersion）。 */
+        VersionNotReleasedDetails: {
+            /** @description 产品身份 */
+            product: string;
+            /** @description 产品版本 */
+            version: string;
+            /** @description 当前状态（仅 released 可标记废弃——PR-319/WP-181） */
+            current: string;
+        };
+        /** @description VERSION_NOT_RELEASED 错误响应（按码 allOf 目录单元）：仅 released 产品版本可标记废弃（PR-319/WP-181）。 */
+        VersionNotReleasedErrorResponse: components["schemas"]["ApiError"] & {
+            /** @enum {string} */
+            error_code?: "VERSION_NOT_RELEASED";
+            details?: components["schemas"]["VersionNotReleasedDetails"];
         };
     };
     responses: never;

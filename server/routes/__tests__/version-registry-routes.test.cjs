@@ -25,6 +25,7 @@ function register(overrides = {}) {
     writeProductIdentity: () => ({ category: "product-identity", revision: "sha256:pi" }),
     writeVersions: () => ({ category: "versions", revision: "sha256:vs" }),
     freezeVersion: () => ({ category: "versions", product: "AnyShare", version: "7.0", revision: "sha256:fz" }),
+    deprecateVersion: () => ({ category: "versions", product: "AnyShare", version: "7.0", status: "deprecated", revision: "sha256:dp" }),
   };
   routes.register(h.registerRoute, { versionRegistryService: service, schemaWriteService });
   return h;
@@ -52,4 +53,12 @@ test("maps malformed validation input to the standard envelope", async () => {
   const malformed = await h.request("POST /api/schema/versions/validate", { rawBody: "not-json" });
   assert.equal(malformed.status, 400);
   assert.equal(malformed.body.error_code, "VALIDATION_ERROR");
+});
+
+// ── PR-319/WP-181：版本废弃路由接线（released→deprecated）──
+test("POST /api/schema/versions/deprecate 经执行工厂直达 schemaWriteService.deprecateVersion", async () => {
+  const h = register();
+  const res = await h.call("POST /api/schema/versions/deprecate", undefined, { revision: "sha256:abc", product: "AnyShare", version: "7.0" });
+  assert.equal(res.status, 200, JSON.stringify(res.body));
+  assert.equal(res.body.data.status, "deprecated");
 });

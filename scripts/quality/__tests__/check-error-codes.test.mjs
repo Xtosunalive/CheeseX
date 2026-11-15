@@ -148,7 +148,7 @@ test("真仓实跑：车道读数在册（unregistered 与 internalSignals 分�
   const ROOT = path.resolve(import.meta.dirname, "..", "..", "..");
   const out = execFileSync("node", [path.join(ROOT, "scripts", "quality", "check-error-codes.mjs")], { encoding: "utf8" });
   // WP-178/PR-316·317：RELATION_REVIEW_STATE_FORBIDDEN＋GAP_ALREADY_RESOLVED 两码入册，棘轮 199→201（先例：PR-303 198→199）
-  assert.match(out, /error_codes=ok contract=201 thrown=\d+ unregistered_baseline=138 internal_signals=9 dead_enum_baseline=31/);
+  assert.match(out, /error_codes=ok contract=202 thrown=\d+ unregistered_baseline=138 internal_signals=9 dead_enum_baseline=31/);
 });
 
 test("collectContractCodes：穿透 allOf 目录单元", () => {

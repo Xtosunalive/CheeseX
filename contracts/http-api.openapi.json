@@ -1649,6 +1649,14 @@
                 "$ref": "#/components/schemas/VersionSnapshotReference"
               }
             ]
+          },
+          "deprecated_date": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date",
+            "description": "废弃日期（PR-319/WP-181：released→deprecated 收尾时间戳；非 deprecated 态恒 null）"
           }
         }
       },
@@ -11087,21 +11095,39 @@
           "action"
         ],
         "properties": {
-          "edgeId": { "type": "string", "description": "稳定边身份" },
-          "from": { "type": "string", "description": "当前生效裁决态（账本最新 action 或图内 base reviewStatus；pending 之外拒绝改判——PR-316/WP-178）" },
-          "action": { "type": "string", "description": "被拒的裁决动作（approved | rejected）" }
+          "edgeId": {
+            "type": "string",
+            "description": "稳定边身份"
+          },
+          "from": {
+            "type": "string",
+            "description": "当前生效裁决态（账本最新 action 或图内 base reviewStatus；pending 之外拒绝改判——PR-316/WP-178）"
+          },
+          "action": {
+            "type": "string",
+            "description": "被拒的裁决动作（approved | rejected）"
+          }
         },
         "additionalProperties": false,
         "description": "PR-316/WP-178：RELATION_REVIEW_STATE_FORBIDDEN 的 details 形状（抛点 server/routes/review-routes.cjs；写门 from-state 校验，与读侧 pending 行过滤同口径）。"
       },
       "RelationReviewStateForbiddenErrorResponse": {
         "allOf": [
-          { "$ref": "#/components/schemas/ApiError" },
+          {
+            "$ref": "#/components/schemas/ApiError"
+          },
           {
             "type": "object",
             "properties": {
-              "error_code": { "type": "string", "enum": [ "RELATION_REVIEW_STATE_FORBIDDEN" ] },
-              "details": { "$ref": "#/components/schemas/RelationReviewStateForbiddenDetails" }
+              "error_code": {
+                "type": "string",
+                "enum": [
+                  "RELATION_REVIEW_STATE_FORBIDDEN"
+                ]
+              },
+              "details": {
+                "$ref": "#/components/schemas/RelationReviewStateForbiddenDetails"
+              }
             }
           }
         ],
@@ -11114,20 +11140,35 @@
           "action"
         ],
         "properties": {
-          "gapId": { "type": "string", "description": "治理缺口身份" },
-          "action": { "type": "string", "description": "被拒的处置动作（resolved | ignored | exempted）" }
+          "gapId": {
+            "type": "string",
+            "description": "治理缺口身份"
+          },
+          "action": {
+            "type": "string",
+            "description": "被拒的处置动作（resolved | ignored | exempted）"
+          }
         },
         "additionalProperties": false,
         "description": "PR-317/WP-178：GAP_ALREADY_RESOLVED 的 details 形状（抛点 server/routes/kg-routes.cjs；治理账本 append-only 幂等拒绝）。"
       },
       "GapAlreadyResolvedErrorResponse": {
         "allOf": [
-          { "$ref": "#/components/schemas/ApiError" },
+          {
+            "$ref": "#/components/schemas/ApiError"
+          },
           {
             "type": "object",
             "properties": {
-              "error_code": { "type": "string", "enum": [ "GAP_ALREADY_RESOLVED" ] },
-              "details": { "$ref": "#/components/schemas/GapAlreadyResolvedDetails" }
+              "error_code": {
+                "type": "string",
+                "enum": [
+                  "GAP_ALREADY_RESOLVED"
+                ]
+              },
+              "details": {
+                "$ref": "#/components/schemas/GapAlreadyResolvedDetails"
+              }
             }
           }
         ],
@@ -16026,6 +16067,52 @@
             "type": "string"
           }
         }
+      },
+      "VersionNotReleasedDetails": {
+        "type": "object",
+        "required": [
+          "product",
+          "version",
+          "current"
+        ],
+        "properties": {
+          "product": {
+            "type": "string",
+            "description": "产品身份"
+          },
+          "version": {
+            "type": "string",
+            "description": "产品版本"
+          },
+          "current": {
+            "type": "string",
+            "description": "当前状态（仅 released 可标记废弃——PR-319/WP-181）"
+          }
+        },
+        "additionalProperties": false,
+        "description": "PR-319/WP-181：VERSION_NOT_RELEASED 的 details 形状（抛点 server/services/pipeline/version-registry-service.cjs deprecateVersion）。"
+      },
+      "VersionNotReleasedErrorResponse": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/ApiError"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error_code": {
+                "type": "string",
+                "enum": [
+                  "VERSION_NOT_RELEASED"
+                ]
+              },
+              "details": {
+                "$ref": "#/components/schemas/VersionNotReleasedDetails"
+              }
+            }
+          }
+        ],
+        "description": "VERSION_NOT_RELEASED 错误响应（按码 allOf 目录单元）：仅 released 产品版本可标记废弃（PR-319/WP-181）。"
       }
     }
   },
@@ -16127,6 +16214,34 @@
               }
             }
           },
+          "409": {
+            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "内部错误",
             "content": {
@@ -16161,34 +16276,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -16454,6 +16541,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "执行工厂编排失败族（WP-048 Wave 1：动作未在册/执行器未登记/前置解释器未登记/后置核对失败/审计追加失败）",
             "content": {
@@ -16488,20 +16589,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -16696,6 +16783,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "发布产物校验失败（INVALID_RELEASE_ARTIFACT / RELEASE_ARTIFACT_MISSING / RELEASE_DOCUMENT_INDEX_INVALID）",
             "content": {
@@ -16742,20 +16843,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ValidatorUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -17240,6 +17327,39 @@
               }
             }
           },
+          "409": {
+            "description": "冲突：既有家族（SOURCE_ARCHIVE_MISSING/SOURCE_PATH_OUTSIDE_VAULT/SOURCE_FILE_NOT_FOUND）或 workflow 修订冲突（乐观锁过期——WP-022）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "oneOf": [
+                        {
+                          "$ref": "#/components/schemas/SourceArchiveMissingErrorResponse"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SourcePathOutsideVaultErrorResponse"
+                        },
+                        {
+                          "$ref": "#/components/schemas/SourceFileNotFoundErrorResponse"
+                        },
+                        {
+                          "$ref": "#/components/schemas/WorkflowRevisionConflictErrorResponse"
+                        },
+                        {
+                          "$ref": "#/components/schemas/LifecycleTransitionInvalidErrorResponse"
+                        }
+                      ]
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -17256,6 +17376,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -17303,53 +17437,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "冲突：既有家族（SOURCE_ARCHIVE_MISSING/SOURCE_PATH_OUTSIDE_VAULT/SOURCE_FILE_NOT_FOUND）或 workflow 修订冲突（乐观锁过期——WP-022）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "oneOf": [
-                        {
-                          "$ref": "#/components/schemas/SourceArchiveMissingErrorResponse"
-                        },
-                        {
-                          "$ref": "#/components/schemas/SourcePathOutsideVaultErrorResponse"
-                        },
-                        {
-                          "$ref": "#/components/schemas/SourceFileNotFoundErrorResponse"
-                        },
-                        {
-                          "$ref": "#/components/schemas/WorkflowRevisionConflictErrorResponse"
-                        },
-                        {
-                          "$ref": "#/components/schemas/LifecycleTransitionInvalidErrorResponse"
-                        }
-                      ]
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -17426,6 +17513,20 @@
               }
             }
           },
+          "409": {
+            "description": "冲突：既有家族（无）或 workflow 修订冲突（乐观锁过期——WP-022）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/WorkflowRevisionConflictErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -17462,20 +17563,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "冲突：既有家族（无）或 workflow 修订冲突（乐观锁过期——WP-022）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "oneOf": [
-                    {
-                      "$ref": "#/components/schemas/WorkflowRevisionConflictErrorResponse"
-                    }
-                  ]
                 }
               }
             }
@@ -17786,6 +17873,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "current Release 文章身份歧义（ARTICLE_FORMAL_IDENTITY_AMBIGUOUS）",
             "content": {
@@ -17829,20 +17930,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -18003,6 +18090,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "执行工厂编排失败族（WP-048 Wave 1：动作未在册/执行器未登记/前置解释器未登记/后置核对失败/审计追加失败）",
             "content": {
@@ -18040,20 +18141,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -18891,6 +18978,20 @@
               }
             }
           },
+          "404": {
+            "description": "源 entity 不存在（SOURCE_NOT_FOUND）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SourceNotFoundErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "409": {
             "description": "预览过期、源文件已变化或注册表已变化（PREVIEW_EXPIRED / SOURCE_CHANGED / REGISTRY_CHANGED；PR-012 三码族登记）",
             "content": {
@@ -18995,20 +19096,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionAuditAppendFailedErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "源 entity 不存在（SOURCE_NOT_FOUND）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/SourceNotFoundErrorResponse"
                     }
                   ]
                 }
@@ -19301,11 +19388,15 @@
             }
           },
           "409": {
-            "description": "幂等拒绝：该治理缺口已处置，不得重复 resolve（GAP_ALREADY_RESOLVED，账本 append-only 无撤销——PR-317/WP-178）",
+            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GapAlreadyResolvedErrorResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -19326,6 +19417,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -19364,34 +19469,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -20219,22 +20296,22 @@
               }
             }
           },
-          "500": {
-            "description": "派生索引 store 未初始化",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DerivedIndexNotInitializedErrorResponse"
-                }
-              }
-            }
-          },
           "409": {
             "description": "无挂载主体／未配置产品身份——合法空态引导（ADR-009 D5）",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ProjectionIdentityUnmountedErrorResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "派生索引 store 未初始化",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DerivedIndexNotInitializedErrorResponse"
                 }
               }
             }
@@ -20665,6 +20742,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "执行工厂编排失败族（WP-048 Wave 1：动作未在册/执行器未登记/前置解释器未登记/后置核对失败/审计追加失败）",
             "content": {
@@ -20699,20 +20790,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -20837,6 +20914,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "执行工厂编排失败族（WP-048 Wave 1：动作未在册/执行器未登记/前置解释器未登记/后置核对失败/审计追加失败）",
             "content": {
@@ -20876,20 +20967,6 @@
                 }
               }
             }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
           }
         }
       }
@@ -20912,22 +20989,22 @@
               }
             }
           },
-          "503": {
-            "description": "对账未装配（GRAPH_FRESHNESS_UNAVAILABLE）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GraphFreshnessUnavailableErrorResponse"
-                }
-              }
-            }
-          },
           "500": {
             "description": "对账失败（GRAPH_FRESHNESS_FAILED——manifest/文件读取异常）",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/GraphFreshnessFailedErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "对账未装配（GRAPH_FRESHNESS_UNAVAILABLE）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GraphFreshnessUnavailableErrorResponse"
                 }
               }
             }
@@ -21025,6 +21102,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "历史迁移校验和不匹配（fail-closed 拒启）",
             "content": {
@@ -21075,20 +21166,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -21163,17 +21240,14 @@
               }
             }
           },
-          "503": {
-            "description": "Pipeline 不可用",
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/ApiError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -21206,14 +21280,17 @@
               }
             }
           },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+          "503": {
+            "description": "Pipeline 不可用",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
                     }
                   ]
                 }
@@ -21476,6 +21553,20 @@
               }
             }
           },
+          "409": {
+            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -21492,6 +21583,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -21530,34 +21635,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -21683,6 +21760,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "执行工厂编排失败族（WP-048 Wave 1：动作未在册/执行器未登记/前置解释器未登记/后置核对失败/审计追加失败）",
             "content": {
@@ -21717,20 +21808,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -21963,6 +22040,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "写回失败",
             "content": {
@@ -22000,20 +22091,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -22119,6 +22196,23 @@
               }
             }
           },
+          "403": {
+            "description": "动作静态风险阻断族（ACTION_RISK_BLOCKED／ACTION_APPROVAL_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionRiskBlockedErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionApprovalRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "409": {
             "description": "乐观锁冲突",
             "content": {
@@ -22130,6 +22224,20 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -22173,37 +22281,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "动作静态风险阻断族（ACTION_RISK_BLOCKED／ACTION_APPROVAL_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionRiskBlockedErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionApprovalRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -22321,6 +22398,33 @@
               }
             }
           },
+          "403": {
+            "description": "动作静态风险阻断族（ACTION_RISK_BLOCKED／ACTION_APPROVAL_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionRiskBlockedErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionApprovalRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "快照不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "409": {
             "description": "乐观锁冲突/快照损坏",
             "content": {
@@ -22338,12 +22442,16 @@
               }
             }
           },
-          "404": {
-            "description": "快照不存在",
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -22382,37 +22490,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "动作静态风险阻断族（ACTION_RISK_BLOCKED／ACTION_APPROVAL_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionRiskBlockedErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionApprovalRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -22805,6 +22882,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "写回失败",
             "content": {
@@ -22842,20 +22933,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -22972,6 +23049,23 @@
               }
             }
           },
+          "409": {
+            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HumanEditConflictErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -22988,6 +23082,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -23032,37 +23140,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/HumanEditConflictErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -23278,6 +23355,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "写回失败",
             "content": {
@@ -23322,20 +23413,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -23586,6 +23663,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "写回失败",
             "content": {
@@ -23623,20 +23714,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -23794,6 +23871,23 @@
               }
             }
           },
+          "422": {
+            "description": "写时准入拒收——能力字段消费锚点缺失/失效（WP-006 6b）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/CapabilityConsumerAnchorInvalidErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "写回失败",
             "content": {
@@ -23817,23 +23911,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionAuditAppendFailedErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "写时准入拒收——能力字段消费锚点缺失/失效（WP-006 6b）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/CapabilityConsumerAnchorInvalidErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -24016,6 +24093,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "写回失败",
             "content": {
@@ -24053,20 +24144,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -24221,6 +24298,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "写回失败",
             "content": {
@@ -24258,20 +24349,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -24452,6 +24529,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "写回失败",
             "content": {
@@ -24489,20 +24580,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -24966,6 +25043,20 @@
               }
             }
           },
+          "409": {
+            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -24982,6 +25073,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -25023,34 +25128,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -25198,17 +25275,14 @@
               }
             }
           },
-          "503": {
-            "description": "校验器不可用（VALIDATOR_UNAVAILABLE）——补字段写路径 fail-closed 拒绝未重算校验章的写入（PR-151 修复③）",
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/ValidatorUnavailableErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -25244,14 +25318,17 @@
               }
             }
           },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+          "503": {
+            "description": "校验器不可用（VALIDATOR_UNAVAILABLE）——补字段写路径 fail-closed 拒绝未重算校验章的写入（PR-151 修复③）",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                      "$ref": "#/components/schemas/ValidatorUnavailableErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
                     }
                   ]
                 }
@@ -25456,6 +25533,20 @@
           "404": {
             "description": "快照不存在"
           },
+          "409": {
+            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -25472,6 +25563,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -25510,34 +25615,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -25647,6 +25724,20 @@
           "404": {
             "description": "快照不存在"
           },
+          "409": {
+            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -25663,6 +25754,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -25701,34 +25806,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -25978,6 +26055,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "服务端配置错",
             "content": {
@@ -26018,20 +26109,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -26117,6 +26194,20 @@
               }
             }
           },
+          "409": {
+            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -26133,6 +26224,20 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -26177,34 +26282,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "动作须二次确认（ACTION_CONFIRM_REQUIRED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -26322,6 +26399,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "执行工厂编排失败族（WP-048 Wave 1：动作未在册/执行器未登记/前置解释器未登记/后置核对失败/审计追加失败）",
             "content": {
@@ -26362,20 +26453,6 @@
                     },
                     {
                       "$ref": "#/components/schemas/ArticleAssociationAuditCorruptErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -26540,6 +26617,20 @@
               }
             }
           },
+          "422": {
+            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
           "500": {
             "description": "执行工厂编排失败族（WP-048 Wave 1：动作未在册/执行器未登记/前置解释器未登记/后置核对失败/审计追加失败）",
             "content": {
@@ -26574,20 +26665,6 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
-          "422": {
-            "description": "动作前置条件未满足（ACTION_PRECONDITION_FAILED）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
                     }
                   ]
                 }
@@ -26819,55 +26896,12 @@
               }
             }
           },
-          "500": {
-            "description": "铸版失败——error_code 透传服务端码（RELEASE_ARTIFACT_MISSING 产物缺失／RELEASE_MINT_FAILED 兜底／ROW_SCHEMA_VIOLANCE 行守卫）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ApiError"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionNotActiveErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionExecutorUnregisteredErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionPreconditionUnknownErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionPostcheckFailedErrorResponse"
-                    },
-                    {
-                      "$ref": "#/components/schemas/ActionAuditAppendFailedErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
           "401": {
             "description": "未认证（UNAUTHENTICATED）——PR-085 第 2 步身份层生效后返回",
             "content": {
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/UnauthenticatedErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "执行工厂未初始化（ACTION_FACTORY_UNAVAILABLE）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
                 }
               }
             }
@@ -26914,6 +26948,49 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "铸版失败——error_code 透传服务端码（RELEASE_ARTIFACT_MISSING 产物缺失／RELEASE_MINT_FAILED 兜底／ROW_SCHEMA_VIOLANCE 行守卫）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionNotActiveErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionExecutorUnregisteredErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionPreconditionUnknownErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionPostcheckFailedErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionAuditAppendFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "执行工厂未初始化（ACTION_FACTORY_UNAVAILABLE）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
                     }
                   ]
                 }
@@ -27019,30 +27096,6 @@
               }
             }
           },
-          "500": {
-            "description": "任一生成器失败",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/DerivationRebuildFailedErrorResponse"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "执行工厂未初始化（ACTION_FACTORY_UNAVAILABLE）",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
-                    }
-                  ]
-                }
-              }
-            }
-          },
           "403": {
             "description": "动作静态风险阻断族（ACTION_RISK_BLOCKED／ACTION_APPROVAL_REQUIRED）",
             "content": {
@@ -27082,6 +27135,30 @@
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/ActionPreconditionFailedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "任一生成器失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DerivationRebuildFailedErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "执行工厂未初始化（ACTION_FACTORY_UNAVAILABLE）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ActionFactoryUnavailableErrorResponse"
                     }
                   ]
                 }
@@ -27173,6 +27250,24 @@
         "summary": "文章健康度读模型：按契约全量校验规则筛违规文章清单（WP-156——存量覆盖，不依赖变更事件）",
         "responses": {
           "200": {
+            "500": {
+              "description": "健康度读模型不可用",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "error_code": {
+                        "type": "string"
+                      },
+                      "message": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            },
             "description": "健康度清单（响应即 JSON 导出物）",
             "content": {
               "application/json": {
@@ -27241,24 +27336,6 @@
                             }
                           }
                         }
-                      }
-                    }
-                  }
-                }
-              }
-            },
-            "500": {
-              "description": "健康度读模型不可用",
-              "content": {
-                "application/json": {
-                  "schema": {
-                    "type": "object",
-                    "properties": {
-                      "error_code": {
-                        "type": "string"
-                      },
-                      "message": {
-                        "type": "string"
                       }
                     }
                   }
@@ -27368,8 +27445,8 @@
               }
             }
           },
-          "409": {
-            "description": "APPROVAL_ALREADY_DECIDED",
+          "404": {
+            "description": "APPROVAL_NOT_FOUND",
             "content": {
               "application/json": {
                 "schema": {
@@ -27378,8 +27455,8 @@
               }
             }
           },
-          "404": {
-            "description": "APPROVAL_NOT_FOUND",
+          "409": {
+            "description": "APPROVAL_ALREADY_DECIDED",
             "content": {
               "application/json": {
                 "schema": {
@@ -27422,6 +27499,156 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/versions/deprecate": {
+      "post": {
+        "summary": "标记产品版本废弃（released→deprecated——PR-319/WP-181 个体生命周期收尾）",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "revision",
+                  "product",
+                  "version"
+                ],
+                "properties": {
+                  "revision": {
+                    "type": "string",
+                    "description": "当前 revision（乐观锁）"
+                  },
+                  "product": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "废弃结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "success"
+                  ],
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "参数非法（VALIDATION_ERROR；SCHEMA_REVISION_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SchemaRevisionRequiredErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ValidationErrorErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "未认证（UNAUTHENTICATED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnauthenticatedErrorResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "写通道风险闸（WRITER_NOT_REGISTERED/ACTION_RISK_BLOCKED/ACTION_APPROVAL_REQUIRED）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/WriterNotRegisteredErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionRiskBlockedErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ActionApprovalRequiredErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "产品版本不存在（VERSION_NOT_FOUND）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VersionNotFoundErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "乐观锁冲突（VERSIONS_REVISION_CONFLICT）或非 released 态（VERSION_NOT_RELEASED——PR-319/WP-181）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/VersionsRevisionConflictErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/VersionNotReleasedErrorResponse"
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RequestBodyTooLargeErrorResponse"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type 非 application/json（UNSUPPORTED_MEDIA_TYPE）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnsupportedMediaTypeErrorResponse"
                 }
               }
             }

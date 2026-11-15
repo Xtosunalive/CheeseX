@@ -22,3 +22,11 @@ export function freezeProductVersion(revision: string, product: string, version:
     method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
   }), SM_REQUEST_COPY.VERSION_FREEZE_FAILED);
 }
+
+/** PR-319/WP-181：版本废弃（released→deprecated）——镜像 freeze 形态 */
+export function deprecateProductVersion(revision: string, product: string, version: string): Promise<VersionFreezeResult> {
+  const payload: VersionFreezePayload = { revision, product, version };
+  return unwrapEnvelope(apiFetchEnvelope<VersionFreezeResult>("/api/schema/versions/deprecate", {
+    method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload),
+  }), SM_REQUEST_COPY.VERSION_DEPRECATE_FAILED);
+}

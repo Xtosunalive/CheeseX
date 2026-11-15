@@ -1,5 +1,5 @@
 import type { ProductIdentityData, SaveStatus, VersionRegistryData, VersionRegistryProducts } from "./schema-manager-types";
-import { fetchProductIdentity, fetchVersionRegistry, freezeProductVersion, validateVersionRegistry } from "./version-registry-api";
+import { fetchProductIdentity, fetchVersionRegistry, freezeProductVersion, deprecateProductVersion, validateVersionRegistry } from "./version-registry-api";
 import { writeProductIdentity, writeVersions } from "./schema-write-api";
 import { requestFailed, requestIdle, requestLoading, requestSettled, type RequestSlice } from "@/lib/request-status";
 import { SM_REQUEST_COPY } from "./schema-manager-copy";
@@ -25,6 +25,7 @@ export interface VersionRegistrySlice {
   validateVersions: () => Promise<void>;
   saveVersions: () => Promise<void>;
   freezeVersion: (product: string, version: string) => Promise<void>;
+  deprecateVersion: (product: string, version: string) => Promise<void>;
 }
 
 type SetSlice = (partial: Partial<VersionRegistrySlice>) => void;
@@ -135,6 +136,20 @@ export function createVersionRegistrySlice(set: SetSlice, get: GetSlice): Versio
         set({ versionsSaveStatus: "clean" });
       } catch (error) {
         set({ versionsSaveStatus: "error", versionsSaveError: error instanceof Error ? error.message : SM_REQUEST_COPY.VERSION_FREEZE_FAILED });
+      }
+    },
+
+    // PR-319/WP-181：版本废弃（released→deprecated）——镜像 freeze 同轴 busy
+    deprecateVersion: async (product, version) => {
+      const current = get().versions;
+      if (!current || get().versionsSaveStatus === "dirty") return;
+      set({ versionsSaveStatus: "saving", versionsSaveError: null });
+      try {
+        await deprecateProductVersion(current.revision, product, version);
+        await get().loadVersions();
+        set({ versionsSaveStatus: "clean" });
+      } catch (error) {
+        set({ versionsSaveStatus: "error", versionsSaveError: error instanceof Error ? error.message : SM_REQUEST_COPY.VERSION_DEPRECATE_FAILED });
       }
     },
   };

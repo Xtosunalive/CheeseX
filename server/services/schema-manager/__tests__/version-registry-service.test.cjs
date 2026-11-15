@@ -270,3 +270,53 @@ test("returns the registry untouched when projection identity is unmounted", fun
   assert.deepEqual(Object.keys(written.products).sort(), ["AnyShare"], "空态下注册表读面照常（产品名原样保留）");
   assert.equal(written.summary.totalProducts, 1);
 });
+
+// ── PR-319/WP-181：版本废弃（released→deprecated，个体生命周期机补「废弃」边）──
+
+function releasedRegistry() {
+  return {
+    schema_version: 1,
+    products: {
+      AnyShare: {
+        versions: [
+          { id: "7.0.2", label: "AnyShare 7.0.2", status: "released", release_date: "2026-11-01", aliases: [], snapshot: { path: "知识库/.snapshots/AnyShare/7.0.2.json", sha256: "sha256:" + "b".repeat(64), generated_at: "2026-11-01T00:00:00.000Z" } },
+          { id: "7.0.10", label: "AnyShare 7.0.10", status: "draft", release_date: null, aliases: [], snapshot: null },
+        ],
+      },
+    },
+  };
+}
+
+test("deprecateVersion：released → deprecated（状态翻转＋deprecated_date，快照保留）", async function (t) {
+  const vaultPath = fixture();
+  t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));
+  const service = serviceFor(vaultPath);
+  const saved = service.writeRegistry(service.getRegistry().revision, releasedRegistry());
+  const result = service.deprecateVersion({ product: "AnyShare", version: "7.0.2", expectedRevision: saved.revision });
+  const entry = result.products.AnyShare.versions.find((item) => item.id === "7.0.2");
+  assert.equal(entry.status, "deprecated");
+  assert.equal(typeof entry.deprecated_date, "string");
+  assert.ok(entry.snapshot, "不可变快照保留（历史审计面不变）");
+});
+
+test("deprecateVersion：draft → 409 VERSION_NOT_RELEASED", async function (t) {
+  const vaultPath = fixture();
+  t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));
+  const service = serviceFor(vaultPath);
+  const saved = service.writeRegistry(service.getRegistry().revision, draftRegistry());
+  assert.throws(
+    () => service.deprecateVersion({ product: "AnyShare", version: "7.0.10", expectedRevision: saved.revision }),
+    { code: "VERSION_NOT_RELEASED" },
+  );
+});
+
+test("deprecateVersion：revision 过期 → 409 VERSIONS_REVISION_CONFLICT", async function (t) {
+  const vaultPath = fixture();
+  t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));
+  const service = serviceFor(vaultPath);
+  service.writeRegistry(service.getRegistry().revision, releasedRegistry());
+  assert.throws(
+    () => service.deprecateVersion({ product: "AnyShare", version: "7.0.2", expectedRevision: "sha256:stale" }),
+    { code: "VERSIONS_REVISION_CONFLICT" },
+  );
+});
