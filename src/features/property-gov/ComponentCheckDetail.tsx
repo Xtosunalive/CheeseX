@@ -54,6 +54,8 @@ export function ComponentCheckDetail({ item }: { item: CheckResultItem }) {
   const repair = usePropertyStore((s) => s.repair);
   const refresh = usePropertyStore((s) => s.refresh);
   const repairingId = usePropertyStore((s) => s.repairingId);
+  // PR-314/WP-178：重新生成属性入队成功后的持久回显（组件粒度；busy 消失后仍可见）
+  const refreshQueuedAt = usePropertyStore((s) => (s.lastRefreshQueued?.componentId === item.componentId ? s.lastRefreshQueued.at : null));
 
   const [selectedModule, setSelectedModule] = useState("");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({
@@ -182,6 +184,7 @@ export function ComponentCheckDetail({ item }: { item: CheckResultItem }) {
                       canPropose={Boolean(item.sourcePath && item.sourceRevision)}
                       onRepair={handleRepair}
                       onRefresh={handleRefresh}
+                      refreshQueuedAt={refreshQueuedAt}
                     />
                   ))}
                 </div>
@@ -208,6 +211,7 @@ function CheckItemCard({
   canPropose,
   onRepair,
   onRefresh,
+  refreshQueuedAt,
 }: {
   checkKey: GovCheckKey;
   passed: boolean;
@@ -220,6 +224,7 @@ function CheckItemCard({
   canPropose: boolean;
   onRepair: (action: RepairAction, payload?: RepairPayload) => Promise<boolean>;
   onRefresh: () => Promise<boolean>;
+  refreshQueuedAt: string | null;
 }) {
   if (passed) {
     return (
@@ -262,6 +267,7 @@ function CheckItemCard({
           extractedAt={checks.stale_property?.propertyExtractedAt ?? "N/A"}
           isRepairing={isRepairing}
           onRefresh={onRefresh}
+          refreshQueuedAt={refreshQueuedAt}
         />
       );
     case "mount_mismatch":
@@ -406,11 +412,13 @@ function StalePropertyCard({
   extractedAt,
   isRepairing,
   onRefresh,
+  refreshQueuedAt,
 }: {
   articleMtime: string;
   extractedAt: string;
   isRepairing: boolean;
   onRefresh: () => Promise<boolean>;
+  refreshQueuedAt: string | null;
 }) {
   const fmtMtime = articleMtime !== "N/A" ? new Date(articleMtime).toLocaleString("zh-CN") : "N/A";
   const fmtExtracted = extractedAt !== "N/A" ? new Date(extractedAt).toLocaleString("zh-CN") : "N/A";
@@ -434,6 +442,12 @@ function StalePropertyCard({
         <RotateCw className={`inline h-3 w-3 mr-0.5 ${isRepairing ? "animate-spin" : ""}`} />
         {isRepairing ? COMPONENT_CHECK_COPY.QUEUED : COMPONENT_CHECK_COPY.REGENERATE}
       </button>
+      {/* PR-314/WP-178：入队成功的持久回显——结果去向指引，非按钮瞬时变字 */}
+      {refreshQueuedAt && (
+        <p role="status" className="font-mono text-kg-xs text-status-warn" data-testid="refresh-queued-hint">
+          {COMPONENT_CHECK_COPY.REFRESH_QUEUED_HINT_PREFIX}{refreshQueuedAt}{COMPONENT_CHECK_COPY.REFRESH_QUEUED_HINT_TAIL}
+        </p>
+      )}
     </div>
   );
 }

@@ -172,7 +172,8 @@ export function EdgeReviewPanel() {
               type="button"
               variant="ghost"
               size="sm"
-              disabled={isActing}
+              /* PR-309/WP-178：阻断态批准钮不可点（阻断原因内联可见——PR-045 块），不再只靠 title+写门 409 兜底 */
+              disabled={isActing || (edge.blockers?.length ?? 0) > 0}
               onClick={() => handleAction(edge, "approved")}
               title={(edge.blockers?.length ?? 0) > 0 ? EDGE_REVIEW_COPY.APPROVE_BLOCKED_TITLE : EDGE_REVIEW_COPY.APPROVE_TITLE}
               className="h-7 gap-1 bg-status-fact-2 px-2 text-xs text-status-fact hover:bg-jade-4"

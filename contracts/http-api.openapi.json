@@ -11079,6 +11079,60 @@
         ],
         "description": "RELATION_REVIEW_BLOCKED 错误响应（按码 allOf 目录单元）：枚举与 details 形状单点定义，端点以 $ref 引用（规则 8 枚举单点；EG-2 批次3 seq192）。"
       },
+      "RelationReviewStateForbiddenDetails": {
+        "type": "object",
+        "required": [
+          "edgeId",
+          "from",
+          "action"
+        ],
+        "properties": {
+          "edgeId": { "type": "string", "description": "稳定边身份" },
+          "from": { "type": "string", "description": "当前生效裁决态（账本最新 action 或图内 base reviewStatus；pending 之外拒绝改判——PR-316/WP-178）" },
+          "action": { "type": "string", "description": "被拒的裁决动作（approved | rejected）" }
+        },
+        "additionalProperties": false,
+        "description": "PR-316/WP-178：RELATION_REVIEW_STATE_FORBIDDEN 的 details 形状（抛点 server/routes/review-routes.cjs；写门 from-state 校验，与读侧 pending 行过滤同口径）。"
+      },
+      "RelationReviewStateForbiddenErrorResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiError" },
+          {
+            "type": "object",
+            "properties": {
+              "error_code": { "type": "string", "enum": [ "RELATION_REVIEW_STATE_FORBIDDEN" ] },
+              "details": { "$ref": "#/components/schemas/RelationReviewStateForbiddenDetails" }
+            }
+          }
+        ],
+        "description": "RELATION_REVIEW_STATE_FORBIDDEN 错误响应（按码 allOf 目录单元）：边已裁决非 pending 态，仅 pending 可批准/驳回（PR-316/WP-178）。"
+      },
+      "GapAlreadyResolvedDetails": {
+        "type": "object",
+        "required": [
+          "gapId",
+          "action"
+        ],
+        "properties": {
+          "gapId": { "type": "string", "description": "治理缺口身份" },
+          "action": { "type": "string", "description": "被拒的处置动作（resolved | ignored | exempted）" }
+        },
+        "additionalProperties": false,
+        "description": "PR-317/WP-178：GAP_ALREADY_RESOLVED 的 details 形状（抛点 server/routes/kg-routes.cjs；治理账本 append-only 幂等拒绝）。"
+      },
+      "GapAlreadyResolvedErrorResponse": {
+        "allOf": [
+          { "$ref": "#/components/schemas/ApiError" },
+          {
+            "type": "object",
+            "properties": {
+              "error_code": { "type": "string", "enum": [ "GAP_ALREADY_RESOLVED" ] },
+              "details": { "$ref": "#/components/schemas/GapAlreadyResolvedDetails" }
+            }
+          }
+        ],
+        "description": "GAP_ALREADY_RESOLVED 错误响应（按码 allOf 目录单元）：同 gapId 已处置再 resolve 即 409，账本不重复追加（PR-317/WP-178）。"
+      },
       "RelationTargetAmbiguousErrorResponse": {
         "allOf": [
           {
@@ -19246,6 +19300,16 @@
               }
             }
           },
+          "409": {
+            "description": "幂等拒绝：该治理缺口已处置，不得重复 resolve（GAP_ALREADY_RESOLVED，账本 append-only 无撤销——PR-317/WP-178）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GapAlreadyResolvedErrorResponse"
+                }
+              }
+            }
+          },
           "413": {
             "description": "请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起",
             "content": {
@@ -20562,13 +20626,16 @@
             }
           },
           "409": {
-            "description": "审批冲突：边端点存在未解决的实体问题（RELATION_REVIEW_BLOCKED）",
+            "description": "审批冲突：边端点存在未解决的实体问题（RELATION_REVIEW_BLOCKED）或边已裁决非 pending 态（RELATION_REVIEW_STATE_FORBIDDEN——PR-316/WP-178 写门 from-state 校验）",
             "content": {
               "application/json": {
                 "schema": {
                   "anyOf": [
                     {
                       "$ref": "#/components/schemas/RelationReviewBlockedErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/RelationReviewStateForbiddenErrorResponse"
                     },
                     {
                       "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"

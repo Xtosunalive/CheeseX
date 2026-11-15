@@ -46,6 +46,27 @@ function register(registerRoute, deps) {
     const target = connections.find((conn) => conn.edgeId === edgeId);
     if (!target) throw reviewError("EDGE_NOT_FOUND", `关系不存在: ${edgeId}`, 404, { edgeId });
 
+    // PR-316（WP-178）：写门 from-state 校验——读侧只下发 pending 行（master-graph-service.cjs:178），
+    // 写门同口径收口：账本最新裁决（缺省回落 connection.reviewStatus）非 pending 即 409，
+    // 杜绝覆盖式改判（append-only「最新生效」曾让任意 action 可无声覆盖既有裁决）。
+    const priorActions = readReviewActions(vaultPath).filter((a) => a.edgeId === edgeId);
+    const latestAction = priorActions.length > 0
+      ? priorActions.reduce((a, b) => (String(a.decidedAt) > String(b.decidedAt) ? a : b))
+      : null;
+    const effectiveStatus = latestAction
+      ? latestAction.action
+      : (target.properties && typeof target.properties.reviewStatus === "string" && target.properties.reviewStatus
+        ? target.properties.reviewStatus
+        : "pending");
+    if (effectiveStatus !== "pending") {
+      throw reviewError(
+        "RELATION_REVIEW_STATE_FORBIDDEN",
+        "关系已裁决（" + effectiveStatus + "），仅 pending 态可批准/驳回",
+        409,
+        { edgeId, from: effectiveStatus, action },
+      );
+    }
+
     // S8（场景⑫）：批准前检查边两端节点是否关联 open 的缺实体/未知实体 blocker。
     if (action === "approved") {
       const blockers = openBlockersForEdge(listOpenIssues(), target);
