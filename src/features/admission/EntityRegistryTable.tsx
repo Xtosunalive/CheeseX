@@ -15,7 +15,6 @@ import { DataTable } from "@/components/data-table/DataTable";
 import type { Column } from "@/components/data-table/types";
 import { Tag } from "@/components/ui/tag";
 import { RowActions } from "@/components/row-actions/RowActions";
-import { Statistic } from "@/components/statistic/Statistic";
 import { ENTITY_CATEGORY, ENTITY_CATEGORY_ALIAS } from "@/lib/domain/EntityCategory";
 import { ADMISSION_COPY, ENTITY_REGISTRY_COPY, registryFieldSelectAria, registryOpSelectAria, registryRemoveConditionAria, registryRowActionsAria, registryViewAction, registryVisibleCount } from "./admission-copy";
 
@@ -167,9 +166,6 @@ export function EntityRegistryTable() {
   }), [filtered, sortDirection, sortField]);
   const { page, pageItems, pageSize, setPage } = useTablePagination(sorted);
 
-  const approvedCount = items.filter((i) => i.admissionStatus === "APPROVED").length;
-  const passRate =
-    items.length > 0 ? `${Math.round((approvedCount / items.length) * 100)}%` : "--";
   const activeFilterCount = appliedFilters.length + (quickQuery.trim() ? 1 : 0);
 
   const columns: Array<Column<EntityRegistryItem>> = [
@@ -249,9 +245,6 @@ export function EntityRegistryTable() {
 
       <div className="flex items-center justify-between px-1 text-kg-xs text-text-hint">
         {items.length > 0 && <span>{registryVisibleCount(sorted.length, items.length)}</span>}
-        <div className="flex items-center gap-1.5">
-          <Statistic label={ENTITY_REGISTRY_COPY.PASS_RATE_LABEL} value={passRate} tone="text-status-fact font-mono" />
-        </div>
       </div>
 
       {/* ── QA-style advanced filter panel ── */}

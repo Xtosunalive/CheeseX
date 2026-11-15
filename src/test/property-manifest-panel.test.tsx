@@ -148,7 +148,7 @@ describe("ManifestListPanel", () => {
     expect(summaryBar.compareDocumentPosition(screen.getByTestId("property-check-toolbar")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByTestId("property-check-toolbar")).toHaveClass("rounded-lg", "bg-surface-root", "ring-border-thin");
     expect(screen.getByText("架构组件属性概览")).toBeInTheDocument();
-    ["模块配置有效率", "阻断架构组件", "警告架构组件", "受检架构组件"].forEach((label) => expect(screen.getByText(label)).toBeInTheDocument());
+    ["阻断架构组件", "警告架构组件", "受检架构组件"].forEach((label) => expect(screen.getByText(label)).toBeInTheDocument());
     expect(screen.getByRole("textbox", { name: "搜索架构组件属性" })).toHaveClass("h-8", "text-xs", "bg-transparent");
     expect(screen.getByRole("button", { name: "筛选架构组件属性问题" })).toHaveAttribute("data-select-variant", "filter");
     expect(screen.getByRole("textbox", { name: "架构组件属性分页 跳转页码" })).toHaveValue("1");

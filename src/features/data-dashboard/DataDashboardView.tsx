@@ -137,8 +137,8 @@ export function DataDashboardView() {
             {tab === "topo" && (
               <>
                 <BentoGrid>
-                  <Statistic size="xl" className="lg:col-span-2" label={DD_VIEW_COPY.STAT_ENTITY_LABEL} value={nodes.length} hint={DD_VIEW_COPY.STAT_ENTITY_HINT} />
-                  <Statistic size="lg" label={DD_VIEW_COPY.STAT_RELATION_LABEL} value={edges.length} hint={DD_VIEW_COPY.STAT_RELATION_HINT} />
+                  <Statistic size="xl" className="lg:col-span-2" label={DD_VIEW_COPY.STAT_ENTITY_LABEL} value={stats?.totalNodes ?? null} hint={DD_VIEW_COPY.STAT_ENTITY_HINT} />
+                  <Statistic size="lg" label={DD_VIEW_COPY.STAT_RELATION_LABEL} value={stats?.totalEdges ?? null} hint={DD_VIEW_COPY.STAT_RELATION_HINT} />
                 </BentoGrid>
                 <Alert
                   variant="info"

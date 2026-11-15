@@ -3,7 +3,6 @@ import { AlertTriangle, CircleHelp, RefreshCw, ShieldCheck } from "lucide-react"
 import { VersionComparePanel, VersionComponentDiff, VersionDiffSummary } from "./components";
 import { useArchitectureVersionStore } from "./architecture-version-store";
 import { navigate } from "@/lib/navigation";
-import { Statistic } from "@/components/statistic";
 import { isNoCurrentReleaseText } from "@/lib/api";
 import { PageContainer, PageSection } from "@/components/page-container";
 import { Panel } from "@/components/panel";
@@ -27,9 +26,6 @@ export function ArchitectureVersionView() {
           </button>
         }
       />
-
-      {/* WP-037 P7 锚点：产品版本数主视觉 */}
-      <Statistic size="xl" label={AV_VIEW_COPY.STAT_LABEL} value={store.versions ? store.versions.items.length : null} hint={AV_VIEW_COPY.STAT_HINT} />
 
       <Panel>
         <div className="flex flex-col gap-4">
