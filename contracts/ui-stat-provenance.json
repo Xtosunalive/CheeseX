@@ -115,14 +115,14 @@
     {
       "view": "property-manifest-list",
       "file": "src/features/property-gov/ManifestListPanel.tsx",
-      "statCount": 11,
+      "statCount": 1,
       "apiSources": [
         "src/features/property-gov/property-api.ts#fetchArticleManifests"
       ],
       "sourceApis": [
         "/api/kg/query"
       ],
-      "note": "property-api"
+      "note": "property-api；量值对齐批 2026-11-15 概览 7 卡退役，唯一保留待办头条（过期+未生成合计）"
     }
   ],
   "excluded": [
