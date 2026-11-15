@@ -1169,6 +1169,15 @@ action_types:
       - kind: revision_present
     input_schema:
       contract_ref: "POST /api/schema/versions/freeze requestBody"
+  schema.versions.deprecate:
+    http_route: "POST /api/schema/versions/deprecate"
+    executor: schema-write.versions-deprecate
+    required_roles: [ admin ]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    input_schema:
+      contract_ref: "POST /api/schema/versions/deprecate requestBody"
   schema.product-identity.write:
     http_route: "PUT /api/schema/product-identity"
     executor: schema-write.product-identity

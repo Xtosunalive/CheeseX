@@ -626,8 +626,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:117",
-        "server/services/pipeline/version-registry-service.cjs:147"
+        "server/services/pipeline/version-registry-service.cjs:127",
+        "server/services/pipeline/version-registry-service.cjs:157"
       ]
     },
     "ENUMS_REVISION_CONFLICT": {
@@ -780,7 +780,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:157"
+        "server/services/pipeline/version-registry-service.cjs:167"
       ]
     },
     "IMPACT_ANALYSIS_FAILED": {
@@ -1109,9 +1109,9 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:103",
-        "server/services/pipeline/version-registry-service.cjs:214",
-        "server/services/pipeline/version-registry-service.cjs:217",
+        "server/services/pipeline/version-registry-service.cjs:113",
+        "server/services/pipeline/version-registry-service.cjs:224",
+        "server/services/pipeline/version-registry-service.cjs:227",
         "server/services/projection/architecture-version-service.cjs:149"
       ]
     },
@@ -1553,7 +1553,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:78"
+        "server/services/pipeline/version-registry-service.cjs:78",
+        "server/services/pipeline/version-registry-service.cjs:88"
       ]
     },
     "RELEASE_ARTIFACT_HASH_MISMATCH": {
@@ -1811,8 +1812,9 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:179",
-        "server/services/pipeline/version-registry-service.cjs:203",
+        "server/services/pipeline/version-registry-service.cjs:189",
+        "server/services/pipeline/version-registry-service.cjs:213",
+        "server/services/pipeline/version-registry-service.cjs:293",
         "server/services/schema-profiling/rules-lifecycle-service.cjs:92",
         "server/services/schema-profiling/rules-lifecycle-service.cjs:171",
         "server/shared/schema-write-guards.cjs:55",
@@ -1854,7 +1856,8 @@ module.exports = {
         "server/routes/schema-discovery-routes.cjs:235",
         "server/routes/version-registry-routes.cjs:26",
         "server/routes/version-registry-routes.cjs:38",
-        "server/routes/version-registry-routes.cjs:50"
+        "server/routes/version-registry-routes.cjs:51",
+        "server/routes/version-registry-routes.cjs:63"
       ]
     },
     "SEED_NOT_FOUND": {
@@ -2188,7 +2191,7 @@ module.exports = {
         "server/services/pipeline/obsidian-open-service.cjs:22",
         "server/services/pipeline/obsidian-open-service.cjs:25",
         "server/services/pipeline/obsidian-open-service.cjs:47",
-        "server/services/pipeline/version-registry-service.cjs:186",
+        "server/services/pipeline/version-registry-service.cjs:196",
         "server/services/release-governance/release-publisher-service.cjs:221",
         "server/services/schema-manager/dependencies-write-service.cjs:254",
         "server/services/schema-manager/dependency-impact-preview-service.cjs:51",
@@ -2271,8 +2274,9 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:182",
-        "server/services/pipeline/version-registry-service.cjs:205"
+        "server/services/pipeline/version-registry-service.cjs:192",
+        "server/services/pipeline/version-registry-service.cjs:215",
+        "server/services/pipeline/version-registry-service.cjs:295"
       ]
     },
     "VERSION_ALREADY_RELEASED": {
@@ -2280,7 +2284,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:209"
+        "server/services/pipeline/version-registry-service.cjs:219"
       ]
     },
     "VERSION_NOT_ALLOWED": {
@@ -2296,7 +2300,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:210"
+        "server/services/pipeline/version-registry-service.cjs:220"
       ]
     },
     "VERSION_NOT_FOUND": {
@@ -2304,7 +2308,8 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:208",
+        "server/services/pipeline/version-registry-service.cjs:218",
+        "server/services/pipeline/version-registry-service.cjs:298",
         "server/services/projection/architecture-version-service.cjs:106"
       ]
     },
@@ -2318,12 +2323,20 @@ module.exports = {
         "server/services/entity-compliance/entity-relation-patch-service.cjs:32"
       ]
     },
+    "VERSION_NOT_RELEASED": {
+      "statuses": [
+        409
+      ],
+      "sites": [
+        "server/services/pipeline/version-registry-service.cjs:299"
+      ]
+    },
     "VERSION_PROJECTION_FAILED": {
       "statuses": [
         500
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:101"
+        "server/services/pipeline/version-registry-service.cjs:111"
       ]
     },
     "VERSION_PROJECTION_MISSING": {
@@ -2339,7 +2352,7 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:90",
+        "server/services/pipeline/version-registry-service.cjs:100",
         "server/services/projection/architecture-version-service.cjs:146"
       ]
     },
@@ -2383,7 +2396,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/pipeline/version-registry-service.cjs:258"
+        "server/services/pipeline/version-registry-service.cjs:268"
       ]
     },
     "VERSION_SNAPSHOT_MISSING": {

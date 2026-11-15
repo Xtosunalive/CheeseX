@@ -115,7 +115,13 @@ function normalizeRegistryVersion(value, path, diagnostics) {
   }
   const snapshot = normalizeSnapshot(value.snapshot, path + ".snapshot", diagnostics);
   if (status === "released" && !snapshot) diagnostics.push(diagnostic("RELEASED_SNAPSHOT_REQUIRED", "已发布版本必须绑定不可变快照", path + ".snapshot"));
-  return { id, label, status, release_date: releaseDate, aliases, snapshot };
+  // PR-319/WP-181：deprecated_date（废弃日期，可空；非空须为 YYYY-MM-DD）——deprecated 态的收尾时间戳，
+  // 归一化输出携带（写单门落盘与读侧投影同形状），draft/released 恒 null。
+  let deprecatedDate = value.deprecated_date === null || value.deprecated_date === undefined ? null : value.deprecated_date;
+  if (deprecatedDate !== null && (typeof deprecatedDate !== "string" || !DATE_PATTERN.test(deprecatedDate) || Number.isNaN(Date.parse(deprecatedDate + "T00:00:00Z")))) {
+    diagnostics.push(diagnostic("INVALID_DEPRECATED_DATE", "废弃日期必须是 YYYY-MM-DD 或 null", path + ".deprecated_date"));
+  }
+  return { id, label, status, release_date: releaseDate, aliases, snapshot, deprecated_date: status === "deprecated" ? deprecatedDate : null };
 }
 
 function validateVersionRegistry(value) {

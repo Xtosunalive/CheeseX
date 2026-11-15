@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { TERM } from "@/constants/term-const";
 import { VERSIONS_COPY, smOrdinalAria } from "./schema-manager-copy";
-import { CheckCircle2, Loader2, Plus, Save, Snowflake, Trash2 } from "lucide-react";
+import { Archive, CheckCircle2, Loader2, Plus, Save, Snowflake, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { DataTable } from "@/components/data-table/DataTable";
 import { Tag } from "@/components/ui/tag";
@@ -138,6 +138,12 @@ export function VersionRegistryEditor({ disabled }: { disabled: boolean }) {
     await store.freezeVersion(activeProduct, entry.id);
   };
 
+  // PR-319/WP-181：版本废弃（released→deprecated）——个体生命周期收尾，确认形态与 freeze 同款
+  const deprecate = async (entry: VersionRegistryEntry) => {
+    if (!window.confirm(VERSIONS_COPY.DEPRECATE_CONFIRM(activeProduct, entry.id))) return;
+    await store.deprecateVersion(activeProduct, entry.id);
+  };
+
   // W4（卡 §12.1）：版本行迁移为语义表；冻结确认＝window.confirm 为既有测试契约钉死
   // （schema-version-registry.test：confirm 文案含「直接写回」），保留。草稿版本删除＝未保存草稿的
   // 可逆操作（仅草稿态可删、保存前可放弃）——WP-146 件1 起去掉阻断确认：删除即执行＋sonner toast
@@ -226,6 +232,7 @@ export function VersionRegistryEditor({ disabled }: { disabled: boolean }) {
       render: (entry) => (
         <div className="flex items-center justify-end gap-1">
           {entry.status === "draft" && <Button type="button" variant="ghost" size="icon" aria-label={VERSIONS_COPY.FREEZE_ARIA(entry.id)} title={VERSIONS_COPY.FREEZE_TITLE} onClick={() => void freeze(entry)} disabled={busy || store.versionsSaveStatus === "dirty" || !entry.id} className="h-8 w-8 text-cyan-11 hover:bg-surface-hover"><Snowflake className="h-4 w-4" /></Button>}
+          {entry.status === "released" && <Button type="button" variant="ghost" size="icon" aria-label={VERSIONS_COPY.DEPRECATE_ARIA(entry.id)} title={VERSIONS_COPY.DEPRECATE_TITLE} onClick={() => void deprecate(entry)} disabled={busy || store.versionsSaveStatus === "dirty"} className="h-8 w-8 text-text-hint hover:bg-surface-hover"><Archive className="h-4 w-4" /></Button>}
           {entry.status === "draft" && <Button type="button" variant="ghost" size="icon" aria-label={VERSIONS_COPY.DELETE_ARIA(entry.id, entry.__index + 1)} title={VERSIONS_COPY.DELETE_DRAFT_TITLE} onClick={() => deleteDraftVersion(activeProduct, entry.__index)} disabled={busy} className="h-8 w-8 text-status-error hover:bg-surface-hover"><Trash2 className="h-4 w-4" /></Button>}
         </div>
       ),

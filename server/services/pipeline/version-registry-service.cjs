@@ -74,7 +74,17 @@ function assertReleasedImmutable(currentRegistry, nextRegistry) {
     for (const entry of definition.versions || []) {
       if (entry.status !== "released") continue;
       const next = nextRegistry.products[product] && nextRegistry.products[product].versions.find((item) => item.id === entry.id);
-      if (!next || JSON.stringify(next) !== JSON.stringify(entry)) {
+      if (!next) {
+        throw serviceError("RELEASED_VERSION_IMMUTABLE", "已发布版本不可修改或删除，请创建新的产品版本", 409, { product, version: entry.id });
+      }
+      // PR-319/WP-181：核准生命周期转移——仅 status released→deprecated ＋新增 deprecated_date，其余字段逐字不变；
+      // 除此之外 released 条目仍逐字冻结（label/aliases/snapshot 不可动）
+      if (next.status === "deprecated" && typeof next.deprecated_date === "string") {
+        const { status: _nextStatus, deprecated_date: _nextDate, ...restNext } = next;
+        const { status: _curStatus, deprecated_date: _curDate, ...restCurrent } = entry;
+        if (JSON.stringify(restNext) === JSON.stringify(restCurrent)) continue;
+      }
+      if (JSON.stringify(next) !== JSON.stringify(entry)) {
         throw serviceError("RELEASED_VERSION_IMMUTABLE", "已发布版本不可修改或删除，请创建新的产品版本", 409, { product, version: entry.id });
       }
     }
@@ -275,7 +285,26 @@ function createVersionRegistryService(options) {
     }
   }
 
-  return { getProductIdentity, writeProductIdentity, getRegistry, validateRegistryPayload, writeRegistry, freezeVersion };
+  // PR-319/WP-181：版本废弃——released→deprecated（个体生命周期机补「废弃」边，与实体退役对齐）。
+  // 不可变快照保留（历史审计面不变），仅状态翻转＋deprecated_date；读侧（snapshot 模式/历史分组）已就绪零改动。
+  function deprecateVersion({ product, version, expectedRevision }) {
+    const current = getRegistry();
+    if (typeof expectedRevision !== "string" || expectedRevision.length === 0) {
+      throw serviceError("SCHEMA_REVISION_REQUIRED", "必须携带 revision（读侧 GET /api/schema/versions 返回）——缺基线即拒", 400);
+    }
+    if (expectedRevision !== current.revision) throw serviceError("VERSIONS_REVISION_CONFLICT", "产品版本注册表已被其他流程修改，请重新加载后再废弃", 409, { expectedRevision, currentRevision: current.revision });
+    const definition = current.products[product];
+    const entry = definition && definition.versions.find((item) => item.id === version);
+    if (!entry) throw serviceError("VERSION_NOT_FOUND", "产品版本不存在", 404, { product, version });
+    if (entry.status !== "released") throw serviceError("VERSION_NOT_RELEASED", "只有已发布（released）的产品版本可以标记废弃", 409, { product, version, current: entry.status });
+    const products = structuredClone(current.products);
+    const nextEntry = products[product].versions.find((item) => item.id === version);
+    nextEntry.status = "deprecated";
+    nextEntry.deprecated_date = now().toISOString().slice(0, 10);
+    return writeRegistry(current.revision, { schema_version: 1, products });
+  }
+
+  return { getProductIdentity, writeProductIdentity, getRegistry, validateRegistryPayload, writeRegistry, freezeVersion, deprecateVersion };
 }
 
 module.exports = { createVersionRegistryService, createPythonProjector, readRegistryFile, revision };

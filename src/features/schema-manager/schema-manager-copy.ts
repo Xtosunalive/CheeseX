@@ -58,6 +58,8 @@ export const SM_REQUEST_COPY = {
   VERSIONS_SAVE_FAILED: "保存产品版本失败",
   /** POST /api/schema/versions/freeze（版本切片同键） */
   VERSION_FREEZE_FAILED: "提交产品版本冻结失败",
+  /** POST /api/schema/versions/deprecate（PR-319/WP-181，版本切片同键） */
+  VERSION_DEPRECATE_FAILED: "标记产品版本废弃失败",
   /** GET /api/schema/product-identity 读取 */
   PRODUCT_IDENTITY_LOAD_FAILED: "加载产品身份失败",
   /** PUT /api/schema/product-identity 写回（版本切片同键） */
@@ -316,6 +318,11 @@ export const VERSIONS_COPY = {
   FREEZE_TITLE: "提交冻结快照",
   FREEZE_CONFIRM: (product: string, versionId: string) =>
     `将 ${product} ${versionId} 的冻结快照直接写回版本注册表？经校验通过后立即生效。`,
+  /** PR-319/WP-181：版本废弃（released→deprecated，个体生命周期收尾） */
+  DEPRECATE_ARIA: (versionId: string) => `标记废弃 ${versionId}`,
+  DEPRECATE_TITLE: "标记废弃",
+  DEPRECATE_CONFIRM: (product: string, versionId: string) =>
+    `将 ${product} ${versionId} 标记为废弃？标记后该版本归入历史版本（快照保留，不可逆）。`,
   DELETE_ARIA: (versionId: string, ordinal: number) => `删除 ${versionId || smOrdinalAria("版本", ordinal)}`,
   DELETE_DRAFT_TITLE: "删除草稿版本",
   HEADER_TITLE: "产品版本注册",
