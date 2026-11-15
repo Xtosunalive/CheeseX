@@ -246,6 +246,14 @@ function createArticleWorkflowService(options) {
     if (!item) throw workflowError("ARTICLE_NOT_FOUND", "precleaned 文章不存在", 404);
     // SPEC-030 §十一批1（2026-11-16）：阻断原因透出——blocked 态的「为什么」随详情下发
     //（与 getStatusCandidate 同源 record；blocked 显示无因＝用户实测困惑点），metadata 现读不变。
+    // 红队 P1 修复（2026-11-16 验收期）：record 存的是合规 finding 全量（含 severity/passed/hint 等超集键），
+    // 契约 BlockerDetail additionalProperties:false——出站拍平为 {ruleId,field,message}（standardize 409
+    // details 同款拍平先例），否则响应探针把 blocked 详情/带警告存量详情/PATCH fields 三面全拦 500。
+    const projectFinding = (finding) => ({
+      ruleId: String(finding?.ruleId ?? ""),
+      field: String(finding?.field ?? ""),
+      message: String(finding?.message ?? ""),
+    });
     const record = state.articles.find((entry) => entry.candidateId === id);
     const absolute = resolveVaultRelative(item.sourcePath, precleanedDir);
     const document = loadDocument(fs.readFileSync(absolute, "utf8"), absolute);
@@ -253,8 +261,8 @@ function createArticleWorkflowService(options) {
       ...item,
       metadata: normalizeMetadata(document.frontmatter),
       content: document.body,
-      complianceBlockers: record?.admissionBlockers ?? [],
-      standardizationWarnings: Array.isArray(record?.standardizationWarnings) ? record.standardizationWarnings : [],
+      complianceBlockers: (Array.isArray(record?.admissionBlockers) ? record.admissionBlockers : []).map(projectFinding),
+      standardizationWarnings: (Array.isArray(record?.standardizationWarnings) ? record.standardizationWarnings : []).map(projectFinding),
     };
   }
 
