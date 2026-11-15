@@ -1,14 +1,9 @@
 # subjects.yaml — 主体注册表（ADR-009 D2）
 # 多主体词表挂载关系的唯一事实源。主体层文件住 subjects/<id>/enums.yaml（可段子集契约）。
 # 合层读：readEnumsForSubject(vault, subject)——默认视角（无 subject）零破坏。
+# （anyshare 主体身份已随 2026-11-15 Master 裁决删除——PR-243 产品身份层清零：
+#   其词表归档与实体数据此前已随主体挂起撤出，注册行删除＝身份一并清；
+#   vault 侧 TheSchema 目录实测无档案残留。本注册表现为空态，新主体经注册行登记后启用。）
 schema_version: 1
-last_updated: 2026-10-18
-subjects:
-  - id: anyshare
-    name: AnyShare
-    status: paused
-    archived_from: 知识库/TheSchema/history/enums-legacy-archive-manifest.json
-    mounted_at: null
-    # status: paused＝挂起的主体数据，不是硬编码残留（AnyShare 机制面退役口径，PR-243）。
-    # 验收＝机制层标识符零命中＋白名单（历史记述／测试夹具／挂起主体数据／待裁决保留项），非全仓字符串清零。
-    # 现存待裁决保留项＝server/shared/auth/session-cookie.cjs 默认 cookie 名、server/shared/releases-dir.cjs 旧目录回落读。
+last_updated: 2026-11-15
+subjects: []
