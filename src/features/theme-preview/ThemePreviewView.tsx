@@ -15,7 +15,7 @@ import { useMode, type ModeKind } from "@/hooks/use-mode";
 import { PageContainer } from "@/components/page-container";
 import { Panel } from "@/components/panel";
 import { BentoGrid, BentoCard } from "@/components/bento";
-import { Statistic } from "@/components/statistic";
+import { Statistic } from "@/components/statistic/Statistic";
 import {
   ACCENT_SAMPLES,
   BENTO_SAMPLES,

@@ -60,13 +60,13 @@ describe("DocumentInventoryView", () => {
     expect(screen.queryByText("快捷跳转")).not.toBeInTheDocument();
   });
 
-  it("PR-151→WP-070：零发布态由服务端 200＋availability（no-formal-release）表达——卡片副文案取契约指引，不进错误横幅", () => {
+  it("PR-151→WP-070：零发布态由服务端 200＋availability（no-formal-release）表达——指引条取契约指引，不进错误横幅（MAIC 形态批：总量数字退役，指引保留为独立文字条）", () => {
     // 零发布：路由层接住 NO_CURRENT_RELEASE 走工作树活读＋指引（不再是 error 态）
     const hint = "尚无正式发布版本——去处：「文章准入 → 工作草稿行操作「审批与发布」（首次发布生成正式版本）」";
     state = { ...state, status: "idle", error: null, result: { ...(state.result as object), documents: [], availability: { empty: true, kinds: ["no-formal-release"], hints: [hint] } } };
     render(<DocumentInventoryView />);
-    expect(screen.getByText("正式版文档总数")).toBeInTheDocument();
     expect(screen.getByTestId("inventory-no-release")).toHaveTextContent(hint);
+    expect(screen.queryByText("正式版文档总数")).not.toBeInTheDocument(); // MAIC 形态批：库总量数字退役
     expect(screen.queryByText(/文章经「标准化 → 审批 → 发布」后进入本清单/)).not.toBeInTheDocument();
     // 「空态即结构」（Master 2026-10-29）不变：不渲染错误横幅与重试按钮
     expect(screen.queryByRole("button", { name: TERM.RETRY_ACTION })).not.toBeInTheDocument();

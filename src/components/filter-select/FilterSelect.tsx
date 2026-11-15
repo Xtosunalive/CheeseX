@@ -54,7 +54,8 @@ function ChoiceRow({ option, checked, multiple, onChoose }: { option: FilterSele
         {checked && <Check className="h-3 w-3" />}
       </span>
       <span className="min-w-0 flex-1 truncate">{option.label}</span>
-      {option.count !== undefined && <span className="text-kg-xs tabular-nums text-text-hint">{option.count}</span>}
+      {/* 2026-11-15 MAIC 形态批：计数 >0 才渲染——0 是空态信息不是数字，空态由列表空态承担 */}
+      {option.count !== undefined && option.count > 0 && <span className="text-kg-xs tabular-nums text-text-hint">{option.count}</span>}
     </button>
   );
 }

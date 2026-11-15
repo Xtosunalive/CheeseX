@@ -7,7 +7,7 @@ import { EdgeReviewPanel } from "./EdgeReviewPanel";
 import { AuditLogPanel } from "./AuditLogPanel";
 import { useLoadTopology } from "@/lib/topology-store";
 import { useReviewPendingCount } from "@/lib/review-data-store";
-import { Statistic } from "@/components/statistic";
+import { Statistic } from "@/components/statistic/Statistic";
 import type { ReviewTab } from "./review-types";
 import { navigate, type NavLocation } from "@/lib/navigation";
 import { useNavLocation } from "@/hooks/use-nav-location";

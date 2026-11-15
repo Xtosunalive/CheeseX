@@ -158,12 +158,6 @@ export const CHECK_RESULTS_COPY = {
   REVISION_UNAVAILABLE: "不可用",
   WORKING_REV_MISSING: "校验信息缺失，修复功能暂不可用",
   APPLIED_PREFIX: "已直接写回正式源：",
-  /** 概览统计 */
-  SUMMARY_TITLE: "架构组件属性概览",
-  STAT_BLOCKER_LABEL: "阻断架构组件",
-  STAT_BLOCKER_HINT: "存在模块未填写、模块值无效或源文档关联不一致问题的架构组件数",
-  STAT_WARNING_LABEL: "警告架构组件",
-  STAT_WARNING_HINT: "不存在阻断问题，但存在属性提取过期或属性格式异常的架构组件数",
   /** 工具行 */
   SEARCH_ARIA: "搜索架构组件属性",
   SEARCH_PLACEHOLDER: "搜索架构组件名称或源文档路径",
@@ -274,10 +268,6 @@ export function formatArtifactRepairLabel(field: string): string {
 
 // ── ManifestListPanel（文章图谱映射列表）──
 export const MANIFEST_LIST_COPY = {
-  /** 待办头条（量值对齐批 2026-11-15：概览 7 卡退役后唯一保留的动作数；分项计数由筛选档承载） */
-  SUMMARY_PENDING_LABEL: "需要处理",
-  SUMMARY_PENDING_HINT: "映射过期与未生成映射的文档数合计，分项明细见下方筛选档",
-  SUMMARY_ALL_FRESH: "映射全部最新",
   /** 类型徽章 */
   KIND_ARTICLE: "文章",
   KIND_WIKI_ENTITY: "实体文档",
@@ -315,11 +305,6 @@ export const MANIFEST_LIST_COPY = {
   EMPTY_NO_MATCH_TITLE: `无匹配的${TERM.GRAPH_SOURCE_DOCUMENT}`,
   PAGINATION_ARIA: `${TERM.ARTICLE_GRAPH_MAPPING}分页`,
 } as const;
-
-/** 待办头条 sub（分项标签与筛选档 MANIFEST_FILTER_LABELS 同源，不写第二份） */
-export function manifestPendingSub(stale: number, missing: number): string {
-  return `${MANIFEST_FILTER_LABELS.stale} ${stale} · ${MANIFEST_FILTER_LABELS.missing} ${missing}`;
-}
 
 /** 有搜索词时的空态说明 */
 export function manifestNoMatchQuery(query: string): string {

@@ -75,20 +75,15 @@ describe("ManifestListPanel", () => {
         { componentId: "alpha", label: "Alpha", module: "Alpha", archLayer: "gateway", sourcePath: "alpha.md", sourcePathExists: true, checks: passedChecks },
       ],
     });
-    usePropertyStore.setState({ checkResults: [], summary: null, status: "idle", error: null, filter: "all", query: "" });
+    usePropertyStore.setState({ checkResults: [], status: "idle", error: null, filter: "all", query: "" });
   });
 
   it("uses the shared compact toolbar and sortable table", async () => {
     render(<ManifestListPanel />);
     expect(await screen.findByText("Alpha")).toBeInTheDocument();
-    const summaryBar = screen.getByTestId("manifest-summary");
-    // 量值对齐批（Master 2026-11-15 裁）：概览 7 卡退役——唯一保留待办头条（过期＋未生成合计），分项计数由筛选档承载
-    expect(summaryBar.compareDocumentPosition(screen.getByTestId("manifest-toolbar")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(screen.getByTestId("manifest-summary-metric")).toHaveTextContent("1需要处理");
-    expect(screen.getByText("映射过期 0 · 未生成映射 1")).toBeInTheDocument();
-    expect(screen.queryByText("50%")).not.toBeInTheDocument();
-    expect(screen.queryByText("应生成映射")).not.toBeInTheDocument();
-    expect(screen.queryByText("图谱引用文档")).not.toBeInTheDocument();
+    // 2026-11-15 MAIC 形态批（Master 裁 A）：待办头条退役——数字回归筛选档（>0 才显示）与列表行状态
+    expect(screen.queryByTestId("manifest-summary")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("manifest-summary-metric")).not.toBeInTheDocument();
     expect(screen.getByTestId("manifest-toolbar")).toHaveClass("rounded-lg", "bg-surface-root", "ring-border-thin");
     expect(screen.getByRole("textbox", { name: "搜索图谱引用文档" })).toHaveClass("h-8", "text-xs", "bg-transparent");
     expect(screen.getByRole("button", { name: "筛选文章图谱映射状态" })).toHaveAttribute("data-select-variant", "filter");
@@ -137,8 +132,8 @@ describe("ManifestListPanel", () => {
     await waitFor(() => expect(api.fetchArticleManifests).toHaveBeenCalledWith(expect.objectContaining({ filter: "all" })));
     expect(await screen.findByText("Beta")).toBeInTheDocument();
     expect(screen.getAllByTestId("manifest-row-title")).toHaveLength(3);
-    // 零待办正名态：头条降级为「映射全部最新」，不出统计值
-    expect(screen.getByText("映射全部最新")).toBeInTheDocument();
+    // MAIC 形态批：零待办＝无统计块，正名交给空态/列表行（无「全部最新」卡）
+    expect(screen.queryByText("映射全部最新")).not.toBeInTheDocument();
     expect(screen.queryByTestId("manifest-summary-metric")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "筛选文章图谱映射状态" })).toHaveTextContent("映射筛选");
   });
@@ -146,14 +141,11 @@ describe("ManifestListPanel", () => {
   it("aligns the property check toolbar and sortable table", async () => {
     render(<CheckResultsPanel />);
     expect(await screen.findByRole("button", { name: "展开 Alpha" })).toBeInTheDocument();
-    const summaryBar = screen.getByTestId("property-check-summary");
-    expect(screen.getByTestId("property-check-summary-grid")).toHaveClass("grid-cols-2");
-    expect(summaryBar.compareDocumentPosition(screen.getByTestId("property-check-toolbar")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    // 2026-11-15 MAIC 形态批：概览统计行退役——结论由筛选档与列表行承载
+    expect(screen.queryByTestId("property-check-summary")).not.toBeInTheDocument();
+    expect(screen.queryByText("架构组件属性概览")).not.toBeInTheDocument();
+    expect(screen.queryByText("阻断架构组件")).not.toBeInTheDocument();
     expect(screen.getByTestId("property-check-toolbar")).toHaveClass("rounded-lg", "bg-surface-root", "ring-border-thin");
-    expect(screen.getByText("架构组件属性概览")).toBeInTheDocument();
-    // 2026-11-15 概览退役批：「受检架构组件」分母卡退役——动作数两卡保留
-    ["阻断架构组件", "警告架构组件"].forEach((label) => expect(screen.getByText(label)).toBeInTheDocument());
-    expect(screen.queryByText("受检架构组件")).not.toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "搜索架构组件属性" })).toHaveClass("h-8", "text-xs", "bg-transparent");
     expect(screen.getByRole("button", { name: "筛选架构组件属性问题" })).toHaveAttribute("data-select-variant", "filter");
     expect(screen.getByRole("textbox", { name: "架构组件属性分页 跳转页码" })).toHaveValue("1");

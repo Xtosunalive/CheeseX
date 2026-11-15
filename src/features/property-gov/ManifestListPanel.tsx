@@ -12,7 +12,6 @@ import { TableSortHeader } from "@/components/table-sort-header";
 import { TablePagination } from "@/components/table-pagination";
 import { DataTable } from "@/components/data-table/DataTable";
 import type { Column } from "@/components/data-table/types";
-import { Statistic } from "@/components/statistic/Statistic";
 import { StatusDot, type StatusDotTone } from "@/components/status-dot/StatusDot";
 import { Tag } from "@/components/ui/tag";
 import { compareZh } from "@/hooks/use-table-sort";
@@ -27,7 +26,7 @@ import {
   FILTER_LABELS,
 } from "./property-types";
 import { fetchArticleManifests } from "./property-api";
-import { MANIFEST_LIST_COPY, PROPERTY_GOV_SHARED_COPY, manifestNoMatchQuery, manifestPendingSub } from "./property-gov-copy";
+import { MANIFEST_LIST_COPY, PROPERTY_GOV_SHARED_COPY, manifestNoMatchQuery } from "./property-gov-copy";
 
 const LIMIT = 50; // 服务端口径（接口侧分页，Master 裁定保留 50 并标注）
 type ManifestSortField = "title" | "mode" | "directRelationCount" | "status";
@@ -74,28 +73,8 @@ export function ManifestListPanel() {
     return sortDirection === "asc" ? comparison : -comparison;
   }), [items, sortDirection, sortField]);
 
-  // ── 待办头条 ──
-  // 量值对齐批（Master 2026-11-15 裁）：概览 7 卡退役（覆盖率%/图谱引用文档/已排除/应生成/最新/
-  // 过期/未生成）——分项计数由筛选档计数承载，唯一保留动作数「需要处理」（过期＋未生成合计）；
-  // 零待办给正名空态。WP-037 P5 沿用：整页无数据不渲染任何统计。
-  const staleCount = s?.stale ?? 0;
-  const missingCount = s == null ? 0 : (isCoverageSummary(s) ? s.missingEligible : s.missing);
-  const pendingCount = staleCount + missingCount;
-  const renderSummary = () => {
-    if (!s || totalItems === 0) return null;
-    if (pendingCount === 0) {
-      return (
-        <div data-testid="manifest-summary" className="rounded ring-1 ring-status-fact-6 bg-status-fact-2 px-3 py-2 font-mono text-xs text-status-fact">
-          {MANIFEST_LIST_COPY.SUMMARY_ALL_FRESH}
-        </div>
-      );
-    }
-    return (
-      <div data-testid="manifest-summary">
-        <Statistic size="xl" testId="manifest-summary-metric" label={MANIFEST_LIST_COPY.SUMMARY_PENDING_LABEL} value={pendingCount} sub={manifestPendingSub(staleCount, missingCount)} tone={missingCount > 0 ? "text-status-error" : "text-status-warn"} hint={MANIFEST_LIST_COPY.SUMMARY_PENDING_HINT} />
-      </div>
-    );
-  };
+  // 2026-11-15 MAIC 形态批（Master 裁 A）：待办头条退役——待办回归列表行状态与筛选档计数
+  // （>0 才显示），MAIC 形态：计数依附动作容器，无常驻卡行
 
   const renderKindBadge = (item: ManifestItem) => {
     if (item.excluded) {
@@ -217,13 +196,12 @@ export function ManifestListPanel() {
     },
   ];
 
-  // WP-037 P5：整页无数据（全量 0）——统计堆与搜索/筛选工具条都降级，不渲染空转控件
+  // WP-037 P5：整页无数据（全量 0）——搜索/筛选工具条都降级，不渲染空转控件
+  // （2026-11-15 MAIC 形态批：统计堆退役，本守卫只余工具条降级语义）
   const noData = !loading && !error && totalItems === 0; // 红队修：error 态不降级（失败≠无数据）
 
   return (
     <div className="flex flex-col gap-3">
-      {renderSummary()}
-
       {/* ── Error ── */}
       {error && (
         <div className="rounded ring-1 ring-status-error-6 bg-status-error-2 px-3 py-2 font-mono text-xs text-status-error">

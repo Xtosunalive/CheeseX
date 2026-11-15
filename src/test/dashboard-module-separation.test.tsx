@@ -51,13 +51,9 @@ describe("DashboardView module layout", () => {
     expect(within(reviewStatus as HTMLElement).getByText("架构图关系审核状态")).toBeInTheDocument();
     expect(within(reviewStatus as HTMLElement).getByText("0 待审核")).toBeInTheDocument();
     expect(within(reviewStatus as HTMLElement).queryByText(/全部待审核/)).not.toBeInTheDocument();
-    expect(screen.getByText("全部待审核关系")).toBeInTheDocument();
-    expect(screen.getByText("架构图关系")).toBeInTheDocument();
-    // 统计卡（Statistic）统一表面：surface-card，不落到 surface-root
-    screen.getAllByTestId("statistic").forEach((card) => {
-      expect(card).toHaveClass("rounded-xl", "ring-1", "ring-border-thin", "bg-surface-card");
-      expect(card).not.toHaveClass("bg-surface-root");
-    });
+    // MAIC 形态批（Master 裁 A）：常驻统计卡整块退役——规模/待办数字回归各工作页
+    expect(screen.queryByText("全部待审核关系")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("statistic")).not.toBeInTheDocument();
     expect(within(reviewStatus as HTMLElement).queryByText("0 待审")).not.toBeInTheDocument();
     // 三个模块的表面（Panel）统一为 surface-card
     for (const moduleEl of [topologySummary, reviewStatus, syncLog]) {

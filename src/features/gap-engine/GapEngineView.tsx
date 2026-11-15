@@ -3,7 +3,7 @@ import { useEffect } from "react";
 import { GovernanceTodoTab } from "./GovernanceTodoTab";
 import { useLoadTopology, useUnresolvedGapCount } from "@/lib/topology-store";
 import { PageContainer } from "@/components/page-container";
-import { Statistic } from "@/components/statistic";
+import { Statistic } from "@/components/statistic/Statistic";
 import { GAP_ENGINE_VIEW_COPY } from "./gap-engine-copy";
 
 export function GapEngineView() {

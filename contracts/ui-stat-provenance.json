@@ -5,18 +5,6 @@
   "description": "多视角对账模式⑥单源：每个向用户展示 Statistic 的视图，登记其数据取自哪次真实后端调用（apiSources，人写的规范半）；sourceApis 为派生面（npm run gen:ui-stat-provenance 生成，手抄退役，漂移由 check:derivation-sync 拦）。检查器核对覆盖完整与口径可查。",
   "views": [
     {
-      "view": "entity-compliance",
-      "file": "src/features/entity-compliance/SummaryBar.tsx",
-      "statCount": 3,
-      "apiSources": [
-        "src/features/entity-compliance/entity-compliance-api.ts#fetchEntityCompliance"
-      ],
-      "sourceApis": [
-        "/api/entity/check"
-      ],
-      "note": "entity-compliance-api；2026-11-15 概览退役批撤「检查通过/平均质量分」——动作数三连保留"
-    },
-    {
       "view": "data-dashboard",
       "file": "src/features/data-dashboard/DataDashboardView.tsx",
       "statCount": 2,
@@ -26,37 +14,7 @@
       "sourceApis": [
         "/api/dashboard/topology"
       ],
-      "note": "lib/topology-store → dashboard-api"
-    },
-    {
-      "view": "article-workflow",
-      "file": "src/features/article-workflow/ArticleWorkflowView.tsx",
-      "statCount": 1,
-      "apiSources": [
-        "src/features/article-workflow/article-workflow-api.ts#fetchPrecleanedArticles",
-        "src/features/article-workflow/article-workflow-api.ts#fetchArticleUploads"
-      ],
-      "sourceApis": [
-        "/api/articles/precleaned",
-        "/api/articles/uploads"
-      ],
-      "note": "article-workflow-api；2026-11-15 概览退役批撤「全部上传任务」——总数由列表分页承载"
-    },
-    {
-      "view": "dashboard",
-      "file": "src/features/dashboard/DashboardView.tsx",
-      "statCount": 4,
-      "apiSources": [
-        "src/features/dashboard/dashboard-api.ts#fetchTopology",
-        "src/features/admission/admission-api.ts#fetchCanvasAdmission",
-        "src/features/review/review-api.ts#fetchPendingReview"
-      ],
-      "sourceApis": [
-        "/api/dashboard/topology",
-        "/api/kg/canvas-admission",
-        "/api/kg/pending-review"
-      ],
-      "note": "topology-store＋review-data-store＋admission-store"
+      "note": "lib/topology-store → dashboard-api；2026-11-15 MAIC 形态批后全站仅存的数据规模面（专题页）"
     },
     {
       "view": "gap-engine",
@@ -83,46 +41,6 @@
         "/api/kg/pending-review"
       ],
       "note": "review-data-store → review-api"
-    },
-    {
-      "view": "document-inventory",
-      "file": "src/features/document-inventory/DocumentInventoryView.tsx",
-      "statCount": 1,
-      "apiSources": [
-        "src/features/document-inventory/document-inventory-api.ts#searchDocuments",
-        "src/features/document-inventory/document-inventory-api.ts#searchArticleCandidates",
-        "src/features/document-inventory/document-inventory-api.ts#fetchDocument"
-      ],
-      "sourceApis": [
-        "/api/articles/candidates/search",
-        "/api/documents/search",
-        "/api/documents/{documentId}"
-      ],
-      "note": "document-inventory-api"
-    },
-    {
-      "view": "property-check-results",
-      "file": "src/features/property-gov/CheckResultsPanel.tsx",
-      "statCount": 2,
-      "apiSources": [
-        "src/features/property-gov/property-api.ts#fetchCheckResults"
-      ],
-      "sourceApis": [
-        "/api/property/check"
-      ],
-      "note": "property-store → property-api；2026-11-15 概览退役批撤「受检架构组件」分母卡"
-    },
-    {
-      "view": "property-manifest-list",
-      "file": "src/features/property-gov/ManifestListPanel.tsx",
-      "statCount": 1,
-      "apiSources": [
-        "src/features/property-gov/property-api.ts#fetchArticleManifests"
-      ],
-      "sourceApis": [
-        "/api/kg/query"
-      ],
-      "note": "property-api；量值对齐批 2026-11-15 概览 7 卡退役，唯一保留待办头条（过期+未生成合计）"
     }
   ],
   "excluded": [

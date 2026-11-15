@@ -28,7 +28,8 @@ describe("entity check to repair loop", () => {
     useEntityComplianceStore.setState({ data: { generatedAt: "2026-10-29T00:00:00.000Z", readiness: { ready: true, totalArchComponents: 0, blockerEntities: 0, blockerCount: 0, warningCount: 0, warningDetails: [], blockingSourceKeys: [] }, summary: { totalEntities: 0, healthyCount: 0, blockerEntityCount: 0, warningEntityCount: 0, infoEntityCount: 0, averageScore: 0 }, total: 0, limit: 50, offset: 0, items: [] } as never, status: "success" as never, error: null });
     render(<EntityComplianceView />);
     await screen.findByText(/未发现匹配/);
-    expect(screen.queryByTestId("compliance-summary")).not.toBeInTheDocument(); // 零值堆不渲染
+    // MAIC 形态批（Master 裁 A）：统计行整块退役——任何数据态都不再渲染 compliance-summary
+    expect(screen.queryByTestId("compliance-summary")).not.toBeInTheDocument();
     expect(screen.queryByText(/入图资格/)).not.toBeInTheDocument(); // 横幅撤
   });
 
@@ -37,13 +38,12 @@ describe("entity check to repair loop", () => {
     const refresh = screen.getByRole("button", { name: "重新检查源文档" });
     expect(refresh).toBeInTheDocument();
     expect(screen.getByTestId("entity-compliance-toolbar")).toHaveClass("rounded-lg", "bg-surface-root", "ring-border-thin");
-    expect(await screen.findByTestId("compliance-summary")).toBeInTheDocument(); // 页题已裁删——通过率主卡为就绪锚
+    // MAIC 形态批（Master 裁 A）：统计行退役，就绪锚改工具行——结论由筛选档与逐实体卡片承载
+    expect(await screen.findByTestId("entity-compliance-toolbar")).toBeInTheDocument();
     expect(screen.getByRole("textbox", { name: "搜索源文档检查结果" })).toHaveClass("h-8", "text-xs", "bg-transparent");
     expect(screen.getByRole("button", { name: "筛选源文档检查结论" })).toHaveAttribute("data-select-variant", "filter");
     expect(screen.getByRole("button", { name: "清除源文档检查筛选" })).toBeDisabled();
-    // 资格横幅已按 Master 2026-10-29「横幅都不要了」撤——结论随统计卡（阻断数）呈现
-    expect(await screen.findByText("存在阻断")).toBeInTheDocument();
-    // 横幅警告来源汇总随横幅撤（Master 2026-10-29）——问题明细走逐实体卡片（下方 Obsidian/修复断言即卡片侧）
+    // 结论不落统计卡/横幅（Master 2026-10-29＋2026-11-15 两裁）——问题明细走逐实体卡片（下方 Obsidian/修复断言即卡片侧）
     expect(screen.getByRole("button", { name: "在 Obsidian 中打开 Service" })).toBeInTheDocument();
     const repair = await screen.findByRole("button", { name: /修复 \d+ 字段/ });
     expect(screen.getByRole("button", { name: "收起 Service" })).not.toContainElement(repair);
