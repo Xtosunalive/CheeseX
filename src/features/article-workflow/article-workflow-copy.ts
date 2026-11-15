@@ -62,6 +62,8 @@ export const ARTICLE_APPROVAL_DIALOG_COPY = {
 
 // ── ArticlePreviewDialog（工作稿预览对话框）──
 export const ARTICLE_PREVIEW_COPY = {
+  /** SPEC-030 §十一批1：blocked 态阻断原因清单标题（原因条目本体＝后端 message，不另造文案） */
+  BLOCKED_REASONS: "阻断原因",
   RECEIPT_TITLE: "这是最近一次校验的审计收据（对哪版内容/哪版规则），不参与审批裁决——批准时的当前结论由审批现场计算给出（ADR-015 副本→收据）",
   /** 版本/提案前缀（尾随空格保留——JSX 原文同行空格） */
   RELEASE_PREFIX: "正式版本 ",

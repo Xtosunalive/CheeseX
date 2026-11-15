@@ -7457,7 +7457,23 @@
               }
             }
           }
-        ]
+        ],
+        "properties": {
+          "complianceBlockers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlockerDetail"
+            },
+            "description": "SPEC-030 §十一批1：blocked 态阻断原因（与 getStatusCandidate 同源 record.admissionBlockers）"
+          },
+          "standardizationWarnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/BlockerDetail"
+            },
+            "description": "标准化警告级发现（同 BlockerDetail 形态＋severity）"
+          }
+        }
       },
       "ArticleTaskEnvelope": {
         "type": "object",
