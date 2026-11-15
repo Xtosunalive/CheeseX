@@ -19,7 +19,9 @@ function createSessionCookieService(options = {}) {
   if (secret.length < 32) {
     throw new Error("AUTH_SESSION_SECRET 必须至少 32 字节（oidc 模式启动 fail-closed）");
   }
-  const cookieName = options.cookieName || "anyshare_session";
+  // PR-243 终裁（2026-11-15 Master「都清」）：默认 cookie 名去 AnyShare 化。
+  // 代价已裁决接受：改名＝存量浏览器会话失效，人人重登一次。
+  const cookieName = options.cookieName || "cheeseh_session";
   const ttlMs = options.ttlMs || 12 * 60 * 60 * 1000;
 
   function sign(payloadB64) {
