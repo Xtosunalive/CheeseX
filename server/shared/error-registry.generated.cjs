@@ -241,7 +241,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:718"
+        "server/services/article-workflow/article-workflow-service.cjs:726"
       ]
     },
     "ARTICLE_NOT_FOUND": {
@@ -251,9 +251,9 @@ module.exports = {
       "sites": [
         "server/services/article-workflow/article-association-service.cjs:281",
         "server/services/article-workflow/article-workflow-service.cjs:246",
-        "server/services/article-workflow/article-workflow-service.cjs:286",
-        "server/services/article-workflow/article-workflow-service.cjs:290",
-        "server/services/article-workflow/article-workflow-service.cjs:413"
+        "server/services/article-workflow/article-workflow-service.cjs:294",
+        "server/services/article-workflow/article-workflow-service.cjs:298",
+        "server/services/article-workflow/article-workflow-service.cjs:421"
       ]
     },
     "ARTICLE_NOT_STANDARDIZED": {
@@ -306,7 +306,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:305"
+        "server/services/article-workflow/article-workflow-service.cjs:313"
       ]
     },
     "ARTICLE_VALIDATION_FAILED": {
@@ -437,7 +437,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/article-workflow/article-draft-workflow.cjs:197",
-        "server/services/article-workflow/article-workflow-service.cjs:282"
+        "server/services/article-workflow/article-workflow-service.cjs:290"
       ]
     },
     "CONFLICT_NOT_FOUND": {
@@ -464,8 +464,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:323",
-        "server/services/article-workflow/article-workflow-service.cjs:492"
+        "server/services/article-workflow/article-workflow-service.cjs:331",
+        "server/services/article-workflow/article-workflow-service.cjs:500"
       ]
     },
     "CURRENT_POINTER_INVALID": {
@@ -557,8 +557,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:287",
-        "server/services/article-workflow/article-workflow-service.cjs:414"
+        "server/services/article-workflow/article-workflow-service.cjs:295",
+        "server/services/article-workflow/article-workflow-service.cjs:422"
       ]
     },
     "DUPLICATE_ARTIFACT": {
@@ -683,7 +683,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:401"
+        "server/services/article-workflow/article-workflow-service.cjs:409"
       ]
     },
     "FIELD_VALUE_INVALID": {
@@ -691,7 +691,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:478"
+        "server/services/article-workflow/article-workflow-service.cjs:486"
       ]
     },
     "FORBIDDEN": {
@@ -959,7 +959,7 @@ module.exports = {
     "INVALID_FILE_NAME": {
       "statuses": [],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:730"
+        "server/services/article-workflow/article-workflow-service.cjs:738"
       ]
     },
     "INVALID_ONTOLOGY": {
@@ -990,7 +990,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:265",
+        "server/services/article-workflow/article-workflow-service.cjs:273",
         "server/services/inference/inference-engine.cjs:103",
         "server/services/inference/inference-engine.cjs:104",
         "server/services/projection/architecture-version-service.cjs:164",
@@ -1237,8 +1237,8 @@ module.exports = {
       "statuses": [],
       "sites": [
         "server/services/article-workflow/article-draft-workflow.cjs:31",
-        "server/services/article-workflow/article-workflow-service.cjs:686",
-        "server/services/article-workflow/article-workflow-service.cjs:827"
+        "server/services/article-workflow/article-workflow-service.cjs:694",
+        "server/services/article-workflow/article-workflow-service.cjs:835"
       ]
     },
     "PERSISTENT_ISSUE_REQUIRED": {
@@ -2070,7 +2070,7 @@ module.exports = {
         415
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:732"
+        "server/services/article-workflow/article-workflow-service.cjs:740"
       ]
     },
     "UNSUPPORTED_RELATION_TYPE": {
@@ -2095,7 +2095,7 @@ module.exports = {
         413
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:739"
+        "server/services/article-workflow/article-workflow-service.cjs:747"
       ]
     },
     "VALIDATION_ERROR": {
@@ -2129,16 +2129,16 @@ module.exports = {
         "server/services/article-workflow/article-association-service.cjs:278",
         "server/services/article-workflow/article-draft-workflow.cjs:36",
         "server/services/article-workflow/article-workflow-service.cjs:201",
-        "server/services/article-workflow/article-workflow-service.cjs:283",
-        "server/services/article-workflow/article-workflow-service.cjs:397",
-        "server/services/article-workflow/article-workflow-service.cjs:399",
+        "server/services/article-workflow/article-workflow-service.cjs:291",
         "server/services/article-workflow/article-workflow-service.cjs:405",
-        "server/services/article-workflow/article-workflow-service.cjs:409",
-        "server/services/article-workflow/article-workflow-service.cjs:728",
-        "server/services/article-workflow/article-workflow-service.cjs:737",
-        "server/services/article-workflow/article-workflow-service.cjs:740",
-        "server/services/article-workflow/article-workflow-service.cjs:836",
-        "server/services/article-workflow/article-workflow-service.cjs:836",
+        "server/services/article-workflow/article-workflow-service.cjs:407",
+        "server/services/article-workflow/article-workflow-service.cjs:413",
+        "server/services/article-workflow/article-workflow-service.cjs:417",
+        "server/services/article-workflow/article-workflow-service.cjs:736",
+        "server/services/article-workflow/article-workflow-service.cjs:745",
+        "server/services/article-workflow/article-workflow-service.cjs:748",
+        "server/services/article-workflow/article-workflow-service.cjs:844",
+        "server/services/article-workflow/article-workflow-service.cjs:844",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:90",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:93",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:95",

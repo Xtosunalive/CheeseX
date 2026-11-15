@@ -202,6 +202,10 @@ test("blocked 候选详情透出 complianceBlockers/standardizationWarnings，me
   const detail = service.getPrecleaned(id);
   assert.ok(Array.isArray(detail.complianceBlockers) && detail.complianceBlockers.length > 0, "阻断原因随详情下发（此前账本有、详情无）");
   assert.ok(detail.complianceBlockers.some((blocker) => String(blocker.ruleId).startsWith("A03")), "占位产品阻断在册（A03 族：字段闭包＋占位专用两实线）");
+  // 红队 P1 修复钉：出站拍平为契约 BlockerDetail 三键——finding 超集键（severity/passed/hint）不得泄漏
+  for (const blocker of detail.complianceBlockers) {
+    assert.deepEqual(Object.keys(blocker).sort(), ["field", "message", "ruleId"], "BlockerDetail 拍平（additionalProperties:false 执法面）");
+  }
   assert.ok(Array.isArray(detail.standardizationWarnings), "警告数组恒在（可为空）");
   assert.equal(detail.metadata.product, "通用", "metadata 现读回归钉（读文件现值，非快照）");
 });
