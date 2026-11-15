@@ -655,6 +655,13 @@ function createArticleWorkflowService(options) {
   return {
     upload, getTask, listUploads, listPrecleaned, getPrecleaned,
     searchCandidates, standardize, updateCandidateFields, getFieldCompletionOptions,
+    // SPEC-030 §十一批2（2026-11-16 监听扩面）：precleaned 候选外部写 → 监听器桥接 → 本方法跑
+    // 工作流对账（WP-063 链：哈希回退→自动重标准化）——外部编辑已入库文章不再等页面打开才生效。
+    // 幂等：对账读时收敛，无变化即空转；调用方（main 监听桥）fail-open 只告警。
+    reconcileExternalEdits() {
+      const { state, result } = synchronizedState();
+      return { changed: result.changed, candidates: Array.isArray(result.items) ? result.items.length : 0, articles: state.articles.length };
+    },
     readPublishedContent(articleId) {
       const version = currentStandardVersion(articleId);
       const reader = getReleaseReader();
