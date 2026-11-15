@@ -28,10 +28,6 @@ vi.mock("@/lib/review-data-store", () => ({
   useReviewPendingCount: () => 0,
   useReviewStore: (selector: (state: { load: () => void }) => unknown) => selector({ load: () => {} }),
 }));
-vi.mock("@/lib/property-data-store", () => ({
-  usePropertyDataStore: (selector: (state: { summary: { blockerCount: number; warningCount: number }; load: () => void }) => unknown) =>
-    selector({ summary: { blockerCount: 0, warningCount: 0 }, load: () => {} }),
-}));
 
 function admittedEntityCard(): HTMLElement {
   const card = screen
