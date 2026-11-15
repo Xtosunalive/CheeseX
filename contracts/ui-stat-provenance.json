@@ -7,7 +7,7 @@
     {
       "view": "entity-compliance",
       "file": "src/features/entity-compliance/SummaryBar.tsx",
-      "statCount": 6,
+      "statCount": 5,
       "apiSources": [
         "src/features/entity-compliance/entity-compliance-api.ts#fetchEntityCompliance"
       ],
@@ -41,20 +41,6 @@
       "note": "admission-store → admission-api"
     },
     {
-      "view": "admission-entity-registry",
-      "file": "src/features/admission/EntityRegistryTable.tsx",
-      "statCount": 1,
-      "apiSources": [
-        "src/features/admission/admission-api.ts#fetchCanvasAdmission",
-        "src/features/dashboard/dashboard-api.ts#fetchTopology"
-      ],
-      "sourceApis": [
-        "/api/dashboard/topology",
-        "/api/kg/canvas-admission"
-      ],
-      "note": "admission-store（注册表行实取 topology-store.admittedNodes＋canvas-admission 权威面）"
-    },
-    {
       "view": "article-workflow",
       "file": "src/features/article-workflow/ArticleWorkflowView.tsx",
       "statCount": 2,
@@ -69,34 +55,20 @@
       "note": "article-workflow-api"
     },
     {
-      "view": "architecture-version",
-      "file": "src/features/architecture-version/ArchitectureVersionView.tsx",
-      "statCount": 1,
-      "apiSources": [
-        "src/features/architecture-version/architecture-version-api.ts#fetchProductVersions"
-      ],
-      "sourceApis": [
-        "/api/kg/product-versions"
-      ],
-      "note": "architecture-version-api"
-    },
-    {
       "view": "dashboard",
       "file": "src/features/dashboard/DashboardView.tsx",
-      "statCount": 5,
+      "statCount": 4,
       "apiSources": [
         "src/features/dashboard/dashboard-api.ts#fetchTopology",
         "src/features/admission/admission-api.ts#fetchCanvasAdmission",
-        "src/features/review/review-api.ts#fetchPendingReview",
-        "src/features/property-gov/property-api.ts#fetchCheckResults"
+        "src/features/review/review-api.ts#fetchPendingReview"
       ],
       "sourceApis": [
         "/api/dashboard/topology",
         "/api/kg/canvas-admission",
-        "/api/kg/pending-review",
-        "/api/property/check"
+        "/api/kg/pending-review"
       ],
-      "note": "topology-store＋review-data-store＋property-data-store＋admission-store"
+      "note": "topology-store＋review-data-store＋admission-store"
     },
     {
       "view": "gap-engine",
@@ -143,7 +115,7 @@
     {
       "view": "property-check-results",
       "file": "src/features/property-gov/CheckResultsPanel.tsx",
-      "statCount": 4,
+      "statCount": 3,
       "apiSources": [
         "src/features/property-gov/property-api.ts#fetchCheckResults"
       ],

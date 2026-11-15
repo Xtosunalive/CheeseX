@@ -35,8 +35,9 @@ describe("ArchitectureVersionView", () => {
     vi.mocked(fetchProductVersions).mockResolvedValue(versions);
     vi.mocked(compareArchitectureVersions).mockResolvedValue(comparison);
     render(<ArchitectureVersionView />);
-    // 页内主标题已删（与顶栏重复，PR③ Master 2026-10-07 04:44 拍板）——数据就绪改由副标题断言
-    await screen.findByText("产品版本数"); // 页题已裁删——以锚点卡为就绪信号
+    // 页内主标题已删（与顶栏重复，PR③ Master 2026-10-07 04:44 拍板）——数据就绪改由对比钮断言
+    // （原"产品版本数"锚点卡已随 2026-11-15 量值对齐批退役）
+    await screen.findByRole("button", { name: "开始对比" }); // 就绪信号：数据装载后对比钮可用
     fireEvent.click(screen.getByRole("button", { name: "开始对比" }));
     await waitFor(() => expect(compareArchitectureVersions).toHaveBeenCalledWith("AnyShare", "7.0", "7.1"));
     expect(useArchitectureVersionStore.getState().versions).toMatchObject({ releaseId: versions.releaseId, sourceCommit: versions.sourceCommit });
@@ -85,7 +86,7 @@ describe("ArchitectureVersionView", () => {
     ] });
     vi.mocked(compareArchitectureVersions).mockResolvedValue(comparison);
     render(<ArchitectureVersionView />);
-    await screen.findByText("产品版本数"); // 页题已裁删——锚点卡为就绪信号
+    await screen.findByRole("button", { name: "开始对比" }); // 就绪信号改对比钮（原锚点卡已退役 2026-11-15）
     fireEvent.click(screen.getByRole("button", { name: "开始对比" }));
     await waitFor(() => expect(compareArchitectureVersions).toHaveBeenCalledWith("AnyShare", "7.0", "7.1"));
   });

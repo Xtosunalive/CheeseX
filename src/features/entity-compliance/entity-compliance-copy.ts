@@ -59,8 +59,6 @@ export const EC_VIEW_COPY = {
 
 // ── SummaryBar（统计主视觉）──
 export const EC_SUMMARY_COPY = {
-  PASS_RATE_LABEL: "检查通过率",
-  PASS_RATE_HINT: "受检源文档中无阻断且无警告的比例",
   PASSED_HINT: "无阻断无警告的源文档数",
   BLOCKER_LABEL: "存在阻断",
   BLOCKER_HINT: "存在阻断级问题的源文档数",
@@ -71,10 +69,6 @@ export const EC_SUMMARY_COPY = {
   AVG_SCORE_LABEL: "平均质量分",
   AVG_SCORE_HINT: "全部受检源文档的平均质量分",
 } as const;
-
-export function ecPassRateSub(healthy: number, total: number): string {
-  return `${healthy}/${total} 通过`;
-}
 
 // ── EntityComplianceToolbar（搜索/结论筛选/重新检查）──
 export const EC_TOOLBAR_COPY = {

@@ -62,7 +62,6 @@ export const ENTITY_REGISTRY_COPY = {
   SEARCH_PLACEHOLDER: "搜索架构组件、实体、分层、类别或文档",
   ADVANCED_FILTER: "高级筛选",
   CLEAR_FILTER_ARIA: "清除入图筛选",
-  PASS_RATE_LABEL: "已准入比例",
   /** QA 式高级筛选面板 */
   NO_CONDITIONS: "尚未添加条件，点击下方按钮添加",
   FIELD_SELECT_TITLE: "选择筛选字段",

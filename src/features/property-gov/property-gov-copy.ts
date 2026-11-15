@@ -160,8 +160,6 @@ export const CHECK_RESULTS_COPY = {
   APPLIED_PREFIX: "已直接写回正式源：",
   /** 概览统计 */
   SUMMARY_TITLE: "架构组件属性概览",
-  STAT_COVERAGE_LABEL: "模块配置有效率",
-  STAT_COVERAGE_HINT: "已填写 module 且值在合法模块列表中的受检架构组件比例",
   STAT_BLOCKER_LABEL: "阻断架构组件",
   STAT_BLOCKER_HINT: "存在模块未填写、模块值无效或源文档关联不一致问题的架构组件数",
   STAT_WARNING_LABEL: "警告架构组件",

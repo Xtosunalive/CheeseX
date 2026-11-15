@@ -16,8 +16,6 @@ export const AV_REQUEST_COPY = {
 // ── ArchitectureVersionView（页面入口）──
 export const AV_VIEW_COPY = {
   REFRESH: "刷新产品版本",
-  STAT_LABEL: "产品版本数",
-  STAT_HINT: "可对比的产品版本总数",
   LOADING: "正在加载产品版本...",
   NEED_TWO_VERSIONS: "至少需要两个产品版本",
   OPEN_VERSION_CHECK: "打开产品版本校验",

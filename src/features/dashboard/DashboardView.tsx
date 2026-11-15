@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Database, ShieldCheck, GitBranch, Tag, Clock, ChevronDown, ChevronRight, GitMerge, FileCheck } from "lucide-react";
+import { Database, ShieldCheck, GitBranch, Tag, Clock, ChevronDown, ChevronRight, GitMerge } from "lucide-react";
 import {
   useAdmittedNodes,
   useAdmittedEdges,
@@ -11,7 +11,6 @@ import {
 } from "@/lib/topology-store";
 import { TopologyStateGate } from "@/components/topology-state-gate";
 import { useReviewStore, useReviewPendingCount } from "@/lib/review-data-store";
-import { usePropertyDataStore } from "@/lib/property-data-store";
 import type { TopologyStats } from "@/lib/topology-types";
 import { ACTIVE_RELATION_TYPES, ENTITY_TYPES, relationTypeLabel, type RelationTypeName } from "@/lib/ontology";
 import { navigate } from "@/lib/navigation";
@@ -48,24 +47,17 @@ export function DashboardView() {
   // Shared stores: single source of truth, cross-feature consistency
   const reviewPendingCount = useReviewPendingCount();
   const reviewLoad = useReviewStore((s) => s.load);
-  const propertySummary = usePropertyDataStore((s) => s.summary);
-  const propertyLoad = usePropertyDataStore((s) => s.load);
 
   useEffect(() => {
     reviewLoad();
-    propertyLoad();
     load();
-  }, [load, reviewLoad, propertyLoad]);
+  }, [load, reviewLoad]);
 
   // Debounce gap count effect — on first load, gapCount might be 0 until API responds
   const [stableGapCount, setStableGapCount] = useState(0);
   useEffect(() => {
     if (!loading) setStableGapCount(gapCount);
   }, [gapCount, loading]);
-
-  const hasBlockers = propertySummary && propertySummary.blockerCount > 0;
-  const hasWarnings = propertySummary && propertySummary.warningCount > 0;
-  const allHealthy = propertySummary && propertySummary.blockerCount === 0 && propertySummary.warningCount === 0;
 
   return (
     <TopologyStateGate loading={loading} error={error} hasStats={Boolean(stats)} onLoad={load}>
@@ -86,7 +78,9 @@ export function DashboardView() {
           <Statistic
             size="lg"
             label={DASHBOARD_STAT_COPY.GRAPH_RELATIONS}
-            value={edges.length}
+            // 2026-11-15 量值对齐：后端同响应已发 totalEdges（含被筛选隐藏的全量），前端不再取
+            // 返回数组长度重数——top 截断启用时两数分叉（SPEC-071 §一 病根表实测 15 vs 0）。
+            value={stats?.totalEdges ?? null}
             icon={<Database className="h-4 w-4 text-status-fact" />}
             onClick={() => navigate("data-dashboard")}
             hint={DASHBOARD_STAT_COPY.GRAPH_RELATIONS_HINT}
@@ -107,25 +101,6 @@ export function DashboardView() {
             tone={stableGapCount > 0 ? "text-orange-10" : undefined}
             icon={<ShieldCheck className={`h-4 w-4 ${stableGapCount > 0 ? "text-orange-10" : "text-status-fact"}`} />}
             onClick={() => navigate("gaps")}
-          />
-          <Statistic
-            size="lg"
-            label={DASHBOARD_STAT_COPY.PROPERTY_ISSUES}
-            value={propertySummary ? propertySummary.blockerCount + propertySummary.warningCount : 0}
-            tone={hasBlockers ? "text-status-error" : hasWarnings ? "text-status-warn" : undefined}
-            icon={
-              <FileCheck
-                className={`h-4 w-4 ${hasBlockers ? "text-status-error" : hasWarnings ? "text-status-warn" : "text-status-fact"}`}
-              />
-            }
-            sub={
-              !propertySummary
-                ? TERM.LOADING
-                : allHealthy
-                  ? DASHBOARD_STAT_COPY.PROPERTY_HEALTHY
-                  : `${propertySummary.blockerCount} ${TERM.BLOCKER} · ${propertySummary.warningCount} ${TERM.WARNING}`
-            }
-            onClick={() => navigate("property")}
           />
         </BentoGrid>
 
