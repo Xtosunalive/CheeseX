@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useEntityComplianceStore } from "./entity-compliance-store";
 import { fetchEnums, normalizeEnumsData } from "@/features/schema-manager";
 import { entityFieldCandidates } from "@/lib/schema-shape";
-import { SummaryBar } from "./SummaryBar";
 import { EntityComplianceToolbar } from "./EntityComplianceToolbar";
 import { EntityComplianceCard } from "./EntityComplianceCard";
 import { FileSearch, AlertTriangle } from "lucide-react";
@@ -106,8 +105,8 @@ export function EntityComplianceView() {
         </div>
       )}
 
-      {/* Master 2026-10-29：资格横幅撤（数字与统计卡重复）；P5：受检 0 时不渲染零值统计堆 */}
-      {(data?.summary?.totalEntities ?? 0) > 0 && data && <SummaryBar summary={data.summary} />}
+      {/* 2026-11-15 MAIC 形态批（Master 裁 A）：概览统计行退役——检查结论由工具行筛选档与逐实体
+          卡片承载（Master 2026-10-29「资格横幅撤」同方向：数字与列表不重复呈现） */}
       <EntityComplianceToolbar />
 
       {loading && !data && (

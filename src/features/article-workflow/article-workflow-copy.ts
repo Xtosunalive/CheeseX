@@ -29,12 +29,6 @@ export const ARTICLE_ACTION_WRITES = {
   FIELD_COMPLETION: ["知识库/raw/precleaned/*.md（白名单四字段 frontmatter 行级补丁）"],
 } as const;
 
-// ── ArticleWorkflowView（投稿工作流规模统计卡）──
-export const ARTICLE_WORKFLOW_VIEW_COPY = {
-  AWAITING_ARCHITECT_LABEL: "待架构师处理",
-  AWAITING_ARCHITECT_HINT: "已投稿、等待架构师处理的工作草稿",
-} as const;
-
 // ── ArticleAdmissionWorkspace（工作草稿工具行）──
 export const ARTICLE_ADMISSION_COPY = {
   SEARCH_ARIA: `搜索${TERM.WORKING_DRAFT}`,

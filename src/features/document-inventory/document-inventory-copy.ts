@@ -28,8 +28,6 @@ export const DOCUMENT_REQUEST_COPY = {
 
 // ── DocumentInventoryView（文档清单页）──
 export const DOCUMENT_INVENTORY_VIEW_COPY = {
-  TOTAL_STAT_LABEL: "正式版文档总数",
-  TOTAL_STAT_HINT: "当前正式版本中的标准文章与已批准文档",
   CLEAR_FILTERS_TITLE: "清除所有筛选条件",
   CLEAR_FILTERS_ARIA: "清除文档筛选",
   SEARCHING: "正在检索…",

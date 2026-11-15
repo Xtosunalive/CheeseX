@@ -57,16 +57,6 @@ export const EC_VIEW_COPY = {
   EMPTY_NO_MATCH: "未发现匹配的源文档检查结果",
 } as const;
 
-// ── SummaryBar（统计主视觉）──
-export const EC_SUMMARY_COPY = {
-  BLOCKER_LABEL: "存在阻断",
-  BLOCKER_HINT: "存在阻断级问题的源文档数",
-  WARNING_LABEL: "存在警告",
-  WARNING_HINT: "存在警告级问题的源文档数",
-  INFO_LABEL: "仅有提示",
-  INFO_HINT: "仅提示级信息的源文档数",
-} as const;
-
 // ── EntityComplianceToolbar（搜索/结论筛选/重新检查）──
 export const EC_TOOLBAR_COPY = {
   FILTER_ALL: "全部",

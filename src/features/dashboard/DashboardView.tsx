@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Database, ShieldCheck, GitBranch, Tag, Clock, ChevronDown, ChevronRight, GitMerge } from "lucide-react";
+import { Database, ShieldCheck, GitBranch, Tag, Clock, ChevronDown, ChevronRight } from "lucide-react";
 import {
   useAdmittedNodes,
   useAdmittedEdges,
@@ -7,102 +7,35 @@ import {
   useTopologyLoading,
   useTopologyError,
   useLoadTopology,
-  useUnresolvedGapCount,
 } from "@/lib/topology-store";
 import { TopologyStateGate } from "@/components/topology-state-gate";
-import { useReviewStore, useReviewPendingCount } from "@/lib/review-data-store";
 import type { TopologyStats } from "@/lib/topology-types";
 import { ACTIVE_RELATION_TYPES, ENTITY_TYPES, relationTypeLabel, type RelationTypeName } from "@/lib/ontology";
-import { navigate } from "@/lib/navigation";
 import { apiFetchEnvelope } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/page-container";
 import { TERM } from "@/constants/term-const";
 import { EmptyState } from "@/components/empty-state";
 import { isEffectiveReviewStatus } from "@/lib/domain/ReviewStatus";
-import { useCanvasAdmissionStore } from "@/features/admission/admission-store";
 import { Panel } from "@/components/panel";
-import { BentoGrid } from "@/components/bento";
-import { Statistic } from "@/components/statistic";
 import { ENTITY_CATEGORY } from "@/lib/domain/EntityCategory";
-import { DASHBOARD_PUBLISH_COPY, DASHBOARD_SECTION_COPY, DASHBOARD_STAT_COPY, DASHBOARD_SYNC_COPY, dashboardPublished, dashboardRequestIncomplete, dashboardStaleHours, dashboardUsage } from "./dashboard-copy";
+import { DASHBOARD_PUBLISH_COPY, DASHBOARD_SECTION_COPY, DASHBOARD_SYNC_COPY, dashboardPublished, dashboardRequestIncomplete, dashboardStaleHours, dashboardUsage } from "./dashboard-copy";
 
 export function DashboardView() {
   const load = useLoadTopology();
   const loading = useTopologyLoading();
   const error = useTopologyError();
   const nodes = useAdmittedNodes();
-  // PR-156 刀三：已准入实体与准入页同源（canvas-admission 权威 kind=entity 口径）——
-  // 此前用拓扑节点数，注册表混装文档/分类学节点时两页数字必然分叉
-  const loadCanvasAdmission = useCanvasAdmissionStore((st) => st.load);
-  const canvasComponents = useCanvasAdmissionStore((st) => st.componentsById);
-  useEffect(() => { void loadCanvasAdmission(); }, [loadCanvasAdmission]);
-  const admittedEntityCount = canvasComponents
-    ? [...canvasComponents.values()].filter((v) => (v as { kind?: string }).kind === "entity" && v.admitted).length
-    : null;
   const edges = useAdmittedEdges();
   const stats = useTopologyStats();
-  const gapCount = useUnresolvedGapCount();
 
-  // Shared stores: single source of truth, cross-feature consistency
-  const reviewPendingCount = useReviewPendingCount();
-  const reviewLoad = useReviewStore((s) => s.load);
-
-  useEffect(() => {
-    reviewLoad();
-    load();
-  }, [load, reviewLoad]);
-
-  // Debounce gap count effect — on first load, gapCount might be 0 until API responds
-  const [stableGapCount, setStableGapCount] = useState(0);
-  useEffect(() => {
-    if (!loading) setStableGapCount(gapCount);
-  }, [gapCount, loading]);
+  useEffect(() => { load(); }, [load]);
 
   return (
     <TopologyStateGate loading={loading} error={error} hasStats={Boolean(stats)} onLoad={load}>
       <PageContainer>
-        {/* 主视觉 Bento — 核心规模大数字，待办次级，全部来自已准入拓扑数据 */}
-        <BentoGrid>
-          <Statistic
-            size="xl"
-            className="lg:col-span-2"
-            label={DASHBOARD_STAT_COPY.ADMITTED_ENTITIES}
-            // WP-134 收官补扫：旧写法 `?? nodes.length` 在注册表未加载时拿拓扑节点数顶替——
-            // 正是上方 PR-156 刀三 要消灭的分叉（拓扑混装文档/分类学），未加载＝未知 →「—」。
-            value={admittedEntityCount}
-            icon={<GitBranch className="h-4 w-4 text-status-loading" />}
-            onClick={() => navigate("admission")}
-            hint={DASHBOARD_STAT_COPY.ADMITTED_ENTITIES_HINT}
-          />
-          <Statistic
-            size="lg"
-            label={DASHBOARD_STAT_COPY.GRAPH_RELATIONS}
-            // 2026-11-15 量值对齐：后端同响应已发 totalEdges（含被筛选隐藏的全量），前端不再取
-            // 返回数组长度重数——top 截断启用时两数分叉（SPEC-071 §一 病根表实测 15 vs 0）。
-            value={stats?.totalEdges ?? null}
-            icon={<Database className="h-4 w-4 text-status-fact" />}
-            onClick={() => navigate("data-dashboard")}
-            hint={DASHBOARD_STAT_COPY.GRAPH_RELATIONS_HINT}
-          />
-          <Statistic
-            size="lg"
-            label={DASHBOARD_STAT_COPY.PENDING_RELATIONS}
-            value={reviewPendingCount}
-            tone={reviewPendingCount ? "text-status-warn" : undefined}
-            icon={<GitMerge className="h-4 w-4 text-status-warn" />}
-            onClick={() => navigate("review", { sub: "edges" })}
-            hint={DASHBOARD_STAT_COPY.PENDING_RELATIONS_HINT}
-          />
-          <Statistic
-            size="lg"
-            label={DASHBOARD_STAT_COPY.TOPOLOGY_GAPS}
-            value={stableGapCount}
-            tone={stableGapCount > 0 ? "text-orange-10" : undefined}
-            icon={<ShieldCheck className={`h-4 w-4 ${stableGapCount > 0 ? "text-orange-10" : "text-status-fact"}`} />}
-            onClick={() => navigate("gaps")}
-          />
-        </BentoGrid>
+        {/* 2026-11-15 MAIC 形态批（Master 裁 A）：常驻数字仪表盘整块退役——规模/待办数字回归各自
+            工作页与列表行（MAIC 形态：计数依附动作容器，无汇总卡行）；首页保留拓扑结构面＋同步面 */}
 
         <div data-dashboard-module="topology-summary">
           <Panel>

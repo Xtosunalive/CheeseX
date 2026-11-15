@@ -1,23 +1,13 @@
 // dashboard 页级文案单源（WP-152 散写销账第四批·收官批）——ADR-019 §二 展示面介质唯一出口（页级 copy 模块）。
-// 本特性（运行概览页：规模主视觉统计卡＋类别/关系类型/审核状态分布＋图谱规则使用情况＋最近管道生成结果＋
-// 独立发布卡＋api 层兜底）的用户可见文案只在本文件声明：按消费组件分段导出 const 对象，插值句用函数（学 review-copy 先例）。
+// 本特性（类别/关系类型/审核状态分布＋图谱规则使用情况＋最近管道生成结果＋独立发布卡＋api 层兜底；
+// 2026-11-15 MAIC 形态批：规模主视觉统计卡整块退役，文案同批删）的用户可见文案只在本文件声明：
+// 按消费组件分段导出 const 对象，插值句用函数（学 review-copy 先例）。
 // 类别分布排除集的类别名是数据值，按名引用 lib/domain/EntityCategory，不住本文件。
 // 禁在其他 dashboard 文件内联同值中文（lint CJK 字面量族执法，本文件经闭集豁免块豁免）；改文案只改这里。
 // 闭集清单登记：eslint.config.js 尾部闭集豁免块＋src/test/copy-vocabulary-closed-set.test.ts CLOSED_SET_FILES
 // 投影＋SPEC-091 §2.1（ADR-019 §三.4 闭集仪式）。
 
 import { TERM } from "@/constants/term-const";
-
-// ── 主视觉统计卡 ──
-export const DASHBOARD_STAT_COPY = {
-  ADMITTED_ENTITIES: `已准入${TERM.ENTITY}`,
-  ADMITTED_ENTITIES_HINT: `查看${TERM.GRAPH_ADMISSION}`,
-  GRAPH_RELATIONS: `架构图${TERM.RELATION}`,
-  GRAPH_RELATIONS_HINT: `查看全部${TERM.RELATION}`,
-  PENDING_RELATIONS: `全部待审核${TERM.RELATION}`,
-  PENDING_RELATIONS_HINT: `查看全部待审核${TERM.RELATION}`,
-  TOPOLOGY_GAPS: "待处理拓扑缺口",
-} as const;
 
 // ── 分布区段（类别／关系类型／审核状态）──
 export const DASHBOARD_SECTION_COPY = {

@@ -7,7 +7,6 @@ import type { DocumentSearchParams } from "./document-inventory-types";
 import { getNavQueryParam } from "@/lib/navigation";
 import { PageContainer } from "@/components/page-container";
 import { TERM } from "@/constants/term-const";
-import { Statistic } from "@/components/statistic";
 import { isNoCurrentReleaseText } from "@/lib/api";
 import { DOCUMENT_INVENTORY_VIEW_COPY, documentCandidateTotalText, documentPendingExtractionText } from "./document-inventory-copy";
 
@@ -32,19 +31,14 @@ export function DocumentInventoryView() {
   return (
     <PageContainer>
 
-      {/* WP-037 P7 锚点：文档总数主视觉。
-          WP-134 波1 曾把值改成 summary.totalResults——红队反例②自查成立，那是错的：
-          totalResults＝本次命中数 matched.length（document-inventory-service.cjs:186-191），
-          随关键词/节点筛选变；标签「正式版文档总数」要的是全量 summary.totalDocuments
-          （＝current.documents.length，不受筛选影响）。波1 提交信息里「全量在 summary.totalResults」
-          一句同步在 SPEC-074 §6.9 更正入账。未加载/后端未给＝null →「—」。 */}
-      <Statistic
-        size="xl"
-        label={DOCUMENT_INVENTORY_VIEW_COPY.TOTAL_STAT_LABEL}
-        value={result?.summary?.totalDocuments ?? null}
-        hint={DOCUMENT_INVENTORY_VIEW_COPY.TOTAL_STAT_HINT}
-        sub={noReleaseHint ? <span className="text-status-warn" data-testid="inventory-no-release">{noReleaseHint}</span> : undefined}
-      />
+      {/* 2026-11-15 MAIC 形态批（Master 裁 A）：库总量大数字退役（MAIC 全站不显示库累计总量，
+          范围感由空态与命中数承担）。零发布指引保留为独立文字条——PR-151/WP-070 语义不变：
+          「空态即结构」（Master 2026-10-29），原因可见、不进错误横幅 */}
+      {noReleaseHint && (
+        <div data-testid="inventory-no-release" className="rounded-lg ring-1 ring-status-warn-6 bg-status-warn-2 px-3 py-2 text-xs text-status-warn">
+          {noReleaseHint}
+        </div>
+      )}
 
       {/* Document search bar — shared component, kept in sync with DashboardView */}
       {!nodeId && (

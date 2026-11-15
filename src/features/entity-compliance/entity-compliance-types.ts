@@ -6,7 +6,8 @@
 import type { components } from "@/lib/generated/api-types";
 
 export type EntityCheckData = components["schemas"]["EntityCheckData"];
-export type ComplianceSummary = components["schemas"]["ComplianceSummary"];
+// ComplianceSummary 别名随 2026-11-15 MAIC 形态批退役（唯一消费面 SummaryBar 撤）——
+// 契约面不受影响：summary 形状由生成物 components["schemas"]["ComplianceSummary"] 单源承载
 export type EntityComplianceResult = components["schemas"]["EntityComplianceResult"];
 export type ComplianceGroup = components["schemas"]["ComplianceGroup"];
 export type ComplianceFinding = components["schemas"]["ComplianceFinding"];

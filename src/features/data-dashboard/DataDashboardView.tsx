@@ -30,7 +30,7 @@ import {
 } from "@/lib/topology-store";
 import { PageContainer, PageSection } from "@/components/page-container";
 import { BentoGrid } from "@/components/bento";
-import { Statistic } from "@/components/statistic";
+import { Statistic } from "@/components/statistic/Statistic";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { DD_VIEW_COPY } from "./data-dashboard-copy";

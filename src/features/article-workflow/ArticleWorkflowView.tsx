@@ -4,10 +4,7 @@ import { ArticleAdmissionWorkspace, ArticlePreviewDialog, ArticleUploadDock, Upl
 import { useArticleWorkflowStore } from "./article-workflow-store";
 import { useRefetchOnFocus } from "@/hooks/useRefetchOnFocus";
 import { PageContainer } from "@/components/page-container";
-import { BentoGrid } from "@/components/bento";
-import { Statistic } from "@/components/statistic";
 import { Panel } from "@/components/panel";
-import { ARTICLE_WORKFLOW_VIEW_COPY } from "./article-workflow-copy";
 
 export function ArticleWorkflowView() {
   const items = useArticleWorkflowStore((state) => state.items);
@@ -59,13 +56,8 @@ export function ArticleWorkflowView() {
     <PageContainer>
       {/* Master 2026-10-29「横幅都不要了」：DIKW 徽标行＋转换横幅全撤——信息由结构与空态引导承担 */}
 
-
-      {/* WP-037 P7 锚点：待架构师处理（2026-11-15 概览退役批撤「全部上传任务」卡——总数由列表分页承载，同数不两现） */}
-      {uploads.length > 0 && (
-      <BentoGrid>
-        <Statistic size="xl" className="lg:col-span-2" label={ARTICLE_WORKFLOW_VIEW_COPY.AWAITING_ARCHITECT_LABEL} value={uploadStatusCounts.awaiting_architect_processing ?? 0} tone={(uploadStatusCounts.awaiting_architect_processing ?? 0) > 0 ? "text-status-warn" : "text-status-fact"} hint={ARTICLE_WORKFLOW_VIEW_COPY.AWAITING_ARCHITECT_HINT} />
-      </BentoGrid>
-      )}
+      {/* 2026-11-15 MAIC 形态批（Master 裁 A）：待办统计卡退役——待架构师处理回归列表行状态
+          （行徽章＋筛选档计数），MAIC 形态：待办依附动作容器，无常驻卡行 */}
 
       {error && (
         <div role="alert" className="flex items-center gap-2 rounded-lg bg-status-error-2 px-4 py-3 text-xs text-status-error ring-1 ring-status-error-6">

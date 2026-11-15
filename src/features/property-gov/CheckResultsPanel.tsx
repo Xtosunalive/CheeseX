@@ -9,13 +9,11 @@ import { TableSortHeader, type TableSortDirection } from "@/components/table-sor
 import { TablePagination } from "@/components/table-pagination";
 import { DataTable } from "@/components/data-table/DataTable";
 import type { Column } from "@/components/data-table/types";
-import { Statistic } from "@/components/statistic/Statistic";
 import { StatusDot, type StatusDotTone } from "@/components/status-dot/StatusDot";
 import { Tag } from "@/components/ui/tag";
 import { TERM } from "@/constants/term-const";
 import {
   usePropertyStore,
-  useCheckSummary,
   useCheckResults,
   usePropertyLoading,
   usePropertyError,
@@ -71,7 +69,6 @@ const STATUS_TEXT: Record<ItemStatus, string> = {
 
 export function CheckResultsPanel() {
   const store = usePropertyStore();
-  const summary = useCheckSummary();
   const results = useCheckResults();
   const loading = usePropertyLoading();
   const error = usePropertyError();
@@ -184,18 +181,7 @@ export function CheckResultsPanel() {
           {CHECK_RESULTS_COPY.APPLIED_PREFIX}<span className="font-mono">{store.lastApplySummary}</span>
         </p>
       )}
-      {/* ── Summary ── */}
-      {summary && (
-        <div data-testid="property-check-summary" className="space-y-1.5">
-          <div className="px-0.5 text-kg-xs font-medium text-text-hint">{CHECK_RESULTS_COPY.SUMMARY_TITLE}</div>
-          <div data-testid="property-check-summary-grid" className="grid grid-cols-2 gap-2">
-            <Statistic testId="property-check-stat" label={CHECK_RESULTS_COPY.STAT_BLOCKER_LABEL} value={summary.blockerCount} tone={summary.blockerCount > 0 ? "text-status-error" : "text-status-fact"}
-              hint={CHECK_RESULTS_COPY.STAT_BLOCKER_HINT} />
-            <Statistic testId="property-check-stat" label={CHECK_RESULTS_COPY.STAT_WARNING_LABEL} value={summary.warningCount} tone={summary.warningCount > 0 ? "text-status-warn" : "text-status-fact"}
-              hint={CHECK_RESULTS_COPY.STAT_WARNING_HINT} />
-          </div>
-        </div>
-      )}
+      {/* 2026-11-15 MAIC 形态批（Master 裁 A）：概览统计行退役——阻断/警告结论由筛选档与列表行承载 */}
 
       <TableToolbar testId="property-check-toolbar">
         <TableToolbarSearch ariaLabel={CHECK_RESULTS_COPY.SEARCH_ARIA} placeholder={CHECK_RESULTS_COPY.SEARCH_PLACEHOLDER} value={q} onChange={(event) => setQ(event.target.value)} onEnter={() => doSearch()} />
@@ -212,7 +198,8 @@ export function CheckResultsPanel() {
       )}
 
       {/* ── Loading ── */}
-      {loading && !summary && (
+      {/* MAIC 形态批：summary 撤后首载判定改「尚无结果行」——首载转圈、已有结果时表格内联加载 */}
+      {loading && results.length === 0 && (
         <div className="flex h-32 items-center justify-center">
           <p className="text-sm text-text-hint">{CHECK_RESULTS_COPY.LOADING}</p>
         </div>
@@ -223,7 +210,7 @@ export function CheckResultsPanel() {
         columns={columns}
         rows={showEmpty ? [] : paginated}
         rowKey={(item) => item.componentId}
-        loading={loading && Boolean(summary)}
+        loading={loading && results.length > 0}
         empty={{
           icon: FileSearch,
           title: <span className="text-sm font-medium text-text-sub">{CHECK_RESULTS_COPY.EMPTY_TITLE}</span>,
