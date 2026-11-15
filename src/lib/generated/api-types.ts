@@ -12800,7 +12800,6 @@ export interface components {
             decision?: string;
             selectionHint?: string;
         };
-        /** @description PROJECTION_IDENTITY_UNMOUNTED（409）：「无挂载主体」合法空态（ADR-009 D5，Master 2026-10-25「A」，PR-103）——发布包内元层 architecture_projection 的 product 与 version 双空（AnyShare 2026-10-17 退役归档后的默认态，也是开源新库默认态）；依赖产品身份的正式消费读面（语义架构投影／分类列表）以本码空态引导拒绝，不再 500；词表、实体、文章面不受影响。半身份（只填其一）仍为 RELEASE_PROJECTION_IDENTITY_INVALID（500，配置错误）。 */
         ProjectionIdentityUnmountedErrorResponse: components["schemas"]["ApiError"] & {
             /** @enum {string} */
             error_code?: "PROJECTION_IDENTITY_UNMOUNTED";

@@ -55,7 +55,6 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, v
   // SPEC-012 WP-A：状态账本经 runtime-state store（真事务）；recordPath 随迁移退役
   const approvalStore = (runtimeState || getRuntimeStateStore(vaultPath)).approval;
   // SPEC-010-W10 WP2：审批写回（决策审计/快照/发布产物）异步 git 落账；缺省 no-op
-  // SPEC-012 WP-I：ledgerAnyshare 旁路落账退役——通道记账已含 decisions.jsonl（防同域双记）
 
   function readRecord(articleId) {
     return approvalStore.get(articleId) || null;

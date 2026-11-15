@@ -115,15 +115,18 @@ test("持久层 F2 重放全旅程（③类写 → 流水落账 → 灾难 → b
       }
     });
 
-    // ── 阶段 3：灾难模拟——kill -9 ＋ 删 runtime-state.db ──
-    await test.step("Phase3 kill -9 + 删 runtime-state.db（§四.12 演练）", async () => {
+    // ── 阶段 3：灾难模拟——kill -9 ＋ 删除全部可丢弃SQLite派生物 ──
+    // 存储边界：所有.db为可重建派生物；.ledger下流水、Markdown、发布件为权威凭证必须保留，本测试不删除
+    await test.step("Phase3 kill -9 + 删除全部SQLite派生物", async () => {
       server.kill("SIGKILL");
       await sleep(800);
-      for (const suf of ["", "-wal", "-shm"]) fs.rmSync(path.join(dataDir, `runtime-state.db${suf}`), { force: true });
-      expect(
-        !fs.existsSync(path.join(dataDir, "runtime-state.db")),
-        "runtime-state.db 已删（含 WAL 边车）",
-      ).toBe(true);
+      const dbs = ["runtime-state.db", "master_graph.db", "derived-index.db", "telemetry.db"];
+      for (const db of dbs) {
+        for (const suf of ["", "-wal", "-shm"]) fs.rmSync(path.join(dataDir, `${db}${suf}`), { force: true });
+      }
+      for (const db of dbs) {
+        expect(!fs.existsSync(path.join(dataDir, db)), `${db} 已删除`).toBe(true);
+      }
       linesAtDisaster = journalLines(VAULT).length;
     });
 
