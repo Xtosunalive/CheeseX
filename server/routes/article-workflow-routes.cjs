@@ -4,7 +4,7 @@
 const { sendJSON } = require("../shared/api-envelope.cjs");
 const { createError } = require("../shared/error-factory.cjs");
 // WP-048 Wave 1 W1-B：写端点经统一执行工厂——原 handler 逻辑原样迁入登记执行器（ADR-014 §6.2）。
-const { registerActionExecutor, executeAction } = require("../shared/action-execution-factory.cjs");
+const { registerActionExecutor, executeAction, checkActionAvailability } = require("../shared/action-execution-factory.cjs");
 
 function register(registerRoute, dependencies) {
   const service = dependencies.articleWorkflowService;
@@ -71,26 +71,28 @@ function register(registerRoute, dependencies) {
   const __exec_article_workflow_status = function (ctx) {
     try {
       const id = ctx.request.params.id;
-      const item = service.listPrecleaned().items.find((candidate) => candidate.id === id);
-      if (!item) return resolveArticleStatus({ articleId: null });
-      // 从候选/审批快照取状态源（读侧只读——与 B2 实时探针同款语义）
-      let approvalStatus = "draft";
-      try {
-        const response = ctx.body; void response;
-      } catch (_e) { /* 审批探针不可达时降级为 draft */ }
-      // 调用方（路由装配）注入 deps.getApprovalStatus；此处 fallback 到 service 内嵌探针
-      const getApprovalStatus = dependencies.getApprovalStatus || (() => "draft");
-      approvalStatus = getApprovalStatus(id);
-      const complianceBlockers = typeof dependencies.getComplianceBlockers === "function" ? (dependencies.getComplianceBlockers(id) || []) : [];
+      const item = service.getStatusCandidate(id);
+      const approval = item ? dependencies.readApprovalRecord?.(id) : null;
+      const revision = approval?.revision?.match(/^sha256:([a-f0-9]{64})$/)?.[1];
+      const release = item?.currentStandardVersion;
+      const evaluateAction = (candidate) => {
+        const availability = checkActionAvailability({ ...candidate, snapshot: ctx.snapshot, params: { id, articleId: id } });
+        if (!availability.allowed || candidate.actionId !== "approval.transition") return availability;
+        const transition = dependencies.checkTransitionAvailability?.(id, candidate.body.operation, item, approval)
+          ?? { allowed: false, reason: "VALIDATOR_UNAVAILABLE" };
+        return { ...availability, ...transition };
+      };
       return resolveArticleStatus({
-        articleId: id,
-        standardizationStatus: item.standardizationStatus,
-        approvalStatus,
-        currentContentHash: item.formalContentHash || null,
-        approvedContentHash: null, // 审批哈希由审批机持有——路由层从 getApprovalStatus 返回中取
-        complianceBlockers,
-        hasCurrentRelease: Boolean(item.published),
-        releaseContentHash: item.formalContentHash || null,
+        articleId: item?.id || null,
+        standardizationStatus: item?.standardizationStatus,
+        approvalStatus: approval?.status,
+        currentContentHash: item?.currentContentHash,
+        complianceBlockers: item?.complianceBlockers,
+        approvedContentHash: approval?.status === "pending" ? revision : approval?.approval?.contentHash,
+        hasCurrentRelease: Boolean(release?.releaseId),
+        releaseContentHash: release?.releaseId ? release.contentHash : null,
+        transitionInput: item ? { sourcePath: item.sourcePath, contentHash: item.currentContentHash, title: item.title } : undefined,
+        evaluateAction,
       });
     } catch (e) { return rethrowWorkflow(e); }
   };

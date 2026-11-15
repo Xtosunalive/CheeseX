@@ -28,11 +28,11 @@ function assertBindingsInContract() {
   }
 }
 
-function requiredRolesFor(method, pathname, body) {
+function requiredRolesFor(method, pathname, body, snapshot) {
   const key = `${String(method || "").toUpperCase()} ${contractRequest.normalizeTemplate(pathname)}`;
   // WP-048：快照含该路由＝动作定义是角色绑定唯一来源（含载荷敏感升级，与执行工厂动作查找同一
   // active revision）；快照未初始化（部分单测环境）返回 null，回落静态表——生产装配恒初始化。
-  const actionRoles = actionRouteRoleFor(method, pathname, body);
+  const actionRoles = actionRouteRoleFor(method, pathname, body, snapshot);
   if (actionRoles) return actionRoles;
   return ROUTE_ROLES[key] || null;
 }

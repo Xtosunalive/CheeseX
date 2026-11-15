@@ -7,6 +7,7 @@ import { APPROVAL_REQUEST_COPY } from "./approval-workbench-copy";
 export type ApprovalStatus = components["schemas"]["ApprovalStatusEnum"];
 export type ApprovalOperation = components["schemas"]["ApprovalTransitionRequest"]["operation"];
 export type ApprovalStatusView = components["schemas"]["ApprovalStatus"];
+export type ArticleStatus = components["schemas"]["ArticleStatus"];
 export type ApprovalTransitionResult = components["schemas"]["ApprovalTransitionResult"];
 
 // 真实候选文章（复用 /api/articles/precleaned 端点，ADR043 变更端收件箱语义）
@@ -30,6 +31,10 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 
 export function getApprovalStatus(articleId: string): Promise<ApprovalStatusView> {
   return request(`/api/approval/status/${encodeURIComponent(articleId)}`);
+}
+
+export function getArticleStatus(articleId: string): Promise<ArticleStatus> {
+  return request(`/api/articles/${encodeURIComponent(articleId)}/status`);
 }
 
 export function transitionApproval(articleId: string, operation: ApprovalOperation, input: Record<string, unknown> = {}): Promise<ApprovalTransitionResult> {

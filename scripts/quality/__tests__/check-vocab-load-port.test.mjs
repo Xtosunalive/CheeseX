@@ -128,18 +128,18 @@ test('WP-084 破坏实验⑤：夹具根无基线文件＝无上限，同样三�
   assert.match(out, /violations=3/);
 });
 
-test('WP-084 真仓等值自证：搬家前后判据与数值逐条相同（并源不并语义，此断言红即说明搬动改了口径）', () => {
+test('真仓基线保留活跃豁免，已删除的词表归档脚本退场', () => {
   const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..', '..');
   const baseline = JSON.parse(fs.readFileSync(path.join(repoRoot, 'contracts', 'vocab-load-baseline.json'), 'utf8'));
-  // 迁移版数值＝原 check-vocab-load-port.mjs 内联 map（15 条，上限合计 33；出处：本仓 main de008f67 版本）
-  assert.equal(Object.keys(baseline.entries).length, 15, '条目数须与手抄版一致');
-  assert.equal(Object.values(baseline.entries).reduce((a, b) => a + b, 0), 35, '上限合计须与手抄版一致（35）——收紧数值是独立动作，须同批 --write 并写明');
+  assert.equal(Object.keys(baseline.entries).length, 14);
+  assert.equal(Object.values(baseline.entries).reduce((a, b) => a + b, 0), 32);
+  assert(!Object.hasOwn(baseline.entries, 'scripts/vault-runtime/archive-enums-legacy.py'));
   assert.equal(baseline.expiresAt, '2026-12-31', '失效日期随基线走，不再在代码里手抄第二份');
   assert.equal(baseline.generator, 'scripts/quality/check-vocab-load-port.mjs');
   assert.match(baseline.generated_by, /--write/);
   const { code, out } = runGate(repoRoot);
   assert.equal(code, 0, out);
-  assert.match(out, /vocab_load_port=ok baseline_remaining=35\/35 expires=2026-12-31/);
+  assert.match(out, /vocab_load_port=ok baseline_remaining=32\/32 expires=2026-12-31/);
 });
 
 test('WP-084 承重自证：门禁源码里不得再出现手抄基线 map（残留即红）', () => {

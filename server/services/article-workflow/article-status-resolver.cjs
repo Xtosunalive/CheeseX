@@ -1,6 +1,6 @@
 "use strict";
 
-const DK = require("../../shared/document-keys.cjs"); // 键名单点（结构位禁手抄——document-keys 哨兵执法）
+const DK = require("../../shared/document-keys.cjs");
 
 // Component: Article-Status-Resolver（WP-173 / SPEC-095 §3.6 收窄版）
 // @responsible: 文章计算状态投影层——从五个内部状态机读时现算出用户级单值 stage
@@ -45,7 +45,7 @@ const WAITING_FOR = Object.freeze({
 function resolveArticleStatus(input) {
   const now = Date.now();
   const status = {
-    article_id: input[DK.ARTICLE.articleId] || null,
+    [DK.ARTICLE.articleId]: input.articleId || null,
     stage: STAGE.NO_DRAFT,
     blockers: [],
     hints: [],
@@ -55,9 +55,18 @@ function resolveArticleStatus(input) {
     computed_at: now,
   };
 
+  const addAction = (name, actionId, method, path, body, blockedReason) => {
+    const verdict = blockedReason ? { allowed: false, reason: blockedReason }
+      : input.evaluateAction?.({ actionId, method, path, body }) ?? { allowed: false, reason: "ACTION_NOT_ACTIVE" };
+    status.next_actions.push({ action: name, method, path, ...(body && { body }), ...verdict });
+  };
+  const articlePath = encodeURIComponent(input.articleId);
+  const standardizationPath = `/api/articles/precleaned/${articlePath}/standardization`;
+  const approvalPath = `/api/approval/${articlePath}/transition`;
+
   // ── 不存在 ──
   if (!input.articleId) {
-    status.next_actions.push(action("upload_draft", "POST", "/api/articles/upload"));
+    addAction("upload_draft", "articles.upload", "POST", "/api/articles/upload");
     return status;
   }
 
@@ -65,19 +74,20 @@ function resolveArticleStatus(input) {
   if (input.currentContentHash && input.approvedContentHash && input.currentContentHash !== input.approvedContentHash) {
     status.stale.push("source_changed");
   }
-  if (input.approvalStatus === "snapshot" && input.currentContentHash && input.releaseContentHash
-    && input.currentContentHash !== input.releaseContentHash) {
+  if (input.approvalStatus === "snapshot" && (!input.hasCurrentRelease || !input.currentContentHash
+    || input.currentContentHash !== input.releaseContentHash)) {
     status.stale.push("release_outdated");
   }
 
   // ── 合规阻断（优先级最高——有阻断就标记 needs_attention） ──
-  if (Array.isArray(input.complianceBlockers) && input.complianceBlockers.length > 0) {
+  const blockers = input.complianceBlockers ?? [];
+  if (blockers.length > 0 || input.standardizationStatus === "blocked") {
     status.stage = STAGE.NEEDS_ATTENTION;
-    for (const b of input.complianceBlockers.slice(0, 10)) {
+    for (const b of (blockers.length ? blockers.slice(0, 10) : [{}])) {
       status.blockers.push({ code: b.ruleId || "compliance", waiting_for: WAITING_FOR.OWNER, count: 1 });
     }
-    status.next_actions.push(action("fix_issues", "GET", "/api/anomaly-workbench", { allowed: true }));
-    status.next_actions.push(action("restandardize", "POST", `/api/articles/precleaned/${encodeURIComponent(input.articleId)}/standardization`, { allowed: true, body: { confirmed: true } }));
+    status.next_actions.push({ action: "fix_issues", method: "GET", path: "/api/anomalies", allowed: true });
+    addAction("restandardize", "articles.standardize", "POST", standardizationPath, { confirmed: true }, "ARTICLE_VALIDATION_FAILED");
     return status;
   }
 
@@ -91,7 +101,7 @@ function resolveArticleStatus(input) {
       // 已发布但内容/Release 变化 → 回到待处理
       status.stage = STAGE.NEEDS_ATTENTION;
       status.blockers.push({ code: "stale_release", waiting_for: WAITING_FOR.OWNER, count: 1 });
-      status.next_actions.push(action("restandardize", "POST", `/api/articles/precleaned/${encodeURIComponent(input.articleId)}/standardization`, { allowed: true, body: { confirmed: true } }));
+      addAction("restandardize", "articles.standardize", "POST", standardizationPath, { confirmed: true });
       return status;
     }
     status.stage = STAGE.PUBLISHED;
@@ -101,44 +111,36 @@ function resolveArticleStatus(input) {
 
   if (approval === "approved") {
     status.stage = STAGE.CONFIRMED;
-    status.next_actions.push(action("publish", "POST", `/api/approval/${encodeURIComponent(input.articleId)}/transition`, {
-      allowed: true, body: { operation: "publish" },
-    }));
+    const evidenceMatches = input.currentContentHash && input.currentContentHash === input.approvedContentHash;
+    addAction("publish", "approval.transition", "POST", approvalPath, { operation: "publish", input: input.transitionInput },
+      evidenceMatches ? undefined : "APPROVAL_EVIDENCE_STALE");
     return status;
   }
 
   if (approval === "pending" && standardized) {
     status.stage = STAGE.READY_TO_CONFIRM;
-    status.next_actions.push(action("confirm", "POST", `/api/approval/${encodeURIComponent(input.articleId)}/transition`, {
-      allowed: true, body: { operation: "confirm" },
-    }));
+    addAction("confirm", "approval.transition", "POST", approvalPath, { operation: "confirm", input: input.transitionInput },
+      status.stale.includes("source_changed") ? "ARTICLE_REVISION_CONFLICT" : undefined);
     return status;
   }
 
   if (approval === "pending") {
     status.stage = STAGE.CHECKING;
-    status.next_actions.push(action("wait", null, null, { retry_after_s: 5 }));
+    status.next_actions.push({ action: "wait", allowed: false, retry_after_s: 5 });
     return status;
   }
 
   if (approval === "rejected") {
     status.stage = STAGE.NEEDS_ATTENTION;
     status.blockers.push({ code: "rejected", waiting_for: WAITING_FOR.OWNER, count: 1 });
-    status.next_actions.push(action("restandardize", "POST", `/api/articles/precleaned/${encodeURIComponent(input.articleId)}/standardization`, { allowed: true, body: { confirmed: true } }));
+    addAction("restandardize", "articles.standardize", "POST", standardizationPath, { confirmed: true });
     return status;
   }
 
   // draft 或 null → 草稿中
   status.stage = STAGE.DRAFTING;
-  status.next_actions.push(action("standardize", "POST", `/api/articles/precleaned/${encodeURIComponent(input.articleId)}/standardization`, {
-    allowed: true, body: { confirmed: true },
-  }));
+  addAction("standardize", "articles.standardize", "POST", standardizationPath, { confirmed: true });
   return status;
-}
-
-function action(name, method, path, extra = {}) {
-  return { action: name, method, path, allowed: extra.allowed !== false, reason: extra.reason || undefined,
-    body: extra.body || undefined, retry_after_s: extra.retry_after_s || undefined };
 }
 
 module.exports = { STAGE, WAITING_FOR, resolveArticleStatus };

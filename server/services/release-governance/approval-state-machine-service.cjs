@@ -55,7 +55,6 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, v
   // SPEC-012 WP-A：状态账本经 runtime-state store（真事务）；recordPath 随迁移退役
   const approvalStore = (runtimeState || getRuntimeStateStore(vaultPath)).approval;
   // SPEC-010-W10 WP2：审批写回（决策审计/快照/发布产物）异步 git 落账；缺省 no-op
-  // SPEC-012 WP-I：ledgerAnyshare 旁路落账退役——通道记账已含 decisions.jsonl（防同域双记）
 
   function readRecord(articleId) {
     return approvalStore.get(articleId) || null;
@@ -350,6 +349,28 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, v
     return sourcePath;
   }
 
+  function checkTransitionAvailability(articleId, operation, candidate, record) {
+    if (!candidate?.sourcePath || !record) return { allowed: false, reason: "ARTICLE_NOT_STANDARDIZED" };
+    try {
+      assertTransition(operation, record.status);
+      if (operation === "confirm" && candidate.standardizationStatus !== "standardized") {
+        return { allowed: false, reason: "ARTICLE_NOT_STANDARDIZED" };
+      }
+      const sourcePath = candidateSource(articleId, candidate, candidate.sourcePath);
+      const raw = fs.readFileSync(path.resolve(vaultPath, sourcePath), "utf8");
+      const hash = crypto.createHash("sha256").update(raw).digest("hex");
+      if (candidate.currentContentHash !== hash) return { allowed: false, reason: "APPROVAL_EVIDENCE_STALE" };
+      const revision = SNAPSHOT_HASH_PATTERN.test(record.revision || "") ? record.revision.slice(7) : null;
+      if (operation === "confirm" && revision && revision !== hash) return { allowed: false, reason: "ARTICLE_REVISION_CONFLICT" };
+      if (operation === "publish" && record.approval?.contentHash !== hash) return { allowed: false, reason: "APPROVAL_EVIDENCE_STALE" };
+      assertIndividualValid(articleId, raw);
+      if (operation === "confirm") assertValidationPassed(articleId, { sourcePath });
+      return { allowed: true };
+    } catch (error) {
+      return { allowed: false, reason: error.code || "VALIDATOR_UNAVAILABLE" };
+    }
+  }
+
   async function transition(articleId, operation, input = {}) { // PR-056：随 appendDecision 异步化
     ensureStore();
     const current = readRecord(articleId) || { status: "draft", revision: input.revision || null, updatedAt: null, decisions: [] };
@@ -505,7 +526,7 @@ function createApprovalStateMachine({ vaultPath, logger, standardizationProbe, v
   }
 
   // readCategoryPath 随接口出射（WP-116 批1：纯函数无闭包依赖——publish 落位域段解析的边界钉测试缝）
-  return { STATUSES, APPROVAL_TRANSITIONS, assertTransition, getStatus, transition, recordExternalEdit, readRecord, decisionsPath, readCategoryPath };
+  return { STATUSES, APPROVAL_TRANSITIONS, assertTransition, getStatus, transition, recordExternalEdit, readRecord, checkTransitionAvailability, decisionsPath, readCategoryPath };
 }
 
 module.exports = { createApprovalStateMachine, APPROVAL_TRANSITIONS, STATUSES };

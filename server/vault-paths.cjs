@@ -7,7 +7,6 @@
 const path = require("path");
 const { resolveTheSchemaDir } = require("./shared/theschema-root.cjs");
 
-// PR-243 批B（2026-11-04）：账本目录名唯一真身——`.anyshare` 为实例产品名残留，退役改 `.ledger`
 // （Master 2026-11-04「这不应该硬编码」＋「批准退役/批B」；append-only 语义不变，见 SPEC-081 §一.2）。
 // 本模块是 vault 侧账本路径的唯一出处；新增账本文件一律在此登记助手，禁止散点直拼目录名。
 const LEDGER_DIRNAME = ".ledger";

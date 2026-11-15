@@ -183,6 +183,8 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
       preconditions: [],
       input_schema: { contract_ref: "POST /api/articles/drafts/validate requestBody" },
     };
+    const shippingOntology = yaml.parse(fs.readFileSync(path.resolve(__dirname, "../../../data/theschema/ontology.yaml"), "utf8"));
+    definitions.action_types["articles.status"] = shippingOntology.action_types["articles.status"];
     fs.writeFileSync(ontologyPath, yaml.stringify(definitions));
   }
   const wp170DataDir = fs.mkdtempSync(path.join(os.tmpdir(), "wp170-data-"));
@@ -218,6 +220,12 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     }
     assert(ready, `server 未 ready: ${log.slice(-1200)}`);
     const id = "fixture-candidate-001";
+    let reviewedEdgeId;
+    const statusPath = `/api/articles/${id}/status`;
+    const missing = await request("GET", "/api/articles/nonexistent-article/status");
+    assert.equal(missing.status, 200, JSON.stringify(missing.body));
+    assert.equal(missing.body.data.stage, "no_draft");
+    assert.equal(missing.body.data.next_actions[0].action, "upload_draft");
     const standardized = await request("POST", `/api/articles/precleaned/${id}/standardization`, { confirmed: true });
     assert.equal(standardized.status, 200, JSON.stringify(standardized.body).slice(0, 500));
     // WP-169（SPEC-095 §3.1 首批）：预置候选无草稿快照→保守口径（有值=human/无值=not-extracted），三态闭合
@@ -277,6 +285,7 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
         const approve = await request("POST", "/api/kg/review", { edgeId: candidates[0].edgeId, action: "approved", reason: "WP-170全链验收" });
         assert.equal(approve.status, 200, JSON.stringify(approve.body).slice(0, 400));
         assert.equal(approve.body.data.reviewStatus, "approved");
+        reviewedEdgeId = approve.body.data.edgeId || candidates[0].edgeId;
         const after = await request("GET", "/api/kg/pending-review");
         const afterEdges = (after.body.data && (after.body.data.edges || after.body.data.pendingEdges)) || [];
         const left = afterEdges.filter((e) => e.properties && e.properties.source === "wp170-standardize-candidates");
@@ -348,16 +357,36 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     saveOntology();
     const confirmed = await transition("confirm");
     assert.equal(confirmed.status, 200, JSON.stringify(confirmed.body));
+    // 只在隔离词表中挂高风险，覆盖真实 GET 和命令入口的缺单反例。
+    definitions.risk_types = { ...definitions.risk_types, "test-signoff": { decision: "approve" } };
+    definitions.action_types["approval.transition"].risk_id = "test-signoff";
+    saveOntology();
+    const approvalRequired = await request("GET", statusPath);
+    assert.equal(approvalRequired.status, 200, JSON.stringify(approvalRequired.body));
+    const requiresSignoff = approvalRequired.body.data.next_actions.find((entry) => entry.action === "publish");
+    assert.deepEqual([requiresSignoff.allowed, requiresSignoff.reason], [false, "ACTION_APPROVAL_REQUIRED"]);
+    const writeWithoutSignoff = await transition("publish");
+    assert.equal(writeWithoutSignoff.status, 403, JSON.stringify(writeWithoutSignoff.body));
+    assert.equal(writeWithoutSignoff.body.error_code, "ACTION_APPROVAL_REQUIRED");
+    delete definitions.action_types["approval.transition"].risk_id;
+    delete definitions.risk_types["test-signoff"];
     definitions.node_types.KnowledgeArticle.data_properties.review_note = { required: true };
     saveOntology();
     const refusedPublish = await transition("publish");
     assert.equal(refusedPublish.status, 409, JSON.stringify(refusedPublish.body));
     assert.equal(refusedPublish.body.error_code, "ARTICLE_VALIDATION_FAILED");
     assert.equal((await request("GET", `/api/approval/status/${id}`)).body.data.status, "approved");
+    const refusedStatus = await request("GET", statusPath);
+    assert.equal(refusedStatus.status, 200, JSON.stringify(refusedStatus.body));
+    const refusedAction = refusedStatus.body.data.next_actions.find((entry) => entry.action === "publish");
+    assert.deepEqual([refusedAction.allowed, refusedAction.reason], [false, "ARTICLE_VALIDATION_FAILED"]);
     assert.equal(fs.existsSync(path.join(vaultPath, "知识库/wiki/articles/ops")), false);
 
     delete definitions.node_types.KnowledgeArticle.data_properties.review_note;
     saveOntology();
+    const readyToPublish = await request("GET", statusPath);
+    assert.equal(readyToPublish.status, 200, JSON.stringify(readyToPublish.body));
+    assert.equal(readyToPublish.body.data.next_actions.find((entry) => entry.action === "publish")?.allowed, true);
     const published = await transition("publish");
     assert.equal(published.status, 200, JSON.stringify(published.body));
     const formalDir = path.join(vaultPath, "知识库/wiki/articles/ops");
@@ -379,19 +408,84 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     fs.renameSync(formal, movedFormal);
     assert.equal(fs.existsSync(formal), false);
     assert.equal(fs.existsSync(movedFormal), true);
-    child.kill("SIGTERM");
-    await new Promise((resolve) => child.once("exit", resolve));
-    child = spawn(process.execPath, [path.resolve(__dirname, "../../../server/main.cjs")], { env: serverEnv, stdio: ["ignore", "pipe", "pipe"] });
-    child.stdout.on("data", (value) => { log += value; });
-    child.stderr.on("data", (value) => { log += value; });
-    let restarted = false;
-    for (let attempt = 0; attempt < 100; attempt += 1) {
-      try { const response = await request("GET", "/api/health"); if (response.body?.data?.readyState === "ready") { restarted = true; break; } } catch { /* restarting */ }
-      await new Promise((resolve) => setTimeout(resolve, 300));
+    const historyPath = "/api/kg/review-history";
+    const decisionsBefore = (await request("GET", historyPath)).body.data.records;
+    assert(reviewedEdgeId && decisionsBefore.some((entry) => entry.edgeId === reviewedEdgeId && entry.action === "approved"));
+    const searchBefore = (await request("GET", "/api/documents/search")).body.data.documents;
+    assert(searchBefore.some((entry) => entry.documentKind === "standard-article"));
+    const releaseFile = path.join(vaultPath, ".releases", published.body.data.releaseId, "artifacts/知识库/wiki/articles/ops", path.basename(formal));
+    const releaseBefore = fs.readFileSync(releaseFile);
+    const releaseReviewsPath = path.join(vaultPath, ".releases", published.body.data.releaseId, "artifacts/.ledger/review_actions.json");
+    const releaseReviews = fs.readFileSync(releaseReviewsPath);
+    assert(releaseReviews.includes(reviewedEdgeId), "历史发布包含该关系的裁决记录");
+    const journalPath = path.join(vaultPath, ".ledger/state-journal.jsonl");
+    const journalBefore = fs.readFileSync(journalPath);
+    let rebuiltTopology;
+    let publicGraph;
+    for (const round of [1, 2]) {
+      child.kill("SIGKILL");
+      await new Promise((resolve) => child.once("exit", resolve));
+      // 删除本隔离实例全部 SQLite、边车和 staging，业务文件、流水与 Release 留存。
+      fs.rmSync(wp170DataDir, { recursive: true });
+      assert(!fs.existsSync(wp170DataDir));
+      child = spawn(process.execPath, [path.resolve(__dirname, "../../../server/main.cjs")], { env: serverEnv, stdio: ["ignore", "pipe", "pipe"] });
+      child.stdout.on("data", (value) => { log += value; });
+      child.stderr.on("data", (value) => { log += value; });
+      let restarted = false;
+      for (let attempt = 0; attempt < 100; attempt += 1) {
+        try { const response = await request("GET", "/api/health"); if (response.body?.data?.readyState === "ready") { restarted = true; break; } } catch { /* restarting */ }
+        await new Promise((resolve) => setTimeout(resolve, 300));
+      }
+      assert(restarted, `第 ${round} 轮重启未 ready: ${log.slice(-1200)}`);
+      for (const filename of ["runtime-state.db", "derived-index.db", "telemetry.db"]) {
+        assert(fs.statSync(path.join(wp170DataDir, filename)).size > 0, filename);
+      }
+      const afterRestart = await request("GET", `/api/approval/status/${id}`);
+      assert.deepEqual(afterRestart.body.data, pending, "审批状态与变更摘要完整重放");
+      const history = await request("GET", historyPath);
+      assert.equal(history.status, 200, JSON.stringify(history.body).slice(0, 400));
+      const decisionIdentity = ({ edgeId, action, decidedAt, source, target }) => ({ edgeId, action, decidedAt, source, target });
+      assert.deepEqual(history.body.data.records.map(decisionIdentity), decisionsBefore.map(decisionIdentity), "关系裁决未丢失");
+      assert.deepEqual((await request("GET", "/api/documents/search")).body.data.documents, searchBefore, "发布文档可通过公开接口读取");
+      assert.deepEqual(fs.readFileSync(releaseFile), releaseBefore, "历史发布字节不变");
+      assert.deepEqual(fs.readFileSync(releaseReviewsPath), releaseReviews, "历史关系工件不变");
+      const graphArtifact = path.join(wp170DataDir, "staging/master_graph.json");
+      for (let attempt = 0; attempt < 50 && !fs.existsSync(graphArtifact); attempt += 1) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+      assert(fs.existsSync(graphArtifact), `第 ${round} 轮管线没有再生主图: ${log.split("\n").filter((line) => /pipeline-(run|due)/.test(line)).slice(-8).join("\n")}`);
+      const regenerated = JSON.parse(fs.readFileSync(graphArtifact, "utf8"));
+      assert(regenerated.nodes.length > 0, "真实抽取重新生成非空主图");
+      const graphIdentity = {
+        nodes: regenerated.nodes.map(({ id }) => id).sort(),
+        edges: regenerated.connections.map(({ from, to, relationType }) => {
+          assert(from && to && relationType, "抽取关系必须包含有效端点及类型");
+          return JSON.stringify([from, to, relationType]);
+        }).sort(),
+      };
+      if (rebuiltTopology) assert.deepEqual(graphIdentity, rebuiltTopology, "两次全量重建的节点和边一致");
+      rebuiltTopology = graphIdentity;
+      let topology;
+      for (let attempt = 0; attempt < 50; attempt += 1) {
+        topology = await request("GET", "/api/dashboard/topology?scope=full");
+        if (topology.body.data?.topology?.nodes.some(({ id }) => graphIdentity.nodes.includes(id))) break;
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+      assert.equal(topology.status, 200, JSON.stringify(topology.body).slice(0, 400));
+      assert.equal(topology.body.data.dataSource, "worktree");
+      const view = topology.body.data.topology;
+      const publicIdentity = {
+        nodes: view.nodes.map(({ id }) => id).sort(),
+        edges: view.edges.map(({ source, target, type }) => {
+          assert(source && target && type, "公开图关系必须包含有效端点及类型");
+          return JSON.stringify([source, target, type]);
+        }).sort(),
+      };
+      assert(publicIdentity.nodes.some((id) => graphIdentity.nodes.includes(id)), "公开工作图须读到重新摄取的节点");
+      if (publicGraph) assert.deepEqual(publicIdentity, publicGraph, "两次重启的公开节点及边一致");
+      publicGraph = publicIdentity;
+      assert.deepEqual(fs.readFileSync(journalPath), journalBefore, "重放没有再写一次流水");
     }
-    assert(restarted, `服务重启未 ready: ${log.slice(-1200)}`);
-    const afterRestart = await request("GET", `/api/approval/status/${id}`);
-    assert.equal(afterRestart.body.data.status, "pending", "重启不能恢复旧批准");
     const uiPort = await new Promise((resolve, reject) => { const socket = net.createServer(); socket.once("error", reject); socket.listen(0, "127.0.0.1", () => { const value = socket.address().port; socket.close(() => resolve(value)); }); });
     vite = spawn(process.execPath, [path.resolve(__dirname, "../../../node_modules/vite/bin/vite.js"), "--host", "127.0.0.1", "--port", String(uiPort), "--strictPort"], {
       cwd: path.resolve(__dirname, "../../.."), env: { ...process.env, API_PORT: String(port) }, stdio: ["ignore", "pipe", "pipe"],
@@ -423,9 +517,12 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
   } finally {
     if (browser) await browser.close();
     if (vite) { vite.kill("SIGTERM"); await new Promise((resolve) => vite.once("exit", resolve)); }
-    child.kill("SIGTERM");
-    await new Promise((resolve) => child.once("exit", resolve));
+    if (child.exitCode === null && child.signalCode === null) {
+      child.kill("SIGTERM");
+      await new Promise((resolve) => child.once("exit", resolve));
+    }
     cleanTree(vaultPath);
+    fs.rmSync(wp170DataDir, { recursive: true, force: true });
   }
 });
 

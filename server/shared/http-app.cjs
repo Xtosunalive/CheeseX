@@ -12,10 +12,11 @@
 const Fastify = require("fastify");
 const { LogController } = require("fastify");
 const fastifyCors = require("@fastify/cors");
-const { enterRequestContext, getTraceId, createTraceId, setPrincipal, getPrincipal } = require("./request-context.cjs");
+const { enterRequestContext, getTraceId, createTraceId, setPrincipal, getPrincipal, getRequestContext } = require("./request-context.cjs");
 const { sendJSON, errorEnvelope, getResponseSchemaProbe } = require("./api-envelope.cjs");
 const { toDotLocation } = require("./api-schema-validator.cjs");
 const contractRequest = require("./contract-request-schema.cjs");
+const { getActiveActionSnapshot } = require("./action-registry.cjs");
 const { requiredRolesFor } = require("./auth/route-roles.cjs"); // 第 3 步：路由→角色绑定（加载即对账契约）
 const { createError } = require("./error-factory.cjs"); // EG-1b：错误工厂定义唯一——本模块不另立本地工厂
 
@@ -146,7 +147,9 @@ function createHttpApp(options = {}) {
       if (request.is404) return undefined;
       const config = (request.routeOptions && request.routeOptions.config) || {};
       if (config.tombstone === true || config.authExempt === true) return undefined;
-      const required = requiredRolesFor(request.method, request.routeOptions && request.routeOptions.url, request.body);
+      const snapshot = getActiveActionSnapshot();
+      getRequestContext().actionSnapshot = snapshot;
+      const required = requiredRolesFor(request.method, request.routeOptions && request.routeOptions.url, request.body, snapshot);
       if (!required || required.length === 0) return undefined;
       const principal = getPrincipal();
       if (principal && required.every((role) => principal.roles.includes(role))) return undefined;

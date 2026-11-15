@@ -134,25 +134,12 @@ const runtimeStateStore = initRuntimeStateStore(runtimeStateDb, { journal: state
 const stateJournalReplayReady = Promise.resolve()
   .then(() => replayStateJournal({ vaultPath, store: runtimeStateStore, logger }))
   .catch((e) => logger.warn({ event: "state-journal-replay-failed", error: e.message }));
-// boot 一次性迁移：vault .ledger 存量③类 json 导入库（幂等；导入后旧文件改名 .migrated 人裁删）
-const { importLegacyRuntimeState } = require("./shared/persistence/runtime-state-import.cjs");
-const runtimeStateImportReady = Promise.resolve()
-  .then(() => importLegacyRuntimeState({
-    vaultPath, store: runtimeStateStore, derivedIndexStore, gitLedger: vaultGitLedger, logger, dataDir: path.dirname(dataDbPath("runtime-state.db")),
-  }))
-  .catch((e) => logger.warn({ event: "runtime-state-import-boot-failed", error: e.message }));
-// SPEC-012 wave-2 图族：存量 vault 图文件导入（②类迁移）完成后再摄取一次 staging——升级窗口
-// 下 vault 旧图与新 Python 写的 staging 并存时，staging（较新）胜出，不覆盖成旧图
-const graphIngestReady = runtimeStateImportReady.then(ingestGraphStaging);
+// 启动时直接摄取图staging
+const graphIngestReady = Promise.resolve().then(ingestGraphStaging);
 // SPEC-012 WP-B：④类遥测库（watcher/reconcile/enums 三痕迹 + reconcile 心跳；/api/health 消费）
 const { initTelemetryStore, TRACE_KINDS, getTelemetryStore } = require("./shared/persistence/telemetry-store.cjs");
 const telemetryDb = openPersistenceDb({ path: dataDbPath("telemetry.db") });
 initTelemetryStore(telemetryDb);
-// boot 清理：vault .ledger/health 存量痕迹导入 telemetry.db 后移除（④类可丢弃，导入保留 PR-052 复核历史）
-const { importLegacyTelemetry } = require("./shared/persistence/telemetry-import.cjs");
-const telemetryImportReady = Promise.resolve()
-  .then(() => importLegacyTelemetry({ vaultPath, gitLedger: vaultGitLedger, logger }))
-  .catch((e) => logger.warn({ event: "telemetry-import-boot-failed", error: e.message }));
 // SPEC-025 C2（W1b，ADR-011 D2）：管线触发收敛——boot 检查 due（阈值 1 篇/1 天）→ due 即自动抽取
 // （--incremental 指纹增量；D3 降级容忍）；规则发布永不自动（D6 人 gate）。fail-open：失败只告警不阻断 boot。
 const { createPipelineDueService } = require("./services/projection/pipeline-due-service.cjs");
@@ -337,8 +324,8 @@ let associationRetirementPort = null; // loadDashboardRoutes 段赋值
 require("./routes/article-workflow-routes.cjs").register(registerRoute, {
   articleWorkflowService,
   // WP-173（SPEC-095 §3.6）：计算状态端点的审批探针与合规阻断——从审批状态机与异常工作台取
-  getApprovalStatus: (id) => { try { return approvalStateMachine.getStatus(id).status; } catch { return "draft"; } },
-  getComplianceBlockers: (id) => { try { return anomalyWorkbenchRef?.service?.list?.({ articleId: id })?.blockers || []; } catch { return []; } },
+  readApprovalRecord: (id) => approvalStateMachine.readRecord(id),
+  checkTransitionAvailability: (...args) => approvalStateMachine.checkTransitionAvailability(...args),
   reconcileAnomalies: (job) => { if (anomalyWorkbenchRef) anomalyWorkbenchRef.reconcileDiagnostic(job); },
   // PR-065/SPEC-013 L2：文章退役动作（预演/事务性沿 source_file 链全清）
   retireArticle: (input) => articleLifecycleReconciler.retireArticle(input),
@@ -782,7 +769,6 @@ function loadDashboardRoutes() {
       getGraph: readMasterGraph,
       // A1 注册表活锚（补齐 #1776 同装配换锚的另一半）：写表单选项必须与 save 校验同源——
       // 冻结工件注册表是 RAW 产品键（生产 As），活读经 canonicalizeRegistryProducts 规范化
-      // （AnyShare）；两者并存时 list/preview 吐 version-as-* 而 save 只认 version-anyshare-*，
       // 构成结构性保存死锁（红灯：article-association-projection-parity.test.cjs，规则 31
       // 「校验器读当前规则」：写表单属治理动作，选项应读当前权威源而非冻结快照）。
       getRegistry: () => readVersionRegistry(vaultPath),
@@ -898,10 +884,10 @@ logger.info({ subsystem: "api", event: "api_response_schema_enforce_on", contrac
 // ── Server（PR-085 第 1 步：框架装配见 shared/http-app.cjs；此处只保留启动顺序与生命周期）──
 
 // PR-056：boot 漂移扫完成后才 listen——「server 开始处理请求前 recovery 提交已落」的顺序兑现
-// SPEC-012 WP-C/WP-A：②类重建＋③类存量导入与漂移扫一并落定后再 listen（均 fail-open，失败不阻断）
-// SPEC-012 wave-2：图族摄取（含存量导入后的二次摄取）同样 listen 前落定
+// SPEC-012 WP-C/WP-A：②类重建、③类流水重放与漂移扫一并落定后再 listen（失败已记录）
+// SPEC-012 wave-2：图族摄取同样在 listen 前落定
 // PR-109：TheSchema 自检同汇合（fail-open——纯读校验，慢/失败不阻断 listen）
-Promise.all([bootDriftReady, derivedIndexReady, runtimeStateImportReady, graphIngestReady, telemetryImportReady, schemaSelfcheckReady]).then(() => {
+Promise.all([bootDriftReady, derivedIndexReady, stateJournalReplayReady, graphIngestReady, schemaSelfcheckReady]).then(() => {
   httpApp.listen({ port: PORT, host: HOST }).then((address) => {
     logger.info({ event: "server-start", port: address.port, vaultPath });
   }).catch((error) => {

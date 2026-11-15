@@ -8,6 +8,7 @@ const { STAGE, resolveArticleStatus } = require(path.join(__dirname, "..", "arti
 
 const base = {
   articleId: "test-article",
+  evaluateAction: () => ({ allowed: true }),
   standardizationStatus: "standardized",
   approvalStatus: "pending",
   currentContentHash: "abc",
@@ -80,4 +81,36 @@ test("computed_at 存在且为毫秒时间戳", () => {
   const s = resolveArticleStatus(base);
   assert.equal(typeof s.computed_at, "number");
   assert.ok(s.computed_at > 1700000000000);
+});
+
+test("当前字节与批准证据不符时不提供可执行的发布动作", () => {
+  const result = resolveArticleStatus({ ...base, approvalStatus: "approved", currentContentHash: "new" });
+  const publish = result.next_actions.find((entry) => entry.action === "publish");
+  assert.deepEqual([publish.allowed, publish.reason], [false, "APPROVAL_EVIDENCE_STALE"]);
+});
+
+test("动作投影保留命令入口的角色和风险拒绝", () => {
+  for (const reason of ["ROLE_DENIED", "ACTION_APPROVAL_REQUIRED"]) {
+    const result = resolveArticleStatus({ ...base, evaluateAction: () => ({ allowed: false, reason }) });
+    const confirm = result.next_actions.find((entry) => entry.action === "confirm");
+    assert.deepEqual([confirm.allowed, confirm.reason], [false, reason]);
+  }
+});
+
+test("曾发布的状态缺少当前 Release 证据时不显示已发布", () => {
+  const result = resolveArticleStatus({ ...base, approvalStatus: "snapshot" });
+  assert.equal(result.stage, STAGE.NEEDS_ATTENTION);
+  assert.deepEqual(result.stale, ["release_outdated"]);
+});
+
+test("明确阻断的草稿与待审文章都显示待处理，且写动作禁用", () => {
+  for (const approvalStatus of ["draft", "pending"]) {
+    const result = resolveArticleStatus({
+      ...base, approvalStatus, standardizationStatus: "blocked",
+      complianceBlockers: [{ ruleId: "A03-P", field: "product" }],
+    });
+    assert.equal(result.stage, STAGE.NEEDS_ATTENTION);
+    assert.equal(result.blockers[0].code, "A03-P");
+    assert(!result.next_actions.some((entry) => entry.method === "POST" && entry.allowed));
+  }
 });
