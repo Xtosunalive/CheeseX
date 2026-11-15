@@ -238,6 +238,8 @@ const { scanEntities } = require("./services/entity-compliance/entity-source-sca
 const { buildAliasIndex, aliasesOf } = require("./services/entity-compliance/entity-alias-index.cjs");
 const { loadVocabBundle } = require("./shared/vocab-load-port.cjs");
 const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
+const { compileClassDerivation, registerDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
+const { executeAction } = require("./shared/action-execution-factory.cjs");
 const { readReviewActions } = require("./services/governance/review-action-store.cjs");
 // WP-170（SPEC-095 §3.2 首批）：标准化成功 → 正文实体×类白名单 → 候选边进 staging 图 → 既有摄取/投影/审查链
 const emitRelationCandidates = createRelationCandidateEmitter({
@@ -887,7 +889,24 @@ logger.info({ subsystem: "api", event: "api_response_schema_enforce_on", contrac
 // SPEC-012 WP-C/WP-A：②类重建、③类流水重放与漂移扫一并落定后再 listen（失败已记录）
 // SPEC-012 wave-2：图族摄取同样在 listen 前落定
 // PR-109：TheSchema 自检同汇合（fail-open——纯读校验，慢/失败不阻断 listen）
-Promise.all([bootDriftReady, derivedIndexReady, stateJournalReplayReady, graphIngestReady, schemaSelfcheckReady]).then(() => {
+let articleDerivation = null;
+const registerAutoRoutes = registerDerivedRoutes(registerRoute, executeAction);
+const derivationReady = Promise.resolve().then(() => {
+  const { files } = loadVocabBundle(vaultPath, { files: ["ontology", "fields"] });
+  if (files.ontology.state !== "present" || files.fields.state !== "present") {
+    logger.warn({ event: "derivation-compile-skip", reason: "vocab missing" });
+    return;
+  }
+  articleDerivation = compileClassDerivation(files.ontology.data, files.fields.data, "KnowledgeArticle");
+  registerAutoRoutes(articleDerivation);
+  logger.info({ event: "derivation-compile-register-done", routes: articleDerivation.apiRoutes.length });
+}).catch((e) => logger.warn({ event: "derivation-compile-failed", error: e.message }));
+
+registerRoute("GET", "/api/derivation/article", function (_req, res) {
+  return sendJSON(res, 200, { data: articleDerivation });
+});
+
+Promise.all([bootDriftReady, derivedIndexReady, stateJournalReplayReady, graphIngestReady, schemaSelfcheckReady, derivationReady]).then(() => {
   httpApp.listen({ port: PORT, host: HOST }).then((address) => {
     logger.info({ event: "server-start", port: address.port, vaultPath });
   }).catch((error) => {
