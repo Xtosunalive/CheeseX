@@ -48,14 +48,16 @@ function fixture({
   return root;
 }
 
-test("真仓：12 文件 38 点 13 来源全部合规，0 违例", () => {
+test("真仓：10 文件 33 点 12 来源全部合规，0 违例（量值对齐批 cbac91c 后基线——WP-182 随批对齐钉值）", () => {
   // 来源数 14→13＝Radix 收尾批（a63a9af9）某视图实际取数端点收敛一台——检查器 ok（登记面⊇实际），
   // 期望随实际取数面更新；files/statPoints/views 三项不变＝谓词面与统计点未被触碰（2026-11-08 落地收尾批实测复核）。前史：10→14＝WP-134 波4 登记面纠偏（四条视图补上实际取数端点：readiness／inference-conflicts／
   // dashboard topology／candidates search＋document detail）。files/statPoints/views 三项不变＝
   // 谓词面与统计点未被触碰，这正是本批「只纠偏不扩面」的读数证据；若有人扩了标签谓词，本例会红。
   const result = runUiStatProvenance();
   assert.equal(result.ok, true, result.violations.join("\n"));
-  assert.deepEqual(result.stats, { files: 12, statPoints: 38, views: 12, sourceApis: 13 });
+  // WP-182 随批对齐：量值对齐批（cbac91c）退役 5 张统计卡后 files 12→10/statPoints 38→33/views 12→10；
+  // sourceApis 13→12＝属性治理统计退役后取数端点收敛（与本批 PR-324① 解析器修复无关，随真仓实测对齐钉值）
+  assert.deepEqual(result.stats, { files: 10, statPoints: 33, views: 10, sourceApis: 12 });
 });
 
 test("绿：合规夹具（视图登记＋来源存在＋有 summary）→ ok", () => {
