@@ -56,6 +56,11 @@ export const DASHBOARD_PUBLISH_COPY = {
   DESCRIPTION: "发布当前全库定版（正式消费面读取的版本）",
   PUBLISHING: "发布中…",
   PUBLISH: "发布",
+  /** PR-321/WP-178：高危动作两段式确认——先出后果说明，确认才铸版 */
+  CONFIRM_TITLE: "确认发布？此操作将：",
+  CONFIRM_ITEMS: ["铸新 Release 包并原子切换 current 指针（全库切版）", "触发全量图谱重建诊断"],
+  CONFIRM_YES: "确认发布",
+  CONFIRM_NO: "取消",
 } as const;
 
 export function dashboardRequestIncomplete(status: number): string {

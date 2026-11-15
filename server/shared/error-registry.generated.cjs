@@ -746,6 +746,14 @@ module.exports = {
         "server/shared/frozen-artifact-reader.cjs:29"
       ]
     },
+    "GAP_ALREADY_RESOLVED": {
+      "statuses": [
+        409
+      ],
+      "sites": [
+        "server/routes/kg-routes.cjs:460"
+      ]
+    },
     "GRAPH_UNAVAILABLE": {
       "statuses": [
         503
@@ -795,8 +803,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/routes/kg-routes.cjs:454",
-        "server/routes/kg-routes.cjs:461",
+        "server/routes/kg-routes.cjs:455",
+        "server/routes/kg-routes.cjs:468",
         "server/routes/sync-routes.cjs:84",
         "server/shared/http-app.cjs:131",
         "server/shared/http-app.cjs:261"
@@ -1499,7 +1507,13 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/routes/review-routes.cjs:53"
+        "server/routes/review-routes.cjs:74"
+      ]
+    },
+    "RELATION_REVIEW_STATE_FORBIDDEN": {
+      "statuses": [],
+      "sites": [
+        "server/routes/review-routes.cjs:62"
       ]
     },
     "RELATION_TARGET_AMBIGUOUS": {
@@ -2093,8 +2107,8 @@ module.exports = {
         "server/routes/article-association-routes.cjs:38",
         "server/routes/enums-routes.cjs:114",
         "server/routes/enums-routes.cjs:127",
-        "server/routes/kg-routes.cjs:437",
-        "server/routes/kg-routes.cjs:442",
+        "server/routes/kg-routes.cjs:438",
+        "server/routes/kg-routes.cjs:443",
         "server/routes/obsidian-open-routes.cjs:18",
         "server/routes/ontology-routes.cjs:67",
         "server/routes/ontology-routes.cjs:76",

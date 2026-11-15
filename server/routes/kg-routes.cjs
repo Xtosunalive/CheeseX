@@ -38,6 +38,7 @@ function register(registerRoute, deps) {
   const formalConsumer = deps.formalConsumer || null;
   const impactAnalysisFactory = deps.impactAnalysisFactory || null;
   const addGovernanceAction = deps.addGovernanceAction;
+  const getResolvedGapIds = typeof deps.getResolvedGapIds === "function" ? deps.getResolvedGapIds : null;
   // 图族刷新收敛（2026-10-15）：图服务读路径顺带做漂移检测（节流；漂移→后台去抖自动重算，绝不阻塞读）
   const graphDriftCheck = typeof deps.graphDriftCheck === "function" ? deps.graphDriftCheck : null;
 
@@ -452,6 +453,12 @@ function register(registerRoute, deps) {
     };
 
     if (typeof addGovernanceAction !== "function") throw createError("INTERNAL_ERROR", "写入治理决策失败", 500);
+    // PR-317（WP-178）：幂等拒绝——同 gapId 已处置（resolved/ignored/exempted 任一）再 resolve 即 409，
+    // 杜绝重复账本追加。退出路径显式登记：账本 append-only 无系统内撤销通道，恢复=人工账本侧处理
+    // （治理仓 data 侧条目清理），不建 revert 端点（另案裁决）。
+    if (getResolvedGapIds && getResolvedGapIds().has(gapId)) {
+      throw createError("GAP_ALREADY_RESOLVED", "该治理缺口已处置，不得重复 resolve（账本 append-only 无撤销）", 409, { gapId, action });
+    }
     var existing;
     try {
       existing = addGovernanceAction(entry);

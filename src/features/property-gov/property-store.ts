@@ -19,6 +19,8 @@ interface PropertyStore {
   repairingId: string | null;
   operationError: string | null;
   lastApplySummary: string | null;
+  /** PR-314/WP-178：重新生成属性入队成功后的持久回显（组件级瞬时 busy 之外的结果去向指引） */
+  lastRefreshQueued: { componentId: string; at: string } | null;
   load: () => Promise<void>;
   setFilter: (f: CheckFilter) => void;
   setQuery: (q: string) => void;
@@ -28,7 +30,7 @@ interface PropertyStore {
 
 export const usePropertyStore = create<PropertyStore>((set, get) => ({
   checkResults: [], summary: null, workingRevisions: {}, status: "idle", error: null,
-  filter: "all", query: "", repairingId: null, operationError: null, lastApplySummary: null,
+  filter: "all", query: "", repairingId: null, operationError: null, lastApplySummary: null, lastRefreshQueued: null,
 
   load: async () => {
     const { filter, query } = get();
@@ -58,7 +60,12 @@ export const usePropertyStore = create<PropertyStore>((set, get) => ({
 
   refresh: async (componentId) => {
     set({ repairingId: componentId });
-    try { await refreshProperty(componentId); set({ repairingId: null }); return true; }
+    try {
+      await refreshProperty(componentId);
+      // PR-314：入队成功落持久回显——结果去向（重新检查/等管线）由展示层渲染，不再只靠按钮瞬时变字
+      set({ repairingId: null, lastRefreshQueued: { componentId, at: new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" }) } });
+      return true;
+    }
     catch { set({ repairingId: null }); return false; }
   },
 }));

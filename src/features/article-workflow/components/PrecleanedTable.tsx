@@ -111,7 +111,11 @@ export function PrecleanedTable({ items, loading, sortField, sortDirection, empt
         const actions: Array<RowAction<PrecleanedArticleItem>> = [];
         actions.push({ key: "open", label: precleanedOpenActionLabel(item.title), onRun: (row) => onOpen(row.id), icon: Eye });
         if (onApprove) {
-          actions.push({ key: "approve", label: precleanedApproveActionLabel(item.title), onRun: onApprove, icon: Rocket });
+          /* PR-310/WP-178：终态行（stage=published，即已发布快照）不再露「审批与发布」入口——
+             点开只会看到终态只读文案，属误导性 affordance；digested/source_deleted 行不进本表（退役后出列）。 */
+          if (item.stage !== "published") {
+            actions.push({ key: "approve", label: precleanedApproveActionLabel(item.title), onRun: onApprove, icon: Rocket });
+          }
         }
         if (onRetire) {
           actions.push({ key: "retire", label: precleanedRetireActionLabel(item.title), onRun: onRetire, icon: Trash2, danger: true });

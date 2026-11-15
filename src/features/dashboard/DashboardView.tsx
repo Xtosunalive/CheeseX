@@ -347,10 +347,12 @@ async function mintCurrentRelease(): Promise<{ releaseId: string; artifactCount:
   return envelope.data;
 }
 
-function PublishCard() {
+export function PublishCard() {
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // PR-321/WP-178：两段式确认——单击先出后果说明，确认才铸版（铸版＋切 current 指针＋触发全量重建属高危动作）
+  const [confirming, setConfirming] = useState(false);
   const onPublish = async () => {
     setBusy(true); setError(null); setResult(null);
     try {
@@ -360,16 +362,31 @@ function PublishCard() {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
       setBusy(false);
+      setConfirming(false);
     }
   };
   return (
     <div className="rounded-lg ring-1 ring-border-thin bg-surface-root px-3 py-2 text-xs">
       <div className="flex items-center justify-between gap-2">
         <span className="text-text-sub">{DASHBOARD_PUBLISH_COPY.DESCRIPTION}</span>
-        <Button type="button" variant="secondary" size="sm" onClick={onPublish} disabled={busy}>
-          {busy ? DASHBOARD_PUBLISH_COPY.PUBLISHING : DASHBOARD_PUBLISH_COPY.PUBLISH}
-        </Button>
+        {!confirming && (
+          <Button type="button" variant="secondary" size="sm" onClick={() => setConfirming(true)} disabled={busy}>
+            {busy ? DASHBOARD_PUBLISH_COPY.PUBLISHING : DASHBOARD_PUBLISH_COPY.PUBLISH}
+          </Button>
+        )}
       </div>
+      {confirming && (
+        <div className="mt-1.5 space-y-1.5 rounded-md bg-status-warn-2 px-2 py-1.5 ring-1 ring-status-warn-6" data-testid="publish-confirm">
+          <p className="font-medium text-status-warn">{DASHBOARD_PUBLISH_COPY.CONFIRM_TITLE}</p>
+          <ul className="list-disc space-y-0.5 pl-4 text-text-sub">
+            {DASHBOARD_PUBLISH_COPY.CONFIRM_ITEMS.map((item) => <li key={item}>{item}</li>)}
+          </ul>
+          <div className="flex items-center gap-1.5 pt-0.5">
+            <Button type="button" size="sm" onClick={onPublish} disabled={busy}>{DASHBOARD_PUBLISH_COPY.CONFIRM_YES}</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setConfirming(false)} disabled={busy}>{DASHBOARD_PUBLISH_COPY.CONFIRM_NO}</Button>
+          </div>
+        </div>
+      )}
       {result && <div className="mt-1 font-mono text-xs text-grass-11" data-testid="publish-result">{result}</div>}
       {error && <div className="mt-1 font-mono text-xs text-status-warn" data-testid="publish-error">{error}</div>}
     </div>

@@ -158,3 +158,58 @@ test("POST /api/kg/review 已关闭 blocker 不阻断批准", async () => {
     assert.equal(res.payload.data.reviewStatus, "approved");
   } finally { fs.rmSync(vault, { recursive: true, force: true }); }
 });
+
+// ── PR-316（WP-178）：写门 from-state 校验——仅 pending 可批准/驳回，杜绝覆盖式改判 ──
+
+test("PR-316 已 approved 边再批准 → 409 RELATION_REVIEW_STATE_FORBIDDEN 且账本不追加", async () => {
+  const { vault } = setupVault();
+  try {
+    const handler = createRouteHarness();
+    reviewRoutes.register(handler.registerRoute, {
+      vaultPath: vault,
+      readMasterGraph: () => JSON.parse(fs.readFileSync(path.join(vault, ".ledger", "master_graph.json"), "utf8")),
+    });
+    const first = await invoke(handler, { edgeId: "api|db|DEPENDS_ON|||", action: "approved", reason: "首次批准" });
+    assert.equal(first.statusCode, 200);
+    const second = await invoke(handler, { edgeId: "api|db|DEPENDS_ON|||", action: "approved", reason: "重复批准" });
+    assert.equal(second.statusCode, 409);
+    assert.equal(second.payload.error_code, "RELATION_REVIEW_STATE_FORBIDDEN");
+    assert.equal(second.payload.details.from, "approved");
+    const actions = getRuntimeStateStore(vault).review.list();
+    assert.equal(actions.length, 1, "账本不得追加重复裁决");
+  } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+});
+
+test("PR-316 已 rejected 边再驳回 → 409（同口径收口 reject）", async () => {
+  const { vault } = setupVault();
+  try {
+    const handler = createRouteHarness();
+    reviewRoutes.register(handler.registerRoute, {
+      vaultPath: vault,
+      readMasterGraph: () => JSON.parse(fs.readFileSync(path.join(vault, ".ledger", "master_graph.json"), "utf8")),
+    });
+    const first = await invoke(handler, { edgeId: "api|db|DEPENDS_ON|||", action: "rejected", reason: "首次驳回" });
+    assert.equal(first.statusCode, 200);
+    const second = await invoke(handler, { edgeId: "api|db|DEPENDS_ON|||", action: "rejected", reason: "重复驳回" });
+    assert.equal(second.statusCode, 409);
+    assert.equal(second.payload.error_code, "RELATION_REVIEW_STATE_FORBIDDEN");
+    assert.equal(second.payload.details.from, "rejected");
+  } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+});
+
+test("PR-316 图内 base 状态非 pending（无账本记录）→ 409（写门与读侧行过滤同口径）", async () => {
+  const { vault, graph } = setupVault();
+  try {
+    graph.connections[0].properties.reviewStatus = "inherited_approved";
+    fs.writeFileSync(path.join(vault, ".ledger", "master_graph.json"), JSON.stringify(graph, null, 2), "utf8");
+    const handler = createRouteHarness();
+    reviewRoutes.register(handler.registerRoute, {
+      vaultPath: vault,
+      readMasterGraph: () => JSON.parse(fs.readFileSync(path.join(vault, ".ledger", "master_graph.json"), "utf8")),
+    });
+    const res = await invoke(handler, { edgeId: "api|db|DEPENDS_ON|||", action: "approved", reason: "对派生章改判" });
+    assert.equal(res.statusCode, 409);
+    assert.equal(res.payload.error_code, "RELATION_REVIEW_STATE_FORBIDDEN");
+    assert.equal(res.payload.details.from, "inherited_approved");
+  } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+});
