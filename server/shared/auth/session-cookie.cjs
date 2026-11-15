@@ -21,7 +21,8 @@ function createSessionCookieService(options = {}) {
   }
   // PR-243 终裁（2026-11-15 Master「都清」）：默认 cookie 名去 AnyShare 化。
   // 代价已裁决接受：改名＝存量浏览器会话失效，人人重登一次。
-  const cookieName = options.cookieName || "cheeseh_session";
+  // 名锚定 cheese（运行中服务的知识库本体——cheeseh 是已封存归档仓，不作活身份锚；Master 2026-11-15 更名裁定）。
+  const cookieName = options.cookieName || "cheese_session";
   const ttlMs = options.ttlMs || 12 * 60 * 60 * 1000;
 
   function sign(payloadB64) {
