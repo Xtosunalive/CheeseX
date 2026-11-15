@@ -1,6 +1,6 @@
 {
   "_format_version": "1.0",
-  "_vault_extract_applied_at": "2026-11-13T14:19:28",
+  "_vault_extract_applied_at": "2026-11-15T22:12:36",
   "ontology": {
     "node_types": {
       "System": {
@@ -1327,82 +1327,129 @@
   },
   "nodes": [
     {
-      "id": "ref",
-      "label": "参考资料",
+      "id": "doc-article-fixture-candidate-001",
+      "label": "测试候选文章",
       "sublabel": "",
-      "category": "域",
+      "category": "其他",
       "labels": [
-        "BusinessDomain"
+        "Document"
       ],
       "properties": {
-        "name": "参考资料",
-        "is_active": true,
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:参考资料",
+        "title": "测试候选文章",
+        "file_path": "知识库/raw/precleaned/fixture-candidate.md",
+        "category_path": "ops:maintain",
+        "product": "FixtureProduct",
+        "version": "1.0.0",
+        "version_range": "",
+        "article_type": "排错指南",
+        "doc_type": "用户手册",
+        "status": "灰度",
+        "quality": "",
+        "symptoms_preview": "",
+        "article_id": "fixture-candidate-001",
+        "source_path": "知识库/raw/precleaned/fixture-candidate.md",
+        "source_hash": "sha256:80c3a6c048daddc79e92987b71e776dabc4c225846fe585d29c3073dc30014c9",
+        "module": "fixture-module",
+        "_version_recorded": "1.0.0",
+        "subdomain_id": "ops:maintain",
+        "domain_id": "ops",
+        "plate_id": "plate:component:fixtureproduct-fixture-module-排错指南",
+        "last_extract_time": "2026-11-15T22:09:35.215086",
+        "source_vault_path": "知识库/raw/precleaned/fixture-candidate.md",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:参考资料"
+            "detail": "知识库/raw/precleaned/fixture-candidate.md"
           },
           {
             "stage": "rule",
-            "rule_id": "R-schema-domain-registry"
+            "rule_id": "R-wiki-document-scan"
           },
           {
             "stage": "result",
-            "kind": "business_domain"
+            "kind": "document"
           }
         ]
       }
     },
     {
-      "id": "ref:overview",
-      "label": "总览",
+      "id": "product-fixtureproduct",
+      "label": "FixtureProduct",
       "sublabel": "",
-      "category": "域",
+      "category": "产品",
       "labels": [
-        "Subdomain"
+        "Product"
       ],
       "properties": {
-        "name": "总览",
-        "slug": "overview",
-        "category_path_prefix": "ref:overview",
-        "domain_id": "ref",
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:总览",
+        "name": "FixtureProduct",
+        "title": "FixtureProduct",
+        "last_extract_time": "2026-11-15T22:09:35.215086",
+        "source_vault_path": "derived:FixtureProduct",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:总览"
+            "detail": "derived:FixtureProduct"
           },
           {
             "stage": "rule",
-            "rule_id": "R-schema-subdomain-registry"
+            "rule_id": "R-doc-derived-product-graph"
           },
           {
             "stage": "result",
-            "kind": "subdomain"
+            "kind": "product"
+          }
+        ]
+      }
+    },
+    {
+      "id": "version-fixtureproduct-1-0-0",
+      "label": "FixtureProduct 1.0.0",
+      "sublabel": "",
+      "category": "版本",
+      "labels": [
+        "ProductVersion"
+      ],
+      "properties": {
+        "name": "FixtureProduct 1.0.0",
+        "title": "FixtureProduct 1.0.0",
+        "product": "FixtureProduct",
+        "version": "1.0.0",
+        "versionRange": "=1.0.0",
+        "last_extract_time": "2026-11-15T22:09:35.215086",
+        "source_vault_path": "derived:FixtureProduct 1.0.0",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:FixtureProduct 1.0.0"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-version-graph"
+          },
+          {
+            "stage": "result",
+            "kind": "product_version"
           }
         ]
       }
     },
     {
       "id": "ops",
-      "label": "运维操作",
+      "label": "运维",
       "sublabel": "",
       "category": "域",
       "labels": [
         "BusinessDomain"
       ],
       "properties": {
-        "name": "运维操作",
+        "name": "运维",
         "is_active": true,
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:运维操作",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:运维",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:运维操作"
+            "detail": "derived:运维"
           },
           {
             "stage": "rule",
@@ -1417,23 +1464,23 @@
     },
     {
       "id": "ops:maintain",
-      "label": "维护",
+      "label": "maintain",
       "sublabel": "",
       "category": "域",
       "labels": [
         "Subdomain"
       ],
       "properties": {
-        "name": "维护",
+        "name": "maintain",
         "slug": "maintain",
         "category_path_prefix": "ops:maintain",
         "domain_id": "ops",
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:维护",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:maintain",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:维护"
+            "detail": "derived:maintain"
           },
           {
             "stage": "rule",
@@ -1447,301 +1494,206 @@
       }
     },
     {
-      "id": "concept",
-      "label": "概念",
+      "id": "e2e-complete-component",
+      "label": "e2e-complete-component",
       "sublabel": "",
-      "category": "域",
+      "category": "服务",
       "labels": [
-        "BusinessDomain"
+        "Module",
+        "ArchitectureComponent"
       ],
       "properties": {
-        "name": "概念",
-        "is_active": true,
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:概念",
+        "name": "e2e-complete-component",
+        "title": "E2E Complete Component",
+        "category_path": "",
+        "tags": [
+          "e2e"
+        ],
+        "file_path": "知识库/wiki/entities/e2e-complete-component.md",
+        "date": "2026-01-01",
+        "updated": "2026-01-01",
+        "review_cycle": "",
+        "module": "e2e-module",
+        "architecture_node_id": "e2e-complete-component",
+        "arch_component": true,
+        "arch_layer": "service",
+        "arch_layer_canonical": "service",
+        "arch_category": "服务",
+        "arch_category_canonical": "服务",
+        "arch_subdomain": "maintain",
+        "arch_subdomain_canonical": "maintain",
+        "arch_since": "1.0.0",
+        "arch_until": "9.9.9",
+        "arch_status": "灰度",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "知识库/wiki/entities/e2e-complete-component.md",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:概念"
+            "detail": "知识库/wiki/entities/e2e-complete-component.md"
           },
           {
             "stage": "rule",
-            "rule_id": "R-schema-domain-registry"
+            "rule_id": "R-wiki-entity-module-page"
           },
           {
             "stage": "result",
-            "kind": "business_domain"
+            "kind": "module"
           }
         ]
       }
     },
     {
-      "id": "concept:method",
-      "label": "方法论",
+      "id": "e2e-incomplete-component",
+      "label": "e2e-incomplete-component",
       "sublabel": "",
-      "category": "域",
+      "category": "服务",
       "labels": [
-        "Subdomain"
+        "Module",
+        "ArchitectureComponent"
       ],
       "properties": {
-        "name": "方法论",
-        "slug": "method",
-        "category_path_prefix": "concept:method",
-        "domain_id": "concept",
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:方法论",
+        "name": "e2e-incomplete-component",
+        "title": "E2E Incomplete Component",
+        "category_path": "",
+        "tags": [
+          "e2e"
+        ],
+        "file_path": "知识库/wiki/entities/e2e-incomplete-component.md",
+        "date": "2026-10-08",
+        "updated": "2026-10-08",
+        "review_cycle": "",
+        "module": "e2-test-module",
+        "architecture_node_id": "e2e-incomplete-component",
+        "arch_component": true,
+        "arch_layer": "service",
+        "arch_layer_canonical": "service",
+        "arch_category": "服务",
+        "arch_category_canonical": "服务",
+        "arch_subdomain": "maintain",
+        "arch_subdomain_canonical": "maintain",
+        "arch_since": "",
+        "arch_until": "",
+        "arch_status": "灰度",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "知识库/wiki/entities/e2e-incomplete-component.md",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:方法论"
+            "detail": "知识库/wiki/entities/e2e-incomplete-component.md"
           },
           {
             "stage": "rule",
-            "rule_id": "R-schema-subdomain-registry"
+            "rule_id": "R-wiki-entity-module-page"
           },
           {
             "stage": "result",
-            "kind": "subdomain"
+            "kind": "module"
           }
         ]
       }
     },
     {
-      "id": "product",
-      "label": "产品",
+      "id": "doc-article-e2e-candidate-001",
+      "label": "E2E 候选文章",
       "sublabel": "",
-      "category": "域",
+      "category": "其他",
       "labels": [
-        "BusinessDomain"
+        "Document"
       ],
       "properties": {
-        "name": "产品",
-        "is_active": true,
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:产品",
+        "title": "E2E 候选文章",
+        "file_path": "知识库/raw/precleaned/e2e-candidate-article.md",
+        "category_path": "ops.maintain",
+        "product": "E2eProduct",
+        "version": "1.0.0",
+        "version_range": "",
+        "article_type": "排错指南",
+        "doc_type": "用户手册",
+        "status": "",
+        "quality": "",
+        "symptoms_preview": "",
+        "article_id": "e2e-candidate-001",
+        "source_path": "知识库/raw/precleaned/e2e-candidate-article.md",
+        "source_hash": "sha256:ce3e0aa953c299a7e8eb321e0c54b23680f26195784735c6d92f7ca0778b15c0",
+        "module": "e2e-module",
+        "_version_recorded": "1.0.0",
+        "plate_id": "plate:component:e2eproduct-e2e-module-排错指南",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "知识库/raw/precleaned/e2e-candidate-article.md",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:产品"
+            "detail": "知识库/raw/precleaned/e2e-candidate-article.md"
           },
           {
             "stage": "rule",
-            "rule_id": "R-schema-domain-registry"
+            "rule_id": "R-wiki-document-scan"
           },
           {
             "stage": "result",
-            "kind": "business_domain"
+            "kind": "document"
           }
         ]
       }
     },
     {
-      "id": "product:general",
-      "label": "通用",
+      "id": "product-e2eproduct",
+      "label": "E2eProduct",
       "sublabel": "",
-      "category": "域",
+      "category": "产品",
       "labels": [
-        "Subdomain"
+        "Product"
       ],
       "properties": {
-        "name": "通用",
-        "slug": "general",
-        "category_path_prefix": "product:general",
-        "domain_id": "product",
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:通用",
+        "name": "E2eProduct",
+        "title": "E2eProduct",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:E2eProduct",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:通用"
+            "detail": "derived:E2eProduct"
           },
           {
             "stage": "rule",
-            "rule_id": "R-schema-subdomain-registry"
+            "rule_id": "R-doc-derived-product-graph"
           },
           {
             "stage": "result",
-            "kind": "subdomain"
+            "kind": "product"
           }
         ]
       }
     },
     {
-      "id": "meta",
-      "label": "元数据",
+      "id": "version-e2eproduct-1-0-0",
+      "label": "E2eProduct 1.0.0",
       "sublabel": "",
-      "category": "域",
+      "category": "版本",
       "labels": [
-        "BusinessDomain"
+        "ProductVersion"
       ],
       "properties": {
-        "name": "元数据",
-        "is_active": true,
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:元数据",
+        "name": "E2eProduct 1.0.0",
+        "title": "E2eProduct 1.0.0",
+        "product": "E2eProduct",
+        "version": "1.0.0",
+        "versionRange": "=1.0.0",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:E2eProduct 1.0.0",
         "extraction_trace": [
           {
             "stage": "origin",
-            "detail": "derived:元数据"
+            "detail": "derived:E2eProduct 1.0.0"
           },
           {
             "stage": "rule",
-            "rule_id": "R-schema-domain-registry"
+            "rule_id": "R-doc-derived-version-graph"
           },
           {
             "stage": "result",
-            "kind": "business_domain"
-          }
-        ]
-      }
-    },
-    {
-      "id": "meta:doc",
-      "label": "文档",
-      "sublabel": "",
-      "category": "域",
-      "labels": [
-        "Subdomain"
-      ],
-      "properties": {
-        "name": "文档",
-        "slug": "doc",
-        "category_path_prefix": "meta:doc",
-        "domain_id": "meta",
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:文档",
-        "extraction_trace": [
-          {
-            "stage": "origin",
-            "detail": "derived:文档"
-          },
-          {
-            "stage": "rule",
-            "rule_id": "R-schema-subdomain-registry"
-          },
-          {
-            "stage": "result",
-            "kind": "subdomain"
-          }
-        ]
-      }
-    },
-    {
-      "id": "arch",
-      "label": "架构",
-      "sublabel": "",
-      "category": "域",
-      "labels": [
-        "BusinessDomain"
-      ],
-      "properties": {
-        "name": "架构",
-        "is_active": true,
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:架构",
-        "extraction_trace": [
-          {
-            "stage": "origin",
-            "detail": "derived:架构"
-          },
-          {
-            "stage": "rule",
-            "rule_id": "R-schema-domain-registry"
-          },
-          {
-            "stage": "result",
-            "kind": "business_domain"
-          }
-        ]
-      }
-    },
-    {
-      "id": "arch:architecture",
-      "label": "架构",
-      "sublabel": "",
-      "category": "域",
-      "labels": [
-        "Subdomain"
-      ],
-      "properties": {
-        "name": "架构",
-        "slug": "architecture",
-        "category_path_prefix": "arch:architecture",
-        "domain_id": "arch",
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:架构",
-        "extraction_trace": [
-          {
-            "stage": "origin",
-            "detail": "derived:架构"
-          },
-          {
-            "stage": "rule",
-            "rule_id": "R-schema-subdomain-registry"
-          },
-          {
-            "stage": "result",
-            "kind": "subdomain"
-          }
-        ]
-      }
-    },
-    {
-      "id": "tech",
-      "label": "技术域",
-      "sublabel": "",
-      "category": "域",
-      "labels": [
-        "BusinessDomain"
-      ],
-      "properties": {
-        "name": "技术域",
-        "is_active": true,
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:技术域",
-        "extraction_trace": [
-          {
-            "stage": "origin",
-            "detail": "derived:技术域"
-          },
-          {
-            "stage": "rule",
-            "rule_id": "R-schema-domain-registry"
-          },
-          {
-            "stage": "result",
-            "kind": "business_domain"
-          }
-        ]
-      }
-    },
-    {
-      "id": "tech:api",
-      "label": "应用程序接口",
-      "sublabel": "",
-      "category": "域",
-      "labels": [
-        "Subdomain"
-      ],
-      "properties": {
-        "name": "应用程序接口",
-        "slug": "api",
-        "category_path_prefix": "tech:api",
-        "domain_id": "tech",
-        "last_extract_time": "2026-11-13T14:19:28.838111",
-        "source_vault_path": "derived:应用程序接口",
-        "extraction_trace": [
-          {
-            "stage": "origin",
-            "detail": "derived:应用程序接口"
-          },
-          {
-            "stage": "rule",
-            "rule_id": "R-schema-subdomain-registry"
-          },
-          {
-            "stage": "result",
-            "kind": "subdomain"
+            "kind": "product_version"
           }
         ]
       }
@@ -1757,7 +1709,7 @@
       "properties": {
         "name": "待分配",
         "is_placeholder": true,
-        "last_extract_time": "2026-11-13T14:19:28.838111",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
         "source_vault_path": "derived:待分配",
         "extraction_trace": [
           {
@@ -1774,9 +1726,736 @@
           }
         ]
       }
+    },
+    {
+      "id": "plate:business:content-collaboration",
+      "label": "内容管理与协作",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "内容管理与协作",
+        "product": "E2eProduct",
+        "axis": "business",
+        "doc_count": 1,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:内容管理与协作",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:内容管理与协作"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plate:business:search-discovery",
+      "label": "搜索与知识发现",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "搜索与知识发现",
+        "product": "E2eProduct",
+        "axis": "business",
+        "doc_count": 0,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:搜索与知识发现",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:搜索与知识发现"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plate:business:security-compliance",
+      "label": "安全与合规",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "安全与合规",
+        "product": "E2eProduct",
+        "axis": "business",
+        "doc_count": 0,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:安全与合规",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:安全与合规"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plate:business:data-storage",
+      "label": "数据与存储",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "数据与存储",
+        "product": "E2eProduct",
+        "axis": "business",
+        "doc_count": 0,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:数据与存储",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:数据与存储"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plate:business:integration-gateway",
+      "label": "集成与API网关",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "集成与API网关",
+        "product": "E2eProduct",
+        "axis": "business",
+        "doc_count": 0,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:集成与API网关",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:集成与API网关"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plate:business:observability-ops",
+      "label": "可观测性与运维",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "可观测性与运维",
+        "product": "E2eProduct",
+        "axis": "business",
+        "doc_count": 0,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:可观测性与运维",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:可观测性与运维"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plate:business:ai-intelligence",
+      "label": "AI与智能服务",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "AI与智能服务",
+        "product": "E2eProduct",
+        "axis": "business",
+        "doc_count": 0,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:AI与智能服务",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:AI与智能服务"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plate:publication:e2eproduct-用户手册",
+      "label": "E2eProduct 用户手册",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "E2eProduct 用户手册",
+        "product": "E2eProduct",
+        "axis": "publication",
+        "doc_count": 1,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:E2eProduct 用户手册",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:E2eProduct 用户手册"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
+    },
+    {
+      "id": "plate:component:e2eproduct-e2e-module-排错指南",
+      "label": "E2eProduct e2e-module 排错指南",
+      "sublabel": "",
+      "category": "板块",
+      "labels": [
+        "Plate"
+      ],
+      "properties": {
+        "name": "E2eProduct e2e-module 排错指南",
+        "product": "E2eProduct",
+        "axis": "component",
+        "doc_count": 1,
+        "health": "green",
+        "health_score": 0.0,
+        "arch_component": true,
+        "arch_layer": "plate",
+        "arch_category": "板块",
+        "last_extract_time": "2026-11-15T22:12:36.743448",
+        "source_vault_path": "derived:E2eProduct e2e-module 排错指南",
+        "extraction_trace": [
+          {
+            "stage": "origin",
+            "detail": "derived:E2eProduct e2e-module 排错指南"
+          },
+          {
+            "stage": "rule",
+            "rule_id": "R-doc-derived-plate-aggregation"
+          },
+          {
+            "stage": "result",
+            "kind": "plate"
+          }
+        ]
+      }
     }
   ],
-  "connections": [],
+  "connections": [
+    {
+      "from": "doc-article-fixture-candidate-001",
+      "to": "product-fixtureproduct",
+      "relationType": "APPLIES_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "document-frontmatter",
+        "product": "FixtureProduct",
+        "weight": 0.9,
+        "reviewStatus": "pending"
+      },
+      "reviewStatus": "pending",
+      "edgeId": "edge-id:33:doc-article-fixture-candidate-001|22:product-fixtureproduct|10:APPLIES_TO|0:|0:|0:"
+    },
+    {
+      "from": "product-fixtureproduct",
+      "to": "version-fixtureproduct-1-0-0",
+      "relationType": "HAS_VERSION",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "product": "FixtureProduct",
+        "version": "1.0.0",
+        "weight": 1.0,
+        "source": "version-inference",
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:22:product-fixtureproduct|28:version-fixtureproduct-1-0-0|11:HAS_VERSION|0:|0:|0:"
+    },
+    {
+      "from": "doc-article-fixture-candidate-001",
+      "to": "version-fixtureproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "document-frontmatter",
+        "product": "FixtureProduct",
+        "version": "1.0.0",
+        "weight": 1.0,
+        "reviewStatus": "pending"
+      },
+      "reviewStatus": "pending",
+      "edgeId": "edge-id:33:doc-article-fixture-candidate-001|28:version-fixtureproduct-1-0-0|10:APPLIES_TO|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:content-collaboration",
+      "to": "product-fixtureproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:36:plate:business:content-collaboration|22:product-fixtureproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:content-collaboration",
+      "to": "version-fixtureproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-version-aggregation",
+        "weight": 0.8,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:36:plate:business:content-collaboration|28:version-fixtureproduct-1-0-0|10:APPLIES_TO|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:search-discovery",
+      "to": "product-fixtureproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:31:plate:business:search-discovery|22:product-fixtureproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:security-compliance",
+      "to": "product-fixtureproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:34:plate:business:security-compliance|22:product-fixtureproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:data-storage",
+      "to": "product-fixtureproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:27:plate:business:data-storage|22:product-fixtureproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:integration-gateway",
+      "to": "product-fixtureproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:34:plate:business:integration-gateway|22:product-fixtureproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:observability-ops",
+      "to": "product-fixtureproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:32:plate:business:observability-ops|22:product-fixtureproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:ai-intelligence",
+      "to": "product-fixtureproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:30:plate:business:ai-intelligence|22:product-fixtureproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "doc-article-e2e-candidate-001",
+      "to": "product-e2eproduct",
+      "relationType": "APPLIES_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "document-frontmatter",
+        "product": "E2eProduct",
+        "weight": 0.9,
+        "reviewStatus": "pending"
+      },
+      "reviewStatus": "pending",
+      "edgeId": "edge-id:29:doc-article-e2e-candidate-001|18:product-e2eproduct|10:APPLIES_TO|0:|0:|0:"
+    },
+    {
+      "from": "product-e2eproduct",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "HAS_VERSION",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "product": "E2eProduct",
+        "version": "1.0.0",
+        "weight": 1.0,
+        "source": "version-inference",
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:18:product-e2eproduct|24:version-e2eproduct-1-0-0|11:HAS_VERSION|0:|0:|0:"
+    },
+    {
+      "from": "doc-article-e2e-candidate-001",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "document-frontmatter",
+        "product": "E2eProduct",
+        "version": "1.0.0",
+        "weight": 1.0,
+        "reviewStatus": "pending"
+      },
+      "reviewStatus": "pending",
+      "edgeId": "edge-id:29:doc-article-e2e-candidate-001|24:version-e2eproduct-1-0-0|10:APPLIES_TO|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:content-collaboration",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:36:plate:business:content-collaboration|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:content-collaboration",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-version-aggregation",
+        "weight": 0.8,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:36:plate:business:content-collaboration|24:version-e2eproduct-1-0-0|10:APPLIES_TO|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:search-discovery",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:31:plate:business:search-discovery|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:security-compliance",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:34:plate:business:security-compliance|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:data-storage",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:27:plate:business:data-storage|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:integration-gateway",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:34:plate:business:integration-gateway|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:observability-ops",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:32:plate:business:observability-ops|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:business:ai-intelligence",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:30:plate:business:ai-intelligence|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:publication:e2eproduct-用户手册",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:41:plate:publication:e2eproduct-用户手册|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:publication:e2eproduct-用户手册",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-version-aggregation",
+        "weight": 0.8,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:41:plate:publication:e2eproduct-用户手册|24:version-e2eproduct-1-0-0|10:APPLIES_TO|0:|0:|0:"
+    },
+    {
+      "from": "plate:component:e2eproduct-e2e-module-排错指南",
+      "to": "product-e2eproduct",
+      "relationType": "ASSOCIATED_WITH",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-product-link",
+        "weight": 0.95,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:50:plate:component:e2eproduct-e2e-module-排错指南|18:product-e2eproduct|15:ASSOCIATED_WITH|0:|0:|0:"
+    },
+    {
+      "from": "plate:component:e2eproduct-e2e-module-排错指南",
+      "to": "version-e2eproduct-1-0-0",
+      "relationType": "APPLIES_TO",
+      "label": "",
+      "sourceFile": "",
+      "properties": {
+        "source": "plate-version-aggregation",
+        "weight": 0.8,
+        "reviewStatus": "deterministic"
+      },
+      "reviewStatus": "deterministic",
+      "edgeId": "edge-id:50:plate:component:e2eproduct-e2e-module-排错指南|24:version-e2eproduct-1-0-0|10:APPLIES_TO|0:|0:|0:"
+    },
+    {
+      "from": "e2e-complete-component",
+      "to": "e2e-incomplete-component",
+      "relationType": "DEPENDS_ON",
+      "label": "",
+      "sourceFile": "知识库/wiki/entities/e2e-complete-component.md",
+      "properties": {
+        "link_type": "依赖",
+        "source": "entity-wikilink",
+        "sources": [
+          {
+            "file": "知识库/wiki/entities/e2e-complete-component.md",
+            "source_hash": "sha256:6249b8231a1137384607e9801b8cb593b0a9fb51ef673d3cd0189f79b78cb886",
+            "method": "entity_wikilink",
+            "confidence": 1.0,
+            "line_number": 20,
+            "evidence_text": "依赖::[[e2e-incomplete-component]]"
+          }
+        ],
+        "reviewStatus": "pending",
+        "weight": 1.0
+      },
+      "reviewStatus": "pending",
+      "edgeId": "edge-id:22:e2e-complete-component|24:e2e-incomplete-component|10:DEPENDS_ON|49:知识库/wiki/entities/e2e-complete-component.md|2:20|16:55ad4e9b409e117b",
+      "sourceHash": "sha256:6249b8231a1137384607e9801b8cb593b0a9fb51ef673d3cd0189f79b78cb886",
+      "lineNumber": 20,
+      "evidenceHash": "55ad4e9b409e117b"
+    }
+  ],
   "pendingReview": [],
   "unresolvedWikilinks": []
 }

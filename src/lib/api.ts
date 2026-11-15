@@ -149,3 +149,44 @@ export async function unwrapEnvelope<T>(
   }
   return envelope.data;
 }
+
+// ── 派生编译器产物类型 ──
+export interface DerivedRoute {
+  actionId: string;
+  method: string;
+  pathTemplate: string;
+  executor: string;
+  requiredRoles: string[];
+  classId: string;
+}
+
+export interface DerivedStorageField {
+  fieldName: string;
+  required: boolean;
+  type: string;
+  sourceClass: string;
+}
+
+export interface DerivedUiConfig {
+  classId: string;
+  inheritanceChain: string[];
+  displayFields: string[];
+  actionIds: string[];
+  statusConsumptionRule: string;
+}
+
+export interface ArticleDerivation {
+  version: string;
+  compiledAt: number | string;
+  classId: string;
+  apiRoutes: DerivedRoute[];
+  storageFields: DerivedStorageField[];
+  uiConfig: DerivedUiConfig;
+}
+
+export async function fetchArticleDerivation(): Promise<ArticleDerivation> {
+  return unwrapEnvelope<ArticleDerivation>(
+    apiFetchEnvelope<ArticleDerivation>("/api/derivation/article"),
+    "获取文章派生配置失败",
+  );
+}

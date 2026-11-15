@@ -1,61 +1,44 @@
 {
   "version": "1.0.0",
-  "product": "测试产品",
-  "updatedAt": "2026-11-13T06:19:29.106603+00:00",
-  "nodes": {},
+  "product": "E2eProduct",
+  "updatedAt": "2026-11-15T14:11:26.573706+00:00",
+  "nodes": {
+    "e2e-complete-component": {
+      "x": 45,
+      "y": 120,
+      "width": 150,
+      "height": 50
+    },
+    "e2e-incomplete-component": {
+      "x": 45,
+      "y": 182,
+      "width": 150,
+      "height": 50
+    }
+  },
   "groups": {
+    "external": {
+      "x": 1075,
+      "y": 80,
+      "width": 205,
+      "height": 180
+    },
     "gateway": {
       "x": 235,
       "y": 80,
       "width": 820,
       "height": 117
     },
-    "foundation": {
-      "x": 235,
-      "y": 215,
-      "width": 820,
-      "height": 117
-    },
-    "data-lake": {
-      "x": 235,
-      "y": 350,
-      "width": 820,
-      "height": 117
-    },
-    "cloud-native": {
-      "x": 235,
-      "y": 485,
-      "width": 820,
-      "height": 117
-    },
     "service": {
-      "x": 235,
-      "y": 620,
-      "width": 820,
-      "height": 117
-    },
-    "open": {
-      "x": 235,
-      "y": 755,
-      "width": 820,
-      "height": 117
-    },
-    "application": {
-      "x": 235,
-      "y": 890,
-      "width": 820,
-      "height": 117
-    },
-    "external": {
       "x": 25,
       "y": 80,
       "width": 190,
       "height": 180
     },
-    "crosscutting": {
-      "x": 1075,
-      "y": 80,
-      "width": 205,
+    "foundation": {
+      "x": 25,
+      "y": 278,
+      "width": 190,
       "height": 180
     }
   }
