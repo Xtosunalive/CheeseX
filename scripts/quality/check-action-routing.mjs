@@ -240,7 +240,41 @@ const SERVICE_FILE = path.join(ROOT, "server", "services", "anomaly", "anomaly-w
 const REGISTRY_FILE = path.join(SRC, "features", "anomaly-workbench", "anomaly-action-registry.ts");
 const PIPELINE_ONLY_OPS = new Set(["rerun", "verify"]); // 管道驱动，无页面按钮（见上注释）
 
-function parsePreconditionsTable(source, label) {
+// PR-324①/WP-182：注释免疫——解析前剥除行/块注释（引号内 // 不误伤）。
+// 红队回件三假红（注释行被当真条目/行内注释含条目覆盖真值/注释含 } 截断表体）与
+// 一漏报（后端注释停用条目静默过闸）同源：注释文本混入解析。剥除后：注释里的伪条目
+// 不再进表（假红闭合），真条目被整行注释停用则后端表缺项 → 镜像超前即红（漏报闭合）。
+function stripJsComments(text) {
+  let out = "";
+  let i = 0;
+  let inStr = null; // "'" | '"' | "`"
+  while (i < text.length) {
+    const ch = text[i];
+    const next = i + 1 < text.length ? text[i + 1] : "";
+    if (inStr) {
+      out += ch;
+      if (ch === "\\") { out += next; i += 2; continue; }
+      if (ch === inStr) inStr = null;
+      i += 1;
+      continue;
+    }
+    if (ch === "\"" || ch === "'" || ch === "`") { inStr = ch; out += ch; i += 1; continue; }
+    if (ch === "/" && next === "/") { while (i < text.length && text[i] !== "\n") i += 1; continue; }
+    if (ch === "/" && next === "*") {
+      i += 2;
+      while (i < text.length && !(text[i] === "*" && text[i + 1] === "/")) i += 1;
+      i += 2;
+      out += " ";
+      continue;
+    }
+    out += ch;
+    i += 1;
+  }
+  return out;
+}
+
+function parsePreconditionsTable(source0, label) {
+  const source = stripJsComments(source0);
   const anchor = source.match(/OPERATION_PRECONDITIONS[^=]*=\s*\{/);
   if (!anchor) throw new Error(`[前置表] ${label} 未找到 OPERATION_PRECONDITIONS 表（结构变化需同步对账面）`);
   const start = anchor.index + anchor[0].length;
