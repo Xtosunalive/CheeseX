@@ -94,6 +94,23 @@ const RAW = "---\ntitle: Target\narchitecture-node-id: target\narch_component: t
     assert(fs.existsSync(env.file));
   } finally { fs.rmSync(env.vault, { recursive: true, force: true }); }
 
+  // 标题兜底（Master 2026-11-16 裁「要」）：changes 不带 title → 落盘 title＝initialTitle（heading 消毒）。
+  env = setup(RAW);
+  try {
+    fs.unlinkSync(env.file);
+    const preview = env.service.preview({
+      sourceKey: env.sourceKey,
+      createIfMissing: true,
+      initialTitle: "兜底标题",
+      changes: { arch_component: true, tags: ["entity"] },
+    });
+    env.service.apply({ previewId: preview.previewId, confirmed: true });
+    const created = fs.readFileSync(env.file, "utf8");
+    assert.match(created, /^title: 兜底标题$/m, "title 兜底＝initialTitle（F01 必填不缺）");
+    assert.match(created, /^arch_component: true\b/m, "创建激活随 changes 落盘（统一激活语义）");
+    assert.match(created, /^architecture-node-id: /m, "arch_component: true 触发身份铸造（WP-113 M2）");
+  } finally { fs.rmSync(env.vault, { recursive: true, force: true }); }
+
   env = setup(RAW + "\n- 关联::[[强制入主]]\n- 关联::[[强制入主]]\n正文提到 [[强制入主]]，不得删除。\n");
   try {
     const before = fs.readFileSync(env.file, "utf8");
