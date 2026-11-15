@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { AnomalyEntityRepairDrawer } from "@/features/anomaly-workbench/components/AnomalyEntityRepairDrawer";
 import type { AnomalyIssue } from "@/features/anomaly-workbench/anomaly-workbench-types";
@@ -8,10 +8,15 @@ const api = vi.hoisted(() => ({
   fetchEntityCompliance: vi.fn(),
   fetchEnums: vi.fn(),
   fetchVersionRegistry: vi.fn().mockResolvedValue({ schema_version: 1, revision: "r", sourceFile: "versions.yaml", summary: {}, products: {}, diagnostics: [] }),
+  previewEntityRepair: vi.fn().mockResolvedValue({ previewId: "p-fix", changedFields: [], postCheck: {} }),
 }));
 vi.mock("@/features/anomaly-workbench/anomaly-workbench-api", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/features/anomaly-workbench/anomaly-workbench-api")>()),
   fetchArticleRepairOptions: api.fetchArticleRepairOptions,
+}));
+vi.mock("@/lib/domain/entity-repair-api", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/domain/entity-repair-api")>()),
+  previewEntityRepair: api.previewEntityRepair,
 }));
 vi.mock("@/features/entity-compliance", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/features/entity-compliance")>()),
@@ -112,13 +117,13 @@ const missingEntityIssue = (withSnapshot: boolean) => ({
     expected: "Fixture模块",
     allowedValues: [],
     ...(withSnapshot
-      ? { articleSnapshot: { sourcePath: "知识库/wiki/articles/ops/article-fixture-a/snapshot.md", fields: { module: ["Fixture模块"], tags: ["entity"] } } }
+      ? { articleSnapshot: { sourcePath: "知识库/wiki/articles/ops/article-fixture-a/snapshot.md", sourceStage: "precleaned", fields: { module: ["Fixture模块"], tags: ["entity"], arch_layer: "gateway", arch_category: "知识域A" } } }
       : {}),
   },
 }) as unknown as AnomalyIssue;
 
 describe("AnomalyEntityRepairDrawer · 缺失实体继承快照", () => {
-  it("创建模式预填文章快照字段：标题＝模块名，module/tags 成 chip（继承主战场）", async () => {
+  it("创建模式预填继承快照＋自动激活：点预览后请求携带 title/arch_component/module/tags/架构字段（批3＋激活统一）", async () => {
     api.fetchEntityCompliance.mockRejectedValue(new Error("实体页不存在"));
     api.fetchEnums.mockResolvedValue({ layers: [], categories: [], subdomains: {} });
     render(
@@ -134,6 +139,20 @@ describe("AnomalyEntityRepairDrawer · 缺失实体继承快照", () => {
     expect(screen.getByDisplayValue("Fixture模块")).toBeInTheDocument(); // 标题＝期望值（既有通道不回归）
     await waitFor(() => expect(screen.getByText("entity")).toBeInTheDocument()); // tags chip＝文章标签
     expect(screen.getByText("Fixture模块")).toBeInTheDocument(); // module chip＝声明模块
+    expect(screen.getByDisplayValue("gateway")).toBeInTheDocument(); // arch_layer select（批3 扩字段）
+    expect(screen.getByDisplayValue("知识域A")).toBeInTheDocument(); // arch_category select（批3 扩字段）
+    // 激活统一（Master 裁）：arch_component 预填 true——点预览后批量请求应携带激活与全部继承字段
+    fireEvent.click(screen.getByRole("button", { name: "查看修复结果" }));
+    await waitFor(() => expect(api.previewEntityRepair).toHaveBeenCalled());
+    const request = api.previewEntityRepair.mock.calls[0][0];
+    expect(request.createIfMissing).toBe(true);
+    expect(request.initialTitle).toBe("Fixture模块");
+    expect(request.changes.arch_component).toBe(true);
+    expect(request.changes.title).toBe("Fixture模块");
+    expect(request.changes.module).toEqual(["Fixture模块"]);
+    expect(request.changes.arch_layer).toBe("gateway");
+    expect(request.changes.arch_category).toBe("知识域A");
+    expect(request.changes.tags).toEqual(["entity"]);
   });
 
   it("无快照的旧议题行为不变：不出文章字段预填（回归钉）", async () => {

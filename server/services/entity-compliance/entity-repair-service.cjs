@@ -373,6 +373,10 @@ function createEntityRepairService(options) {
     if (creating) {
       effectiveChanges[DK.ENTITY.date] = existingDate || today; // 创建：无旧值才生成
       effectiveChanges[DK.ENTITY.status] = assertTransition({ from: "", to: STATUS_MACHINE_DEFAULT }); // 创建→灰度（守卫校验）
+      // 标题兜底（Master 2026-11-16 裁「要」）：创建必须有 title（F01 必填）——changes 未带时取
+      // initialTitle（heading 已消毒）；两者皆空才允许缺字段（非组件缺字段创建，SPEC-094 §5 设计内）。
+      const titleInChanges = typeof effectiveChanges[DK.ENTITY.title] === "string" && effectiveChanges[DK.ENTITY.title].trim();
+      if (!titleInChanges && heading) effectiveChanges[DK.ENTITY.title] = heading;
       // WP-113 M2 铸造门（新建专属）：身份在唯一取号点 mintEntityId 生成——判重素材与写门同源
       // （entityDocsForGate ＋ buildEntityIndexes 的归一化 id 索引，不另起扫描、不复制判重谓词）。
       // 取号耗尽（64 次全占用）＝异常状态：按在册冲突码报（ENTITY_COMPLIANCE_BLOCKED/422 承载 F02b

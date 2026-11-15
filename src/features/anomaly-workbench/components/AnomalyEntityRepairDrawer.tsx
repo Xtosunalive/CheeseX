@@ -63,6 +63,9 @@ function initialValueForField(issue: AnomalyIssue, spec: EntityFieldSpec): unkno
     if (typeof action.expected === "string" && action.expected.trim()) return action.expected;
     if (typeof action.currentValue === "string" && action.currentValue.trim()) return action.currentValue;
   }
+  // 激活语义统一（Master 2026-11-16 裁）：缺失实体创建＝组件激活——arch_component 预填 true，
+  // apply 走既有铸造门（WP-113 M2：身份创建时铸造）；用户仍可在表单改 false（显式优先）。
+  if (issue.issueKind === "missing_entity" && spec.field === "arch_component") return true;
   return emptyValue(spec);
 }
 
@@ -295,7 +298,9 @@ export function AnomalyEntityRepairDrawer({ issue, relatedIssues, error, apiErro
 
   const handlePreview = () => {
     if (isMissingEntity) {
-      const requiredDefs = (isArticle ? activeSpecs : ENTITY_CREATE_FIELDS).filter((spec) => spec.required);
+      // 只读系统字段（WP-113 M2：身份等由服务端铸造/注入）不参与必填校验——用户不可填，
+      // 算进 required 会把创建预览永久拦死（验收期实测反例：缺失实体创建卡在空身份号）。
+      const requiredDefs = (isArticle ? activeSpecs : ENTITY_CREATE_FIELDS).filter((spec) => spec.required && !spec.readOnly);
       const missing = validateRequiredFields(requiredDefs, values);
       if (missing.length > 0) {
         setFieldErrors(Object.fromEntries(requiredDefs.filter((spec) => isFieldEmpty(values[spec.field])).map((spec) => [spec.field, ANOMALY_REPAIR_DRAWER_COPY.FIELD_REQUIRED_EMPTY])));
