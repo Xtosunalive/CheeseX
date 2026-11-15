@@ -252,7 +252,6 @@ export function VersionRegistryEditor({ disabled }: { disabled: boolean }) {
             aria-label={canonicalLabel}
             value={unconfigured ? canonicalDraft : store.productIdentity.canonicalProduct ?? ""}
             readOnly={!unconfigured}
-            placeholder={unconfigured ? VERSIONS_COPY.CANONICAL_FIRST_SET_PLACEHOLDER : undefined}
             title={unconfigured ? undefined : VERSIONS_COPY.CANONICAL_LOCKED_TITLE}
             onChange={unconfigured ? (event) => setCanonicalDraft(event.target.value) : undefined}
             disabled={busy && unconfigured}

@@ -322,7 +322,6 @@ export const VERSIONS_COPY = {
   TOTAL_SUFFIX: " 个版本",
   VALIDATE_ARIA: "验证产品版本",
   VALIDATE_ACTION: "验证",
-  CANONICAL_FIRST_SET_PLACEHOLDER: "首次设定，例如 AnyShare",
   CANONICAL_LOCKED_TITLE: "身份锚点已设定：改名=换身份，不在本表单改（renameSupported=false）；别名可维护",
   ALIASES_ARIA: "产品别名",
   ALIASES_ARIA_SUFFIX: "版本别名",
