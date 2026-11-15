@@ -766,7 +766,6 @@ export const VIEW_COPY = {
   PANEL_ARIA: "图谱规则配置面板",
   PAGE_DESCRIPTION: "维护图谱生成所依赖的规则与词表。",
   SAVING: "保存中...",
-  PIPELINE_RUNNING: "管道运行中...",
   CHECKING_IMPACT: "检查影响...",
   /** 「保存规则」＝五义动作词（D-R9-6 pending）——本批只搬迁不改交互不改名 */
   SAVE_RULES_ACTION: "保存规则",

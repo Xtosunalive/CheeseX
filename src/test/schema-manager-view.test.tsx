@@ -359,3 +359,25 @@ describe("SchemaManagerView", () => {
   });
 
 });
+
+// ── PR-312/WP-180：头部保存钮只服务真正管辖的页签——relations/fields/history 隐藏，concepts 维持 ──
+describe("PR-312 头部保存钮页签管辖（headerSave:false 隐藏）", () => {
+  // 挂载后置页签（视图 mount 有深链 effect 会重算 activeTab——先渲染再置状态）
+  it("relations 页签不渲染头部保存钮", () => {
+    render(<SchemaManagerView />);
+    act(() => useSchemaManagerStore.setState({ activeTab: "relations" }));
+    expect(screen.queryByRole("button", { name: /保存规则/ })).toBeNull();
+  });
+
+  it("fields 页签不渲染头部保存钮", () => {
+    render(<SchemaManagerView />);
+    act(() => useSchemaManagerStore.setState({ activeTab: "fields" }));
+    expect(screen.queryByRole("button", { name: /保存规则/ })).toBeNull();
+  });
+
+  it("concepts 页签维持头部保存钮（enums 主面管辖）", () => {
+    render(<SchemaManagerView />);
+    act(() => useSchemaManagerStore.setState({ activeTab: "concepts" }));
+    expect(screen.getByRole("button", { name: /保存规则/ })).toBeInTheDocument();
+  });
+});

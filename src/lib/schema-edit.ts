@@ -31,6 +31,8 @@ export interface TabEditMeta {
   family: EditFamily;
   /** 独立读资源（null=数据随主 load 一次到位） */
   lazyResource: LazyResource | null;
+  /** PR-312/WP-180：头部保存钮是否服务本页签——false=页签内容有独立编辑器与保存钮（relations/fields/history），头部 enums 主面保存与之无关，按钮隐藏 */
+  headerSave?: boolean;
 }
 
 /** 族接线声明（store 契约面——动作名与状态/错误键；键存在性由测试面用真实 store 实例钉住） */
@@ -71,10 +73,11 @@ export const TAB_EDIT_META: Readonly<Record<string, TabEditMeta>> = {
   [SCHEMA_TAB_NAMES.ONTOLOGY]: { tab: "ontology", family: "ontology", lazyResource: "ontology" },
   [SCHEMA_TAB_NAMES.DEPENDENCIES]: { tab: "dependencies", family: "dependencies", lazyResource: "dependencies" },
   [SCHEMA_TAB_NAMES.VERSIONS]: { tab: "versions", family: "versions", lazyResource: "versions" },
-  // 版本快照=git 账页（TAB_LABEL_FALLBACKS 正名，无字典对象），头部保存沿袭 enums 主面
-  [SCHEMA_TAB_NAMES.HISTORY]: { tab: "history", family: "enums", lazyResource: null },
-  [SCHEMA_TAB_NAMES.RELATIONS]: { tab: "relations", family: "enums", lazyResource: null },
-  [SCHEMA_TAB_NAMES.FIELDS]: { tab: "fields", family: "enums", lazyResource: null },
+  // 版本快照=git 账页（TAB_LABEL_FALLBACKS 正名，无字典对象）＋relations/fields 有各自独立编辑器与保存钮——
+  // 三页签头部保存（enums 主面）与之无关，headerSave:false 隐藏按钮（PR-312/WP-180）
+  [SCHEMA_TAB_NAMES.HISTORY]: { tab: "history", family: "enums", lazyResource: null, headerSave: false },
+  [SCHEMA_TAB_NAMES.RELATIONS]: { tab: "relations", family: "enums", lazyResource: null, headerSave: false },
+  [SCHEMA_TAB_NAMES.FIELDS]: { tab: "fields", family: "enums", lazyResource: null, headerSave: false },
   [SCHEMA_TAB_NAMES.DISCOVERY]: { tab: "discovery", family: "enums", lazyResource: "discovery" },
 };
 

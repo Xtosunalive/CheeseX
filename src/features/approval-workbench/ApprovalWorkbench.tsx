@@ -271,9 +271,12 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
       {status && !loading && currentStatus === "pending" && (
         <div className="flex flex-wrap gap-2">
           {bindingStale && recoveryButton}
-          <Button size="sm" data-action-id="approval-confirm" disabled={busy || bindingStale || checkBlocked} title={bindingStale ? APPROVAL_WORKBENCH_COPY.CONFIRM_BLOCKED_TITLE : undefined} onClick={() => void operate("confirm")}>
+          {/* PR-311/WP-180：内容检查阻断（:260 role=alert 已内联说明）时确认钮不渲染——灰置口径退役；bindingStale 维持灰置（旁有恢复钮） */}
+          {!checkBlocked && (
+          <Button size="sm" data-action-id="approval-confirm" disabled={busy || bindingStale} title={bindingStale ? APPROVAL_WORKBENCH_COPY.CONFIRM_BLOCKED_TITLE : undefined} onClick={() => void operate("confirm")}>
             <CheckCircle2 className="mr-1.5 h-4 w-4" />{APPROVAL_WORKBENCH_COPY.CONFIRM_ACTION}
           </Button>
+          )}
           <Button size="sm" variant="outline" data-action-id="approval-reject" disabled={busy || !rejectReason.trim()} onClick={() => void operate("reject")}>
             <XCircle className="mr-1.5 h-4 w-4" />{APPROVAL_WORKBENCH_COPY.REJECT_ACTION}
           </Button>
