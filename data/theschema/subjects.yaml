@@ -9,3 +9,6 @@ subjects:
     status: paused
     archived_from: 知识库/TheSchema/history/enums-legacy-archive-manifest.json
     mounted_at: null
+    # status: paused＝挂起的主体数据，不是硬编码残留（AnyShare 机制面退役口径，PR-243）。
+    # 验收＝机制层标识符零命中＋白名单（历史记述／测试夹具／挂起主体数据／待裁决保留项），非全仓字符串清零。
+    # 现存待裁决保留项＝server/shared/auth/session-cookie.cjs 默认 cookie 名、server/shared/releases-dir.cjs 旧目录回落读。
