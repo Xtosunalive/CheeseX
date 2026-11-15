@@ -52,14 +52,12 @@ export function DashboardView() {
         {reviewPendingEdgeCount > 0 && (
           <div data-dashboard-module="review-status">
             <Panel>
-              <button
-                onClick={() => navigate("review", { sub: "edges" })}
-                className="flex items-center gap-1.5 text-xs text-status-warn hover:text-status-warn-11 transition"
-              >
+              {/* ui-kit 哨兵棘轮（原生标签只减不增）：链接钮走 ui Button 组件，不用原生 <button> */}
+              <Button type="button" variant="ghost" size="sm" onClick={() => navigate("review", { sub: "edges" })} className="gap-1.5 px-0 text-xs text-status-warn hover:text-status-warn-11">
                 <ShieldCheck className="h-3 w-3" />
                 {DASHBOARD_SECTION_COPY.REVIEW_PENDING_LINK}
                 <ChevronRight className="h-3 w-3" />
-              </button>
+              </Button>
             </Panel>
           </div>
         )}

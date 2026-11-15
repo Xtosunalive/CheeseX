@@ -406,7 +406,7 @@ module.exports = {
       "sites": [
         "server/routes/ontology-routes.cjs:73",
         "server/services/schema-manager/schema-history-service.cjs:84",
-        "server/services/schema-manager/schema-write-service.cjs:147"
+        "server/services/schema-manager/schema-write-service.cjs:149"
       ]
     },
     "CHANGE_PREVIEW_REQUIRED": {
@@ -515,7 +515,7 @@ module.exports = {
       ],
       "sites": [
         "server/routes/enums-routes.cjs:122",
-        "server/services/schema-manager/schema-write-service.cjs:250"
+        "server/services/schema-manager/schema-write-service.cjs:252"
       ]
     },
     "DOCUMENT_INDEX_UNAVAILABLE": {
@@ -815,7 +815,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:279"
+        "server/services/schema-manager/schema-write-service.cjs:281"
       ]
     },
     "INVALID_ANOMALY": {
@@ -854,8 +854,8 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:49",
-        "server/services/schema-manager/schema-write-service.cjs:112"
+        "server/services/schema-manager/schema-write-service.cjs:51",
+        "server/services/schema-manager/schema-write-service.cjs:114"
       ]
     },
     "INVALID_CONFLICT": {
@@ -901,7 +901,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:305"
+        "server/services/schema-manager/schema-write-service.cjs:307"
       ]
     },
     "INVALID_DISCOVERY_GROUP": {
@@ -909,8 +909,8 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:287",
-        "server/services/schema-manager/schema-write-service.cjs:288"
+        "server/services/schema-manager/schema-write-service.cjs:289",
+        "server/services/schema-manager/schema-write-service.cjs:290"
       ]
     },
     "INVALID_DISCOVERY_LABEL": {
@@ -918,7 +918,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:309"
+        "server/services/schema-manager/schema-write-service.cjs:311"
       ]
     },
     "INVALID_DISCOVERY_PATCH": {
@@ -927,14 +927,14 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:253",
-        "server/services/schema-manager/schema-write-service.cjs:298",
-        "server/services/schema-manager/schema-write-service.cjs:344",
-        "server/services/schema-manager/schema-write-service.cjs:355",
-        "server/services/schema-manager/schema-write-service.cjs:364",
-        "server/services/schema-manager/schema-write-service.cjs:490",
-        "server/services/schema-manager/schema-write-service.cjs:551",
-        "server/services/schema-manager/schema-write-service.cjs:553"
+        "server/services/schema-manager/schema-write-service.cjs:255",
+        "server/services/schema-manager/schema-write-service.cjs:300",
+        "server/services/schema-manager/schema-write-service.cjs:346",
+        "server/services/schema-manager/schema-write-service.cjs:357",
+        "server/services/schema-manager/schema-write-service.cjs:366",
+        "server/services/schema-manager/schema-write-service.cjs:519",
+        "server/services/schema-manager/schema-write-service.cjs:588",
+        "server/services/schema-manager/schema-write-service.cjs:590"
       ]
     },
     "INVALID_DOCUMENT": {
@@ -1171,8 +1171,8 @@ module.exports = {
       "sites": [
         "server/routes/ontology-routes.cjs:50",
         "server/routes/ontology-routes.cjs:104",
-        "server/services/schema-manager/schema-write-service.cjs:115",
-        "server/services/schema-manager/schema-write-service.cjs:163"
+        "server/services/schema-manager/schema-write-service.cjs:117",
+        "server/services/schema-manager/schema-write-service.cjs:165"
       ]
     },
     "NODE_NOT_FOUND": {
@@ -1769,7 +1769,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:74"
+        "server/services/schema-manager/schema-write-service.cjs:76"
       ]
     },
     "SCHEMA_CANDIDATE_INVALID": {
@@ -1777,7 +1777,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:133"
+        "server/services/schema-manager/schema-write-service.cjs:135"
       ]
     },
     "SCHEMA_FILE_MISSING": {
@@ -1785,7 +1785,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:56"
+        "server/services/schema-manager/schema-write-service.cjs:58"
       ]
     },
     "SCHEMA_PARSE_ERROR": {
@@ -1793,8 +1793,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:63",
-        "server/services/schema-manager/schema-write-service.cjs:556"
+        "server/services/schema-manager/schema-write-service.cjs:65",
+        "server/services/schema-manager/schema-write-service.cjs:593"
       ]
     },
     "SCHEMA_REVISION_CONFLICT": {
@@ -1803,7 +1803,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/schema-manager/schema-history-service.cjs:58",
-        "server/services/schema-manager/schema-write-service.cjs:122",
+        "server/services/schema-manager/schema-write-service.cjs:124",
         "server/shared/theschema-write.cjs:28"
       ]
     },
@@ -1826,13 +1826,13 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:264",
-        "server/services/schema-manager/schema-write-service.cjs:275",
-        "server/services/schema-manager/schema-write-service.cjs:300",
-        "server/services/schema-manager/schema-write-service.cjs:313",
-        "server/services/schema-manager/schema-write-service.cjs:369",
-        "server/services/schema-manager/schema-write-service.cjs:497",
-        "server/services/schema-manager/schema-write-service.cjs:505"
+        "server/services/schema-manager/schema-write-service.cjs:266",
+        "server/services/schema-manager/schema-write-service.cjs:277",
+        "server/services/schema-manager/schema-write-service.cjs:302",
+        "server/services/schema-manager/schema-write-service.cjs:315",
+        "server/services/schema-manager/schema-write-service.cjs:371",
+        "server/services/schema-manager/schema-write-service.cjs:526",
+        "server/services/schema-manager/schema-write-service.cjs:534"
       ]
     },
     "SCHEMA_WRITE_FAILED": {
@@ -1840,7 +1840,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:82"
+        "server/services/schema-manager/schema-write-service.cjs:84"
       ]
     },
     "SCHEMA_WRITE_UNAVAILABLE": {
@@ -2200,10 +2200,10 @@ module.exports = {
         "server/services/schema-manager/fields-write-service.cjs:95",
         "server/services/schema-manager/schema-history-service.cjs:77",
         "server/services/schema-manager/schema-history-service.cjs:81",
-        "server/services/schema-manager/schema-write-service.cjs:140",
-        "server/services/schema-manager/schema-write-service.cjs:144",
-        "server/services/schema-manager/schema-write-service.cjs:431",
-        "server/services/schema-manager/schema-write-service.cjs:432",
+        "server/services/schema-manager/schema-write-service.cjs:142",
+        "server/services/schema-manager/schema-write-service.cjs:146",
+        "server/services/schema-manager/schema-write-service.cjs:433",
+        "server/services/schema-manager/schema-write-service.cjs:434",
         "server/shared/status-transition-guard.cjs:50"
       ]
     },
@@ -2378,7 +2378,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:104"
+        "server/services/schema-manager/schema-write-service.cjs:106"
       ]
     },
     "VERSION_REGISTRY_UNAVAILABLE": {
