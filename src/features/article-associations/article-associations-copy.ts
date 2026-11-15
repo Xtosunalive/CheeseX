@@ -83,8 +83,6 @@ export const AA_DECISION_LIST_COPY = {
   COL_ITEMS: "关联项",
   COL_AUDIT: "审计状态",
   STALE: "来源内容已变化",
-  /** PR-318/WP-180：stale 行处置出口指引（出口=选中重走保存；设计决定见组件头注释） */
-  STALE_EXIT_HINT: "点击本行载入表单，重新指定后保存即刷新",
   VALID: "审计记录有效",
   SECTION_ARIA: "已保存的文章图谱映射",
   HEADING: "已保存文章映射",

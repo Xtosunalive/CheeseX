@@ -401,14 +401,10 @@ export const ANOMALY_PEEK_COPY = {
   /** footer 动作区 */
   REOPEN_ACTION: "重开",
   CLOSE_EXPLICIT_ACTION: "显式关闭",
-  /** PR-308/WP-177：确认文案含落盘与去向语义（点后=落盘→全局诊断自动重跑管道复核） */
-  CONFIRM_ACTION: "确认落盘，等待全局诊断",
-  /** 悬浮详情只留一句（页面不承载解释——Master 2026-11-15「文案收敛」口径） */
-  CONFIRM_READY_TITLE: "按当前预览落盘；系统自动重跑管道复核",
-  /** 非法态不渲染按钮改显指引（PR-308：一句话指向下一步动作） */
-  NEXT_STEP_PREVIEW_HINT: "下一步：生成预览",
-  /** 执行未就绪（服务端无此问题的自动执行通道，修复入口改道） */
-  EXECUTION_NOT_READY_HINT: "执行未就绪，请经对应处理入口修复",
+  /** PR-308＋WP-183 文案清账：动作词=「确认落盘」（去向由状态徽章承载，不另配句） */
+  CONFIRM_ACTION: "确认落盘",
+  /** 非法态不渲染按钮：无按钮时唯一必要的一句解释（压至最短） */
+  EXECUTION_NOT_READY_HINT: "执行未就绪",
   REJECT_CANDIDATE_ACTION: "驳回候选",
   HANDOFF_HINT: "跳转动作在勾选后的底部操作条",
   CLOSE_HEADER_ARIA: "关闭详情",

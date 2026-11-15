@@ -27,45 +27,41 @@ function renderPeek(issue: AnomalyIssue) {
 
 const confirmButton = () => screen.queryByRole("button", { name: ANOMALY_PEEK_COPY.CONFIRM_ACTION });
 
-describe("PR-308 状态×动作渲染矩阵", () => {
-  it("open：不渲染确认钮，改显「下一步：生成预览」指引", () => {
+describe("PR-308 状态×动作渲染矩阵（WP-183 文案清账：指引句删除——表单内预览钮即结构引导）", () => {
+  it("open：不渲染确认钮（表单内预览钮=结构引导，无附加指引句）", () => {
     renderPeek(baseIssue);
     expect(confirmButton()).not.toBeInTheDocument();
-    expect(screen.getByText(ANOMALY_PEEK_COPY.NEXT_STEP_PREVIEW_HINT)).toBeInTheDocument();
+    expect(screen.queryByText(/下一步/)).not.toBeInTheDocument();
   });
 
   it("stale：预览合法、确认非法——同 open 口径", () => {
     renderPeek({ ...baseIssue, status: "stale" });
     expect(confirmButton()).not.toBeInTheDocument();
-    expect(screen.getByText(ANOMALY_PEEK_COPY.NEXT_STEP_PREVIEW_HINT)).toBeInTheDocument();
   });
 
   it("blocked：同 open 口径", () => {
     renderPeek({ ...baseIssue, status: "blocked" });
     expect(confirmButton()).not.toBeInTheDocument();
-    expect(screen.getByText(ANOMALY_PEEK_COPY.NEXT_STEP_PREVIEW_HINT)).toBeInTheDocument();
   });
 
-  it("previewed＋previewId＋executionReady：确认钮在场可点，文案含落盘与全局诊断去向（悬浮句一句收口——文案收敛口径）", () => {
+  it("previewed＋previewId＋executionReady：确认钮在场可点，文案=「确认落盘」（WP-183 清账：去向由状态徽章承载）", () => {
     renderPeek({ ...baseIssue, status: "previewed", previewId: "pv-1", executionReady: true });
     const button = screen.getByRole("button", { name: ANOMALY_PEEK_COPY.CONFIRM_ACTION });
     expect(button).toBeEnabled();
-    // PR-308 验收：文案含「落盘」与去向语义；悬浮 title 一句收口（Master 2026-11-15「文案收敛」）
-    expect(ANOMALY_PEEK_COPY.CONFIRM_ACTION).toContain("落盘");
-    expect(ANOMALY_PEEK_COPY.CONFIRM_ACTION).toContain("全局诊断");
-    expect(button.getAttribute("title")).toContain("落盘");
+    expect(ANOMALY_PEEK_COPY.CONFIRM_ACTION).toBe("确认落盘");
+    expect(button.getAttribute("title")).toBeNull();
   });
 
-  it("previewed 但 executionReady=false：确认钮不渲染，显示执行阻断说明", () => {
+  it("previewed 但 executionReady=false：确认钮不渲染，显示最短阻断说明", () => {
     renderPeek({ ...baseIssue, status: "previewed", previewId: "pv-1", executionReady: false });
     expect(confirmButton()).not.toBeInTheDocument();
-    expect(screen.getByText(ANOMALY_PEEK_COPY.EXECUTION_NOT_READY_HINT)).toBeInTheDocument();
+    expect(screen.getByText("执行未就绪")).toBeInTheDocument();
   });
 
   it("open 且 executionReady=false：确认钮不渲染（修复入口改道），阻断说明在场", () => {
     renderPeek({ ...baseIssue, executionReady: false });
     expect(confirmButton()).not.toBeInTheDocument();
-    expect(screen.getByText(ANOMALY_PEEK_COPY.EXECUTION_NOT_READY_HINT)).toBeInTheDocument();
+    expect(screen.getByText("执行未就绪")).toBeInTheDocument();
   });
 
   it("review-only 候选（拒绝专用流）：不出现确认钮也不出现执行阻断说明（能力集≠操作集）", () => {

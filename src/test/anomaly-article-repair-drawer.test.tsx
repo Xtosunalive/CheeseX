@@ -69,7 +69,7 @@ describe("AnomalyEntityRepairDrawer · 文章源分支", () => {
 
 // PR-324②/WP-180：确认（应用修复）钮接状态×操作投影——非 preview_ready 态不渲染改显指引
 describe("AnomalyEntityRepairDrawer · 确认钮状态门控（PR-324②）", () => {
-  it("open 态：应用修复钮不渲染，「下一步」指引在场", async () => {
+  it("open 态：应用修复钮不渲染（WP-183 清账：预览钮即结构引导，无指引句）", async () => {
     api.fetchEntityCompliance.mockRejectedValue(new Error("文章源合规不强制"));
     api.fetchEnums.mockResolvedValue({ layers: [], categories: [], subdomains: {} });
     api.fetchArticleRepairOptions.mockResolvedValue({
@@ -92,6 +92,5 @@ describe("AnomalyEntityRepairDrawer · 确认钮状态门控（PR-324②）", ()
     );
     await waitFor(() => expect(api.fetchArticleRepairOptions).toHaveBeenCalled());
     expect(screen.queryByRole("button", { name: /应用修复/ })).toBeNull();
-    expect(screen.getByText(/下一步：生成预览/)).toBeInTheDocument();
   });
 });

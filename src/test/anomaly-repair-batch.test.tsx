@@ -192,8 +192,7 @@ describe("AnomalyEntityRepairDrawer · 批量补齐字段分流（B1）+ 失败�
     fireEvent.click(apply);
     await waitFor(() => expect(screen.getByRole("alert").textContent).toContain("预览不存在、已过期或已消费"));
     expect(triggerValues("知识文章类型")).toContain("排错指南");
-    // PR-324②/WP-180：预览态清空后应用钮隐匿（不再灰置），显「下一步」指引
+    // PR-324②/WP-180＋WP-183 文案清账：预览态清空后应用钮隐匿（预览钮即结构引导，无指引句）
     expect(screen.queryByRole("button", { name: "应用修复" })).toBeNull();
-    expect(screen.getByText(/下一步：生成预览/)).toBeInTheDocument();
   });
 });

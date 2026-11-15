@@ -442,10 +442,10 @@ function StalePropertyCard({
         <RotateCw className={`inline h-3 w-3 mr-0.5 ${isRepairing ? "animate-spin" : ""}`} />
         {isRepairing ? COMPONENT_CHECK_COPY.QUEUED : COMPONENT_CHECK_COPY.REGENERATE}
       </button>
-      {/* PR-314/WP-178：入队成功的持久回显——结果去向指引，非按钮瞬时变字 */}
+      {/* PR-314＋WP-183 文案清账：入队回显一句收口（结果去向=同卡「重新检查」钮承载，不另配句） */}
       {refreshQueuedAt && (
         <p role="status" className="font-mono text-kg-xs text-status-warn" data-testid="refresh-queued-hint">
-          {COMPONENT_CHECK_COPY.REFRESH_QUEUED_HINT_PREFIX}{refreshQueuedAt}{COMPONENT_CHECK_COPY.REFRESH_QUEUED_HINT_TAIL}
+          {COMPONENT_CHECK_COPY.REFRESH_QUEUED_HINT_PREFIX}{refreshQueuedAt}
         </p>
       )}
     </div>

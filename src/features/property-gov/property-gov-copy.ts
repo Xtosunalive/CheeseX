@@ -222,9 +222,8 @@ export const COMPONENT_CHECK_COPY = {
   EXTRACTED_AT_PREFIX: "属性提取时间 ",
   QUEUED: "已加入队列…",
   REGENERATE: "重新生成属性",
-  /** PR-314/WP-178＋Master 2026-11-15「文案收敛」：入队回显一句收口（前缀+时间+尾随指引） */
+  /** PR-314＋WP-183 文案清账：入队回显一句收口（结果去向=同卡「重新检查」钮承载） */
   REFRESH_QUEUED_HINT_PREFIX: "已加入队列 ",
-  REFRESH_QUEUED_HINT_TAIL: " · 重新检查可见结果",
   /** 关联诊断卡 */
   MISSING_ENTITIES_PREFIX: "缺失实体: ",
 } as const;
