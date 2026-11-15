@@ -23,13 +23,6 @@ vi.mock('@/lib/review-data-store', () => ({
   useReviewPendingCount: vi.fn(),
 }))
 
-vi.mock('@/lib/property-data-store', () => ({
-  usePropertyDataStore: vi.fn((selector) => {
-    const state = { summary: null, load: vi.fn() }
-    return selector ? selector(state) : state
-  }),
-}))
-
 describe('DashboardView - Pipeline Flow Coverage', () => {
   beforeEach(() => {
     vi.clearAllMocks()

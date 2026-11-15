@@ -156,7 +156,7 @@
         "scripts/quality/__tests__/check-navigation.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "2026-10-06 补登漏项（Master 18:27 PR-026 批时发现：脚本+package.json+CI step 三处已就位唯独登记表遗漏——gate_wiring 9/9 即为佐证。违反 PR-010「新增门禁必须同步改两处」成文条款，正是 PR-018「登记表退化为愿望文档」的同类形态）。域内容见 domain-registry#navigation；24 处直写已收编至 navigate() 唯一出口｜2026-10-21 读侧收编批：第三检查面（裸读 location.hash／自挂 hashchange）上线，门禁回归测试 5 用例（三探针红）；补 commit 面（src/ 触发）。｜2026-11-06 WP-122 起为导航域唯一常驻入口：+面④包装串联 check-action-routing 五面（子件红即本件红，8 面一张不少）；NAV_ROUTES/SUB_ROUTES 解析收敛 shared/nav-routes.mjs（fail-closed：锚点缺失即结构红——破坏实验 exit=1 实证）。authority 维持 src/lib/navigation.ts 原位：提为 JSON 契约会丢失 NavRoute 编译期字面量联合保护（防护不减原则），故收敛的是解析实现而非清单住址｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-06 补登漏项（Master 18:27 PR-026 批时发现：脚本+package.json+CI step 三处已就位唯独登记表遗漏——gate_wiring 9/9 即为佐证。违反 PR-010「新增门禁必须同步改两处」成文条款，正是 PR-018「登记表退化为愿望文档」的同类形态）。域内容见 domain-registry#navigation；24 处直写已收编至 navigate() 唯一出口｜2026-10-21 读侧收编批：第三检查面（裸读 location.hash／自挂 hashchange）上线，门禁回归测试 5 用例（三探针红）；补 commit 面（src/ 触发）。｜2026-11-06 WP-122 起为导航域唯一常驻入口：+面④包装串联 check-action-routing 五面（子件红即本件红，8 面一张不少）；NAV_ROUTES/SUB_ROUTES 解析收敛 shared/nav-routes.mjs（fail-closed：锚点缺失即结构红——破坏实验 exit=1 实证）。authority 维持 src/lib/navigation.ts 原位：提为 JSON 契约会丢失 NavRoute 编译期字面量联合保护（防护不减原则），故收敛的是解析实现而非清单住址｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -196,7 +196,7 @@
         "scripts/quality/__tests__/check-error-codes.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "2026-10-08 Master 批立（P1 模式新实例：错误码事实源双向对账）。起因 tr_43c615f5——DUPLICATE_DOCUMENT_ID 服务端抛而契约未登记，enforce 把真实业务错误掩埋成 500。两检查面：①抛了未登记（新码不补契约即红——增量防御，存量欠账入基线豁免分批清理）②登记没人抛（死枚举须显式归位，28 存量入基线）。PR-206（2026-11-03）两扩：③挂 commit 面（surfaces+commitScope）——新码提交瞬间即拦，不再等 CI 兜底（WP-076 实锤：MIRROR_SCOPE_UNRESOLVED 两天后才红）；④内部信号车道（exemptions.internalSignals）——进程内信号不因无 enum 强制入欠账基线，机器面三硬判（非契约枚举∧无 error_code 直写∧不出现在 server/routes/**）命中即红须升外发道，四要素＋到期复审同纪律。门禁首跑+先红后绿破坏实验实证（删 DUPLICATE 豁免即红，精确报抛点文件）｜2026-11-06 WP-122 合一承接台：+面③freshness（gen-error-registry --check，无条件）+面④出生校验 strict（三工厂变体共享 assertCodeBorn 行为证明）——自 error-registry 门禁原样并入，守护测试以合成桩直调（auditRegistryFaces 可注入）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-08 Master 批立（P1 模式新实例：错误码事实源双向对账）。起因 tr_43c615f5——DUPLICATE_DOCUMENT_ID 服务端抛而契约未登记，enforce 把真实业务错误掩埋成 500。两检查面：①抛了未登记（新码不补契约即红——增量防御，存量欠账入基线豁免分批清理）②登记没人抛（死枚举须显式归位，28 存量入基线）。PR-206（2026-11-03）两扩：③挂 commit 面（surfaces+commitScope）——新码提交瞬间即拦，不再等 CI 兜底（WP-076 实锤：MIRROR_SCOPE_UNRESOLVED 两天后才红）；④内部信号车道（exemptions.internalSignals）——进程内信号不因无 enum 强制入欠账基线，机器面三硬判（非契约枚举∧无 error_code 直写∧不出现在 server/routes/**）命中即红须升外发道，四要素＋到期复审同纪律。门禁首跑+先红后绿破坏实验实证（删 DUPLICATE 豁免即红，精确报抛点文件）｜2026-11-06 WP-122 合一承接台：+面③freshness（gen-error-registry --check，无条件）+面④出生校验 strict（三工厂变体共享 assertCodeBorn 行为证明）——自 error-registry 门禁原样并入，守护测试以合成桩直调（auditRegistryFaces 可注入）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -295,7 +295,7 @@
         "scripts/quality/__tests__/guards/validation-parity.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "2026-10-12 建成（SPEC-011 WP6/PR-046 防复发，第19号）：双侧校验器同源对账——Node 侧 enums-loader.cjs validateCategoryPath 与 Python 侧 validate-article.py validate_category_path 特征指纹与 contracts/validation-rules.json 比对；改一漏一即红。三项破坏实验先红后绿（规则表缺失/Node 侧 troubleshoot 禁令被移除/Python 侧三段检查被移除）。 2026-10-19 SPEC-022 波C：Python 侧退役——双侧对账面③④退役，门禁职责＝规则表↔Node 唯一实现指纹；面⑦反信号探针防第三套读法复活。｜2026-11-06 WP-122 收敛批退役：对账对象已不存在——validate-article.py 于 SPEC-022 波 C（2026-10-19）退役为墓碑壳（exit 2 指引 Node 唯一实现 article-validator-lib.cjs，行为金标 __tests__/validate-article-parity.test.cjs 持续锁定）。本台原波4状态「挂起待 SPEC-022」就此关闭。脚本留作手动工具（node scripts/quality/check-validation-parity.mjs），别名经投影保留 | 2026-11-06 WP-128 红线复核否决退役前提并恢复 registered：「对账对象已不存在」只覆盖已死的 Python 侧；余面②⑤⑦对象实测仍活——validation-rules.json 被 frontmatter-rule-engine.cjs 数据驱动消费（4 处引用）、enums-loader.cjs validateCategoryPath 硬编码语义仍在（267 行 troubleshoot）、指纹面②⑤与防第三实现探针⑦脚本中原样未动。恢复＝防护回归保守方向。退出路径＝enums-loader 数据驱动化结构收编落地后，指纹面对象才真正消失，按波 4 流程退役。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-12 建成（SPEC-011 WP6/PR-046 防复发，第19号）：双侧校验器同源对账——Node 侧 enums-loader.cjs validateCategoryPath 与 Python 侧 validate-article.py validate_category_path 特征指纹与 contracts/validation-rules.json 比对；改一漏一即红。三项破坏实验先红后绿（规则表缺失/Node 侧 troubleshoot 禁令被移除/Python 侧三段检查被移除）。 2026-10-19 SPEC-022 波C：Python 侧退役——双侧对账面③④退役，门禁职责＝规则表↔Node 唯一实现指纹；面⑦反信号探针防第三套读法复活。｜2026-11-06 WP-122 收敛批退役：对账对象已不存在——validate-article.py 于 SPEC-022 波 C（2026-10-19）退役为墓碑壳（exit 2 指引 Node 唯一实现 article-validator-lib.cjs，行为金标 __tests__/validate-article-parity.test.cjs 持续锁定）。本台原波4状态「挂起待 SPEC-022」就此关闭。脚本留作手动工具（node scripts/quality/check-validation-parity.mjs），别名经投影保留 | 2026-11-06 WP-128 红线复核否决退役前提并恢复 registered：「对账对象已不存在」只覆盖已死的 Python 侧；余面②⑤⑦对象实测仍活——validation-rules.json 被 frontmatter-rule-engine.cjs 数据驱动消费（4 处引用）、enums-loader.cjs validateCategoryPath 硬编码语义仍在（267 行 troubleshoot）、指纹面②⑤与防第三实现探针⑦脚本中原样未动。恢复＝防护回归保守方向。退出路径＝enums-loader 数据驱动化结构收编落地后，指纹面对象才真正消失，按波 4 流程退役。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-validation-parity.mjs"
       ]
@@ -345,7 +345,7 @@
       ],
       "owner": "guard-captain",
       "description": "SPEC-013 路径角色单源＋SPEC-028 可变性档三面（角色行 mutability 必填/枚举/§四映射＋执法测试在册＋裸拼扫描）",
-      "note": "｜留任理由（2026-11-06 WP-122 补）：文章生命周期路径角色契约静态执法（SPEC-013/028）——契约良构＋server 侧裸拼四族路径字面量即红（必须经 article-lifecycle-paths.cjs 单源）＋可变性档三面。对账对象=仓内代码与契约文件，扫描是唯一手段（无生成关系），必须留任｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "｜留任理由（2026-11-06 WP-122 补）：文章生命周期路径角色契约静态执法（SPEC-013/028）——契约良构＋server 侧裸拼四族路径字面量即红（必须经 article-lifecycle-paths.cjs 单源）＋可变性档三面。对账对象=仓内代码与契约文件，扫描是唯一手段（无生成关系），必须留任｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-article-lifecycle.mjs"
       ]
@@ -470,7 +470,7 @@
         "scripts/quality/__tests__/check-table-usage.test.mjs"
       ],
       "owner": "ui-component-engineer",
-      "note": "结构收口批补登记：10-15 上线的表格执法扫描器三面全无（无 CI 步/无注册条目/零调用方）——配方执法层的执法面。bem 类与域组件对账（bem_classes=17 domain_components=8）。｜结构收口尾批（2026-10-16 Master 审计 V1）：补 commit 面（域卡声明 gate 的检测窗口收到提交瞬间——src/ 触发）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "结构收口批补登记：10-15 上线的表格执法扫描器三面全无（无 CI 步/无注册条目/零调用方）——配方执法层的执法面。bem 类与域组件对账（bem_classes=17 domain_components=8）。｜结构收口尾批（2026-10-16 Master 审计 V1）：补 commit 面（域卡声明 gate 的检测窗口收到提交瞬间——src/ 触发）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -495,7 +495,7 @@
         "scripts/quality/__tests__/check-recipe-usage.test.mjs"
       ],
       "owner": "ui-component-engineer",
-      "note": "结构收口批补登记：10-16 配方执法器（Master「能按契约和配方检查出没收敛的代码吗」）六道检查——裸 z/默认阴影/h-7 棘轮/自写表格/cell 原生 button/悬空 import。曾三面全无（同 table-usage），本批随投影接入 CI。｜结构收口尾批（V1）：补 commit 面＋补回归测试（原零测试——无红面证明的执法器可静默失效）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "结构收口批补登记：10-16 配方执法器（Master「能按契约和配方检查出没收敛的代码吗」）六道检查——裸 z/默认阴影/h-7 棘轮/自写表格/cell 原生 button/悬空 import。曾三面全无（同 table-usage），本批随投影接入 CI。｜结构收口尾批（V1）：补 commit 面＋补回归测试（原零测试——无红面证明的执法器可静默失效）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -522,7 +522,7 @@
       ],
       "owner": "quality-gate-engineer",
       "status": "retired",
-      "note": "2026-10-17 建成（ADR-008 D2/SPEC-015，第30号）：字段引用对账——server/管线消费 frontmatter 字段名（画像 DIMENSIONS/validate-article REQUIRED_FIELDS/合规 allowedByField 三锚点）⊆ fields.yaml 声明集（name∪aliases）。防「校验代码读未登记字段」的字段漂移假绿面。红绿夹具三面：未登记消费红/全登记绿（含 advisory 不拦截——隐式消费合法）/字典缺失红（fail-closed）。声明侧 advisory 只提示不拦截（title 等由渲染面隐式消费）。2026-10-18 SPEC-020 波 1 扩第四面：值域引用悬空执法——经唯一解释器 value-domain-resolver.cjs 解析全部结构化配方，引用不存在的段/别名表/未知 op 即红（fail-closed）。同日波 2：REQUIRED_FIELDS／allowedByField 两锚点随平行账字面量退役而退役（消费端从 resolved-domains.json 解析物派生，对账对象消失）；DIMENSIONS 锚点随迁 profile-dimensions.cjs 单一定义；防漏面＝第四面＋derivation-sync＋等价性测试。2026-10-19 SPEC-023 波 4：第四面（配方悬空）已前置写路径（writeFields→FIELDS_RECIPE_INVALID 拒写）——本面降为回归兜底。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：半可投影——第五面 required 集为真双写（fields.yaml 语义源×entity-readiness-rules.json 消费契约），可派生化（拆契约=生成 required 集＋手写 control/optionsKey 映射＋derivation-sync 行，结构性收编另立批次）；DIMENSIONS 锚点随消费端改吃 resolved-domains 即退役（REQUIRED_FIELDS 先例同构）；subjects 双向/值域配方悬空/选项包面为纪律执法留任｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-17 建成（ADR-008 D2/SPEC-015，第30号）：字段引用对账——server/管线消费 frontmatter 字段名（画像 DIMENSIONS/validate-article REQUIRED_FIELDS/合规 allowedByField 三锚点）⊆ fields.yaml 声明集（name∪aliases）。防「校验代码读未登记字段」的字段漂移假绿面。红绿夹具三面：未登记消费红/全登记绿（含 advisory 不拦截——隐式消费合法）/字典缺失红（fail-closed）。声明侧 advisory 只提示不拦截（title 等由渲染面隐式消费）。2026-10-18 SPEC-020 波 1 扩第四面：值域引用悬空执法——经唯一解释器 value-domain-resolver.cjs 解析全部结构化配方，引用不存在的段/别名表/未知 op 即红（fail-closed）。同日波 2：REQUIRED_FIELDS／allowedByField 两锚点随平行账字面量退役而退役（消费端从 resolved-domains.json 解析物派生，对账对象消失）；DIMENSIONS 锚点随迁 profile-dimensions.cjs 单一定义；防漏面＝第四面＋derivation-sync＋等价性测试。2026-10-19 SPEC-023 波 4：第四面（配方悬空）已前置写路径（writeFields→FIELDS_RECIPE_INVALID 拒写）——本面降为回归兜底。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：半可投影——第五面 required 集为真双写（fields.yaml 语义源×entity-readiness-rules.json 消费契约），可派生化（拆契约=生成 required 集＋手写 control/optionsKey 映射＋derivation-sync 行，结构性收编另立批次）；DIMENSIONS 锚点随消费端改吃 resolved-domains 即退役（REQUIRED_FIELDS 先例同构）；subjects 双向/值域配方悬空/选项包面为纪律执法留任｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-fields-registry.mjs"
       ]
@@ -592,7 +592,7 @@
       ],
       "owner": "quality-gate-engineer",
       "status": "retired",
-      "note": "2026-10-20 结构审计合并批（Master「批准」）：theme-token-hygiene＋theme-vocab 两台合一（同契约密度冗余）——包装器串联两面，子检查器与测试原样保留。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-20 结构审计合并批（Master「批准」）：theme-token-hygiene＋theme-vocab 两台合一（同契约密度冗余）——包装器串联两面，子检查器与测试原样保留。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-theme-contract.mjs"
       ]
@@ -642,7 +642,7 @@
         "scripts/quality/__tests__/guards/contract-route-parity.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "2026-10-20 PR-085 第 1 步立（Master 批准 v2 决策卡）：复用域 api-contract 备注里缺的「openapi↔后端实现漂移断言」——契约操作⇄注册路由双向完备（契约超前／契约外／重复三面），retired-routes.json 墓碑以退役登记表为契约之源豁免；运行时另有 http-app onRoute fail-closed 兜底。首跑 routes=100 contract_ops=94 墓碑豁免 6；红绿反证三面（夹具）随测试文件入档。立案时补登 GET /api/schema/subjects（自 SPEC-019 在线、前端消费、契约缺席）。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-20 PR-085 第 1 步立（Master 批准 v2 决策卡）：复用域 api-contract 备注里缺的「openapi↔后端实现漂移断言」——契约操作⇄注册路由双向完备（契约超前／契约外／重复三面），retired-routes.json 墓碑以退役登记表为契约之源豁免；运行时另有 http-app onRoute fail-closed 兜底。首跑 routes=100 contract_ops=94 墓碑豁免 6；红绿反证三面（夹具）随测试文件入档。立案时补登 GET /api/schema/subjects（自 SPEC-019 在线、前端消费、契约缺席）。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-contract-route-parity.mjs"
       ]
@@ -663,7 +663,7 @@
         "scripts/quality/__tests__/guards/response-count-parity.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "WP-071 立（模式五「同集合计数同口径」执法件）：扫描响应内成对计数字段，仅对带 x-count-parity 标记的对象执行三规则（口径声明/配对自洽/过滤口径一致），机器发现「节点过滤、边不过滤」类语义冲突；存量对象只登记不阻断。真仓 enforced=2 零违例；夹具 R1/R2/R3 反例随测试入档。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "WP-071 立（模式五「同集合计数同口径」执法件）：扫描响应内成对计数字段，仅对带 x-count-parity 标记的对象执行三规则（口径声明/配对自洽/过滤口径一致），机器发现「节点过滤、边不过滤」类语义冲突；存量对象只登记不阻断。真仓 enforced=2 零违例；夹具 R1/R2/R3 反例随测试入档。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -689,7 +689,7 @@
         "scripts/quality/__tests__/check-interaction-state.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "2026-10-21 interaction-state 第二落地（PR-071 子项二）：13 个 zustand store 的 loading/error 布尔配对全部迁至 RequestStatus 五态＋RequestSlice 构造器（error 非空⇔status=error 由构造器保证）；本门禁三检查面＝裸 loading: boolean／同前缀 xLoading+xError 配对／store 内另写五态字面量。首跑 stores=19 零违例；回归测试 5 用例（三探针红＋孤立 busy 布尔不误伤）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-21 interaction-state 第二落地（PR-071 子项二）：13 个 zustand store 的 loading/error 布尔配对全部迁至 RequestStatus 五态＋RequestSlice 构造器（error 非空⇔status=error 由构造器保证）；本门禁三检查面＝裸 loading: boolean／同前缀 xLoading+xError 配对／store 内另写五态字面量。首跑 stores=19 零违例；回归测试 5 用例（三探针红＋孤立 busy 布尔不误伤）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -712,7 +712,7 @@
       "execution": "ci",
       "status": "retired",
       "owner": "quality-gate-engineer",
-      "note": "2026-10-21 term-copy 切片一（PR-075 验收口径「状态机高频词回收」）：TERM 新增「请求状态词」段 8 词（加载中…/加载失败/请求失败/重试/暂无数据/保存失败/已保存/无法连接 API），业务代码 27 处独立字面量全部收编（含 加载中… 与 加载中... 两种省略号写法的漂移统一）。门禁两检查面＝段内值的独立字面量/JSX 文本硬编码、ASCII 省略号变体；词表单源从 term-const 该段解析，不另抄。首跑 words=8 files=319 零违例；回归测试 5 用例。完整句直写仍允许（term-const 规则 3）。｜2026-11-07 WP-145 波4 退役（ADR-019 §四，账物分离口径）：检查面已被 lint CJK 选择器＋基线棘轮全量吸收（2454 行硬编码介质翻转完成，销账进行中）；退役理由＝执法介质升级（白名单追词→闭集出口），出生职责由 ADR-019 §二文案出口承载。恢复路径＝git checkout 7a46c186 -- scripts/quality/check-term-copy.mjs＋注册表行改 registered＋package.json 别名恢复（恢复须与域卡 gate 指针同步改回）。实物删除随本批：脚本＋回归测试＋package.json 别名（testFiles 悬空项同批清空，与 WP-122 action-routing 退役先例同款；域卡 tests 认领同步摘除）。｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-21 term-copy 切片一（PR-075 验收口径「状态机高频词回收」）：TERM 新增「请求状态词」段 8 词（加载中…/加载失败/请求失败/重试/暂无数据/保存失败/已保存/无法连接 API），业务代码 27 处独立字面量全部收编（含 加载中… 与 加载中... 两种省略号写法的漂移统一）。门禁两检查面＝段内值的独立字面量/JSX 文本硬编码、ASCII 省略号变体；词表单源从 term-const 该段解析，不另抄。首跑 words=8 files=319 零违例；回归测试 5 用例。完整句直写仍允许（term-const 规则 3）。｜2026-11-07 WP-145 波4 退役（ADR-019 §四，账物分离口径）：检查面已被 lint CJK 选择器＋基线棘轮全量吸收（2454 行硬编码介质翻转完成，销账进行中）；退役理由＝执法介质升级（白名单追词→闭集出口），出生职责由 ADR-019 §二文案出口承载。恢复路径＝git checkout 7a46c186 -- scripts/quality/check-term-copy.mjs＋注册表行改 registered＋package.json 别名恢复（恢复须与域卡 gate 指针同步改回）。实物删除随本批：脚本＋回归测试＋package.json 别名（testFiles 悬空项同批清空，与 WP-122 action-routing 退役先例同款；域卡 tests 认领同步摘除）。｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -739,7 +739,7 @@
         "scripts/quality/__tests__/check-ui-kit.test.mjs"
       ],
       "owner": "ui-component-engineer",
-      "note": "2026-10-21 ui-kit 政策落地（Master「批准修复」）：新代码必须走 @/components/ui/button，存量按触碰迁移不专项替换（手写样式与 ui/button 风格差异大，强换改视觉）。机制＝原生 <button 棘轮基线 contracts/ui-kit-baseline.json（机器生成，--write 重算，禁手改；首算 90 文件 223 处）：基线外文件出现即红／基线内只减不增／归零条目须缩减。豁免 ui/（基础件自身）与 aria/（侧栏专属皮肤，PR-070）。回归测试 5 用例（三探针红＋下降不拦）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-21 ui-kit 政策落地（Master「批准修复」）：新代码必须走 @/components/ui/button，存量按触碰迁移不专项替换（手写样式与 ui/button 风格差异大，强换改视觉）。机制＝原生 <button 棘轮基线 contracts/ui-kit-baseline.json（机器生成，--write 重算，禁手改；首算 90 文件 223 处）：基线外文件出现即红／基线内只减不增／归零条目须缩减。豁免 ui/（基础件自身）与 aria/（侧栏专属皮肤，PR-070）。回归测试 5 用例（三探针红＋下降不拦）。｜WP-143 波2 转普通测试（2026-11-07 Master 铁律：产品验证不注册进治理机器）——检查器保留为测试助手（scripts/quality/__tests__/guards/*.test.mjs 直呼），账物分离；基线/棘轮语义随助手原样｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -767,7 +767,7 @@
         "scripts/quality/__tests__/guards/object-dictionary.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "字典×元模型对账（TALOS 枚举单源＋常设校验面借鉴批，Master 2026-10-23 批准）——字段归属/双状态机/证据双通道/类型化关系边/读侧纪律执法面。 迁移边咽喉接线（WP-115/PR-259 #4）：surfaces+commit——字典/边表/元模型暂存即跑提交时面（HEAD↔暂存迁移边判定）；CI 面不变。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——字典即人写真身（证据串/裁决文/边界 B1-B6/标准对照），元模型是词表权威非其可生成投影，对账面为纪律执法（归属闭合/枚举闭合/卡数16棘轮/boundary7棘轮/律文钉 ADR-017/HEAD↔暂存迁移咽喉），无第二副本可统一（ADR-015 退役公式无施力点）｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "字典×元模型对账（TALOS 枚举单源＋常设校验面借鉴批，Master 2026-10-23 批准）——字段归属/双状态机/证据双通道/类型化关系边/读侧纪律执法面。 迁移边咽喉接线（WP-115/PR-259 #4）：surfaces+commit——字典/边表/元模型暂存即跑提交时面（HEAD↔暂存迁移边判定）；CI 面不变。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——字典即人写真身（证据串/裁决文/边界 B1-B6/标准对照），元模型是词表权威非其可生成投影，对账面为纪律执法（归属闭合/枚举闭合/卡数16棘轮/boundary7棘轮/律文钉 ADR-017/HEAD↔暂存迁移咽喉），无第二副本可统一（ADR-015 退役公式无施力点）｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "commit"
       ],
@@ -805,7 +805,7 @@
         "scripts/quality/__tests__/guards/pipeline-rules.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "红修批 #76（面2 修复件）：D6 版本门机器执法——active 指针合法/版本名白名单/已发布哈希自校验/候选成对｜WP-143 波3 转普通测试（2026-11-08 铁律）——厚扫描逻辑保留为测试助手，账物分离｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "红修批 #76（面2 修复件）：D6 版本门机器执法——active 指针合法/版本名白名单/已发布哈希自校验/候选成对｜WP-143 波3 转普通测试（2026-11-08 铁律）——厚扫描逻辑保留为测试助手，账物分离｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-pipeline-rules.mjs"
       ]
@@ -946,7 +946,7 @@
         "scripts/quality/__tests__/guards/schema-shape.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "2026-10-27 SCHEMA-IA-001 批16（Master 裁 A 扩域）：实体字段候选投影单源执法——src/features/**与src/components/** 中对象键 arch_layer/arch_category/arch_subdomain 被赋非字面量值（候选推导第二份实现）即红；字符串字面量（草稿空态）与可选类型键（?:）不误伤。背景=批16 前合规页/异常抽屉双份拍平且健壮度分叉（异常侧有 ADR-008 D1 双形态加固、合规侧 layers 对象形态静默漏词）——收编进 schema-shape entityFieldCandidates 后立法防回潮。豁免面=schema-manager（enums 编辑器合法直读 section）。首跑 files=238 零违例；门禁回归 5 用例（两旧形态探针红+两不误伤面绿）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——执法对象是尚不存在的第二份候选推导实现（禁模式扫描，负向不变量），无副本可统一；退役前提=候选键类型化/代码生成另立立法路径｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-27 SCHEMA-IA-001 批16（Master 裁 A 扩域）：实体字段候选投影单源执法——src/features/**与src/components/** 中对象键 arch_layer/arch_category/arch_subdomain 被赋非字面量值（候选推导第二份实现）即红；字符串字面量（草稿空态）与可选类型键（?:）不误伤。背景=批16 前合规页/异常抽屉双份拍平且健壮度分叉（异常侧有 ADR-008 D1 双形态加固、合规侧 layers 对象形态静默漏词）——收编进 schema-shape entityFieldCandidates 后立法防回潮。豁免面=schema-manager（enums 编辑器合法直读 section）。首跑 files=238 零违例；门禁回归 5 用例（两旧形态探针红+两不误伤面绿）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——执法对象是尚不存在的第二份候选推导实现（禁模式扫描，负向不变量），无副本可统一；退役前提=候选键类型化/代码生成另立立法路径｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "surfaces": [
         "ci",
         "commit"
@@ -985,7 +985,7 @@
         "scripts/quality/__tests__/guards/fields-dictionary.test.mjs"
       ],
       "owner": "data-governance",
-      "note": "2026-10-29 建（PR-156 刀四）：字段字典卫生——(name,scope) 组合唯一（同名跨域重载合法有据：status 实体/文章两义）、值域显式（free 合法但空值域红）、enum 必闭合、必填枚举合法。前科：title 空值域、status 双条目无机器规则（消费方按 scope 过滤故行为正确，但字典页呈现无说明——呈现改进另行）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——fields.yaml 是唯一真身，五面为单文件卫生不变量（(name,scope)唯一/值域显式/enum闭合/必填枚举合法），无对账对象、投影化无处着力｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "2026-10-29 建（PR-156 刀四）：字段字典卫生——(name,scope) 组合唯一（同名跨域重载合法有据：status 实体/文章两义）、值域显式（free 合法但空值域红）、enum 必闭合、必填枚举合法。前科：title 空值域、status 双条目无机器规则（消费方按 scope 过滤故行为正确，但字典页呈现无说明——呈现改进另行）。｜2026-11-06 WP-125 留任复核入账（登记册守望族六台逐台判据审，证据=file:line 实录于工作包）：必须留任——fields.yaml 是唯一真身，五面为单文件卫生不变量（(name,scope)唯一/值域显式/enum闭合/必填枚举合法），无对账对象、投影化无处着力｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-fields-dictionary.mjs"
       ]
@@ -1037,7 +1037,7 @@
         "scripts/quality/__tests__/guards/action-coverage.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "WP-067（2026-11-01）：注册路由×测试树点名对账——死路径哨兵（tripwire）。口径=静态点名，不冒充真实通道证明（真实通道由治理链旅程 E2E 承担，SPEC-067 §二.3 两层分工）；豁免单只减不增棘轮，存量 10 条零点名挂账逐条销号。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "WP-067（2026-11-01）：注册路由×测试树点名对账——死路径哨兵（tripwire）。口径=静态点名，不冒充真实通道证明（真实通道由治理链旅程 E2E 承担，SPEC-067 §二.3 两层分工）；豁免单只减不增棘轮，存量 10 条零点名挂账逐条销号。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-action-coverage.mjs"
       ]
@@ -1057,7 +1057,7 @@
         "scripts/quality/__tests__/guards/empty-state-semantics.test.mjs"
       ],
       "owner": "quality-gate-engineer",
-      "note": "WP-070／SPEC-070 §3.5（error-copy 域首个执法面，2026-11-02）：四面——①契约形状（ajv）②requires 边闭合（自指/悬空/成环红）③站点闭合（kinds⊆种类；消费类必带 error_code；module 存在）④文案 tripwire（server/** 含契约 guide_template 固定片段者只许为唯一组装点 availability-view——第二文案源即红；指纹随模板派生不写死）。已知缺口：tripwire 只认模板指纹，不按模板写的散文式指引不在镜头（代码评审面）。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）",
+      "note": "WP-070／SPEC-070 §3.5（error-copy 域首个执法面，2026-11-02）：四面——①契约形状（ajv）②requires 边闭合（自指/悬空/成环红）③站点闭合（kinds⊆种类；消费类必带 error_code；module 存在）④文案 tripwire（server/** 含契约 guide_template 固定片段者只许为唯一组装点 availability-view——第二文案源即红；指纹随模板派生不写死）。已知缺口：tripwire 只认模板指纹，不按模板写的散文式指引不在镜头（代码评审面）。｜WP-143 波3 转普通测试（2026-11-08 铁律：产品验证不注册进治理机器）——厚扫描逻辑保留为测试助手（scripts/quality/__tests__/guards/ 直呼），账物分离；action-coverage 参数化路由直打升级登记为后续项（WP-143 收官清单）｜keptHelpers 认领补全（波4b R1a 统一形态：实物转测试载体继续执法）｜PR-269 谓词扩面兑现（2026-11-15，Master 批）：COUNT_FIELD 收裸 total/returned、计数图（名含 total/count 或 ByKind 结尾的 integer 叶 map）入镜、标记向子树级联＋$ref 解引（summary.totalResults 形态）、新增 R4 集合声明（计数字段 description 必须点名同子树数组，杜绝计数与数组两张皮）；真仓 enforced 2→6（新纳保 ArticleUploadList/CanvasAdmissionData/CanonicalDocumentSearchData/inference-conflicts 响应），存量违例 8 条以修数清零未设基线；破坏实验（撤标记必绿/复原必红）＋七组形状测试随 test 文件入档；执法介质仍为 kept 测试载体，CI 门禁位保持 retired 不复活",
       "keptHelpers": [
         "scripts/quality/check-empty-state-semantics.mjs"
       ]

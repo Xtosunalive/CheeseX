@@ -24,9 +24,6 @@ vi.mock("@/lib/review-data-store", () => ({
   useReviewPendingCount: () => 0,
   useReviewStore: (selector: (state: { load: () => void }) => unknown) => selector({ load: stores.reviewLoad }),
 }));
-vi.mock("@/lib/property-data-store", () => ({
-  usePropertyDataStore: (selector: (state: { summary: { blockerCount: number; warningCount: number }; load: () => void }) => unknown) => selector({ summary: { blockerCount: 0, warningCount: 0 }, load: stores.propertyLoad }),
-}));
 // 模块表面统一为 Panel；断言其表面类（Panel 是模块外层 div 的唯一子元素）
 const PANEL_SURFACE = ["rounded-xl", "bg-surface-card", "ring-1", "ring-border-thin"];
 function panelSurface(moduleEl: HTMLElement): HTMLElement {
