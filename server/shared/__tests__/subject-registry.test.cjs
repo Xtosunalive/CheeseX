@@ -123,15 +123,12 @@ subjects:
   assert.ok(degradedNodes.length > 0, "脏行有痕降级");
 });
 
-test("W1·真实 vault：AnyShare 注册为 paused 主体（SPEC-016 归档包承接），读取被拒", () => {
+test("退役钉（2026-11-15 PR-243 产品身份层清零，Master 裁「删除」）：真实 vault 无 anyshare 注册行，查询走未注册 404", () => {
   const vaultPath = process.env.VAULT_PATH || path.resolve(__dirname, "..", "..", "..");
   const { resolveTheSchemaDir } = require("../theschema-root.cjs");
   const file = path.join(resolveTheSchemaDir(vaultPath), "subjects.yaml");
   if (!fs.existsSync(file)) return; // 无 vault 且无仓内主源时跳过
   const registry = readSubjects(vaultPath);
-  const anyshare = registry.subjects.find((s) => s.id === "anyshare");
-  assert.ok(anyshare, "AnyShare 已注册");
-  assert.equal(anyshare.status, "paused");
-  assert.ok(anyshare.archived_from.includes("enums-legacy-archive-manifest"), "归档指针承接 SPEC-016 预留");
-  assert.throws(() => readEnumsForSubject(vaultPath, "anyshare"), (e) => e.code === "SUBJECT_NOT_MOUNTED");
+  assert.equal(registry.subjects.filter((s) => s && s.id === "anyshare").length, 0, "anyshare 注册行已删（身份随档案一并清）");
+  assert.throws(() => readEnumsForSubject(vaultPath, "anyshare"), (e) => e.code === "SUBJECT_UNKNOWN");
 });
