@@ -59,3 +59,45 @@ test("反例③：前端镜像整表缺失 → 结构红（锚点找不到/缺�
     assert.match(r.out, /\[前置表\]/);
   });
 });
+
+// ── PR-324①/WP-182：解析器注释免疫——红队回件三假红闭合＋漏报闭合 ──
+
+/** 就地变异后端服务文件跑门禁，finally 无条件还原 */
+function withService(mutate, fn) {
+  const SERVICE = path.resolve(__dirname, "..", "..", "..", "server", "services", "anomaly", "anomaly-workbench-service.cjs");
+  const orig = fs.readFileSync(SERVICE, "utf-8");
+  fs.writeFileSync(SERVICE, mutate(orig));
+  try {
+    const out = execFileSync("node", [path.resolve(__dirname, "..", "check-action-routing.mjs")], { encoding: "utf8" });
+    return fn({ code: 0, out });
+  } catch (e) {
+    return fn({ code: e.status ?? 1, out: (e.stdout || "") + (e.stderr || "") });
+  } finally {
+    fs.writeFileSync(SERVICE, orig);
+  }
+}
+
+test("PR-324① 假红闭合：镜像表注释行不再被当真条目（红队探针 D）", () => {
+  withRegistry((s) => s.replace('confirm: ["previewed"]', 'confirm: ["previewed"]\n  // reject: ["pending"]'), (r) => {
+    assert.equal(r.code, 0, `注释行不得产生假红：${r.out.slice(0, 300)}`);
+  });
+});
+
+test("PR-324① 假红闭合：行内注释含条目不覆盖真值（红队探针 E）", () => {
+  withRegistry((s) => s.replace('confirm: ["previewed"]', 'confirm: ["previewed"], // preview: ["open"]'), (r) => {
+    assert.equal(r.code, 0, `行内注释不得覆盖真条目：${r.out.slice(0, 300)}`);
+  });
+});
+
+test("PR-324① 假红闭合：注释含 } 不截断表体（红队探针 H）", () => {
+  withRegistry((s) => s.replace('const OPERATION_PRECONDITIONS', '// 括号样例 } {}\nconst OPERATION_PRECONDITIONS'), (r) => {
+    assert.equal(r.code, 0, `注释含 } 不得截断表体：${r.out.slice(0, 300)}`);
+  });
+});
+
+test("PR-324① 漏报闭合：后端表注释停用 confirm → 对账红（fail-open 组合不再静默）", () => {
+  withService((s) => s.replace('  confirm: ["previewed"],', '  // confirm: ["previewed"],'), (r) => {
+    assert.notEqual(r.code, 0);
+    assert.match(r.out, /\[前置表\] 操作 "confirm" 前端镜像声明但后端 OPERATION_PRECONDITIONS 无此操作/);
+  });
+});
