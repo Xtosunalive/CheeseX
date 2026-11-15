@@ -246,9 +246,14 @@ function checkDiagnostic(component, graphNodes, graphEdges) {
  * in the same graph. Documents with a module that has no corresponding
  * entity are flagged as blocker — the knowledge node must be created first.
  */
-function checkDocumentModuleEntity(docNode, graphNodes, validModules) {
+function checkDocumentModuleEntity(docNode, graphNodes, validModules, options = {}) {
   validModules = Array.isArray(validModules) ? validModules : [];
-  var admission = inspectFormalDocumentNode(docNode);
+  // SPEC-030 §十一批3（2026-11-16 衍生面切换）：includeCandidates＝调用方显式把 precleaned 候选
+  // 纳入缺实体视野（与发布解耦，Master 裁「源即权威」）——匹配逻辑单源不动，仅准入门按调用方
+  // 语义放行；默认（不传）维持 formal-only（inspectFormalDocumentNode admission 语义不变）。
+  var admission = options.includeCandidates === true
+    ? { applicable: true, reason: "候选纳入（SPEC-030 §十一批3：衍生面与发布解耦）", sourcePath: "" }
+    : inspectFormalDocumentNode(docNode);
   if (!admission.applicable) return { document_module_entity: { passed: true, applicable: false, moduleName: "", reason: admission.reason, docFilePath: admission.sourcePath } };
   var moduleName = (docNode.properties && docNode.properties.module) ? String(docNode.properties.module).trim() : "";
   var props = docNode.properties || {};

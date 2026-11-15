@@ -257,31 +257,42 @@ function createAnomalyIssueCollector(deps) {
       // 判定逻辑单源复用 checkDocumentModuleEntity（property-governance 读图的图 QA 语义不动，D7/D8）。
       const articleNodes = [];
       const entityNodes = [];
-      // 文章侧 = 正式文章快照（wiki/articles/<域>/<dir>/<hash>.md——SPEC-030 派②两层，publish 落位）；
-      // raw/precleaned 候选有意排除（inspectFormalDocumentNode admission 语义保持，规则主体不变）
-      const articlesDir = articleLifecycle.formalArticlesDir(deps.vaultPath);
-      if (fs.existsSync(articlesDir)) {
-        for (const domainEntry of fs.readdirSync(articlesDir, { withFileTypes: true })) {
-          if (!domainEntry.isDirectory()) continue;
-        for (const entry of fs.readdirSync(path.join(articlesDir, domainEntry.name), { withFileTypes: true })) {
-          if (!entry.isDirectory()) continue;
-          const articleDir = path.join(articlesDir, domainEntry.name, entry.name);
-          for (const fileName of fs.readdirSync(articleDir)) {
-            if (!fileName.endsWith(".md")) continue;
-            const sourcePath = articleLifecycle.formalSourcePath(domainEntry.name, entry.name, fileName);
-            const parsed = loadDocument(fs.readFileSync(path.join(articleDir, fileName), "utf8"), sourcePath);
-            const fm = parsed.frontmatter || {};
+      // 文章侧输入源（SPEC-030 §十一批3，2026-11-16 衍生面切换）：正式可读路径递归平扫（任意深度——
+      // 单层/两层布局缝隙随本批消除）＋ raw/precleaned 候选（与发布解耦：未发布内容同样进入缺实体视野，
+      // stage=precleaned 随快照下发供「未发布」徽记）。同 article_id 去重：formal 优先于 precleaned，
+      // 同源内 mtime 新者胜（布局放开后文件名 hash 字典序启发式不再可靠）。
+      const stageEntries = [];
+      const collectStageArticles = (root, stage) => {
+        if (!fs.existsSync(root)) return;
+        const walk = (dir) => {
+          for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+            const full = path.join(dir, entry.name);
+            if (entry.isDirectory()) { walk(full); continue; }
+            if (!entry.name.endsWith(".md")) continue;
+            const sourcePath = path.relative(deps.vaultPath, full).split(path.sep).join("/");
+            let fm = null;
+            try {
+              fm = loadDocument(fs.readFileSync(full, "utf8"), sourcePath).frontmatter || {};
+            } catch (_e) { continue; } // 单文件解析失败不阻断（与族内守卫同型）
             if (!fm[DK.ARTICLE.articleId] || !String(fm[DK.ARTICLE.module] || "").trim()) continue;
-            // 整改6（粒度=文章×问题类型）：同 article_id 多版本快照（文件名=内容 hash）只保留
-            // 最新一份——字典序最大 hash = 最新内容，去重后 missing_entity 每文章一条，
-            // 消除「同文章两条 missing_entity」的多实例行。
-            const existing = articleNodes.find((node) => node.id === `doc-article-${fm[DK.ARTICLE.articleId]}`);
-            const candidate = { id: `doc-article-${fm[DK.ARTICLE.articleId]}`, label: fm[DK.ARTICLE.title] || fileName, labels: ["Document"], properties: { [DK.ARTICLE.title]: fm[DK.ARTICLE.title] || fileName, [DK.ARTICLE.module]: String(fm[DK.ARTICLE.module]).trim(), [DK.ARTICLE.tags]: fm[DK.ARTICLE.tags] ?? null, file_path: sourcePath } };
-            if (!existing) articleNodes.push(candidate);
-            else if (fileName > path.basename(existing.properties.file_path)) articleNodes[articleNodes.indexOf(existing)] = candidate;
+            stageEntries.push({ stage, sourcePath, fm, mtime: fs.statSync(full).mtimeMs });
           }
-        }
-        }
+        };
+        walk(root);
+      };
+      collectStageArticles(articleLifecycle.formalArticlesDir(deps.vaultPath), "formal");
+      collectStageArticles(articleLifecycle.workingDir(deps.vaultPath), "precleaned"); // 路径单源（article-lifecycle 哨兵执法）
+      const rankStage = (entry) => (entry.stage === "formal" ? 1 : 0);
+      const stageById = new Map();
+      for (const entry of stageEntries) {
+        const nodeId = `doc-article-${entry.fm[DK.ARTICLE.articleId]}`;
+        const current = stageById.get(nodeId);
+        if (!current) { stageById.set(nodeId, entry); continue; }
+        if (rankStage(entry) > rankStage(current) || (rankStage(entry) === rankStage(current) && entry.mtime > current.mtime)) stageById.set(nodeId, entry);
+      }
+      for (const entry of stageById.values()) {
+        const fm = entry.fm;
+        articleNodes.push({ id: `doc-article-${fm[DK.ARTICLE.articleId]}`, label: fm[DK.ARTICLE.title] || path.basename(entry.sourcePath), labels: ["Document"], stage: entry.stage, properties: { [DK.ARTICLE.title]: fm[DK.ARTICLE.title] || path.basename(entry.sourcePath), [DK.ARTICLE.module]: String(fm[DK.ARTICLE.module]).trim(), [DK.ARTICLE.tags]: fm[DK.ARTICLE.tags] ?? null, [DK.ARTICLE.archLayer]: fm[DK.ARTICLE.archLayer] ?? null, [DK.ARTICLE.archCategory]: fm[DK.ARTICLE.archCategory] ?? null, file_path: entry.sourcePath } });
       }
       const entitiesDir = path.join(deps.vaultPath, "知识库", "wiki", "entities");
       if (fs.existsSync(entitiesDir)) {
@@ -296,18 +307,24 @@ function createAnomalyIssueCollector(deps) {
         }
       }
       for (const document of articleNodes) {
-        const result = checkDocumentModuleEntity(document, entityNodes, validModules).document_module_entity;
+        const result = checkDocumentModuleEntity(document, entityNodes, validModules, { includeCandidates: document.stage === "precleaned" }).document_module_entity;
         if (!result.passed && result.moduleName) {
-          // 继承快照（Master 2026-11-15 裁）：缺失实体＝继承主战场——实体页尚不存在、合规行查不到，
-          // 文章 frontmatter 可映射字段随议题下发，创建表单据此预填（module=声明模块；tags=文章标签）。
+          // 继承快照（Master 2026-11-15 裁；批3 扩字段＋来源阶段）：实体页尚不存在、合规行查不到，
+          // 文章 frontmatter 可映射字段随议题下发，创建表单据此预填（module=声明模块；tags/arch_layer/
+          // arch_category=文章现值，空缺不硬造）；sourceStage 供「未发布」徽记（precleaned＝未发布）。
           // 契约 proposedAction 为自由对象（additionalProperties:true）零契约变更；键名经 DK 单源零手抄。
           const rawTags = document.properties[DK.ARTICLE.tags];
           const tags = Array.isArray(rawTags) ? rawTags.map((tag) => String(tag).trim()).filter(Boolean)
             : rawTags ? [String(rawTags).trim()].filter(Boolean) : [];
+          const snapshotFields = { module: [result.moduleName], tags };
+          const archLayer = document.properties[DK.ARTICLE.archLayer];
+          if (typeof archLayer === "string" && archLayer.trim()) snapshotFields[DK.ARTICLE.archLayer] = archLayer.trim();
+          const archCategory = document.properties[DK.ARTICLE.archCategory];
+          if (typeof archCategory === "string" && archCategory.trim()) snapshotFields[DK.ARTICLE.archCategory] = archCategory.trim();
           issues.push({
             issueId: `missing-entity-${document.id}`, issueKind: "missing_entity", title: `文章 "${result.docTitle}" 模块 "${result.moduleName}" 缺少知识实体`,
             evidence: [{ kind: "vault-document", path: result.docFilePath, ruleId: "document-module-entity" }], expectedRevisions: { sourceRevision: result.moduleName },
-            proposedAction: { type: "entity-repair", entityId: document.id, sourceKey: `知识库/wiki/entities/${result.moduleName}.md`, field: "module_entity", currentValue: result.moduleName, expected: result.moduleName, hint: `${result.reason}。请在 Obsidian 中创建实体页后重新运行管道。`, allowedValues: [], articleSnapshot: { sourcePath: result.docFilePath, fields: { module: [result.moduleName], tags } } },
+            proposedAction: { type: "entity-repair", entityId: document.id, sourceKey: `知识库/wiki/entities/${result.moduleName}.md`, field: "module_entity", currentValue: result.moduleName, expected: result.moduleName, hint: `${result.reason}。请在 Obsidian 中创建实体页后重新运行管道。`, allowedValues: [], articleSnapshot: { sourcePath: result.docFilePath, sourceStage: document.stage, fields: snapshotFields } },
           });
         }
       }
