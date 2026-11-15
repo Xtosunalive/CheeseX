@@ -22,7 +22,6 @@ interface SchemaManagerState extends VersionRegistrySlice {
   error: string | null;
   saveStatus: SaveStatus;
   saveError: string | null;
-  pipelineRunning: boolean;
   discovery: DiscoveryResponse | null;
   discoveryRequest: RequestSlice;
   /** 未收录值/实体生长等写操作的失败位（不污染 discoveryRequest 读态） */
@@ -100,7 +99,6 @@ export const useSchemaManagerStore = create<SchemaManagerState>((set, get) => ({
   error: null,
   saveStatus: "clean",
   saveError: null,
-  pipelineRunning: false,
   discovery: null,
   grownNotice: null,
   discoveryRequest: requestIdle(),

@@ -194,7 +194,8 @@ describe("relation candidate frontend contract", () => {
     render(<AnomalyWorkbenchView />);
     // PR-030：驳回入口归位 footer 动作区——不展开「采信依据」折叠卡即可达（≤1 次点击验收）
     expect(await screen.findByRole("button", { name: "驳回候选" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "确认这次处理" })).not.toBeInTheDocument();
+    // PR-324③/WP-180：守卫随确认钮改名更新（旧名断言已恒真失效）；review-only 候选无批准/确认链
+    expect(screen.queryByRole("button", { name: /确认落盘/ })).not.toBeInTheDocument();
     // 折叠卡保留（证据核对职责）且全局面板仅此一个驳回入口——卡内不再重复挂驳回动作
     expect(screen.getByText(/采信依据/)).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: "驳回候选" })).toHaveLength(1);

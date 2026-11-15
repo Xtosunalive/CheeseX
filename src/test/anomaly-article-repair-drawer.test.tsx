@@ -66,3 +66,32 @@ describe("AnomalyEntityRepairDrawer · 文章源分支", () => {
     expect(screen.getByText(/正文请在 Obsidian 修改/)).toBeInTheDocument();
   });
 });
+
+// PR-324②/WP-180：确认（应用修复）钮接状态×操作投影——非 preview_ready 态不渲染改显指引
+describe("AnomalyEntityRepairDrawer · 确认钮状态门控（PR-324②）", () => {
+  it("open 态：应用修复钮不渲染，「下一步」指引在场", async () => {
+    api.fetchEntityCompliance.mockRejectedValue(new Error("文章源合规不强制"));
+    api.fetchEnums.mockResolvedValue({ layers: [], categories: [], subdomains: {} });
+    api.fetchArticleRepairOptions.mockResolvedValue({
+      products: [{ name: "AnyShare", versions: ["7.0.6.7"] }],
+      articleTypes: ["排错指南"],
+      modules: ["可观测性"],
+      docTypes: ["技术文档"],
+      categoryPaths: ["ops:deploy"],
+      articleFields: [{ field: "article_type", label: "知识文章类型", control: "select", required: true }],
+    });
+    render(
+      <AnomalyEntityRepairDrawer
+        issue={articleIssue}
+        relatedIssues={[articleIssue]}
+        error={null}
+        onPreview={vi.fn()}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(api.fetchArticleRepairOptions).toHaveBeenCalled());
+    expect(screen.queryByRole("button", { name: /应用修复/ })).toBeNull();
+    expect(screen.getByText(/下一步：生成预览/)).toBeInTheDocument();
+  });
+});

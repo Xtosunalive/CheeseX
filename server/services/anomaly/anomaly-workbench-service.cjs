@@ -12,7 +12,8 @@ const { writeStatusByEvent } = require("./status-event-writer.cjs");
 
 const ISSUE_KINDS = new Set(["missing_field", "unrecognized_entity", "relation_conflict", "article_association", "version_scope", "stale_source", "missing_entity", "missing_lineage", "pipeline_failure", "standardization_warning", "release_publication_failure", "wild_tag"]);
 
-// ── 集中转移表（规则 8 单源：合法转移唯一定义于此，文档索引见 docs/design/anomaly-state-machine.md §三）──
+// ── 集中转移表（规则 8 单源：合法转移唯一定义于此；前端镜像=src/features/anomaly-workbench/anomaly-action-registry.ts，
+//     双向对账执法=scripts/quality/check-action-routing.mjs 第六面——PR-322/WP-180 死链注释更正，原引用文档不存在）──
 // 操作 → 允许的起始状态；不属于 Anomaly 状态机的操作（reject）不在此约束。
 const OPERATION_PRECONDITIONS = {
   preview: ["open", "stale", "blocked", "previewed"], // 生成/重新生成预览（verified 不可）

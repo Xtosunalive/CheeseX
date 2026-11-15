@@ -69,7 +69,7 @@ describe("derived graph repair task", () => {
     });
     render(<><AnomalyActionPreview issue={issue} /><AnomalyResolutionForm issue={issue} onPreview={onOperate} /></>);
 
-    expect(screen.queryByRole("button", { name: /创建正式图修复批次|确认这次处理/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /创建正式图修复批次/ })).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "打开审批与发布" }));
     expect(window.location.hash).toBe("#/article-workflow");
     expect(onOperate).not.toHaveBeenCalled();

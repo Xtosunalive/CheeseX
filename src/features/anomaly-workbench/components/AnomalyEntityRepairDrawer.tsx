@@ -8,7 +8,8 @@ import { ENTITY_CREATE_FIELDS, ENTITY_CREATE_GROUPS, type EntityFieldSpec } from
 import { fetchEntityCompliance, type ComplianceFinding, type EntityComplianceResult } from "@/features/entity-compliance";
 import { fetchEnums, fetchVersionRegistry, normalizeEnumsData } from "@/features/schema-manager";
 import type { AnomalyIssue } from "@/features/anomaly-workbench/anomaly-workbench-types";
-import { ANOMALY_REPAIR_DRAWER_COPY, ANOMALY_VALUE_PLACEHOLDER_COPY, repairDrawerTitle, repairDrawerEnumsErrorText, repairPostCheckSummaryText, repairBlockerLineText } from "../anomaly-workbench-copy";
+import { ANOMALY_REPAIR_DRAWER_COPY, ANOMALY_PEEK_COPY, ANOMALY_VALUE_PLACEHOLDER_COPY, repairDrawerTitle, repairDrawerEnumsErrorText, repairPostCheckSummaryText, repairBlockerLineText } from "../anomaly-workbench-copy";
+import { isOperationLegal } from "../anomaly-action-registry";
 import { fetchArticleRepairOptions } from "../anomaly-workbench-api";
 import { previewEntityRepair, applyEntityRepair, extractRepairBlockers } from "@/lib/domain/entity-repair-api";
 import { entityFieldCandidates } from "@/lib/schema-shape";
@@ -263,7 +264,9 @@ export function AnomalyEntityRepairDrawer({ issue, relatedIssues, error, apiErro
   const serverBeforeValues = record(summary.beforeValues);
   const afterValues = record(summary.afterValues);
   const postCheck = record(summary.postCheck);
-  const canConfirm = issue.status === "previewed" && Boolean(issue.previewId) && issue.executionReady !== false;
+  // PR-324②/WP-180：确认钮合法性接状态×操作投影单源（isOperationLegal，镜像后端 OPERATION_PRECONDITIONS）——
+  // 手写状态判断退役；运行时条件（previewId/executionReady）保持调用方叠加
+  const confirmReady = isOperationLegal("confirm", issue.status) && Boolean(issue.previewId) && issue.executionReady !== false;
 
   const handlePreview = () => {
     if (isMissingEntity) {
@@ -390,7 +393,9 @@ export function AnomalyEntityRepairDrawer({ issue, relatedIssues, error, apiErro
     <SidePanelAction onClick={handlePreview} disabled={batchBusy}>{batchBusy ? ANOMALY_REPAIR_DRAWER_COPY.PREVIEW_BUSY_ACTION : ANOMALY_REPAIR_DRAWER_COPY.PREVIEW_ACTION}</SidePanelAction>
     {batchPreview
       ? <SidePanelAction variant="primary" onClick={handleBatchApply} disabled={batchBusy}>{ANOMALY_REPAIR_DRAWER_COPY.APPLY_ACTION}</SidePanelAction>
-      : <SidePanelAction variant="primary" onClick={() => onConfirm(String(issue.previewId))} disabled={!canConfirm}>{ANOMALY_REPAIR_DRAWER_COPY.APPLY_ACTION}</SidePanelAction>}
+      : confirmReady
+        ? <SidePanelAction variant="primary" onClick={() => onConfirm(String(issue.previewId))}>{ANOMALY_REPAIR_DRAWER_COPY.APPLY_ACTION}</SidePanelAction>
+        : <span className="text-kg-xs text-text-hint">{ANOMALY_PEEK_COPY.NEXT_STEP_PREVIEW_HINT}</span>}
   </>;
 
   return (

@@ -118,7 +118,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:385"
+        "server/services/anomaly/anomaly-workbench-service.cjs:386"
       ]
     },
     "ANOMALY_LEDGER_CORRUPT": {
@@ -126,7 +126,7 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:194"
+        "server/services/anomaly/anomaly-workbench-service.cjs:195"
       ]
     },
     "ANOMALY_LEDGER_WRITE_FAILED": {
@@ -134,7 +134,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:198"
+        "server/services/anomaly/anomaly-workbench-service.cjs:199"
       ]
     },
     "ANOMALY_NOT_FOUND": {
@@ -142,7 +142,7 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:330"
+        "server/services/anomaly/anomaly-workbench-service.cjs:331"
       ]
     },
     "ANOMALY_PREVIEW_REQUIRED": {
@@ -150,7 +150,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:420"
+        "server/services/anomaly/anomaly-workbench-service.cjs:421"
       ]
     },
     "ANOMALY_SOURCE_CHANGED": {
@@ -167,7 +167,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:31"
+        "server/services/anomaly/anomaly-workbench-service.cjs:32"
       ]
     },
     "APPROVAL_ALREADY_DECIDED": {
@@ -821,10 +821,10 @@ module.exports = {
     "INVALID_ANOMALY": {
       "statuses": [],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:40",
-        "server/services/anomaly/anomaly-workbench-service.cjs:60",
-        "server/services/anomaly/anomaly-workbench-service.cjs:62",
-        "server/services/anomaly/anomaly-workbench-service.cjs:64"
+        "server/services/anomaly/anomaly-workbench-service.cjs:41",
+        "server/services/anomaly/anomaly-workbench-service.cjs:61",
+        "server/services/anomaly/anomaly-workbench-service.cjs:63",
+        "server/services/anomaly/anomaly-workbench-service.cjs:65"
       ]
     },
     "INVALID_ANOMALY_SOURCE": {
@@ -832,8 +832,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:215",
-        "server/services/anomaly/anomaly-workbench-service.cjs:215"
+        "server/services/anomaly/anomaly-workbench-service.cjs:216",
+        "server/services/anomaly/anomaly-workbench-service.cjs:216"
       ]
     },
     "INVALID_ARTIFACT_CONTENT": {
@@ -1231,8 +1231,8 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:452",
-        "server/services/anomaly/anomaly-workbench-service.cjs:497"
+        "server/services/anomaly/anomaly-workbench-service.cjs:453",
+        "server/services/anomaly/anomaly-workbench-service.cjs:498"
       ]
     },
     "PATH_OUTSIDE_ALLOWED_ROOT": {
@@ -1248,8 +1248,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:504",
-        "server/services/anomaly/anomaly-workbench-service.cjs:519"
+        "server/services/anomaly/anomaly-workbench-service.cjs:505",
+        "server/services/anomaly/anomaly-workbench-service.cjs:520"
       ]
     },
     "PIPELINE_CANCEL_FAILED": {
@@ -1441,7 +1441,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:450"
+        "server/services/anomaly/anomaly-workbench-service.cjs:451"
       ]
     },
     "RELATION_CANDIDATE_STATUS_INVALID": {
@@ -1499,7 +1499,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/anomaly/anomaly-workbench-service.cjs:454"
+        "server/services/anomaly/anomaly-workbench-service.cjs:455"
       ]
     },
     "RELATION_REVIEW_BLOCKED": {

@@ -7,7 +7,7 @@ import { FeaturePageHeader } from "@/components/page-header";
 import { Panel } from "@/components/panel";
 import { useNavLocation } from "@/hooks/use-nav-location";
 import { schemaTopology, TAB_SECTIONS } from "@/lib/schema-shape";
-import { changeOf } from "@/lib/schema-edit";
+import { changeOf, canonicalTabName, TAB_EDIT_META } from "@/lib/schema-edit";
 import { UsageBadgesStrip } from "./UsageBadgesStrip";
 import { useSchemaManagerStore } from "./schema-manager-store";
 import { TAB_LABELS, type TabId } from "./schema-manager-types";
@@ -146,7 +146,9 @@ export function SchemaManagerView() {
     setConfirmingChange(false);
     setFreshnessTick((t) => t + 1); // WP-027：确认保存同样是 enums 图输入写
   };
-  const isEditingDisabled = previewLoading || store.pipelineRunning || wiring.editingLocked;
+  const isEditingDisabled = previewLoading || wiring.editingLocked;
+  // PR-312/WP-180：头部保存钮只服务真正管辖的页签（relations/fields/history 有独立编辑器与保存钮，headerSave:false 隐藏）
+  const headerSaveVisible = TAB_EDIT_META[canonicalTabName(store.activeTab)]?.headerSave !== false;
   const currentSaveStatus = wiring.saveStatus;
   const currentSaveError = wiring.saveError;
 
@@ -181,7 +183,9 @@ export function SchemaManagerView() {
     "layer-editor": () => (<div className="p-5"><UsageBadgesStrip dimension="layer" label={VIEW_COPY.DIM_LAYER} /><LayerEditor layers={enums.layers} domains={enums.domains} categories={enums.categories} onLayersChange={store.setLayers} disabled={isEditingDisabled} /></div>),
     "derived-categories-readonly": () => (
       <div className="p-5">
-        {/* B1=b 执法（Master 2026-10-23 裁 b）：arch_categories 为派生视图（值＝subdomain_constraints 矩阵并集，ADR-006），派生源缺失期冻结只读——服务端 PUT 已同步拒收（DERIVED_SEGMENT_READ_ONLY），此处恒只读不依赖编辑态 */}
+        {/* B1=b 语义（Master 2026-10-23 裁 b）：arch_categories 为派生视图（值＝subdomain_constraints 矩阵并集，ADR-006）。
+            PR-323/WP-180 注释更正：本区 TagEditor 编辑的是前端配置键 categories（服务端放行——enums-routes.cjs:116 只拦 yaml 键 arch_categories 直改），
+            「声明宿主可编辑」（copy :765）；yaml 派生键 arch_categories 仍只读。 */}
         <div className="mb-4 rounded-md border border-cyan-6 bg-cyan-2 px-4 py-3 text-sm text-text-hint">{VIEW_COPY.CATEGORIES_DERIVED_NOTE}</div>
         <TagEditor tags={enums.categories} onTagsChange={store.setCategories} placeholder={VIEW_COPY.CATEGORY_INPUT_PLACEHOLDER} />
       </div>
@@ -221,12 +225,13 @@ export function SchemaManagerView() {
             {currentSaveStatus === "saved" && <span className="text-xs text-status-fact flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />{TERM.SAVED}</span>}
             {currentSaveStatus === "saving" && <span className="text-xs text-text-sub flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />{VIEW_COPY.SAVING}</span>}
             {(currentSaveStatus === "error" || previewError) && currentSaveError && <span className="text-xs text-status-error">{currentSaveError}</span>}
-            {store.pipelineRunning && <span className="text-xs text-status-loading flex items-center gap-1"><Loader2 className="h-3 w-3 animate-spin" />{VIEW_COPY.PIPELINE_RUNNING}</span>}
             <GraphFreshnessChip refreshTick={freshnessTick} />
           </div>
+          {headerSaveVisible && (
           <button onClick={handleSave} disabled={isEditingDisabled || currentSaveStatus === "clean"} className="flex items-center gap-1.5 rounded-md bg-accent-bg text-[var(--color-accent-fg)] ring-1 ring-[var(--color-border-focus)] px-3 py-1.5 text-sm disabled:opacity-40 transition-colors">
             {currentSaveStatus === "saving" || previewLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}{currentSaveStatus === "saving" ? VIEW_COPY.SAVING : previewLoading ? VIEW_COPY.CHECKING_IMPACT : VIEW_COPY.SAVE_RULES_ACTION}
           </button>
+          )}
         </div>
 
         {/* E3'b2：Schema Proposal 生命周期已退役，编辑直接写回权威源（乐观锁 revision） */}

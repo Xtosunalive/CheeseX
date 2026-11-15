@@ -37,18 +37,9 @@ export function ArticleAdmissionWorkspace(props: Props & { uploads?: ArticleWork
   const [sortField, setSortField] = useState<ArticleSortField>("updatedAt");
   const [retireTarget, setRetireTarget] = useState<PrecleanedArticleItem | null>(null);
   const [approveTarget, setApproveTarget] = useState<PrecleanedArticleItem | null>(null);
-  // 标准化动作迁入（2026-10-15）：草稿路径从上传任务反查（基名匹配）——行内按钮按状态出现
-  const runSkillByPath = useArticleWorkflowStore((st) => st.runStandardizationSkillByPath);
+  // 标准化结果卡数据源保留（skillRunningIds/skillOutcomes）——行内标准化按钮与死参数已随 PR-315/WP-180 退役
   const skillOutcomeMap = useArticleWorkflowStore((st) => st.skillOutcomes);
   const skillRunningIds = useArticleWorkflowStore((st) => st.skillRunningIds);
-  const draftPathFor = (item: PrecleanedArticleItem) => {
-    const base = item.fileName;
-    return (props.uploads || []).find((t) => (t.draftPath || "").endsWith("/" + base) || (t.draftPath || "").endsWith(base))?.draftPath || null;
-  };
-  const standardizeItem = (item: PrecleanedArticleItem) => {
-    const draftPath = draftPathFor(item);
-    if (draftPath) void runSkillByPath(draftPath, item.sourcePath); // key=sourcePath（结果卡消费侧同键）
-  };
   const [sortDirection, setSortDirection] = useState<TableSortDirection>("desc");
   const modules = useMemo(() => [...new Set(props.items.map((item) => item.module).filter(Boolean))].sort(), [props.items]);
   const filteredItems = useMemo(() => {
@@ -95,7 +86,7 @@ export function ArticleAdmissionWorkspace(props: Props & { uploads?: ArticleWork
         <Button type="button" variant="ghost" size="icon" className="h-8 w-8 text-text-hint" title={TERM.CLEAR_FILTER_ACTION} aria-label={TERM.CLEAR_FILTER_ACTION} disabled={!filtered} onClick={clearFilters}><RotateCcw className="h-4 w-4" /></Button>
       </TableToolbar>
       <div className="flex items-center justify-between px-1 text-kg-xs text-text-hint"><span>{articleDraftCountText(sortedItems.length, props.items.length)}</span></div>
-      <PrecleanedTable items={pageItems} loading={props.loading} sortField={sortField} sortDirection={sortDirection} emptyTitle={props.items.length === 0 ? "" : ARTICLE_ADMISSION_COPY.EMPTY_NO_RESULT_TITLE} emptyDescription={props.items.length === 0 ? "" : ARTICLE_ADMISSION_COPY.EMPTY_NO_RESULT_DESCRIPTION} onSortChange={(field, direction) => { setSortField(field); setSortDirection(direction); }} onOpen={props.onOpen} onRetire={setRetireTarget} onApprove={setApproveTarget} onStandardize={standardizeItem} standardizingKeys={skillRunningIds} skillOutcomes={skillOutcomeMap} />
+      <PrecleanedTable items={pageItems} loading={props.loading} sortField={sortField} sortDirection={sortDirection} emptyTitle={props.items.length === 0 ? "" : ARTICLE_ADMISSION_COPY.EMPTY_NO_RESULT_TITLE} emptyDescription={props.items.length === 0 ? "" : ARTICLE_ADMISSION_COPY.EMPTY_NO_RESULT_DESCRIPTION} onSortChange={(field, direction) => { setSortField(field); setSortDirection(direction); }} onOpen={props.onOpen} onRetire={setRetireTarget} onApprove={setApproveTarget} standardizingKeys={skillRunningIds} skillOutcomes={skillOutcomeMap} />
       <TablePagination ariaLabel={ARTICLE_ADMISSION_COPY.PAGINATION_ARIA} page={page} pageSize={pageSize} total={sortedItems.length} loading={props.loading} onPageChange={setPage} />
       <ArticleApprovalDialog open={approveTarget !== null} articleId={approveTarget?.id ?? null} title={approveTarget?.title ?? ""} onClose={() => setApproveTarget(null)} />
       <ArticleRetireDialog open={retireTarget !== null} basename={retireTarget?.fileName ?? null} title={retireTarget?.title ?? ""} onClose={() => setRetireTarget(null)} onRetired={() => { setRetireTarget(null); void useArticleWorkflowStore.getState().reload(true); }} />

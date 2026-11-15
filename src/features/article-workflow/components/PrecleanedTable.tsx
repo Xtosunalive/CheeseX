@@ -41,10 +41,7 @@ type Props = {
   onRetire?: (item: PrecleanedArticleItem) => void;
   /** 审批与发布收敛（2026-10-15）：状态机动作行内入口 */
   onApprove?: (item: PrecleanedArticleItem) => void;
-  /** 标准化动作迁入（2026-10-15 Master 裁）：按状态驱动——待标准化执行 validate→promote；
-   *  已标准化场景本表已有 🚀 发布入口（对话框内含审批链），不在此重复。 */
-  /** @deprecated WP-063：标准化由系统自动执行——本回调不再被行内动作消费 */
-  onStandardize?: (item: PrecleanedArticleItem) => void;
+  /** 标准化动作迁入史（2026-10-15 Master 裁 + WP-063 自动化）：行内标准化退役，onStandardize 死参数已删（PR-315/WP-180）——标准化由上传自动串跑＋哈希变更自动回退 */
   standardizingKeys?: string[];
   /** 行内标准化结果卡（key=sourcePath——与动作同侧渲染，2026-10-15 动作迁入） */
   skillOutcomes?: Record<string, { stage: string; validate: unknown; promote: { precleanedPath: string } | null; errorMessage: string | null }>;

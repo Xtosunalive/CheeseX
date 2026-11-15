@@ -33,7 +33,7 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
     ]);
   });
 
-  it("正式文章改动显示字段和正文对照；检查失败时确认不可执行", async () => {
+  it("正式文章改动显示字段和正文对照；检查失败时确认钮隐匿＋阻断说明在场（PR-311/WP-180 口径）", async () => {
     vi.mocked(approvalApi.fetchApprovalCandidates).mockResolvedValue([{ id: "candidate-1", title: "文章", fileName: "文章.md", standardizationStatus: "blocked", formalContentHash: "a".repeat(64), sourcePath: "知识库/raw/precleaned/文章.md" }]);
     vi.mocked(approvalApi.getApprovalStatus).mockResolvedValue({ status: "pending", revision: "sha256:" + "a".repeat(64), updatedAt: "t", changeSummary: {
       fields: [{ field: "title", before: "旧标题", after: "新标题" }], bodyChanged: true, beforeExcerpt: "旧正文", afterExcerpt: "新正文",
@@ -42,7 +42,8 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
     expect(await screen.findByText("正式文章变动（请核对后确认）")).toBeInTheDocument();
     expect(screen.getByText("发布版：旧标题")).toBeInTheDocument();
     expect(screen.getByText("当前文件：新正文")).toBeInTheDocument();
-    expect(await screen.findByText("确认（批准）")).toBeDisabled();
+    await waitFor(() => expect(screen.queryByText("确认（批准）")).toBeNull());
+    expect(screen.getByRole("alert")).toBeInTheDocument();
   });
 
   it("pending 状态显示确认/驳回按钮（调用 /api/approval/*）", async () => {
