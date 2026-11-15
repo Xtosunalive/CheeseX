@@ -188,13 +188,11 @@ export function CheckResultsPanel() {
       {summary && (
         <div data-testid="property-check-summary" className="space-y-1.5">
           <div className="px-0.5 text-kg-xs font-medium text-text-hint">{CHECK_RESULTS_COPY.SUMMARY_TITLE}</div>
-          <div data-testid="property-check-summary-grid" className="grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-4">
+          <div data-testid="property-check-summary-grid" className="grid grid-cols-2 gap-2">
             <Statistic testId="property-check-stat" label={CHECK_RESULTS_COPY.STAT_BLOCKER_LABEL} value={summary.blockerCount} tone={summary.blockerCount > 0 ? "text-status-error" : "text-status-fact"}
               hint={CHECK_RESULTS_COPY.STAT_BLOCKER_HINT} />
             <Statistic testId="property-check-stat" label={CHECK_RESULTS_COPY.STAT_WARNING_LABEL} value={summary.warningCount} tone={summary.warningCount > 0 ? "text-status-warn" : "text-status-fact"}
               hint={CHECK_RESULTS_COPY.STAT_WARNING_HINT} />
-            <Statistic testId="property-check-stat" label={CHECK_RESULTS_COPY.STAT_TOTAL_LABEL} value={summary.totalComponents} tone="text-text-sub"
-              hint={CHECK_RESULTS_COPY.STAT_TOTAL_HINT} />
           </div>
         </div>
       )}
