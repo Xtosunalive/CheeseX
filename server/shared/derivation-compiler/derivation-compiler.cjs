@@ -66,7 +66,22 @@ function compileAllClasses(ontology, fields, options = {}) {
   );
 }
 
+function registerDerivedRoutes(registerRoute, executeAction) {
+  return function (compiled) {
+    for (const route of compiled.apiRoutes) {
+      registerRoute(route.method, route.pathTemplate, function (req, res) {
+        return executeAction({
+          actionId: route.actionId,
+          request: req,
+          reply: res,
+        });
+      });
+    }
+  };
+}
+
 module.exports = {
   compileClassDerivation,
   compileAllClasses,
+  registerDerivedRoutes,
 };

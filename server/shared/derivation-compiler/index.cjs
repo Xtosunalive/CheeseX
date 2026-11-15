@@ -1,6 +1,11 @@
-const { compileClassDerivation, compileAllClasses } = require("./derivation-compiler.cjs");
+const {
+  compileClassDerivation,
+  compileAllClasses,
+  registerDerivedRoutes,
+} = require("./derivation-compiler.cjs");
 
 module.exports = {
   compileClassDerivation,
   compileAllClasses,
+  registerDerivedRoutes,
 };
