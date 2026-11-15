@@ -147,3 +147,15 @@ test("T6 议题形状与账本键连续：issueId/evidence/proposedAction 与图
     assert.equal(issue.evidence[0].path, "知识库/wiki/articles/ops/article-fixture-a/snapshot.md");
   } finally { fs.rmSync(vault, { recursive: true, force: true }); }
 });
+
+test("T7 继承快照：missing_entity 的 proposedAction 携带文章 frontmatter 快照（module/tags）——创建表单预填源（MAIC 继承批）", () => {
+  const vault = buildVault({ withArticle: true, entity: "none" });
+  try {
+    const issue = missingEntityIssues(vault)[0];
+    const snapshot = issue.proposedAction.articleSnapshot;
+    assert.ok(snapshot, "缺失实体议题必须携带文章快照（实体页尚不存在，继承唯一来源＝文章）");
+    assert.equal(snapshot.sourcePath, "知识库/wiki/articles/ops/article-fixture-a/snapshot.md");
+    assert.deepEqual(snapshot.fields.module, ["Fixture模块"], "module 预填源＝声明模块");
+    assert.deepEqual(snapshot.fields.tags, ["entity"], "tags 预填源＝文章标签");
+  } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+});

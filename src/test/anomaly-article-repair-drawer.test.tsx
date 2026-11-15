@@ -94,3 +94,62 @@ describe("AnomalyEntityRepairDrawer · 确认钮状态门控（PR-324②）", ()
     expect(screen.queryByRole("button", { name: /应用修复/ })).toBeNull();
   });
 });
+
+// MAIC 继承批（Master 2026-11-15 裁）：缺失实体＝继承主战场——议题携带文章 frontmatter 快照，
+// 实体页尚不存在（合规行必查不到）时创建表单据此预填；无快照的旧议题行为不变。
+const missingEntityIssue = (withSnapshot: boolean) => ({
+  issueId: "missing-entity-doc-article-fixture-a",
+  issueKind: "missing_entity",
+  title: '文章 "Article A" 模块 "Fixture模块" 缺少知识实体',
+  status: "open",
+  evidence: [{ kind: "vault-document", path: "知识库/wiki/articles/ops/article-fixture-a/snapshot.md", ruleId: "document-module-entity" }],
+  proposedAction: {
+    type: "entity-repair",
+    entityId: "doc-article-fixture-a",
+    sourceKey: "知识库/wiki/entities/Fixture模块.md",
+    field: "module_entity",
+    currentValue: "Fixture模块",
+    expected: "Fixture模块",
+    allowedValues: [],
+    ...(withSnapshot
+      ? { articleSnapshot: { sourcePath: "知识库/wiki/articles/ops/article-fixture-a/snapshot.md", fields: { module: ["Fixture模块"], tags: ["entity"] } } }
+      : {}),
+  },
+}) as unknown as AnomalyIssue;
+
+describe("AnomalyEntityRepairDrawer · 缺失实体继承快照", () => {
+  it("创建模式预填文章快照字段：标题＝模块名，module/tags 成 chip（继承主战场）", async () => {
+    api.fetchEntityCompliance.mockRejectedValue(new Error("实体页不存在"));
+    api.fetchEnums.mockResolvedValue({ layers: [], categories: [], subdomains: {} });
+    render(
+      <AnomalyEntityRepairDrawer
+        issue={missingEntityIssue(true)}
+        relatedIssues={[missingEntityIssue(true)]}
+        error={null}
+        onPreview={vi.fn()}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByDisplayValue("Fixture模块")).toBeInTheDocument(); // 标题＝期望值（既有通道不回归）
+    await waitFor(() => expect(screen.getByText("entity")).toBeInTheDocument()); // tags chip＝文章标签
+    expect(screen.getByText("Fixture模块")).toBeInTheDocument(); // module chip＝声明模块
+  });
+
+  it("无快照的旧议题行为不变：不出文章字段预填（回归钉）", async () => {
+    api.fetchEntityCompliance.mockRejectedValue(new Error("实体页不存在"));
+    api.fetchEnums.mockResolvedValue({ layers: [], categories: [], subdomains: {} });
+    render(
+      <AnomalyEntityRepairDrawer
+        issue={missingEntityIssue(false)}
+        relatedIssues={[missingEntityIssue(false)]}
+        error={null}
+        onPreview={vi.fn()}
+        onConfirm={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    expect(screen.getByDisplayValue("Fixture模块")).toBeInTheDocument(); // 标题通道保持
+    expect(screen.queryByText("entity")).not.toBeInTheDocument(); // 无快照→无 tags 预填
+  });
+});
