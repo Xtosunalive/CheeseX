@@ -13,7 +13,6 @@ import { TablePagination } from "@/components/table-pagination";
 import { DataTable } from "@/components/data-table/DataTable";
 import type { Column } from "@/components/data-table/types";
 import { Statistic } from "@/components/statistic/Statistic";
-import { BentoGrid } from "@/components/bento";
 import { StatusDot, type StatusDotTone } from "@/components/status-dot/StatusDot";
 import { Tag } from "@/components/ui/tag";
 import { compareZh } from "@/hooks/use-table-sort";
@@ -28,7 +27,7 @@ import {
   FILTER_LABELS,
 } from "./property-types";
 import { fetchArticleManifests } from "./property-api";
-import { MANIFEST_LIST_COPY, PROPERTY_GOV_SHARED_COPY, manifestCoverageHint, manifestCoverageSub, manifestNoMatchQuery } from "./property-gov-copy";
+import { MANIFEST_LIST_COPY, PROPERTY_GOV_SHARED_COPY, manifestNoMatchQuery, manifestPendingSub } from "./property-gov-copy";
 
 const LIMIT = 50; // 服务端口径（接口侧分页，Master 裁定保留 50 并标注）
 type ManifestSortField = "title" | "mode" | "directRelationCount" | "status";
@@ -75,34 +74,25 @@ export function ManifestListPanel() {
     return sortDirection === "asc" ? comparison : -comparison;
   }), [items, sortDirection, sortField]);
 
-  // ── Coverage-aware summary ──
-  // WP-037：P7 映射覆盖率升主视觉（xl 跨两列）；P5 整页无数据不渲染 0 值统计堆；P1 gap 化。
+  // ── 待办头条 ──
+  // 量值对齐批（Master 2026-11-15 裁）：概览 7 卡退役（覆盖率%/图谱引用文档/已排除/应生成/最新/
+  // 过期/未生成）——分项计数由筛选档计数承载，唯一保留动作数「需要处理」（过期＋未生成合计）；
+  // 零待办给正名空态。WP-037 P5 沿用：整页无数据不渲染任何统计。
+  const staleCount = s?.stale ?? 0;
+  const missingCount = s == null ? 0 : (isCoverageSummary(s) ? s.missingEligible : s.missing);
+  const pendingCount = staleCount + missingCount;
   const renderSummary = () => {
     if (!s || totalItems === 0) return null;
-    if (isCoverageSummary(s)) {
-      const pct = (s.coverageRatio * 100).toFixed(0);
+    if (pendingCount === 0) {
       return (
-        <div data-testid="manifest-summary">
-          <BentoGrid data-testid="manifest-summary-grid">
-            <Statistic size="xl" className="lg:col-span-2" label={TERM.MAPPING_COVERAGE} value={`${pct}%`} sub={manifestCoverageSub(s.coveredSources, s.eligibleSources)} tone={s.coverageRatio >= 0.8 ? "text-status-fact" : "text-status-warn"} hint={manifestCoverageHint(s.coveredSources, s.eligibleSources, pct)} />
-            <Statistic testId="manifest-summary-metric" label={TERM.GRAPH_SOURCE_DOCUMENT} value={s.totalSourcesRaw} tone="text-text-main" hint={MANIFEST_LIST_COPY.SUMMARY_TOTAL_RAW_HINT} />
-            <Statistic testId="manifest-summary-metric" label={FILTER_LABELS.excluded} value={s.excludedSources} tone="text-text-hint" hint={MANIFEST_LIST_COPY.SUMMARY_EXCLUDED_HINT} />
-            <Statistic testId="manifest-summary-metric" label={MANIFEST_LIST_COPY.SUMMARY_ELIGIBLE_LABEL} value={s.eligibleSources} tone="text-text-sub" hint={MANIFEST_LIST_COPY.SUMMARY_ELIGIBLE_HINT} />
-            <Statistic testId="manifest-summary-metric" label={FILTER_LABELS.fresh} value={s.fresh} tone="text-status-fact" hint={MANIFEST_LIST_COPY.SUMMARY_FRESH_HINT} />
-            <Statistic testId="manifest-summary-metric" label={FILTER_LABELS.stale} value={s.stale} tone="text-status-warn" hint={MANIFEST_LIST_COPY.SUMMARY_STALE_HINT} />
-            <Statistic testId="manifest-summary-metric" label={FILTER_LABELS.missing} value={s.missingEligible} tone={s.missingEligible > 0 ? "text-status-error" : "text-text-hint"} hint={MANIFEST_LIST_COPY.SUMMARY_MISSING_ELIGIBLE_HINT} />
-          </BentoGrid>
+        <div data-testid="manifest-summary" className="rounded ring-1 ring-status-fact-6 bg-status-fact-2 px-3 py-2 font-mono text-xs text-status-fact">
+          {MANIFEST_LIST_COPY.SUMMARY_ALL_FRESH}
         </div>
       );
     }
     return (
       <div data-testid="manifest-summary">
-        <BentoGrid data-testid="manifest-summary-grid">
-          <Statistic testId="manifest-summary-metric" label={TERM.GRAPH_SOURCE_DOCUMENT} value={s.totalSources} tone="text-text-main" hint={MANIFEST_LIST_COPY.LEGACY_TOTAL_HINT} />
-          <Statistic testId="manifest-summary-metric" label={FILTER_LABELS.fresh} value={s.fresh} tone="text-status-fact" hint={MANIFEST_LIST_COPY.SUMMARY_FRESH_HINT} />
-          <Statistic testId="manifest-summary-metric" label={FILTER_LABELS.stale} value={s.stale} tone="text-status-warn" hint={MANIFEST_LIST_COPY.LEGACY_STALE_HINT} />
-          <Statistic testId="manifest-summary-metric" label={FILTER_LABELS.missing} value={s.missing} tone="text-status-error" hint={MANIFEST_LIST_COPY.LEGACY_MISSING_HINT} />
-        </BentoGrid>
+        <Statistic size="xl" testId="manifest-summary-metric" label={MANIFEST_LIST_COPY.SUMMARY_PENDING_LABEL} value={pendingCount} sub={manifestPendingSub(staleCount, missingCount)} tone={missingCount > 0 ? "text-status-error" : "text-status-warn"} hint={MANIFEST_LIST_COPY.SUMMARY_PENDING_HINT} />
       </div>
     );
   };

@@ -82,13 +82,13 @@ describe("ManifestListPanel", () => {
     render(<ManifestListPanel />);
     expect(await screen.findByText("Alpha")).toBeInTheDocument();
     const summaryBar = screen.getByTestId("manifest-summary");
-    // WP-037 P7：覆盖率升主视觉（Bento 三列＋xl 跨两列主卡），其余 6 项次级
-    expect(screen.getByTestId("manifest-summary-grid")).toHaveClass("lg:grid-cols-3");
+    // 量值对齐批（Master 2026-11-15 裁）：概览 7 卡退役——唯一保留待办头条（过期＋未生成合计），分项计数由筛选档承载
     expect(summaryBar.compareDocumentPosition(screen.getByTestId("manifest-toolbar")) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(screen.getByText("50%")).toBeInTheDocument();
-    expect(screen.getAllByTestId("manifest-summary-metric").map((metric) => metric.textContent?.replace(/\s+/g, "").trim())).toEqual([
-      "2图谱引用文档", "0已排除", "2应生成映射", "1映射最新", "0映射过期", "1未生成映射",
-    ]);
+    expect(screen.getByTestId("manifest-summary-metric")).toHaveTextContent("1需要处理");
+    expect(screen.getByText("映射过期 0 · 未生成映射 1")).toBeInTheDocument();
+    expect(screen.queryByText("50%")).not.toBeInTheDocument();
+    expect(screen.queryByText("应生成映射")).not.toBeInTheDocument();
+    expect(screen.queryByText("图谱引用文档")).not.toBeInTheDocument();
     expect(screen.getByTestId("manifest-toolbar")).toHaveClass("rounded-lg", "bg-surface-root", "ring-border-thin");
     expect(screen.getByRole("textbox", { name: "搜索图谱引用文档" })).toHaveClass("h-8", "text-xs", "bg-transparent");
     expect(screen.getByRole("button", { name: "筛选文章图谱映射状态" })).toHaveAttribute("data-select-variant", "filter");
@@ -137,6 +137,9 @@ describe("ManifestListPanel", () => {
     await waitFor(() => expect(api.fetchArticleManifests).toHaveBeenCalledWith(expect.objectContaining({ filter: "all" })));
     expect(await screen.findByText("Beta")).toBeInTheDocument();
     expect(screen.getAllByTestId("manifest-row-title")).toHaveLength(3);
+    // 零待办正名态：头条降级为「映射全部最新」，不出统计值
+    expect(screen.getByText("映射全部最新")).toBeInTheDocument();
+    expect(screen.queryByTestId("manifest-summary-metric")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "筛选文章图谱映射状态" })).toHaveTextContent("映射筛选");
   });
 

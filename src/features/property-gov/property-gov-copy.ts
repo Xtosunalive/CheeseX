@@ -277,18 +277,10 @@ export function formatArtifactRepairLabel(field: string): string {
 
 // ── ManifestListPanel（文章图谱映射列表）──
 export const MANIFEST_LIST_COPY = {
-  /** 概览统计 hint（label 取 MANIFEST_FILTER_LABELS 同名状态词） */
-  SUMMARY_TOTAL_RAW_HINT: "知识图谱中引用的所有 .md 文件总数",
-  SUMMARY_EXCLUDED_HINT: "不参与管道处理的文件：TheSchema 参考文件、README 索引页、模板、配置目录等",
-  SUMMARY_ELIGIBLE_LABEL: "应生成映射",
-  SUMMARY_ELIGIBLE_HINT: "排除参考文件、索引页和模板后，需要生成文章图谱映射的文档数",
-  SUMMARY_FRESH_HINT: "文章图谱映射与当前主图版本一致的文档数",
-  SUMMARY_STALE_HINT: "文章图谱映射对应的主图版本已变化，需要重新运行管道",
-  SUMMARY_MISSING_ELIGIBLE_HINT: "应处理但尚无文章图谱映射的文档数",
-  /** 旧口径（非覆盖率）概览 hint */
-  LEGACY_TOTAL_HINT: "知识图谱引用的所有 .md 文件总数",
-  LEGACY_STALE_HINT: "文章图谱映射对应的主图版本已变化",
-  LEGACY_MISSING_HINT: "管道尚未生成文章图谱映射的文档数",
+  /** 待办头条（量值对齐批 2026-11-15：概览 7 卡退役后唯一保留的动作数；分项计数由筛选档承载） */
+  SUMMARY_PENDING_LABEL: "需要处理",
+  SUMMARY_PENDING_HINT: "映射过期与未生成映射的文档数合计，分项明细见下方筛选档",
+  SUMMARY_ALL_FRESH: "映射全部最新",
   /** 类型徽章 */
   KIND_ARTICLE: "文章",
   KIND_WIKI_ENTITY: "实体文档",
@@ -327,14 +319,9 @@ export const MANIFEST_LIST_COPY = {
   PAGINATION_ARIA: `${TERM.ARTICLE_GRAPH_MAPPING}分页`,
 } as const;
 
-/** 映射覆盖率主视觉 sub */
-export function manifestCoverageSub(covered: number, eligible: number): string {
-  return `${covered}/${eligible} 已映射`;
-}
-
-/** 映射覆盖率主视觉 hint */
-export function manifestCoverageHint(covered: number, eligible: number, pct: string): string {
-  return `${covered} 篇已有文章图谱映射，占应生成映射 ${eligible} 篇的 ${pct}%`;
+/** 待办头条 sub（分项标签与筛选档 MANIFEST_FILTER_LABELS 同源，不写第二份） */
+export function manifestPendingSub(stale: number, missing: number): string {
+  return `${MANIFEST_FILTER_LABELS.stale} ${stale} · ${MANIFEST_FILTER_LABELS.missing} ${missing}`;
 }
 
 /** 有搜索词时的空态说明 */
