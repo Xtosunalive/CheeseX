@@ -6,11 +6,13 @@ const stores = vi.hoisted(() => ({
   load: vi.fn(),
   reviewLoad: vi.fn(),
   propertyLoad: vi.fn(),
+  /** 2026-11-15 MAIC 首页尾差批：评审状态行改为 pending>0 才渲染的链接——fixture 边可变以便两态钉 */
+  edges: [] as { type?: string; reviewStatus?: string; category?: string }[],
 }));
 
 vi.mock("@/lib/topology-store", () => ({
   useAdmittedNodes: () => [{ category: "服务" }],
-  useAdmittedEdges: () => [],
+  useAdmittedEdges: () => stores.edges,
   useKnowledgeNodes: () => [{ category: "服务" }],
   useKnowledgeEdges: () => [],
   useTopologyStats: () => ({ dataFreshness: { fresh: true, ageHours: 0, updatedAt: "2026-07-16T00:00:00Z", version: "1" } }),
@@ -31,39 +33,42 @@ function panelSurface(moduleEl: HTMLElement): HTMLElement {
 }
 
 describe("DashboardView module layout", () => {
-  it("renders review status and sync history as separate sibling cards", () => {
+  it("zero-pending：评审状态模块不渲染（零待办零渲染——MAIC 形态批），其余模块为兄弟", () => {
+    stores.edges = [];
     const { container } = render(<DashboardView />);
     const topologySummary = container.querySelector<HTMLElement>('[data-dashboard-module="topology-summary"]');
     const reviewStatus = container.querySelector<HTMLElement>('[data-dashboard-module="review-status"]');
     const syncLog = container.querySelector<HTMLElement>('[data-dashboard-module="sync-log"]');
 
     expect(topologySummary).not.toBeNull();
-    expect(reviewStatus).not.toBeNull();
+    expect(reviewStatus).toBeNull();
     expect(syncLog).not.toBeNull();
-    // 三个模块是兄弟（同一父容器）
-    expect(topologySummary?.parentElement).toBe(reviewStatus?.parentElement);
+    // 幸存模块是兄弟（同一父容器）
     expect(topologySummary?.parentElement).toBe(syncLog?.parentElement);
     expect(within(topologySummary as HTMLElement).getByText("实体类别分布")).toBeInTheDocument();
-    // 页内主标题已删（与顶栏重复，PR③ Master 2026-10-07 04:44 拍板）——副标题仍在
-    // 页题已裁删（ce337ad4）
-    expect(within(topologySummary as HTMLElement).queryByText("架构图关系审核状态")).not.toBeInTheDocument();
-    expect(within(topologySummary as HTMLElement).queryByText("最近管道生成结果")).not.toBeInTheDocument();
-    expect(within(reviewStatus as HTMLElement).getByText("架构图关系审核状态")).toBeInTheDocument();
-    expect(within(reviewStatus as HTMLElement).getByText("0 待审核")).toBeInTheDocument();
-    expect(within(reviewStatus as HTMLElement).queryByText(/全部待审核/)).not.toBeInTheDocument();
     // MAIC 形态批（Master 裁 A）：常驻统计卡整块退役——规模/待办数字回归各工作页
-    expect(screen.queryByText("全部待审核关系")).not.toBeInTheDocument();
     expect(screen.queryByTestId("statistic")).not.toBeInTheDocument();
-    expect(within(reviewStatus as HTMLElement).queryByText("0 待审")).not.toBeInTheDocument();
-    // 三个模块的表面（Panel）统一为 surface-card
-    for (const moduleEl of [topologySummary, reviewStatus, syncLog]) {
-      expect(panelSurface(moduleEl as HTMLElement)).toHaveClass(...PANEL_SURFACE);
-    }
-    expect(within(syncLog as HTMLElement).getByText("最近管道生成结果")).toBeInTheDocument();
+    // 行尾绝对数与区头徽章同批撤：构成占比由条宽表达（页内无裸数字行）
+    expect(within(topologySummary as HTMLElement).queryByText("服务")).toBeInTheDocument();
+    // 同步日志：新鲜度与版本保留，库总量（N 实体 · N 关系）随批撤
     expect(within(syncLog as HTMLElement).getByText(/最近生成/)).toBeInTheDocument();
+    expect(within(syncLog as HTMLElement).queryByText(/1 实体/)).not.toBeInTheDocument();
+  });
+
+  it("pending>0：评审状态降级为一条可点链接（依附动作容器），不显示计数", () => {
+    stores.edges = [{ reviewStatus: "pending" }, { reviewStatus: "pending" }, { reviewStatus: "approved" }];
+    const { container } = render(<DashboardView />);
+    const reviewStatus = container.querySelector<HTMLElement>('[data-dashboard-module="review-status"]');
+    expect(reviewStatus).not.toBeNull();
+    expect(within(reviewStatus as HTMLElement).getByText("关系待审核")).toBeInTheDocument();
+    // 不再回潮成数字汇总行（生效 X / 待审 Y / 拒绝 Z 同批撤）
+    expect(within(reviewStatus as HTMLElement).queryByText(/待审核$/)).not.toHaveTextContent(/\d/);
+    expect(within(reviewStatus as HTMLElement).queryByText(/已生效|已拒绝/)).not.toBeInTheDocument();
+    expect(panelSurface(reviewStatus as HTMLElement)).toHaveClass(...PANEL_SURFACE);
   });
 
   it("omits duplicate summary hints from review and gap stat cards", () => {
+    stores.edges = [];
     const { queryByText } = render(<DashboardView />);
 
     expect(queryByText("来自审核 API")).not.toBeInTheDocument();

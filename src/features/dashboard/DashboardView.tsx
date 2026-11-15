@@ -11,12 +11,12 @@ import {
 import { TopologyStateGate } from "@/components/topology-state-gate";
 import type { TopologyStats } from "@/lib/topology-types";
 import { ACTIVE_RELATION_TYPES, ENTITY_TYPES, relationTypeLabel, type RelationTypeName } from "@/lib/ontology";
+import { navigate } from "@/lib/navigation";
 import { apiFetchEnvelope } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { PageContainer } from "@/components/page-container";
 import { TERM } from "@/constants/term-const";
 import { EmptyState } from "@/components/empty-state";
-import { isEffectiveReviewStatus } from "@/lib/domain/ReviewStatus";
 import { Panel } from "@/components/panel";
 import { ENTITY_CATEGORY } from "@/lib/domain/EntityCategory";
 import { DASHBOARD_PUBLISH_COPY, DASHBOARD_SECTION_COPY, DASHBOARD_SYNC_COPY, dashboardPublished, dashboardRequestIncomplete, dashboardStaleHours, dashboardUsage } from "./dashboard-copy";
@@ -30,6 +30,10 @@ export function DashboardView() {
   const stats = useTopologyStats();
 
   useEffect(() => { load(); }, [load]);
+
+  // 待审关系＝拓扑边里 pending/未定状态数（本面板原评审状态行同口径）——MAIC 形态批（Master 裁 A）：
+  // 三数汇总行撤，>0 时降级为一条可点链接（待办依附动作容器，零待办零渲染）
+  const reviewPendingEdgeCount = edges.filter(e => e.reviewStatus === "pending" || !e.reviewStatus).length;
 
   return (
     <TopologyStateGate loading={loading} error={error} hasStats={Boolean(stats)} onLoad={load}>
@@ -45,15 +49,24 @@ export function DashboardView() {
           </Panel>
         </div>
 
-        <div data-dashboard-module="review-status">
-          <Panel>
-            <ReviewStatusSection edges={edges} />
-          </Panel>
-        </div>
+        {reviewPendingEdgeCount > 0 && (
+          <div data-dashboard-module="review-status">
+            <Panel>
+              <button
+                onClick={() => navigate("review", { sub: "edges" })}
+                className="flex items-center gap-1.5 text-xs text-status-warn hover:text-status-warn-11 transition"
+              >
+                <ShieldCheck className="h-3 w-3" />
+                {DASHBOARD_SECTION_COPY.REVIEW_PENDING_LINK}
+                <ChevronRight className="h-3 w-3" />
+              </button>
+            </Panel>
+          </div>
+        )}
 
         <div data-dashboard-module="sync-log">
           <Panel>
-            <SyncLogSection stats={stats} nodes={nodes} edges={edges} />
+            <SyncLogSection stats={stats} />
           </Panel>
         </div>
       </PageContainer>
@@ -75,19 +88,19 @@ function EntityTypeSection({ nodes }: { nodes: { category: string }[] }) {
   const total = Object.values(counts).reduce((a, b) => a + b, 0);
 
   return (
-    <Section title={DASHBOARD_SECTION_COPY.CATEGORY_DISTRIBUTION} count={entries.length} icon={<Tag className="h-3 w-3" />}>
+    <Section title={DASHBOARD_SECTION_COPY.CATEGORY_DISTRIBUTION} icon={<Tag className="h-3 w-3" />}>
       <div className="space-y-1.5">
         {entries.length === 0 ? (
           /* WP-145 N1：Section 体整块空态改走 EmptyState 介质；渲染条件与文案（TERM.CATEGORY 组句）不变 */
           <EmptyState title={DASHBOARD_SECTION_COPY.CATEGORY_EMPTY} />
         ) : (
+          /* 2026-11-15 MAIC 形态批（Master 裁 A）：行尾绝对数撤——构成占比由条宽表达 */
           entries.map(([type, count]) => (
             <div key={type} className="flex items-center gap-2">
               <span className="w-20 font-mono text-xs text-text-sub">{type}</span>
               <div className="h-3 flex-1 rounded-full bg-surface-root">
                 <div className="h-full rounded-full bg-text-sub/40" style={{ width: `${(count / total) * 100}%` }} />
               </div>
-              <span className="w-8 text-right font-mono text-xs text-text-hint">{count}</span>
             </div>
           ))
         )}
@@ -124,40 +137,22 @@ function RelationTypeSection({ edges }: { edges: { type: string }[] }) {
   const total = edges.length;
 
   return (
-    <Section title={DASHBOARD_SECTION_COPY.RELATION_TYPE_DISTRIBUTION} count={edges.length} icon={<GitBranch className="h-3 w-3" />}>
+    <Section title={DASHBOARD_SECTION_COPY.RELATION_TYPE_DISTRIBUTION} icon={<GitBranch className="h-3 w-3" />}>
       <div className="space-y-1.5">
         {entries.length === 0 ? (
           /* WP-145 N1：Section 体整块空态改走 EmptyState 介质；渲染条件与文案（TERM.RELATION 组句）不变 */
           <EmptyState title={DASHBOARD_SECTION_COPY.RELATION_TYPE_EMPTY} />
         ) : (
+          /* 2026-11-15 MAIC 形态批（Master 裁 A）：行尾绝对数撤——构成占比由条宽表达 */
           entries.map(([type, count]) => (
             <div key={type} className="flex items-center gap-2">
               <span className={`w-24 text-xs ${RELATION_TYPE_COLORS[type] || "text-text-sub"}`}>{relationTypeLabel(type)}</span>
               <div className="h-3 flex-1 rounded-full bg-surface-root">
                 <div className="h-full rounded-full bg-status-loading-6" style={{ width: `${(count / total) * 100}%` }} />
               </div>
-              <span className="w-8 text-right font-mono text-xs text-text-hint">{count}</span>
             </div>
           ))
         )}
-      </div>
-    </Section>
-  );
-}
-
-function ReviewStatusSection({ edges }: { edges: { reviewStatus?: string }[] }) {
-  // 生效桶=三生效态合计：生效集口径住 review-status 域单源（EFFECTIVE_REVIEW_STATUSES／isEffectiveReviewStatus），
-  // 本处为消费点——不手写三态并集、不靠注释维系同口径。
-  const approved = edges.filter(e => isEffectiveReviewStatus(e.reviewStatus)).length;
-  const pending = edges.filter(e => e.reviewStatus === "pending" || !e.reviewStatus).length;
-  const rejected = edges.filter(e => e.reviewStatus === "rejected").length;
-
-  return (
-    <Section title={DASHBOARD_SECTION_COPY.REVIEW_STATUS_SECTION} count={edges.length} icon={<ShieldCheck className="h-3 w-3" />}>
-      <div className="flex items-center gap-3 text-xs">
-        <span className="font-mono text-status-fact">{approved} {TERM.APPROVED}</span>
-        <span className="font-mono text-status-warn">{pending} {TERM.PENDING_REVIEW}</span>
-        <span className="font-mono text-status-error">{rejected} {TERM.REJECTED}</span>
       </div>
     </Section>
   );
@@ -216,7 +211,7 @@ function OntologySchemaSection({ nodes, edges }: { nodes: { category: string }[]
   );
 }
 
-function SyncLogSection({ stats, nodes, edges }: { stats: TopologyStats | null; nodes: unknown[]; edges: unknown[] }) {
+function SyncLogSection({ stats }: { stats: TopologyStats | null }) {
   const freshness = stats?.dataFreshness;
   const version = freshness?.version ?? "—";
   const updatedAt = freshness?.updatedAt ?? "";
@@ -229,8 +224,9 @@ function SyncLogSection({ stats, nodes, edges }: { stats: TopologyStats | null; 
             <span className={`h-2 w-2 rounded-full ${freshness?.fresh !== false ? "bg-grass-11" : "bg-status-warn"}`} />
             <span className="font-mono text-xs">{DASHBOARD_SYNC_COPY.LAST_GENERATED_PREFIX}{updatedAt ? new Date(updatedAt).toLocaleString("zh-CN") : "—"}</span>
           </div>
+          {/* 2026-11-15 MAIC 形态批（Master 裁 A）：行尾「N 实体 · N 关系」库总量撤（全站已裁口径的最后残留）——本板块职责＝新鲜度与版本 */}
           <div className="mt-1 font-mono text-xs text-text-placeholder">
-            {DASHBOARD_SYNC_COPY.VERSION_PREFIX}{version}{` · ${nodes.length} ${TERM.ENTITY} · ${edges.length} ${TERM.RELATION}`}
+            {DASHBOARD_SYNC_COPY.VERSION_PREFIX}{version}
           </div>
           {freshness && !freshness.fresh && (
             <div className="mt-1 font-mono text-xs text-status-warn">
@@ -297,12 +293,11 @@ export function PublishCard() {
 
 // ── Atoms ──
 
-function Section({ title, count, icon, children }: { title: string; count?: number; icon?: React.ReactNode; children: React.ReactNode }) {
+function Section({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section>
       <div className="mb-3 flex items-center gap-2">
         {icon}<h2 className="text-sm font-semibold text-text-main">{title}</h2>
-        {count !== undefined && <span className="rounded bg-surface-root px-1.5 py-0.5 text-xs text-text-hint tabular-nums">{count}</span>}
       </div>
       {children}
     </section>

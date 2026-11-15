@@ -9,13 +9,15 @@
 
 import { TERM } from "@/constants/term-const";
 
-// ── 分布区段（类别／关系类型／审核状态）──
+// ── 分布区段（类别／关系类型／审核状态；2026-11-15 MAIC 形态批：审核状态三数汇总行撤，
+// >0 时降级为一条可点链接——待办依附动作容器，零待办零渲染）──
 export const DASHBOARD_SECTION_COPY = {
   CATEGORY_DISTRIBUTION: `${TERM.CATEGORY}分布`,
   CATEGORY_EMPTY: `暂无${TERM.CATEGORY}数据`,
   RELATION_TYPE_DISTRIBUTION: `${TERM.RELATION}类型分布`,
   RELATION_TYPE_EMPTY: `暂无${TERM.RELATION}类型数据`,
-  REVIEW_STATUS_SECTION: `架构图${TERM.RELATION}${TERM.REVIEW_STATUS}`,
+  /** 待审关系链接行（仅 pending>0 渲染，点击去关系评审页） */
+  REVIEW_PENDING_LINK: `${TERM.RELATION}${TERM.PENDING_REVIEW}`,
   /** 图谱规则使用情况折叠区 */
   RULE_USAGE: "图谱规则使用情况",
   RELATION_TYPE_LABEL: `${TERM.RELATION}类型`,
