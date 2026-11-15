@@ -159,3 +159,35 @@ test("T7 继承快照：missing_entity 的 proposedAction 携带文章 frontmatt
     assert.deepEqual(snapshot.fields.tags, ["entity"], "tags 预填源＝文章标签");
   } finally { fs.rmSync(vault, { recursive: true, force: true }); }
 });
+
+// SPEC-030 §十一批3（2026-11-16 衍生面切换）：输入源＝文件现值递归平扫＋precleaned 纳入。
+test("T8 布局缝消除：正式区单层文件（域/文件）→ 照常派生（目录层走查前置退役）", () => {
+  const vault = buildVault({ withArticle: false, entity: "none" });
+  try {
+    // 单层布局（无中间目录）——批3 前的两层走查看不见此文件
+    fs.mkdirSync(path.join(vault, "知识库", "wiki", "articles", "ref"), { recursive: true });
+    fs.writeFileSync(path.join(vault, "知识库", "wiki", "articles", "ref", "直接放置.md"),
+      ARTICLE_FM.replace("article_id: fixture-a", "article_id: flat-a"), "utf8");
+    const issues = missingEntityIssues(vault);
+    assert.equal(issues.length, 1, "单层正式文件必须被衍生家族看见");
+    assert.equal(issues[0].proposedAction.articleSnapshot.sourceStage, "formal");
+  } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+});
+
+test("T9 发布解耦：precleaned 候选（未发布）→ 派生 missing_entity，快照携带 sourceStage＋架构字段继承", () => {
+  const vault = buildVault({ withArticle: false, entity: "none" });
+  try {
+    const candidateFm = [
+      "---", "article_id: cand-a", "title: 候选A", "module: Fixture模块",
+      "arch_layer: gateway", "arch_category: 知识域A", "tags: [候选]", "---", "", "正文。",
+    ].join("\n");
+    fs.mkdirSync(path.join(vault, "知识库", "raw", "precleaned"), { recursive: true });
+    fs.writeFileSync(path.join(vault, "知识库", "raw", "precleaned", "候选A.md"), candidateFm, "utf8");
+    const issues = missingEntityIssues(vault);
+    assert.equal(issues.length, 1, "未发布候选同样进入缺实体视野（与发布解耦）");
+    const snapshot = issues[0].proposedAction.articleSnapshot;
+    assert.equal(snapshot.sourceStage, "precleaned", "来源阶段随快照下发（未发布徽记数据面）");
+    assert.equal(snapshot.fields.arch_layer, "gateway", "架构字段继承（批3 扩字段）");
+    assert.equal(snapshot.fields.arch_category, "知识域A", "架构字段继承（批3 扩字段）");
+  } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+});
