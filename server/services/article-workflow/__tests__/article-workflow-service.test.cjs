@@ -190,6 +190,22 @@ test("updateCandidateFields: 白名单外字段拒绝、非法枚举拒绝（含
   assert.equal(detailAfter.metadata.arch_category, "终端");
 });
 
+// SPEC-030 §十一批1（2026-11-16）：blocked 候选详情透出阻断原因——「为什么 error」可见，metadata 现读不回归
+test("blocked 候选详情透出 complianceBlockers/standardizationWarnings，metadata 仍现读 frontmatter", (t) => {
+  const vaultPath = fixture();
+  t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));
+  // 占位产品（通用未注册为现役身份）→ A03-P blocker → blocked 态（checkAdmissionBlockers 实线）
+  writeCandidate(vaultPath, "阻断样例.md", validArticle("blocked-expose", "阻断样例").replace("product: AnyShare", "product: 通用"));
+  const service = createArticleWorkflowService({ vaultPath, logger: { info() {}, error() {} } });
+  const id = service.listPrecleaned().items[0].id;
+  assert.equal(service.listPrecleaned().items[0].standardizationStatus, "blocked", "前置：占位产品应落 blocked");
+  const detail = service.getPrecleaned(id);
+  assert.ok(Array.isArray(detail.complianceBlockers) && detail.complianceBlockers.length > 0, "阻断原因随详情下发（此前账本有、详情无）");
+  assert.ok(detail.complianceBlockers.some((blocker) => String(blocker.ruleId).startsWith("A03")), "占位产品阻断在册（A03 族：字段闭包＋占位专用两实线）");
+  assert.ok(Array.isArray(detail.standardizationWarnings), "警告数组恒在（可为空）");
+  assert.equal(detail.metadata.product, "通用", "metadata 现读回归钉（读文件现值，非快照）");
+});
+
 test("standardize/scan flow survives a missing current pointer (falls back to worktree snapshot)", (t) => {
   const vaultPath = fixture();
   t.after(() => fs.rmSync(vaultPath, { recursive: true, force: true }));

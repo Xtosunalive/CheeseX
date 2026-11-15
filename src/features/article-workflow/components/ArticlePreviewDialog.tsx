@@ -40,6 +40,17 @@ export function ArticlePreviewDialog({ article, standardizing, fieldOptions, fie
             {!standardized && article.standardizationWarningCount > 0 && <span className="ml-2">{articlePreviewWarningText(article.standardizationWarningCount)}</span>}
           </DialogDescription>
         </DialogHeader>
+        {/* SPEC-030 §十一批1（2026-11-16）：blocked 态阻断原因随详情透出——「为什么 error」可见，不再只有状态词 */}
+        {article.standardizationStatus === "blocked" && (article.complianceBlockers?.length ?? 0) > 0 && (
+          <div role="alert" className="rounded-lg bg-status-error-2 px-3 py-2 text-xs text-status-error ring-1 ring-status-error-6">
+            <p className="font-medium">{ARTICLE_PREVIEW_COPY.BLOCKED_REASONS}</p>
+            <ul className="mt-1 list-inside list-disc space-y-0.5">
+              {(article.complianceBlockers ?? []).map((blocker) => (
+                <li key={`${blocker.ruleId}-${blocker.field}`}>{blocker.message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
         {/* PR-151：已标准化文章同样开放补齐——补齐后内容变化自动回待标准化，重走标准化即可（与 Obsidian 编辑同一语义） */}
       <CandidateFieldForm article={article} options={fieldOptions} optionsLoading={fieldOptionsLoading} saving={savingFields} onSave={onSaveFields} />
         {/* 正文来自当前工作稿；正式快照的发布状态由审批工作区单独呈现。 */}

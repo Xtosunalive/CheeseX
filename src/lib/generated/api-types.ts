@@ -1667,11 +1667,11 @@ export interface paths {
                             data: components["schemas"]["DashboardTopologyData"];
                             /** @enum {string} */
                             scope?: "full" | "architecture";
-                            /** @description 准入实体节点总数（经 graph-admission 白名单过滤，仅统计实体标签 ArchitectureComponent/Module 的节点）；与 totalEdges 同一过滤口径，非原始图全部节点。 */
+                            /** @description 准入实体节点总数（经 graph-admission 白名单过滤，仅统计实体标签 ArchitectureComponent/Module 的节点）；与 totalEdges 同一过滤口径，非原始图全部节点。全集＝topology.nodes 的准入过滤全量（returnedNodes 为其 top 截断切片）。 */
                             totalNodes?: number;
                             /** @description 本次响应实际返回的节点数（受 top N 截断），恒 ≤ totalNodes，且等于 topology.nodes 的长度。 */
                             returnedNodes?: number;
-                            /** @description 准入实体之间的边总数（与节点同一过滤管道：仅统计两端均为已准入实体的边）；与 totalNodes 同口径，非原始图全部边。 */
+                            /** @description 准入实体之间的边总数（与节点同一过滤管道：仅统计两端均为已准入实体的边）；与 totalNodes 同口径，非原始图全部边。全集含 topology.edges 之外的截断隐藏边。 */
                             totalEdges?: number;
                             /** @description 本次响应实际返回的边数（受 top N 截断），恒 ≤ totalEdges，且等于 topology.edges 的长度。 */
                             returnedEdges?: number;
@@ -1685,6 +1685,7 @@ export interface paths {
                                 edges?: components["schemas"]["TopologyEdge"][];
                             };
                             taxonomyTree?: components["schemas"]["TaxonomyNode"][];
+                            /** @description 全图各分类的节点计数（分类集合与 taxonomyTree 同源） */
                             category_counts?: {
                                 [key: string]: number;
                             };
@@ -2983,6 +2984,7 @@ export interface paths {
                         "application/json": components["schemas"]["ApiEnvelope_Data"] & {
                             data: {
                                 conflicts: components["schemas"]["InferenceConflict"][];
+                                /** @description 待审核关系冲突总数（PR-269：与 conflicts 同集合的全量计数，conflicts 为分页切片） */
                                 total: number;
                             };
                         };
@@ -9332,11 +9334,11 @@ export interface components {
         DashboardTopologyData: (components["schemas"]["FormalReleaseIdentity"] | components["schemas"]["WorktreeIdentity"]) & ({
             /** @enum {string} */
             scope: "full" | "architecture";
-            /** @description 准入实体节点总数（经 graph-admission 白名单过滤，仅统计实体标签 ArchitectureComponent/Module 的节点）；与 totalEdges 同一过滤口径，非原始图全部节点。 */
+            /** @description 准入实体节点总数（经 graph-admission 白名单过滤，仅统计实体标签 ArchitectureComponent/Module 的节点）；与 totalEdges 同一过滤口径，非原始图全部节点。全集＝topology.nodes 的准入过滤全量（returnedNodes 为其 top 截断切片）。 */
             totalNodes: number;
             /** @description 本次响应实际返回的节点数（受 top N 截断），恒 ≤ totalNodes，且等于 topology.nodes 的长度。 */
             returnedNodes: number;
-            /** @description 准入实体之间的边总数（与节点同一过滤管道：仅统计两端均为已准入实体的边）；与 totalNodes 同口径，非原始图全部边。 */
+            /** @description 准入实体之间的边总数（与节点同一过滤管道：仅统计两端均为已准入实体的边）；与 totalNodes 同口径，非原始图全部边。全集含 topology.edges 之外的截断隐藏边。 */
             totalEdges: number;
             /** @description 本次响应实际返回的边数（受 top N 截断），恒 ≤ totalEdges，且等于 topology.edges 的长度。 */
             returnedEdges: number;
@@ -9350,6 +9352,7 @@ export interface components {
                 edges?: components["schemas"]["TopologyEdge"][];
             };
             taxonomyTree?: components["schemas"]["TaxonomyNode"][];
+            /** @description 全图各分类的节点计数（分类集合与 taxonomyTree 同源） */
             category_counts?: {
                 [key: string]: number;
             };
@@ -9405,8 +9408,11 @@ export interface components {
             freshness?: components["schemas"]["ReleaseFreshness"];
         };
         CanvasAdmissionData: (components["schemas"]["FormalReleaseIdentity"] | components["schemas"]["WorktreeIdentity"]) & {
+            /** @description 画布准入扫描的组件总数（与 components 同集合的全量计数，components 为逐条明细） */
             total: number;
+            /** @description 已准入组件数（components 中 admitted=true 的条数，同集合） */
             admitted: number;
+            /** @description 被阻止组件数（components 中 admitted=false 的条数，同集合） */
             blocked: number;
             components: {
                 id: string;
@@ -9429,13 +9435,13 @@ export interface components {
             /** @description 实际读取字节的 SHA-256 修订（E3 约束：data-flow-contract-zh.md:91）。用于识别可变输入与乐观并发，不持久化、不参与批准/发布资格。 */
             workingRevision?: string;
             freshness?: components["schemas"]["ReleaseFreshness"];
-            /** @description PR-156 刀三：按节点种类的已准入数——准入语义只对实体/文档成立，分类学结构节点不计（「已准入实体」跨页单源的权威口径） */
+            /** @description PR-156 刀三：按节点种类的已准入数——准入语义只对实体/文档成立，分类学结构节点不计（「已准入实体」跨页单源的权威口径）；分项与 components 同集合按 kind 分组（components 为逐条明细） */
             admittedByKind?: {
                 entity: number;
                 document: number;
                 taxonomy: number;
             };
-            /** @description WP-136 a：按节点种类的条目总数（全量口径，与 admittedByKind 同集合同管道算出，含无 id 的 missing_id 条目）——它是「待准入＝总数−已准入」减法的被减数。配对自洽：对每个 k 恒有 admittedByKind[k] ≤ totalByKind[k]；两族字段均由 kg-routes.cjs 一次遍历产出，消费方（含前端）不得再从 components 子集重数一遍。注：本对字段是 object 而非 integer，check:response-count-parity 的 COUNT_FIELD 谓词（^(total|returned)[A-Z][A-Za-z]*$ ＋ type=integer）扫不到它，配对口径暂由 SPEC-074 §6.5 口径表＋后端路由实调钉守（形状缺口在册＝PR-269）。 */
+            /** @description WP-136 a：按节点种类的条目总数（全量口径，与 admittedByKind 同集合同管道算出，含无 id 的 missing_id 条目）——它是「待准入＝总数−已准入」减法的被减数。配对自洽：对每个 k 恒有 admittedByKind[k] ≤ totalByKind[k]；两族字段均由 kg-routes.cjs 一次遍历产出，消费方（含前端）不得再从 components 子集重数一遍。注：本对字段是 object 计数图，PR-269 扩面后（2026-11-15）已入 check-response-count-parity 镜头（计数图形状＋R4 集合声明），配对口径声明随本描述执法。 */
             totalByKind?: {
                 entity: number;
                 document: number;
@@ -10604,7 +10610,9 @@ export interface components {
         };
         ArticleUploadList: {
             items: components["schemas"]["ArticleWorkflowTask"][];
+            /** @description 全库上传任务总数（PR-269 验收锚：与 items 同集合的全量计数，items 为分页切片） */
             total: number;
+            /** @description 各处理状态的上传任务计数（与 items 同集合按 status 分组，items 为分页切片） */
             statusCounts: {
                 awaiting_architect_processing: number;
                 awaiting_approval: number;
@@ -10707,12 +10715,17 @@ export interface components {
             /** Format: date-time */
             generatedAt: string;
         };
-        PrecleanedArticleDetail: components["schemas"]["PrecleanedArticleItem"] & {
+        PrecleanedArticleDetail: {
+            /** @description SPEC-030 §十一批1：blocked 态阻断原因（与 getStatusCandidate 同源 record.admissionBlockers） */
+            complianceBlockers?: components["schemas"]["BlockerDetail"][];
+            /** @description 标准化警告级发现（同 BlockerDetail 形态＋severity） */
+            standardizationWarnings?: components["schemas"]["BlockerDetail"][];
+        } & (components["schemas"]["PrecleanedArticleItem"] & {
             metadata: {
                 [key: string]: unknown;
             };
             content: string;
-        };
+        });
         ArticleTaskEnvelope: {
             /** @constant */
             success: true;
@@ -10932,9 +10945,13 @@ export interface components {
             relations: components["schemas"]["DocumentRelationEntry"][];
         };
         CanonicalDocumentSummary: {
+            /** @description 本次检索命中总数（PR-269：与 documents 数组同次响应，documents 为其分页切片） */
             totalResults: number;
+            /** @description 全库正式文档总数（documents 为其检索切片，全集大于等于切片长度） */
             totalDocuments: number;
+            /** @description 已抽取入索引的文档数（documents 中已完成本体抽取的子集） */
             indexedDocuments: number;
+            /** @description 待抽取文档数（documents 中尚未完成本体抽取的部分） */
             pendingExtraction: number;
         };
         CanonicalDocumentSearchData: {
@@ -12800,6 +12817,7 @@ export interface components {
             decision?: string;
             selectionHint?: string;
         };
+        /** @description PROJECTION_IDENTITY_UNMOUNTED（409）：「无挂载主体」合法空态（ADR-009 D5，Master 2026-10-25「A」，PR-103）——发布包内元层 architecture_projection 的 product 与 version 双空（AnyShare 2026-10-17 退役归档后的默认态，也是开源新库默认态）；依赖产品身份的正式消费读面（语义架构投影／分类列表）以本码空态引导拒绝，不再 500；词表、实体、文章面不受影响。半身份（只填其一）仍为 RELEASE_PROJECTION_IDENTITY_INVALID（500，配置错误）。 */
         ProjectionIdentityUnmountedErrorResponse: components["schemas"]["ApiError"] & {
             /** @enum {string} */
             error_code?: "PROJECTION_IDENTITY_UNMOUNTED";
