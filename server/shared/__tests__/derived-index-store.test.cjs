@@ -1,6 +1,5 @@
-// @tests: server/shared/persistence/derived-index-store.cjs ＋ runtime-state-import.cjs 的②类目录导入
-// SPEC-012 wave-2 首家族（②类）：article_manifests 行级 API 往返、旧库升级路径（0001 已应用→0002 追加）、
-// boot 目录导入（递归收集→行级 put→整体删除→幂等）。
+// @tests: server/shared/persistence/derived-index-store.cjs
+// SPEC-012 wave-2：派生读模型的行级 API 与 SQLite 版本迁移。
 // 层级：纯单元＋Adapter 契约（内存库/临时目录；真实文件库行为由 sqlite-adapter.test.cjs 覆盖）。
 "use strict";
 
@@ -16,8 +15,6 @@ const {
   createDerivedIndexStore,
   getDerivedIndexStore,
 } = require("../persistence/derived-index-store.cjs");
-const { createRuntimeStateStore } = require("../persistence/runtime-state-store.cjs");
-const { importLegacyRuntimeState } = require("../persistence/runtime-state-import.cjs");
 
 function makeVault() {
   return fs.mkdtempSync(path.join(os.tmpdir(), "derived-index-store-"));
@@ -60,122 +57,6 @@ test("旧库升级路径：仅应用过 0001 的 derived-index.db 打开即追�
   } finally {
     fs.rmSync(dir, { recursive: true, force: true });
   }
-});
-
-test("boot ②类目录导入：递归收集→行级 put→目录整体删除；脏文件跳过；二遍幂等 no-op", () => {
-  const vaultPath = makeVault();
-  const manifestsDir = path.join(vaultPath, ".ledger", "article-manifests");
-  fs.mkdirSync(path.join(manifestsDir, "wiki", "entities"), { recursive: true });
-  fs.writeFileSync(path.join(manifestsDir, "wiki", "entities", "A.md.json"), JSON.stringify({ manifestKey: "wiki/entities/A.md", sourcePathCanonical: "知识库/wiki/entities/A.md" }));
-  fs.writeFileSync(path.join(manifestsDir, "top.md.json"), JSON.stringify({ manifestKey: "top.md" }));
-  fs.writeFileSync(path.join(manifestsDir, "corrupt.json"), "not-json");
-  const ledgerCalls = [];
-  const gitLedger = { markSystemFile: (...a) => ledgerCalls.push(["markSystemFile", ...a]), scheduleLedger: (...a) => ledgerCalls.push(["scheduleLedger", ...a]) };
-
-  const derivedIndexStore = createDerivedIndexStore(openPersistenceDb());
-  const warnings = [];
-  const logger = { info() {}, warn(...a) { warnings.push(a); }, error() {} };
-  const result = importLegacyRuntimeState({
-    vaultPath,
-    store: createRuntimeStateStore(openPersistenceDb()),
-    derivedIndexStore,
-    gitLedger,
-    logger,
-    dataDir: vaultPath,
-  });
-
-  assert.deepEqual(result.articleManifests, { imported: 2, removed: true });
-  assert.equal(fs.existsSync(manifestsDir), false, "②类目录导入后整体删除（无 .migrated 留存）");
-  const rows = derivedIndexStore.articleManifests.list().map((row) => row.key);
-  assert.deepEqual(rows, ["top.md", "wiki/entities/A.md"], "key=相对路径去 .json（含嵌套目录）");
-  assert.equal(derivedIndexStore.articleManifests.get("wiki/entities/A.md").sourcePathCanonical, "知识库/wiki/entities/A.md");
-  assert.ok(warnings.some((args) => String(args[0].event) === "article-manifests-import-file-failed"), "脏文件只 warn 跳过");
-  assert.ok(ledgerCalls.some(([kind]) => kind === "scheduleLedger"), "目录删除落一笔 migrate 账");
-
-  // 二遍幂等：目录已不存在 → no-op
-  const second = importLegacyRuntimeState({
-    vaultPath, store: createRuntimeStateStore(openPersistenceDb()), derivedIndexStore, gitLedger, logger, dataDir: vaultPath,
-  });
-  assert.deepEqual(second.articleManifests, { imported: 0, removed: false });
-  assert.equal(derivedIndexStore.articleManifests.count(), 2);
-
-  fs.rmSync(vaultPath, { recursive: true, force: true });
-});
-
-test("boot 图族三件导入：json 原文入行＋db 字节复制 dataDir＋三件删除；二遍幂等 no-op", () => {
-  const vaultPath = makeVault();
-  const ledgerDir = path.join(vaultPath, ".ledger");
-  fs.mkdirSync(ledgerDir, { recursive: true });
-  const graphRaw = `${JSON.stringify({ nodes: [{ id: "a" }], connections: [] }, null, 2)}\n`;
-  fs.writeFileSync(path.join(ledgerDir, "master_graph.json"), graphRaw);
-  fs.writeFileSync(path.join(ledgerDir, "extract_manifest.json"), '{"generatedAt":"t","files":{}}\n');
-  fs.writeFileSync(path.join(ledgerDir, "master_graph.db"), "sqlite-bytes");
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "graph-import-data-"));
-  const ledgerCalls = [];
-  const gitLedger = { markSystemFile: (...a) => ledgerCalls.push(["markSystemFile", ...a]), scheduleLedger: (...a) => ledgerCalls.push(["scheduleLedger", ...a]) };
-
-  const derivedIndexStore = createDerivedIndexStore(openPersistenceDb());
-  const logger = { info() {}, warn() {}, error() {} };
-  const result = importLegacyRuntimeState({
-    vaultPath,
-    store: createRuntimeStateStore(openPersistenceDb()),
-    derivedIndexStore,
-    gitLedger,
-    logger,
-    dataDir,
-  });
-
-  // json 原文行（字节精确——管线指纹口径）＋ db 字节复制
-  assert.equal(derivedIndexStore.artifacts.get("master_graph"), graphRaw, "图原文入行（字节精确）");
-  assert.equal(derivedIndexStore.artifacts.get("extract_manifest"), '{"generatedAt":"t","files":{}}\n');
-  assert.equal(fs.readFileSync(path.join(dataDir, "master_graph.db"), "utf8"), "sqlite-bytes", "db 字节工件复制到 dataDir");
-  // 三件删除（②类可丢弃，不留 .migrated）
-  assert.equal(fs.existsSync(path.join(ledgerDir, "master_graph.json")), false);
-  assert.equal(fs.existsSync(path.join(ledgerDir, "extract_manifest.json")), false);
-  assert.equal(fs.existsSync(path.join(ledgerDir, "master_graph.db")), false);
-  assert.deepEqual(result.graphArtifacts.imported.sort(), ["extract_manifest", "master_graph"]);
-  assert.equal(result.graphArtifacts.dbCopied, true);
-  assert.ok(ledgerCalls.some(([kind]) => kind === "scheduleLedger"), "迁出落一笔 migrate 账");
-
-  // 二遍幂等：文件已删 → no-op
-  const second = importLegacyRuntimeState({
-    vaultPath, store: createRuntimeStateStore(openPersistenceDb()), derivedIndexStore, gitLedger, logger, dataDir,
-  });
-  assert.deepEqual(second.graphArtifacts, { imported: [], dbCopied: false, removed: [] });
-  assert.equal(derivedIndexStore.artifacts.get("master_graph"), graphRaw, "存量行不被二次导入动");
-
-  fs.rmSync(vaultPath, { recursive: true, force: true });
-  fs.rmSync(dataDir, { recursive: true, force: true });
-});
-
-test("boot 图族导入：坏 JSON 文件只 warn 跳过且不进库（staging/boot 重建兜底），空文件清住址", () => {
-  const vaultPath = makeVault();
-  const ledgerDir = path.join(vaultPath, ".ledger");
-  fs.mkdirSync(ledgerDir, { recursive: true });
-  fs.writeFileSync(path.join(ledgerDir, "master_graph.json"), "{broken");
-  fs.writeFileSync(path.join(ledgerDir, "extract_manifest.json"), "   \n");
-  const dataDir = fs.mkdtempSync(path.join(os.tmpdir(), "graph-import-data-"));
-  const derivedIndexStore = createDerivedIndexStore(openPersistenceDb());
-  const warnings = [];
-  const logger = { info() {}, warn(...a) { warnings.push(a); }, error() {} };
-
-  // 坏 JSON：put 会成功（原文字节行不校验 JSON），但消费端 parse 失败兜底——导入器不应炸；
-  // 空文件＝无内容可迁，直接清住址
-  const result = importLegacyRuntimeState({
-    vaultPath,
-    store: createRuntimeStateStore(openPersistenceDb()),
-    derivedIndexStore,
-    gitLedger: { markSystemFile() {}, scheduleLedger() {} },
-    logger,
-    dataDir,
-  });
-  assert.equal(fs.existsSync(path.join(ledgerDir, "master_graph.json")), false);
-  assert.equal(fs.existsSync(path.join(ledgerDir, "extract_manifest.json")), false, "空文件清住址");
-  assert.equal(derivedIndexStore.artifacts.get("extract_manifest"), undefined, "空文件不入行");
-  assert.ok(result.graphArtifacts.removed.includes("extract_manifest.json"));
-
-  fs.rmSync(vaultPath, { recursive: true, force: true });
-  fs.rmSync(dataDir, { recursive: true, force: true });
 });
 
 test("取用两形态：NODE_TEST_CONTEXT 下同 scopeKey 共享、异键隔离；缺装配的生产形态 throw", () => {

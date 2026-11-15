@@ -173,8 +173,7 @@ function getActiveActionSnapshot() {
 
 /** preHandler 角色门查询口（route-roles 消费）——与工厂动作查找同一快照实例。
  *  W1-B 起 body 参与解析（载荷敏感升级首条匹配生效）；未初始化或未挂路由返回 null。 */
-function actionRouteRoleFor(method, template, body) {
-  const snapshot = getActiveActionSnapshot();
+function actionRouteRoleFor(method, template, body, snapshot = getActiveActionSnapshot()) {
   if (!snapshot) return null;
   const key = `${String(method || "").toUpperCase()} ${contractRequest.normalizeTemplate(String(template || ""))}`;
   const binding = snapshot.routeRoles.get(key);

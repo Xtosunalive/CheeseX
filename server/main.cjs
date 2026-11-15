@@ -324,8 +324,8 @@ let associationRetirementPort = null; // loadDashboardRoutes 段赋值
 require("./routes/article-workflow-routes.cjs").register(registerRoute, {
   articleWorkflowService,
   // WP-173（SPEC-095 §3.6）：计算状态端点的审批探针与合规阻断——从审批状态机与异常工作台取
-  getApprovalStatus: (id) => { try { return approvalStateMachine.getStatus(id).status; } catch { return "draft"; } },
-  getComplianceBlockers: (id) => { try { return anomalyWorkbenchRef?.service?.list?.({ articleId: id })?.blockers || []; } catch { return []; } },
+  readApprovalRecord: (id) => approvalStateMachine.readRecord(id),
+  checkTransitionAvailability: (...args) => approvalStateMachine.checkTransitionAvailability(...args),
   reconcileAnomalies: (job) => { if (anomalyWorkbenchRef) anomalyWorkbenchRef.reconcileDiagnostic(job); },
   // PR-065/SPEC-013 L2：文章退役动作（预演/事务性沿 source_file 链全清）
   retireArticle: (input) => articleLifecycleReconciler.retireArticle(input),
@@ -884,10 +884,10 @@ logger.info({ subsystem: "api", event: "api_response_schema_enforce_on", contrac
 // ── Server（PR-085 第 1 步：框架装配见 shared/http-app.cjs；此处只保留启动顺序与生命周期）──
 
 // PR-056：boot 漂移扫完成后才 listen——「server 开始处理请求前 recovery 提交已落」的顺序兑现
-// SPEC-012 WP-C/WP-A：②类重建＋③类存量导入与漂移扫一并落定后再 listen（均 fail-open，失败不阻断）
-// SPEC-012 wave-2：图族摄取（含存量导入后的二次摄取）同样 listen 前落定
+// SPEC-012 WP-C/WP-A：②类重建、③类流水重放与漂移扫一并落定后再 listen（失败已记录）
+// SPEC-012 wave-2：图族摄取同样在 listen 前落定
 // PR-109：TheSchema 自检同汇合（fail-open——纯读校验，慢/失败不阻断 listen）
-Promise.all([bootDriftReady, derivedIndexReady, graphIngestReady, schemaSelfcheckReady]).then(() => {
+Promise.all([bootDriftReady, derivedIndexReady, stateJournalReplayReady, graphIngestReady, schemaSelfcheckReady]).then(() => {
   httpApp.listen({ port: PORT, host: HOST }).then((address) => {
     logger.info({ event: "server-start", port: address.port, vaultPath });
   }).catch((error) => {

@@ -498,3 +498,24 @@ test('每条失败路径保留原始 ID 与完整替代链，不改源定义', (
     assert.deepEqual(registry, before);
   }
 });
+
+test("仓内知识文章只继承自身九条现役写动作", () => {
+  const { parse } = require("yaml");
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const load = (name) => parse(fs.readFileSync(path.join(__dirname, "../../../data/theschema", name), "utf8"));
+  const ontology = load("ontology.yaml");
+  const resolved = resolveClassInheritance(ontology, "KnowledgeArticle", load("fields.yaml"));
+  const writes = resolved.action_types.filter(({ definition }) => /^(POST|PATCH) /.test(definition.http_route));
+  assert.deepEqual(writes.map(({ id }) => id).sort(), [
+    "approval.transition", "article-associations.remove", "article-associations.save",
+    "articles.drafts-promote", "articles.drafts-validate", "articles.patch-fields",
+    "articles.retire", "articles.standardize", "articles.upload",
+  ]);
+  assert.deepEqual(resolved.action_types.filter(({ definition }) => definition.http_route.startsWith("GET ")).map(({ id }) => id), ["articles.status"]);
+  for (const { definition } of writes) {
+    assert.equal(definition.class_id, "KnowledgeArticle");
+    assert.match(definition.http_route, /^(POST|PATCH) /);
+  }
+  assert.equal(ontology.action_types["articles.retire"].risk_id, undefined);
+});

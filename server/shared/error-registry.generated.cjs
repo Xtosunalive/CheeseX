@@ -16,7 +16,7 @@ module.exports = {
         403
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:198"
+        "server/shared/action-execution-factory.cjs:230"
       ]
     },
     "ACTION_AUDIT_APPEND_FAILED": {
@@ -24,7 +24,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:244"
+        "server/shared/action-execution-factory.cjs:276"
       ]
     },
     "ACTION_CONFIRM_REQUIRED": {
@@ -32,7 +32,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:197"
+        "server/shared/action-execution-factory.cjs:229"
       ]
     },
     "ACTION_EXECUTOR_UNREGISTERED": {
@@ -40,7 +40,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:207"
+        "server/shared/action-execution-factory.cjs:239"
       ]
     },
     "ACTION_FACTORY_UNAVAILABLE": {
@@ -48,16 +48,14 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:154",
-        "server/shared/action-execution-factory.cjs:163"
+        "server/shared/action-execution-factory.cjs:180",
+        "server/shared/action-execution-factory.cjs:190"
       ]
     },
     "ACTION_NOT_ACTIVE": {
-      "statuses": [
-        500
-      ],
+      "statuses": [],
       "sites": [
-        "server/shared/action-execution-factory.cjs:170"
+        "server/shared/action-execution-factory.cjs:199"
       ]
     },
     "ACTION_POSTCHECK_FAILED": {
@@ -65,8 +63,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:231",
-        "server/shared/action-execution-factory.cjs:237"
+        "server/shared/action-execution-factory.cjs:263",
+        "server/shared/action-execution-factory.cjs:269"
       ]
     },
     "ACTION_PRECONDITION_FAILED": {
@@ -74,7 +72,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:188"
+        "server/shared/action-execution-factory.cjs:220"
       ]
     },
     "ACTION_PRECONDITION_UNKNOWN": {
@@ -82,7 +80,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:182"
+        "server/shared/action-execution-factory.cjs:214"
       ]
     },
     "ACTION_RISK_BLOCKED": {
@@ -90,7 +88,7 @@ module.exports = {
         403
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:199"
+        "server/shared/action-execution-factory.cjs:231"
       ]
     },
     "ALIAS_AMBIGUOUS": {
@@ -183,10 +181,10 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:91",
-        "server/services/release-governance/approval-state-machine-service.cjs:375",
-        "server/services/release-governance/approval-state-machine-service.cjs:476",
-        "server/services/release-governance/approval-state-machine-service.cjs:479"
+        "server/services/release-governance/approval-state-machine-service.cjs:90",
+        "server/services/release-governance/approval-state-machine-service.cjs:396",
+        "server/services/release-governance/approval-state-machine-service.cjs:497",
+        "server/services/release-governance/approval-state-machine-service.cjs:500"
       ]
     },
     "APPROVAL_NOT_FOUND": {
@@ -243,7 +241,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:689"
+        "server/services/article-workflow/article-workflow-service.cjs:701"
       ]
     },
     "ARTICLE_NOT_FOUND": {
@@ -252,10 +250,10 @@ module.exports = {
       ],
       "sites": [
         "server/services/article-workflow/article-association-service.cjs:281",
-        "server/services/article-workflow/article-workflow-service.cjs:236",
-        "server/services/article-workflow/article-workflow-service.cjs:267",
-        "server/services/article-workflow/article-workflow-service.cjs:271",
-        "server/services/article-workflow/article-workflow-service.cjs:394"
+        "server/services/article-workflow/article-workflow-service.cjs:245",
+        "server/services/article-workflow/article-workflow-service.cjs:276",
+        "server/services/article-workflow/article-workflow-service.cjs:280",
+        "server/services/article-workflow/article-workflow-service.cjs:403"
       ]
     },
     "ARTICLE_NOT_STANDARDIZED": {
@@ -263,12 +261,12 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:245",
-        "server/services/release-governance/approval-state-machine-service.cjs:336",
-        "server/services/release-governance/approval-state-machine-service.cjs:348",
-        "server/services/release-governance/approval-state-machine-service.cjs:362",
-        "server/services/release-governance/approval-state-machine-service.cjs:372",
-        "server/services/release-governance/approval-state-machine-service.cjs:407"
+        "server/services/release-governance/approval-state-machine-service.cjs:244",
+        "server/services/release-governance/approval-state-machine-service.cjs:335",
+        "server/services/release-governance/approval-state-machine-service.cjs:347",
+        "server/services/release-governance/approval-state-machine-service.cjs:383",
+        "server/services/release-governance/approval-state-machine-service.cjs:393",
+        "server/services/release-governance/approval-state-machine-service.cjs:428"
       ]
     },
     "ARTICLE_REVISION_CONFLICT": {
@@ -280,11 +278,11 @@ module.exports = {
         "server/services/article-workflow/article-association-service.cjs:304",
         "server/services/article-workflow/article-association-service.cjs:308",
         "server/services/article-workflow/article-association-service.cjs:375",
-        "server/services/release-governance/approval-state-machine-service.cjs:134",
-        "server/services/release-governance/approval-state-machine-service.cjs:141",
-        "server/services/release-governance/approval-state-machine-service.cjs:193",
-        "server/services/release-governance/approval-state-machine-service.cjs:216",
-        "server/services/release-governance/approval-state-machine-service.cjs:224"
+        "server/services/release-governance/approval-state-machine-service.cjs:133",
+        "server/services/release-governance/approval-state-machine-service.cjs:140",
+        "server/services/release-governance/approval-state-machine-service.cjs:192",
+        "server/services/release-governance/approval-state-machine-service.cjs:215",
+        "server/services/release-governance/approval-state-machine-service.cjs:223"
       ]
     },
     "ARTICLE_SOURCE_NOT_FOUND": {
@@ -308,7 +306,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:286"
+        "server/services/article-workflow/article-workflow-service.cjs:295"
       ]
     },
     "ARTICLE_VALIDATION_FAILED": {
@@ -316,14 +314,14 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:314",
-        "server/services/release-governance/approval-state-machine-service.cjs:340"
+        "server/services/release-governance/approval-state-machine-service.cjs:313",
+        "server/services/release-governance/approval-state-machine-service.cjs:339"
       ]
     },
     "ARTICLE_WORKFLOW_ERROR": {
       "statuses": [],
       "sites": [
-        "server/routes/article-workflow-routes.cjs:203"
+        "server/routes/article-workflow-routes.cjs:205"
       ]
     },
     "ARTICLE_WRITE_FAILED": {
@@ -355,8 +353,8 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:274",
-        "server/shared/http-app.cjs:278"
+        "server/shared/http-app.cjs:277",
+        "server/shared/http-app.cjs:281"
       ]
     },
     "AUTH_STATE_MISMATCH": {
@@ -372,7 +370,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:190"
+        "server/shared/http-app.cjs:193"
       ]
     },
     "BODY_REQUIRED": {
@@ -380,7 +378,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:192"
+        "server/shared/http-app.cjs:195"
       ]
     },
     "BUILDER_UNAVAILABLE": {
@@ -439,7 +437,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/article-workflow/article-draft-workflow.cjs:197",
-        "server/services/article-workflow/article-workflow-service.cjs:263"
+        "server/services/article-workflow/article-workflow-service.cjs:272"
       ]
     },
     "CONFLICT_NOT_FOUND": {
@@ -466,8 +464,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:304",
-        "server/services/article-workflow/article-workflow-service.cjs:473"
+        "server/services/article-workflow/article-workflow-service.cjs:313",
+        "server/services/article-workflow/article-workflow-service.cjs:482"
       ]
     },
     "CURRENT_POINTER_INVALID": {
@@ -559,8 +557,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:268",
-        "server/services/article-workflow/article-workflow-service.cjs:395"
+        "server/services/article-workflow/article-workflow-service.cjs:277",
+        "server/services/article-workflow/article-workflow-service.cjs:404"
       ]
     },
     "DUPLICATE_ARTIFACT": {
@@ -685,7 +683,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:382"
+        "server/services/article-workflow/article-workflow-service.cjs:391"
       ]
     },
     "FIELD_VALUE_INVALID": {
@@ -693,7 +691,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:459"
+        "server/services/article-workflow/article-workflow-service.cjs:468"
       ]
     },
     "FORBIDDEN": {
@@ -806,8 +804,8 @@ module.exports = {
         "server/routes/kg-routes.cjs:455",
         "server/routes/kg-routes.cjs:468",
         "server/routes/sync-routes.cjs:84",
-        "server/shared/http-app.cjs:131",
-        "server/shared/http-app.cjs:261"
+        "server/shared/http-app.cjs:132",
+        "server/shared/http-app.cjs:264"
       ]
     },
     "INVALID_ALIAS_TARGET": {
@@ -884,8 +882,8 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:111",
-        "server/services/release-governance/approval-state-machine-service.cjs:125"
+        "server/services/release-governance/approval-state-machine-service.cjs:110",
+        "server/services/release-governance/approval-state-machine-service.cjs:124"
       ]
     },
     "INVALID_DECISION_INPUT": {
@@ -961,7 +959,7 @@ module.exports = {
     "INVALID_FILE_NAME": {
       "statuses": [],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:701"
+        "server/services/article-workflow/article-workflow-service.cjs:713"
       ]
     },
     "INVALID_ONTOLOGY": {
@@ -992,7 +990,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:246",
+        "server/services/article-workflow/article-workflow-service.cjs:255",
         "server/services/inference/inference-engine.cjs:103",
         "server/services/inference/inference-engine.cjs:104",
         "server/services/projection/architecture-version-service.cjs:164",
@@ -1239,8 +1237,8 @@ module.exports = {
       "statuses": [],
       "sites": [
         "server/services/article-workflow/article-draft-workflow.cjs:31",
-        "server/services/article-workflow/article-workflow-service.cjs:657",
-        "server/services/article-workflow/article-workflow-service.cjs:798"
+        "server/services/article-workflow/article-workflow-service.cjs:669",
+        "server/services/article-workflow/article-workflow-service.cjs:810"
       ]
     },
     "PERSISTENT_ISSUE_REQUIRED": {
@@ -1291,7 +1289,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:199"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:198"
       ]
     },
     "PROMOTER_NOT_FOUND": {
@@ -1345,13 +1343,13 @@ module.exports = {
     "PUBLISH_RELEASE_INVALID": {
       "statuses": [],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:494"
+        "server/services/release-governance/approval-state-machine-service.cjs:515"
       ]
     },
     "PUBLISH_SOURCE_UNAVAILABLE": {
       "statuses": [],
       "sites": [
-        "server/services/release-governance/approval-state-machine-service.cjs:461"
+        "server/services/release-governance/approval-state-machine-service.cjs:482"
       ]
     },
     "REASONING_CONFLICT_UNRESOLVED": {
@@ -1570,16 +1568,16 @@ module.exports = {
         500
       ],
       "sites": [
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:25",
         "server/services/release-governance/formal-knowledge-consumer-service.cjs:26",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:27",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:34",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:36",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:52",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:57",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:65",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:76",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:81",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:124"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:33",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:35",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:51",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:56",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:64",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:75",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:80",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:123"
       ]
     },
     "RELEASE_ARTIFACT_MISSING": {
@@ -1592,8 +1590,8 @@ module.exports = {
         "server/services/release-governance/complete-release-artifact-service.cjs:95",
         "server/services/release-governance/complete-release-artifact-service.cjs:107",
         "server/services/release-governance/complete-release-artifact-service.cjs:437",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:46",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:191"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:45",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:190"
       ]
     },
     "RELEASE_CROSS_ARTICLE_DIRTY": {
@@ -1609,9 +1607,9 @@ module.exports = {
       "sites": [
         "server/services/release-governance/complete-release-artifact-service.cjs:115",
         "server/services/release-governance/complete-release-artifact-service.cjs:119",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:101",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:106",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:110"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:100",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:105",
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:109"
       ]
     },
     "RELEASE_IDENTITY_INVALID": {
@@ -1619,7 +1617,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:143"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:142"
       ]
     },
     "RELEASE_ID_LOCKED": {
@@ -1665,13 +1663,13 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/complete-release-artifact-service.cjs:181",
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:130"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:129"
       ]
     },
     "RELEASE_READER_REQUIRED": {
       "statuses": [],
       "sites": [
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:137"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:136"
       ]
     },
     "RELEASE_RESTORE_INVALID": {
@@ -1864,7 +1862,7 @@ module.exports = {
       "statuses": [],
       "sites": [
         "server/services/inference/inference-engine.cjs:109",
-        "server/services/projection/impact-analysis-service.cjs:127"
+        "server/services/projection/impact-analysis-service.cjs:126"
       ]
     },
     "SELF_REFERENCE": {
@@ -1887,7 +1885,7 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:211"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:210"
       ]
     },
     "SEMANTIC_PROJECTION_SELECTION_REQUIRED": {
@@ -1895,7 +1893,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:208"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:207"
       ]
     },
     "SNAPSHOT_HASH_MISMATCH": {
@@ -2005,7 +2003,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/approval-state-machine-service.cjs:49",
-        "server/services/release-governance/approval-state-machine-service.cjs:410",
+        "server/services/release-governance/approval-state-machine-service.cjs:431",
         "server/shared/status-transition-guard.cjs:54"
       ]
     },
@@ -2047,7 +2045,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/release-governance/approval-state-machine-service.cjs:47",
-        "server/services/release-governance/approval-state-machine-service.cjs:504"
+        "server/services/release-governance/approval-state-machine-service.cjs:525"
       ]
     },
     "UNKNOWN_PARENT": {
@@ -2072,7 +2070,7 @@ module.exports = {
         415
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:703"
+        "server/services/article-workflow/article-workflow-service.cjs:715"
       ]
     },
     "UNSUPPORTED_RELATION_TYPE": {
@@ -2097,7 +2095,7 @@ module.exports = {
         413
       ],
       "sites": [
-        "server/services/article-workflow/article-workflow-service.cjs:710"
+        "server/services/article-workflow/article-workflow-service.cjs:722"
       ]
     },
     "VALIDATION_ERROR": {
@@ -2131,16 +2129,16 @@ module.exports = {
         "server/services/article-workflow/article-association-service.cjs:278",
         "server/services/article-workflow/article-draft-workflow.cjs:36",
         "server/services/article-workflow/article-workflow-service.cjs:201",
-        "server/services/article-workflow/article-workflow-service.cjs:264",
-        "server/services/article-workflow/article-workflow-service.cjs:378",
-        "server/services/article-workflow/article-workflow-service.cjs:380",
-        "server/services/article-workflow/article-workflow-service.cjs:386",
-        "server/services/article-workflow/article-workflow-service.cjs:390",
-        "server/services/article-workflow/article-workflow-service.cjs:699",
-        "server/services/article-workflow/article-workflow-service.cjs:708",
+        "server/services/article-workflow/article-workflow-service.cjs:273",
+        "server/services/article-workflow/article-workflow-service.cjs:387",
+        "server/services/article-workflow/article-workflow-service.cjs:389",
+        "server/services/article-workflow/article-workflow-service.cjs:395",
+        "server/services/article-workflow/article-workflow-service.cjs:399",
         "server/services/article-workflow/article-workflow-service.cjs:711",
-        "server/services/article-workflow/article-workflow-service.cjs:807",
-        "server/services/article-workflow/article-workflow-service.cjs:807",
+        "server/services/article-workflow/article-workflow-service.cjs:720",
+        "server/services/article-workflow/article-workflow-service.cjs:723",
+        "server/services/article-workflow/article-workflow-service.cjs:819",
+        "server/services/article-workflow/article-workflow-service.cjs:819",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:90",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:93",
         "server/services/entity-compliance/entity-relation-patch-service.cjs:95",
@@ -2245,8 +2243,8 @@ module.exports = {
       ],
       "sites": [
         "server/services/article-workflow/validation-stamp-service.cjs:19",
-        "server/services/release-governance/approval-state-machine-service.cjs:310",
-        "server/services/release-governance/approval-state-machine-service.cjs:332"
+        "server/services/release-governance/approval-state-machine-service.cjs:309",
+        "server/services/release-governance/approval-state-machine-service.cjs:331"
       ]
     },
     "VAULT_ID_MISMATCH": {
@@ -2344,7 +2342,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/release-governance/formal-knowledge-consumer-service.cjs:229"
+        "server/services/release-governance/formal-knowledge-consumer-service.cjs:228"
       ]
     },
     "VERSION_PROJECTOR_NOT_FOUND": {

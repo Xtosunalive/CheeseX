@@ -3,7 +3,7 @@ import { Check, CheckCircle2, GitBranch, Package, RefreshCw, XCircle } from "luc
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/panel";
 import { ApiError, formatApiErrorMessage } from "@/lib/api";
-import { fetchApprovalCandidates, getApprovalStatus, transitionApproval, type ApprovalCandidate, type ApprovalOperation, type ApprovalStatus, type ApprovalStatusView } from "./approval-api";
+import { fetchApprovalCandidates, getApprovalStatus, getArticleStatus, transitionApproval, type ArticleStatus, type ApprovalCandidate, type ApprovalOperation, type ApprovalStatus, type ApprovalStatusView } from "./approval-api";
 import { standardizeArticle } from "@/features/article-workflow";
 import { approvalStatusDisplay, standardizationStatusDisplay, type StatusDisplayTone } from "@/lib/domain/StatusDisplay";
 import { TERM } from "@/constants/term-const";
@@ -60,6 +60,7 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
   const [candidates, setCandidates] = useState<ApprovalCandidate[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(articleId ?? null);
   const [status, setStatus] = useState<ApprovalStatusView | null>(null);
+  const [articleStatus, setArticleStatus] = useState<ArticleStatus | null>(null);
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const loadVersion = useRef(0);
@@ -75,15 +76,19 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
       // 候选与审批记录一起更新，避免用旧源哈希比较新审批绑定。
       const fresh = await fetchApprovalCandidates();
       const targetId = activeArticleId ?? fresh[0]?.id ?? null;
-      const s = targetId ? await getApprovalStatus(targetId) : null;
+      const [s, projection] = targetId
+        ? await Promise.all([getApprovalStatus(targetId), getArticleStatus(targetId).catch(() => null)])
+        : [null, null];
       if (version !== loadVersion.current) return;
       setCandidates(fresh);
       setSelectedId(targetId);
       setStatus(s);
+      setArticleStatus(projection);
       setError(null);
     } catch (e) {
       if (version !== loadVersion.current) return;
       setStatus(null);
+      setArticleStatus(null);
       setError(approvalErrorMessage(e, APPROVAL_WORKBENCH_COPY.LOAD_STATUS_FAILED));
     } finally {
       if (version === loadVersion.current) setLoading(false);
@@ -118,6 +123,7 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
       const result = await transitionApproval(activeArticleId, operation, evidence);
       setStatus({ status: result.status, revision: result.revision ?? status?.revision ?? null, updatedAt: result.updatedAt });
       if (operation === "reject") setRejectReason("");
+      await load();
     } catch (e) {
       setError(approvalErrorMessage(e, APPROVAL_WORKBENCH_COPY.OPERATE_FAILED));
     } finally { setBusy(false); }
@@ -138,6 +144,7 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
         ? { ...candidate, standardizationStatus: standardized.standardizationStatus, formalContentHash: hash }
         : candidate));
       setStatus({ status: result.status, revision: result.revision ?? null, updatedAt: result.updatedAt });
+      await load();
     } catch (e) {
       setError(approvalErrorMessage(e, APPROVAL_WORKBENCH_COPY.STANDARDIZE_FAILED));
     } finally { setBusy(false); }
@@ -167,14 +174,9 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
   const stepIndex = activeWorkflowStep(currentStatus);
   const selectedCandidate = candidates.find((c) => c.id === activeArticleId) ?? null;
   const checkBlocked = selectedCandidate?.standardizationStatus === "blocked";
-  // PR-047：pending 态源文件变化检测——存储 revision（standardize 时绑定的哈希）与候选当前
-  // formalContentHash 不一致 = 旧审批绑定失效，confirm 必被 assertSourceUnchanged 拦。
-  // 此时展示「重新标准化」按钮（走 standardizeAndSubmit：文章准入页重标准化 + 状态机 standardize 重绑，仍回待审）。
-  const revisionHash = status?.revision?.match(/^sha256:([a-f0-9]{64})$/)?.[1] ?? null;
-  const bindingStale = (currentStatus === "pending" || currentStatus === "approved")
-    && Boolean(revisionHash)
-    && Boolean(selectedCandidate?.formalContentHash)
-    && revisionHash !== selectedCandidate?.formalContentHash;
+  const confirmAction = articleStatus?.next_actions.find(({ action }) => action === "confirm");
+  const publishAction = articleStatus?.next_actions.find(({ action }) => action === "publish");
+  const bindingStale = articleStatus?.stale.includes("source_changed") ?? false;
   const recoveryButton = (
     <Button size="sm" variant="outline" data-action-id="approval-restandardize" disabled={busy} title={APPROVAL_WORKBENCH_COPY.RESTANDARDIZE_TITLE} onClick={() => void standardizeAndSubmit()}>
       <RefreshCw className="mr-1.5 h-4 w-4" />{APPROVAL_WORKBENCH_COPY.RESTANDARDIZE_ACTION}
@@ -273,7 +275,7 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
           {bindingStale && recoveryButton}
           {/* PR-311/WP-180：内容检查阻断（:260 role=alert 已内联说明）时确认钮不渲染——灰置口径退役；bindingStale 维持灰置（旁有恢复钮） */}
           {!checkBlocked && (
-          <Button size="sm" data-action-id="approval-confirm" disabled={busy || bindingStale} title={bindingStale ? APPROVAL_WORKBENCH_COPY.CONFIRM_BLOCKED_TITLE : undefined} onClick={() => void operate("confirm")}>
+          <Button size="sm" data-action-id="approval-confirm" disabled={busy || !confirmAction?.allowed} title={bindingStale ? APPROVAL_WORKBENCH_COPY.CONFIRM_BLOCKED_TITLE : confirmAction?.reason} onClick={() => void operate("confirm")}>
             <CheckCircle2 className="mr-1.5 h-4 w-4" />{APPROVAL_WORKBENCH_COPY.CONFIRM_ACTION}
           </Button>
           )}
@@ -287,7 +289,7 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
       {status && !loading && currentStatus === "approved" && (
         <div className="flex flex-wrap gap-2">
           {bindingStale && recoveryButton}
-          <Button size="sm" data-action-id="approval-publish" disabled={busy || bindingStale || !selectedCandidate?.sourcePath} title={bindingStale ? APPROVAL_WORKBENCH_COPY.PUBLISH_BLOCKED_TITLE : undefined} onClick={() => void operate("publish", { sourcePath: selectedCandidate?.sourcePath, contentHash: selectedCandidate?.formalContentHash ?? undefined, title: selectedCandidate?.title })}>
+          <Button size="sm" data-action-id="approval-publish" disabled={busy || !publishAction?.allowed} title={bindingStale ? APPROVAL_WORKBENCH_COPY.PUBLISH_BLOCKED_TITLE : publishAction?.reason} onClick={() => void operate("publish", { sourcePath: selectedCandidate?.sourcePath, contentHash: selectedCandidate?.formalContentHash ?? undefined, title: selectedCandidate?.title })}>
             <Package className="mr-1.5 h-4 w-4" />{APPROVAL_WORKBENCH_COPY.PUBLISH_ACTION}
           </Button>
           <AnomalyGateNotice action="publish_graph" sourcePath={selectedCandidate?.sourcePath ?? undefined} />
@@ -302,7 +304,7 @@ export function ApprovalWorkbench({ articleId, title }: ApprovalWorkbenchProps) 
         </div>
       )}
 
-      {status && !loading && currentStatus === "snapshot" && (
+      {status && !loading && currentStatus === "snapshot" && articleStatus?.stage === "published" && (
         <p className="text-xs leading-5 text-sky-11">{APPROVAL_WORKBENCH_COPY.SNAPSHOT_DONE}</p>
       )}
 

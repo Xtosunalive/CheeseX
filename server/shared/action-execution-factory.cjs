@@ -16,9 +16,9 @@ const path = require("node:path");
 const fs = require("node:fs");
 const { sendJSON } = require("./api-envelope.cjs");
 const { createError } = require("./error-factory.cjs");
-const { getTraceId, createTraceId, getPrincipal, enterRequestContext } = require("./request-context.cjs");
+const { getTraceId, createTraceId, getPrincipal, getRequestContext, enterRequestContext } = require("./request-context.cjs");
 const { appendVaultJsonl, writeVaultExclusive } = require("./vault-io.cjs"); // 通道须已由 main.cjs initVaultIO 激活；未激活时追加失败走 §6.4 显式观测，不静默
-const { getActiveActionSnapshot } = require("./action-registry.cjs");
+const { getActiveActionSnapshot, actionRouteRoleFor, canonicalRouteKey } = require("./action-registry.cjs");
 
 let state = null; // { vaultPath, decisionsPath, logger, executors, preconditionInterpreters, effectVerifiers }
 // 注册缓冲：执行器/解释器/核验器可在 init 之前登记（路由模块 register() 与装配顺序解耦），
@@ -133,8 +133,34 @@ function evaluateStaticRisk(actionId, action, snapshot, body, previewRequest) {
   if (executionHash !== approval.inputHash) return reject("approval_hash_mismatch");
   // 核销点＝执行器成功后（executeAction 内 executor 完成处回调）——失败不烧单（红队记档2：
   // 前置核销把瞬态失败放大成重走全审批）。此处只放行，核销经 state.onRiskApproved 回调。
-  if (state && typeof state.onRiskApproved === "function") state.pendingConsume = () => state.onRiskApproved(state.vaultPath, approvalId, getTraceId());
-  return { allowed: true, reasonCode: "risk_approved" };
+  return { allowed: true, reasonCode: "risk_approved", approvalId };
+}
+
+/**
+ * Read-only action availability for a request-shaped candidate. The command
+ * still rechecks its inputs at execution time.
+ */
+function checkActionAvailability({ actionId, snapshot, body, params = {}, principal = getPrincipal() }) {
+  const action = snapshot?.actions.get(actionId);
+  if (!state || !action?.http_route || !state.executors.has(action.executor)) {
+    return { allowed: false, reason: "ACTION_NOT_ACTIVE" };
+  }
+  const route = action.http_route.trim().split(/\s+/, 2);
+  const method = route[0].toUpperCase();
+  const template = route[1];
+  if (!template) return { allowed: false, reason: "ACTION_NOT_ACTIVE" };
+  const path = template.replace(/\{([^{}]+)\}|:([A-Za-z_][A-Za-z0-9_]*)/g, (token, openApi, fastify) => {
+    const value = params[openApi ?? fastify];
+    return typeof value === "string" && value ? encodeURIComponent(value) : token;
+  });
+  if (method !== "GET" && !principal) return { allowed: false, reason: "UNAUTHENTICATED" };
+  const roles = actionRouteRoleFor(method, template, body, snapshot);
+  if (!roles?.every((role) => principal?.roles.includes(role))) return { allowed: false, reason: "ROLE_DENIED" };
+  // Availability has no full transport request. It cannot promise success for
+  // an action with request-dependent preconditions.
+  if (action.preconditions?.length) return { allowed: false, reason: "ACTION_PRECONDITION_FAILED" };
+  const risk = evaluateStaticRisk(actionId, action, snapshot, body);
+  return risk.allowed ? { allowed: true, method, path } : { allowed: false, reason: risk.code };
 }
 
 function bodyWithoutApprovalId(body) {
@@ -159,15 +185,21 @@ async function executeAction({ actionId, request, reply, executor: boundExecutor
   const traceId = getTraceId();
   const body = request ? request.body : undefined;
 
-  const snapshot = getActiveActionSnapshot();
+  const context = getRequestContext();
+  const snapshot = context && Object.hasOwn(context, "actionSnapshot") ? context.actionSnapshot : getActiveActionSnapshot();
   if (!snapshot) throw createError("ACTION_FACTORY_UNAVAILABLE", "动作注册快照未初始化（装配缺陷）", 503, { action_id: actionId });
 
   // ② 动作查找——仅 approved 进入活消费面（快照构建已过滤）
   const action = snapshot.actions.get(actionId);
-  if (!action) {
+  const httpRoute = request?.routeOptions?.url;
+  const routeMismatch = httpRoute && snapshot.routeAction.get(canonicalRouteKey(`${request.method} ${httpRoute}`)) !== actionId;
+  if (!action || routeMismatch) {
     const event = buildEvent({ traceId, actionId, snapshot, inputRevision: snapshot.revision, outputRevision: null, outcome: "rejected", errorCode: "ACTION_NOT_ACTIVE" });
     appendActionEvent(event);
-    throw createError("ACTION_NOT_ACTIVE", `动作 ${actionId} 未在册或非现役（lifecycle_status 非 approved）`, 500, { action_id: actionId, snapshot_revision: snapshot.revision });
+    throw createError("ACTION_NOT_ACTIVE", routeMismatch
+      ? `动作 ${actionId} 与 HTTP 路由登记不一致`
+      : `动作 ${actionId} 未在册或非现役（lifecycle_status 非 approved）`,
+    500, { action_id: actionId, snapshot_revision: snapshot.revision });
   }
   const inputRevision = inputRevisionOf(body, snapshot);
 
@@ -210,7 +242,7 @@ async function executeAction({ actionId, request, reply, executor: boundExecutor
   let result;
   try {
     result = await executor({ request, body, action, snapshot });
-    if (typeof state.pendingConsume === "function") { const consume = state.pendingConsume; state.pendingConsume = null; consume(); } // WP-172：审批单核销＝执行器成功后（失败不烧单）
+    if (risk.approvalId && state.onRiskApproved) state.onRiskApproved(state.vaultPath, risk.approvalId, traceId);
   } catch (error) {
     // 执行器失败：沿用领域错误与事务语义——原样上抛；事件 outcome=failed 先行落账
     const outputRevision = error && typeof error.revision === "string" ? error.revision : null;
@@ -268,7 +300,6 @@ function initActionFactory({ vaultPath, logger, approvals } = {}) {
     vaultPath,
     approvals: approvals || null, // WP-172：approve 档核验函数注入（ADR-004 层次律——shared 不反向 require services；缺注入＝审批通道未装配，fail-closed）
     onRiskApproved: (approvals && typeof approvals.consumeActionApproval === "function") ? approvals.consumeActionApproval : null, // 成功后核销（失败不烧单）
-    pendingConsume: null,
     decisionsPath: require("../vault-paths.cjs").getDecisionsLogPath(vaultPath), // PR-243 批B：单源
     logger: logger || null,
     executors: new Map(),
@@ -323,5 +354,6 @@ module.exports = {
   registerPreconditionInterpreter,
   registerEffectVerifier,
   executeAction,
+  checkActionAvailability,
   resetActionFactory,
 };

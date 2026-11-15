@@ -14,9 +14,10 @@ const {
   registerActionExecutor,
   registerPreconditionInterpreter,
   executeAction,
+  checkActionAvailability,
   resetActionFactory,
 } = require('../action-execution-factory.cjs');
-const { initActionRegistry, resetActionRegistry } = require('../action-registry.cjs');
+const { initActionRegistry, getActiveActionSnapshot, resetActionRegistry } = require('../action-registry.cjs');
 const { initVaultIO, resetVaultIO } = require('../vault-io.cjs');
 const { createError } = require('../error-factory.cjs');
 
@@ -249,4 +250,64 @@ test('工厂未初始化：503 ACTION_FACTORY_UNAVAILABLE（不写事件——�
   assert.equal(result.error.code, 'ACTION_FACTORY_UNAVAILABLE');
   assert.equal(result.error.status, 503);
   assert.equal(readEvents(vault).length, 0);
+});
+
+test("状态投影使用当前角色与实际审批账本，且不会核销审批", (t) => {
+  const actionId = "approval.transition";
+  const executor = "test.approval";
+  const vaultPath = makeVault({
+    [actionId]: {
+      http_route: "POST /api/approval/{articleId}/transition",
+      executor,
+      required_roles: ["review"],
+      payload_role_overrides: [{ body_field: "operation", equals: "publish", roles: ["publish"] }],
+      risk_id: "requires-signoff",
+    },
+  }, { "requires-signoff": { decision: "approve" } });
+  t.after(() => { resetActionFactory(); resetActionRegistry(); resetVaultIO(); fs.rmSync(vaultPath, { recursive: true, force: true }); });
+  const approvals = require("../../services/governance/action-approval-store.cjs");
+  initActionFactory({ vaultPath, approvals });
+  registerActionExecutor(executor, () => ({}));
+  const snapshot = getActiveActionSnapshot();
+  const body = { operation: "publish" };
+  assert.equal(checkActionAvailability({ actionId, snapshot, body, principal: { roles: [] } }).reason, "ROLE_DENIED");
+  assert.equal(checkActionAvailability({ actionId, snapshot, body, principal: { roles: ["review"] } }).reason, "ROLE_DENIED");
+  const principal = { roles: ["publish"] };
+  assert.equal(checkActionAvailability({ actionId, snapshot, body, principal }).reason, "ACTION_APPROVAL_REQUIRED");
+  const { approvalId } = approvals.createActionApproval(vaultPath, { actionId, input: body, requestedBy: "operator" });
+  approvals.decideActionApproval(vaultPath, approvalId, { decision: "approved", decidedBy: "reviewer" });
+  assert.equal(checkActionAvailability({ actionId, snapshot, body: { ...body, approval_id: approvalId }, principal }).allowed, true);
+  assert.equal(checkActionAvailability({ actionId, snapshot, body: { ...body, approval_id: approvalId, input: { changed: true } }, principal }).allowed, false);
+  assert.ok(!approvals.foldActionApprovals(vaultPath).get(approvalId).used);
+});
+
+test("角色检查与执行使用同一请求版本，发布新快照只影响下一请求", async (t) => {
+  const { runWithRequestContext } = require("../request-context.cjs");
+  const { requiredRolesFor } = require("../auth/route-roles.cjs");
+  const route = "/api/approval/{articleId}/transition";
+  const definition = { http_route: `POST ${route}`, executor: "test.pinned", required_roles: ["review"] };
+  const vaultPath = makeVault({ "approval.transition": definition });
+  t.after(() => { resetActionFactory(); resetActionRegistry(); resetVaultIO(); fs.rmSync(vaultPath, { recursive: true, force: true }); });
+  const actionSnapshot = getActiveActionSnapshot();
+  const body = { operation: "confirm" };
+  assert.deepEqual(requiredRolesFor("POST", route, body, actionSnapshot), ["review"]);
+  const ontologyPath = path.join(vaultPath, "知识库", "TheSchema", "ontology.yaml");
+  fs.writeFileSync(ontologyPath, fs.readFileSync(ontologyPath, "utf8").replace('["review"]', '["publish"]'));
+  assert.deepEqual(requiredRolesFor("POST", route, body), ["publish"]);
+  const reply = fakeReply();
+  await runWithRequestContext({ actionSnapshot }, () => executeAction({
+    actionId: "approval.transition", request: { ...fakeRequest(body), method: "POST", routeOptions: { url: "/api/approval/:articleId/transition" } }, reply,
+    executor: ({ action, snapshot }) => {
+      assert.deepEqual(action.required_roles, ["review"]);
+      assert.equal(snapshot.revision, actionSnapshot.revision);
+      return {};
+    },
+  }));
+  assert.equal(reply.statusCode, 200);
+  await assert.rejects(runWithRequestContext({ actionSnapshot }, () => executeAction({
+    actionId: "approval.transition",
+    request: { ...fakeRequest(body), method: "POST", routeOptions: { url: "/api/articles/upload" } },
+    reply,
+    executor: () => assert.fail("HTTP 路由角色表与动作 ID 不一致时不能调用执行器"),
+  })), { code: "ACTION_NOT_ACTIVE" });
 });
