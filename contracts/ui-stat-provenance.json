@@ -29,18 +29,6 @@
       "note": "lib/topology-store → dashboard-api"
     },
     {
-      "view": "admission",
-      "file": "src/features/admission/AdmissionView.tsx",
-      "statCount": 3,
-      "apiSources": [
-        "src/features/admission/admission-api.ts#fetchCanvasAdmission"
-      ],
-      "sourceApis": [
-        "/api/kg/canvas-admission"
-      ],
-      "note": "admission-store → admission-api"
-    },
-    {
       "view": "article-workflow",
       "file": "src/features/article-workflow/ArticleWorkflowView.tsx",
       "statCount": 2,

@@ -22,20 +22,7 @@ export const ADMISSION_REQUEST_COPY = {
   CLASSIFICATION_MISSING_DATA: "分类列表响应缺少数据",
 } as const;
 
-// ── AdmissionView（准入规模统计卡）──
-export const ADMISSION_VIEW_COPY = {
-  PENDING_LABEL: `待准入${TERM.ENTITY}`,
-  ADMITTED_LABEL: `已准入${TERM.ENTITY}`,
-  ADMITTED_HINT: "已进入正式拓扑视图",
-  ADMITTED_DOCS_LABEL: "已准入文档",
-} as const;
-
-export function admissionPendingHint(registryTotal: number | null): string {
-  return `注册表 ${registryTotal} 项中尚未准入`;
-}
-export function admissionDocsHint(candidateDocs: number | null): string {
-  return `${candidateDocs} 篇候选文档（文档准入与${TERM.GRAPH_ADMISSION}分账）`;
-}
+// （AdmissionView 准入规模统计卡已随 2026-11-15 Master 裁决退役——「出现的毫无意义」；本段文案与两个 hint 助手同批删除）
 
 // ── EntityRegistryTable（实体多维大表）──
 export const ENTITY_REGISTRY_COPY = {
