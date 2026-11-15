@@ -224,9 +224,9 @@ export const COMPONENT_CHECK_COPY = {
   EXTRACTED_AT_PREFIX: "属性提取时间 ",
   QUEUED: "已加入队列…",
   REGENERATE: "重新生成属性",
-  /** PR-314/WP-178：入队成功持久回显（前缀+时间+尾随指引，展示层拼接） */
-  REFRESH_QUEUED_HINT_PREFIX: "已于 ",
-  REFRESH_QUEUED_HINT_TAIL: " 加入重新生成队列；重新生成随下次属性提取运行生效——点「重新检查」可见最新结果",
+  /** PR-314/WP-178＋Master 2026-11-15「文案收敛」：入队回显一句收口（前缀+时间+尾随指引） */
+  REFRESH_QUEUED_HINT_PREFIX: "已加入队列 ",
+  REFRESH_QUEUED_HINT_TAIL: " · 重新检查可见结果",
   /** 关联诊断卡 */
   MISSING_ENTITIES_PREFIX: "缺失实体: ",
 } as const;

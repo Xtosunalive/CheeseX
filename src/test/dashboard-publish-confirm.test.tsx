@@ -8,15 +8,15 @@ describe("PR-321 发布二次确认", () => {
     vi.restoreAllMocks();
   });
 
-  it("单击发布先出确认承载（含后果说明），取消不发 mint", async () => {
-    
+  it("单击发布先出确认承载（纯动作：确认/取消，无解说词——Master「文案收敛」口径），取消不发 mint", async () => {
     const fetchSpy = vi.fn();
     vi.stubGlobal("fetch", fetchSpy);
     render(<PublishCard />);
     fireEvent.click(screen.getByRole("button", { name: "发布" }));
     const panel = screen.getByTestId("publish-confirm");
-    expect(panel.textContent).toContain("铸新 Release");
-    expect(panel.textContent).toContain("全量图谱重建");
+    expect(panel.textContent).not.toContain("此操作将");
+    expect(screen.getByRole("button", { name: "确认发布" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "取消" })).toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "取消" }));
     expect(screen.queryByTestId("publish-confirm")).toBeNull();
     expect(fetchSpy).not.toHaveBeenCalled();

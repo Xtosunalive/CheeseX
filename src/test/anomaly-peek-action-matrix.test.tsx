@@ -46,14 +46,14 @@ describe("PR-308 状态×动作渲染矩阵", () => {
     expect(screen.getByText(ANOMALY_PEEK_COPY.NEXT_STEP_PREVIEW_HINT)).toBeInTheDocument();
   });
 
-  it("previewed＋previewId＋executionReady：确认钮在场可点，文案含落盘与全局诊断去向", () => {
+  it("previewed＋previewId＋executionReady：确认钮在场可点，文案含落盘与全局诊断去向（悬浮句一句收口——文案收敛口径）", () => {
     renderPeek({ ...baseIssue, status: "previewed", previewId: "pv-1", executionReady: true });
     const button = screen.getByRole("button", { name: ANOMALY_PEEK_COPY.CONFIRM_ACTION });
     expect(button).toBeEnabled();
-    // PR-308 验收：文案含「落盘」与去向语义；title 说明点击后系统进入全局诊断自动重跑
+    // PR-308 验收：文案含「落盘」与去向语义；悬浮 title 一句收口（Master 2026-11-15「文案收敛」）
     expect(ANOMALY_PEEK_COPY.CONFIRM_ACTION).toContain("落盘");
     expect(ANOMALY_PEEK_COPY.CONFIRM_ACTION).toContain("全局诊断");
-    expect(button.getAttribute("title")).toContain("全局诊断");
+    expect(button.getAttribute("title")).toContain("落盘");
   });
 
   it("previewed 但 executionReady=false：确认钮不渲染，显示执行阻断说明", () => {

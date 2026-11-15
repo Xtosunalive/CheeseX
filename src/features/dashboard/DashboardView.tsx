@@ -376,15 +376,9 @@ export function PublishCard() {
         )}
       </div>
       {confirming && (
-        <div className="mt-1.5 space-y-1.5 rounded-md bg-status-warn-2 px-2 py-1.5 ring-1 ring-status-warn-6" data-testid="publish-confirm">
-          <p className="font-medium text-status-warn">{DASHBOARD_PUBLISH_COPY.CONFIRM_TITLE}</p>
-          <ul className="list-disc space-y-0.5 pl-4 text-text-sub">
-            {DASHBOARD_PUBLISH_COPY.CONFIRM_ITEMS.map((item) => <li key={item}>{item}</li>)}
-          </ul>
-          <div className="flex items-center gap-1.5 pt-0.5">
-            <Button type="button" size="sm" onClick={onPublish} disabled={busy}>{DASHBOARD_PUBLISH_COPY.CONFIRM_YES}</Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => setConfirming(false)} disabled={busy}>{DASHBOARD_PUBLISH_COPY.CONFIRM_NO}</Button>
-          </div>
+        <div className="mt-1.5 flex items-center gap-1.5" data-testid="publish-confirm">
+          <Button type="button" size="sm" onClick={onPublish} disabled={busy}>{DASHBOARD_PUBLISH_COPY.CONFIRM_YES}</Button>
+          <Button type="button" variant="outline" size="sm" onClick={() => setConfirming(false)} disabled={busy}>{DASHBOARD_PUBLISH_COPY.CONFIRM_NO}</Button>
         </div>
       )}
       {result && <div className="mt-1 font-mono text-xs text-grass-11" data-testid="publish-result">{result}</div>}
