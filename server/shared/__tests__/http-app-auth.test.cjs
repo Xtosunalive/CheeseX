@@ -46,7 +46,7 @@ test("WP-093 密钥轮换：旧会话首次401且清凭据，不降级；清除�
     for (const [method, url] of [["GET", "/api/auth/login"], ["POST", "/api/auth/logout"], ["POST", "/api/pipeline/cancel"]]) {
       const res = await http.app.inject({ method, url, headers: { cookie } });
       assert.equal(res.statusCode, 401, "无效凭据仍立即拒绝，不落到本地身份");
-      assert.match(String(res.headers["set-cookie"]), /anyshare_session=;.*Path=\/;.*Max-Age=0/);
+      assert.match(String(res.headers["set-cookie"]), /cheeseh_session=;.*Path=\/;.*Max-Age=0/);
     }
     const logout = await http.app.inject({ method: "POST", url: "/api/auth/logout" });
     assert.equal(logout.statusCode, 200);
@@ -121,7 +121,7 @@ test("AU-5 墓碑与 logout 不设主体门：未认证 PUT 墓碑 → 410；未
   assert.equal(gone.statusCode, 410);
   const logout = await http.app.inject({ method: "POST", url: "/api/auth/logout" });
   assert.equal(logout.statusCode, 200);
-  assert.match(String(logout.headers["set-cookie"]), /anyshare_session=;.*Max-Age=0/);
+  assert.match(String(logout.headers["set-cookie"]), /cheeseh_session=;.*Max-Age=0/);
   await http.close();
 });
 

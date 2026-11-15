@@ -1,7 +1,7 @@
 // releases-dir resolver 测试（WP-023/PR-127）。分层：
-//   L1 纯解析——显式注入＞RELEASES_DIR env＞新家＞两家皆无
-//   L2 存量迁移——仅旧家在场 → 一次性搬迁至新家（rename 原子）＋内容完整；旧家只读库跨设备回落 copy（旧家保留）
-//   L2 写入恒新家——新家已存在时旧家不再被读
+//   L1 纯解析——显式注入＞RELEASES_DIR env＞新家 .releases/；两家皆无＝新家
+//   退役钉（2026-11-15 PR-243 终裁「都清」）——旧家 .git/anyshare-releases 在场也被无视：
+//   不读、不迁、不建（真仓实测旧目录无存量数据，回落与一次性搬迁逻辑整件退役）
 "use strict";
 
 const assert = require("node:assert/strict");
@@ -26,29 +26,14 @@ test("L1 解析次序：显式 releasesDir ＞ RELEASES_DIR env ＞ 新家 .rele
   assert.equal(resolveReleasesDir({ vaultPath: root }).dir, path.join(root, ".releases"));
 });
 
-test("L2 存量迁移：仅旧家在场 → 搬迁至新家（内容完整、migrated=true）；二次解析＝新家直读（已迁后不再动）", () => {
+test("退役钉：仅旧家在场 → 照常解析新家，不读不迁不建（旧目录回落已整件退役）", () => {
   const root = tmpRoot();
   const legacy = path.join(root, ".git", "anyshare-releases");
   fs.mkdirSync(legacy, { recursive: true });
   fs.writeFileSync(path.join(legacy, "current.json"), '{"releaseId":"release-abc"}');
-  fs.mkdirSync(path.join(legacy, "release-abc"));
 
-  const first = resolveReleasesDir({ vaultPath: root });
-  assert.equal(first.dir, path.join(root, ".releases"));
-  assert.equal(first.migrated, true, "存量库一次性搬迁");
-  assert.ok(fs.existsSync(path.join(root, ".releases", "current.json")), "内容随迁");
-  assert.ok(fs.existsSync(path.join(root, ".releases", "release-abc")), "制品目录随迁");
-
-  const second = resolveReleasesDir({ vaultPath: root });
-  assert.equal(second.migrated, false);
-  assert.equal(second.legacy, false, "新家在场即新家语义");
-});
-
-test("L2 新家优先：两家皆在场 → 新家（旧家不读不搬——避免二次覆盖新内容）", () => {
-  const root = tmpRoot();
-  fs.mkdirSync(path.join(root, ".git", "anyshare-releases"), { recursive: true });
-  fs.mkdirSync(path.join(root, ".releases"), { recursive: true });
   const r = resolveReleasesDir({ vaultPath: root });
   assert.equal(r.dir, path.join(root, ".releases"));
-  assert.equal(r.migrated, false);
+  assert.equal(fs.existsSync(path.join(root, ".releases")), false, "不搬迁：新家不因旧家在场而创建");
+  assert.ok(fs.existsSync(path.join(legacy, "current.json")), "旧家原地不动（git 内部内容不删）");
 });

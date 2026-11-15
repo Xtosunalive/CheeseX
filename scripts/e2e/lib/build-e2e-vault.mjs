@@ -490,8 +490,8 @@ try {
 
 // ── 7b. 发布快照数据（PR-015 Step 4 真实依赖）──
 // GET /api/kg/classification/list 经 freshnessGate → formalConsumer.withPinnedRelease →
-// release-reader.resolveCurrentReleaseId 读 .git/anyshare-releases/current.json——无指针即
-// NO_CURRENT_RELEASE(404)，Step 4 红。走仓内正规链建快照（非手拼）：
+// release-reader.resolveCurrentReleaseId 读 .releases/current.json（旧家 .git/anyshare-releases
+// 回落已随 2026-11-15 PR-243 终裁退役）——无指针即 NO_CURRENT_RELEASE(404)，Step 4 红。走仓内正规链建快照（非手拼）：
 //   ① collectCompleteArtifacts 收集完整产物（先补 pipeline 派生三件，同
 //      approval-state-machine-assembly.test.cjs fixtureVault 先例——master_graph.db 可为空，
 //      pipeline_version/extract_manifest 为 pipeline 形状占位）；

@@ -33,8 +33,7 @@ function registerApprovalStateMachine(options) {
       }
     : null;
 
-  // CI 切片：snapshot-store + release-builder（复用旧链路 releasesDir 约定 .git/anyshare-releases）
-  // 旧链路约定：.git/anyshare-releases（formal-consumer 消费端读这里）
+  // CI 切片：snapshot-store + release-builder（发布目录经唯一解析点；旧家 .git/anyshare-releases 回落已随 2026-11-15 PR-243 终裁退役）
   const releasesDir = resolveReleasesDir({ vaultPath: options.vaultPath, releasesDir: options.releasesDir }).dir; // WP-023：唯一解析点（新家 .releases/）
   const builderService = createReleaseBuilderService({ releasesDir, logger: options.logger });
   const snapshotStore = createSnapshotStore({ vaultPath: options.vaultPath, builderService, logger: options.logger });
