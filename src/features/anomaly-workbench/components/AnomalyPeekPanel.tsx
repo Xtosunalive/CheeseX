@@ -215,14 +215,13 @@ export function AnomalyPeekPanel({ issue, siblingCandidateIssues = [], open, onC
                 <Button
                   size="sm"
                   onClick={() => onOperate("confirm", { previewId: issue.previewId })}
-                  title={ANOMALY_PEEK_COPY.CONFIRM_READY_TITLE}
                 >
                   {ANOMALY_PEEK_COPY.CONFIRM_ACTION}
                 </Button>
               ) : (
-                <span className="text-kg-xs text-text-hint">
-                  {issue.executionReady === false ? ANOMALY_PEEK_COPY.EXECUTION_NOT_READY_HINT : ANOMALY_PEEK_COPY.NEXT_STEP_PREVIEW_HINT}
-                </span>
+                issue.executionReady === false && (
+                  <span className="text-kg-xs text-text-hint">{ANOMALY_PEEK_COPY.EXECUTION_NOT_READY_HINT}</span>
+                )
               )
             )}
             {!isDerived && showExecutionBlockNote && (

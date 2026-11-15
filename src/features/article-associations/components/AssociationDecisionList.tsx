@@ -40,12 +40,9 @@ export function AssociationDecisionList({ data, onSelect }: { data: ArticleAssoc
       key: "status",
       title: AA_DECISION_LIST_COPY.COL_AUDIT,
       width: 130,
+      /* PR-318＋WP-183 文案清账：出口指引句删除——行可点载入表单（结构引导），Tag 已示状态 */
       render: (item) => item.stale
-        ? <span className="inline-flex flex-col gap-0.5">
-            <Tag tone="warn"><AlertTriangle className="h-4 w-4" />{AA_DECISION_LIST_COPY.STALE}</Tag>
-            {/* PR-318/WP-180：stale 行处置出口指引——出口=选中该行重走保存（组件头注释设计决定：出口是重新指定不是移除） */}
-            <span className="text-kg-xs text-text-hint">{AA_DECISION_LIST_COPY.STALE_EXIT_HINT}</span>
-          </span>
+        ? <Tag tone="warn"><AlertTriangle className="h-4 w-4" />{AA_DECISION_LIST_COPY.STALE}</Tag>
         : <Tag tone="fact"><CheckCircle2 className="h-4 w-4" />{AA_DECISION_LIST_COPY.VALID}</Tag>,
     },
   ];

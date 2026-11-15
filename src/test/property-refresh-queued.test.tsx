@@ -37,7 +37,7 @@ describe("PR-314 重新生成属性队列回显", () => {
     fireEvent.click(screen.getByRole("button", { name: /重新生成属性/ }));
     const hint = await screen.findByTestId("refresh-queued-hint");
     expect(hint.textContent).toContain("已加入队列");
-    expect(hint.textContent).toContain("重新检查");
+    // WP-183 文案清账：去向指引句删除——「重新检查」钮就在同卡上（结构引导）
     // busy 早已结束（refreshingId 复位），提示仍在——非瞬时变字
     expect(usePropertyStore.getState().repairingId).toBeNull();
     expect(screen.getByTestId("refresh-queued-hint")).toBeInTheDocument();

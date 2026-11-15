@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { AssociationDecisionList } from "@/features/article-associations/components/AssociationDecisionList";
 
 /** PR-318/WP-180：stale 行处置出口指引——出口=选中该行重走保存（设计决定见组件头注释，remove 不接线）。 */
-describe("PR-318 stale 行处置出口指引", () => {
+describe("PR-318 stale 行处置出口（WP-183：指引句删除，结构引导）", () => {
   it("stale 行在审计状态列渲染出口指引文案", () => {
     const data = {
       decisions: [
@@ -16,8 +16,7 @@ describe("PR-318 stale 行处置出口指引", () => {
       ],
     };
     render(<AssociationDecisionList data={data as never} onSelect={() => {}} />);
-    const hints = screen.getAllByText(/点击本行载入表单，重新指定后保存即刷新/);
-    expect(hints.length).toBe(1);
+    // WP-183 文案清账：指引句删除——行可点载入表单（结构引导），stale Tag 在场即口径
     expect(screen.getAllByText(/来源内容已变化/).length).toBe(1);
   });
 });
