@@ -56,9 +56,7 @@ export const DASHBOARD_PUBLISH_COPY = {
   DESCRIPTION: "发布当前全库定版（正式消费面读取的版本）",
   PUBLISHING: "发布中…",
   PUBLISH: "发布",
-  /** PR-321/WP-178：高危动作两段式确认——先出后果说明，确认才铸版 */
-  CONFIRM_TITLE: "确认发布？此操作将：",
-  CONFIRM_ITEMS: ["铸新 Release 包并原子切换 current 指针（全库切版）", "触发全量图谱重建诊断"],
+  /** PR-321/WP-178＋Master 2026-11-15「文案收敛」：两段式确认只留动作——发布→确认发布/取消，不配解说词 */
   CONFIRM_YES: "确认发布",
   CONFIRM_NO: "取消",
 } as const;

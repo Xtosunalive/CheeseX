@@ -36,7 +36,7 @@ describe("PR-314 重新生成属性队列回显", () => {
     render(<ComponentCheckDetail item={item} />);
     fireEvent.click(screen.getByRole("button", { name: /重新生成属性/ }));
     const hint = await screen.findByTestId("refresh-queued-hint");
-    expect(hint.textContent).toContain("加入重新生成队列");
+    expect(hint.textContent).toContain("已加入队列");
     expect(hint.textContent).toContain("重新检查");
     // busy 早已结束（refreshingId 复位），提示仍在——非瞬时变字
     expect(usePropertyStore.getState().repairingId).toBeNull();
