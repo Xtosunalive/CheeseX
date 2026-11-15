@@ -47,6 +47,47 @@ test("A3 create：同名实体已存在 → 409（F02b 唯一性在出生路径�
   );
 });
 
+// MAIC 继承批·生长侧（Master 2026-11-15 裁 B）：生长骨架顺带写入来源文章可映射字段＋自动激活。
+test("A3 继承：来源文章 frontmatter 的可映射字段随骨架落盘＋arch_component 自动激活（B 裁）", () => {
+  const article = [
+    "---",
+    "title: Article A",
+    "article_id: fixture-a",
+    "module: 消息队列",
+    "arch_layer: gateway",
+    "arch_category: 知识域A",
+    "tags: [中间件]",
+    "---",
+    "",
+    "正文。",
+  ].join("\n");
+  const vault = makeVault({ "知识库/raw/precleaned/a.md": article });
+  const out = svcOf(vault).discoveryEdit({
+    patch: { field: "entity", value: "消息队列", assignMode: "create", sources: ["知识库/raw/precleaned/a.md frontmatter:module"] },
+  });
+  assert.equal(out.action, "create");
+  const raw = fs.readFileSync(path.join(vault, "知识库/wiki/entities/消息队列.md"), "utf8");
+  assert.match(raw, /arch_component: true/, "自动激活（B 裁：文章声明的模块即架构组件）");
+  assert.match(raw, /module: \["消息队列"\]/, "module＝生长名本体");
+  assert.match(raw, /arch_layer: "gateway"/, "继承文章 arch_layer");
+  assert.match(raw, /arch_category: "知识域A"/, "继承文章 arch_category");
+  assert.match(raw, /tags: \["中间件"\]/, "继承文章 tags");
+});
+
+test("A3 继承边界：来源无真实文件/无该字段 → 骨架不硬造空值（回归钉）", () => {
+  const vault = makeVault({});
+  const out = svcOf(vault).discoveryEdit({
+    patch: { field: "entity", value: "消息队列", assignMode: "create", sources: ["知识库/wiki/articles/b.md 提及×2"] },
+  });
+  assert.equal(out.action, "create");
+  const raw = fs.readFileSync(path.join(vault, "知识库/wiki/entities/消息队列.md"), "utf8");
+  assert.match(raw, /arch_component: true/, "激活不依赖来源（B 裁本体）");
+  assert.match(raw, /module: \["消息队列"\]/, "module＝生长名本体");
+  assert.doesNotMatch(raw, /^arch_layer:/m, "文章缺失字段不硬造");
+  assert.doesNotMatch(raw, /^arch_category:/m, "文章缺失字段不硬造");
+  assert.doesNotMatch(raw, /^tags:/m, "文章缺 tags 不硬造");
+});
+
 test("A3 link-existing：候选名归并进已有实体 aliases", () => {
   const vault = makeVault({
     "知识库/wiki/entities/可观测性.md": "---\ntitle: 可观测性\narchitecture-node-id: obs-1\n---\nbody\n",

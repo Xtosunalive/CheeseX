@@ -26,6 +26,8 @@ const { assertRevisionGiven } = require("../../shared/schema-write-guards.cjs");
 const ONTOLOGY_LIFECYCLE = require("./ontology-lifecycle-transition.cjs");
 // PR-183：律文表逐边附加条件与迁移边判定同位点执法（复用路由同一校验实现，不另写判据）
 const ONTOLOGY_LIFECYCLE_CONDITIONS = require("./ontology-lifecycle-conditions.cjs");
+// frontmatter 字段名单源（WP-138 R5b：生长继承字段键经 DK 派生，零手抄）
+const DK = require("../../shared/document-keys.cjs");
 
 const SCHEMA_FILES = {
   ontology: "知识库/TheSchema/ontology.yaml",
@@ -480,6 +482,33 @@ function createSchemaWriteService(options) {
     return { category: "entity-parent", affectedFile: path.relative(vaultPath, result.filePath).split(path.sep).join("/") };
   }
 
+  // 继承字段读取（MAIC 继承批·生长侧，Master 2026-11-15 裁 B）：首条含真实路径的来源 → 读文章
+  // frontmatter 的可映射字段（arch_layer/arch_category/tags）。无可读来源或字段为空 → 返回空袋
+  // （骨架不硬造空值）；键名经 DK 单源零手抄；与缺实体快照批同一映射规则。
+  function readGrowthInheritedFields(sources) {
+    for (const source of sources) {
+      const match = /^(\S+\.md)/.exec(String(source));
+      if (!match) continue;
+      const full = path.join(vaultPath, match[1]);
+      if (!fs.existsSync(full)) continue;
+      try {
+        const raw = fs.readFileSync(full, "utf8");
+        const fmMatch = raw.match(/^---\n([\s\S]*?)\n---/);
+        if (!fmMatch) continue;
+        const fm = YAML.parse(fmMatch[1]) || {};
+        const str = (value) => (typeof value === "string" && value.trim() ? value.trim() : null);
+        const rawTags = fm[DK.ARTICLE.tags];
+        return {
+          archLayer: str(fm[DK.ARTICLE.archLayer]),
+          archCategory: str(fm[DK.ARTICLE.archCategory]),
+          tags: Array.isArray(rawTags) ? rawTags.map((tag) => String(tag).trim()).filter(Boolean)
+            : str(rawTags) ? [str(rawTags)] : [],
+        };
+      } catch (_e) { /* 单来源读取失败继续下一条 */ }
+    }
+    return {};
+  }
+
   // ADR-007 A3（SPEC-005）：实体生长结晶——裁定通道内唯一写源动作。
   // assignMode=create → 新建 wiki/entities/<name>.md（origin: article-grown + grown_from 来源链 + first_seen）；
   // assignMode=link-existing → 候选名追加进已有实体 aliases（F02c aliases 机制承接）。
@@ -510,6 +539,9 @@ function createSchemaWriteService(options) {
         );
       }
       fs.mkdirSync(entitiesDir, { recursive: true });
+      // 继承字段（MAIC 继承批，Master 2026-11-15 裁 B）：生长骨架顺带写入来源文章的可映射字段，
+      // arch_component 自动激活（文章声明它就是模块/架构组件——合规 F03 即此语义）；module＝生长名本体。
+      const inherited = readGrowthInheritedFields(sources);
       // 五件套骨架声明式化（2026-10-09 第一性修正）：结构与文案读契约表
       // （contracts/entity-readiness-rules.json → entityGrowthTemplate.sections），
       // 引擎只做渲染——改骨架不改代码（声明式四原则①）。
@@ -524,6 +556,11 @@ function createSchemaWriteService(options) {
         ...(sources.length ? sources.map((s) => `  - "${String(s).replace(/"/g, "'")}"`) : ["  []"]),
         `date: ${today}`,
         "status: 有效",
+        `${DK.ENTITY.archComponent}: true`,
+        `${DK.ENTITY.module}: [${JSON.stringify(name)}]`,
+        ...(inherited.archLayer ? [`${DK.ENTITY.archLayer}: ${JSON.stringify(inherited.archLayer)}`] : []),
+        ...(inherited.archCategory ? [`${DK.ENTITY.archCategory}: ${JSON.stringify(inherited.archCategory)}`] : []),
+        ...(inherited.tags && inherited.tags.length ? [`${DK.ENTITY.tags}: [${inherited.tags.map((tag) => JSON.stringify(tag)).join(", ")}]`] : []),
         "---",
         "",
         `# ${name}`,
