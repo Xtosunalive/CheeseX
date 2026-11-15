@@ -1230,6 +1230,7 @@ action_types:
     input_schema:
       contract_ref: "POST /api/anomalies/{issueId}/{operation} requestBody"
   approval.transition:
+    class_id: KnowledgeArticle
     http_route: "POST /api/approval/{articleId}/transition"
     executor: approval-state-machine.transition
     required_roles: [ review ]
@@ -1317,7 +1318,6 @@ action_types:
     required_roles: []
     preconditions: []
   action-approvals.create:
-    class_id: KnowledgeArticle
     http_route: "POST /api/action-approvals"
     executor: action-approvals.create
     required_roles: []
@@ -1325,7 +1325,6 @@ action_types:
     input_schema:
       contract_ref: "POST /api/action-approvals requestBody"
   action-approvals.decide:
-    class_id: KnowledgeArticle
     http_route: "POST /api/action-approvals/:id/decision"
     executor: action-approvals.decide
     required_roles: [ review ]

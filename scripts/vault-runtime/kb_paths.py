@@ -85,7 +85,7 @@ def data_dir() -> str:
 
 
 def ledger_dir(vault_root: str | None = None) -> str:
-    Node 侧单源＝server/vault-paths.cjs LEDGER_DIRNAME，两侧同值改须同笔。"""
+    """Vault 账本目录，和 Node 侧 LEDGER_DIRNAME 使用同一路径。"""
     root = _abspath(vault_root) if vault_root else None
     if root is None:
         root = vault_roots()[0]

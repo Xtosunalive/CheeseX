@@ -231,6 +231,15 @@ function createArticleWorkflowService(options) {
     }
   }
 
+  function getStatusCandidate(id) {
+    const state = readWorkflowState(vaultPath);
+    const { items, contentHashes } = syncPrecleanedState(state);
+    const item = items.find((candidate) => candidate.id === id);
+    if (!item) return null;
+    const record = state.articles.find((candidate) => candidate.candidateId === id);
+    return { ...item, currentContentHash: contentHashes.get(id), complianceBlockers: record?.admissionBlockers ?? [] };
+  }
+
   function getPrecleaned(id) {
     const item = listPrecleaned().items.find((candidate) => candidate.id === id);
     if (!item) throw workflowError("ARTICLE_NOT_FOUND", "precleaned 文章不存在", 404);
@@ -480,6 +489,7 @@ function createArticleWorkflowService(options) {
   function syncPrecleanedState(state) {
     let changed = false;
     const sourceByArticleId = new Map();
+    const contentHashes = new Map();
     // 发布识别单次装载＋双键查找（2026-11-01 半成品区过滤批）：id 漂移是真实形态——审批机落
     // 正式路径用的是审批流自产 id（article-46f4… 实录），与候选 frontmatter article_id 可以不同；
     // 内容哈希才是「这段内容已发布」的诚实身份（正式快照文件名即内容哈希，B2/D2 不变式）。
@@ -499,6 +509,7 @@ function createArticleWorkflowService(options) {
       const document = loadDocument(rawContent, absolute);
       const articleId = textValue(document.frontmatter[DK.ARTICLE.articleId], "");
       const id = candidateId(articleId, sourcePath);
+      contentHashes.set(id, contentHash);
       sourceByArticleId.set(id, normalizeDraftSourcePath(document.frontmatter[DK.ARTICLE.sourceFile]));
       let record = state.articles.find((candidate) => candidate.candidateId === id);
       if (!record) record = state.articles.find((candidate) => candidate.sourcePath === sourcePath);
@@ -562,7 +573,7 @@ function createArticleWorkflowService(options) {
       }, record, formalVersion);
     });
     items.sort((left, right) => right.updatedAt.localeCompare(left.updatedAt));
-    return { items, sourceByArticleId, changed };
+    return { items, sourceByArticleId, contentHashes, changed };
   }
 
   function ensureUploadTask(draftRelativePath, options) {
@@ -646,6 +657,7 @@ function createArticleWorkflowService(options) {
         throw error;
       }
     },
+    getStatusCandidate,
     listPublishedVersions: listCurrentStandardVersions,
     validateDraft: (filePath, options) => draftWorkflow.validateDraft(filePath, options), promoteDraft: promoteDraftWithSync,
     digestUploadTasks,

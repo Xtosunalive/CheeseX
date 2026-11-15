@@ -693,11 +693,6 @@
       "reason": "网关/通道本体（登记解析器与写通道所在）"
     },
     {
-      "file": "server/shared/persistence/runtime-state-import.cjs",
-      "side": "node",
-      "reason": "网关/通道本体（登记解析器与写通道所在）"
-    },
-    {
       "file": "server/shared/persistence/state-journal.cjs",
       "side": "node",
       "reason": "网关/通道本体（登记解析器与写通道所在）"

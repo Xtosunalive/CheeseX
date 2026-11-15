@@ -52,14 +52,16 @@ export function DashboardView() {
         {reviewPendingEdgeCount > 0 && (
           <div data-dashboard-module="review-status">
             <Panel>
-              <button
+              <Button
+                type="button"
+                variant="link"
                 onClick={() => navigate("review", { sub: "edges" })}
-                className="flex items-center gap-1.5 text-xs text-status-warn hover:text-status-warn-11 transition"
+                className="h-auto gap-1.5 p-0 text-xs font-normal text-status-warn hover:text-status-warn-11 [&_svg]:size-3"
               >
                 <ShieldCheck className="h-3 w-3" />
                 {DASHBOARD_SECTION_COPY.REVIEW_PENDING_LINK}
                 <ChevronRight className="h-3 w-3" />
-              </button>
+              </Button>
             </Panel>
           </div>
         )}

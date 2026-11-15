@@ -6,6 +6,7 @@ import { ApiError } from "@/lib/api";
 
 vi.mock("@/features/approval-workbench/approval-api", () => ({
   getApprovalStatus: vi.fn(),
+  getArticleStatus: vi.fn(),
   transitionApproval: vi.fn(),
   fetchApprovalCandidates: vi.fn(),
 }));
@@ -16,9 +17,18 @@ vi.mock("@/features/article-workflow/article-workflow-api", () => ({
 
 import * as articleWorkflowApi from "@/features/article-workflow/article-workflow-api";
 
+function articleProjection(overrides: Partial<approvalApi.ArticleStatus> = {}): approvalApi.ArticleStatus {
+  return {
+    article_id: "candidate-1", stage: "confirmed", blockers: [], stale: [], computed_at: 1,
+    next_actions: [{ action: "confirm", allowed: true }, { action: "publish", allowed: true }],
+    ...overrides,
+  };
+}
+
 describe("ApprovalWorkbench（状态机审批工作区）", () => {
   beforeEach(() => {
     vi.mocked(approvalApi.getApprovalStatus).mockReset();
+    vi.mocked(approvalApi.getArticleStatus).mockReset().mockResolvedValue(articleProjection());
     vi.mocked(approvalApi.transitionApproval).mockReset();
     vi.mocked(approvalApi.fetchApprovalCandidates).mockReset();
     vi.mocked(articleWorkflowApi.standardizeArticle).mockReset();
@@ -69,6 +79,7 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
       { id: "candidate-1", title: "无源文件候选", fileName: "x.md", standardizationStatus: "standardized", formalContentHash: "aa".repeat(32), sourcePath: "" },
     ]);
     vi.mocked(approvalApi.getApprovalStatus).mockResolvedValue({ status: "approved", revision: "sha256:abc", updatedAt: "t" });
+    vi.mocked(approvalApi.getArticleStatus).mockResolvedValue(articleProjection({ next_actions: [{ action: "publish", allowed: false }] }));
     render(<ApprovalWorkbench title="测试工作台" />);
     const button = await waitFor(() => screen.getByText("发布（打包快照）"));
     expect(button).toBeDisabled();
@@ -99,7 +110,7 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
     const fetchCalls = vi.mocked(approvalApi.fetchApprovalCandidates).mock.calls.length;
     // 挂载一次 + 操作前刷新一次
     expect(fetchCalls).toBeGreaterThanOrEqual(2);
-    const order = vi.mocked(approvalApi.fetchApprovalCandidates).mock.invocationCallOrder; const fetchOrder = order[order.length - 1];
+    const order = vi.mocked(approvalApi.fetchApprovalCandidates).mock.invocationCallOrder; const fetchOrder = order[1];
     const transitionOrder = vi.mocked(approvalApi.transitionApproval).mock.invocationCallOrder[0];
     // 刷新必须先于 transition
     expect(fetchOrder).toBeLessThan(transitionOrder);
@@ -152,7 +163,7 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
     await screen.findByText(/revision sha256:aaaaa/);
     expect(screen.queryByText("重新标准化（源已变化，刷新绑定）")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: "刷新" }));
-    await waitFor(() => expect(approvalApi.fetchApprovalCandidates).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(approvalApi.fetchApprovalCandidates).toHaveBeenCalledTimes(3));
     expect(screen.queryByText("重新标准化（源已变化，刷新绑定）")).not.toBeInTheDocument();
   });
 
@@ -163,6 +174,9 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
     vi.mocked(approvalApi.getApprovalStatus).mockResolvedValue({ status: "pending", revision: "sha256:" + oldHash, updatedAt: "t" });
     vi.mocked(articleWorkflowApi.standardizeArticle).mockResolvedValue({ ...candidate, formalContentHash: newHash } as never);
     vi.mocked(approvalApi.transitionApproval).mockResolvedValue({ status: "pending", revision: "sha256:" + newHash, updatedAt: "t2", releaseId: null });
+    vi.mocked(approvalApi.getArticleStatus).mockResolvedValueOnce(articleProjection())
+      .mockResolvedValueOnce(articleProjection({ stale: ["source_changed"], next_actions: [{ action: "confirm", allowed: false }] }))
+      .mockResolvedValue(articleProjection());
     render(<ApprovalWorkbench articleId="candidate-1" title="测试文章" />);
     expect(await screen.findByRole("button", { name: "确认（批准）" })).toBeEnabled();
     fireEvent.click(screen.getByRole("button", { name: "刷新" }));
@@ -186,6 +200,7 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
 
   it("发布成功只声明已有正式快照，不替未查询的检索拓扑刷新作保证", async () => {
     vi.mocked(approvalApi.getApprovalStatus).mockResolvedValue({ status: "snapshot", revision: "sha256:" + "a".repeat(64), updatedAt: "t" });
+    vi.mocked(approvalApi.getArticleStatus).mockResolvedValue(articleProjection({ stage: "published", next_actions: [] }));
     render(<ApprovalWorkbench articleId="candidate-1" title="测试文章" />);
     expect(await screen.findByText("已发布为正式快照。")).toBeInTheDocument();
     expect(screen.queryByText(/检索.*拓扑消费端已切换/)).not.toBeInTheDocument();
@@ -197,6 +212,11 @@ describe("ApprovalWorkbench（状态机审批工作区）", () => {
     vi.mocked(approvalApi.getApprovalStatus).mockResolvedValue({ status: "approved", revision: "sha256:" + oldHash, updatedAt: "t" });
     vi.mocked(articleWorkflowApi.standardizeArticle).mockResolvedValue({ formalContentHash: newHash, standardizationStatus: "standardized" } as never);
     vi.mocked(approvalApi.transitionApproval).mockResolvedValue({ status: "pending", revision: "sha256:" + newHash, updatedAt: "t2", releaseId: null });
+    vi.mocked(approvalApi.getArticleStatus).mockResolvedValueOnce(articleProjection({
+      stale: ["source_changed"], next_actions: [{ action: "publish", allowed: false }],
+    })).mockResolvedValue(articleProjection());
+    vi.mocked(approvalApi.getApprovalStatus).mockResolvedValueOnce({ status: "approved", revision: "sha256:" + oldHash, updatedAt: "t" })
+      .mockResolvedValue({ status: "pending", revision: "sha256:" + newHash, updatedAt: "t2" });
     render(<ApprovalWorkbench articleId="candidate-1" title="测试文章" />);
     const recovery = await screen.findByRole("button", { name: "重新标准化（源已变化，刷新绑定）" });
     expect(screen.getByRole("button", { name: "发布（打包快照）" })).toBeDisabled();

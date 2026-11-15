@@ -108,13 +108,8 @@ test("Dashboard 运行概览 → 管道诊断（零副作用契约）→ 图谱�
     ).toBe(true);
   });
 
-  // Step 6: 运行概览 UI 统计可见（真断言：必须出现节点/关系计数词）
-  await test.step("Step6 运行概览统计可见", async () => {
-    const hasStats = await page.evaluate(() => {
-      const text = document.body.textContent || "";
-      return text.includes("实体") || text.includes("关系");
-    });
-    expect(hasStats, "Dashboard UI stats visible").toBe(true);
+  await test.step("Step6 运行概览显示关系分布", async () => {
+    await expect(page.getByText("关系类型分布", { exact: true })).toBeVisible();
   });
 
   // Step 7: 待审核关系计数（契约端点 /api/kg/pending-review）
@@ -126,12 +121,9 @@ test("Dashboard 运行概览 → 管道诊断（零副作用契约）→ 图谱�
     ).toBe(true);
   });
 
-  // Step 8: 质量指标词可见（真断言）
-  await test.step("Step8 质量指标可见", async () => {
-    const hasQuality = await page.evaluate(() => {
-      const text = document.body.textContent || "";
-      return text.includes("通过") || text.includes("阻断") || text.includes("警告");
-    });
-    expect(hasQuality, "Quality metrics visible").toBe(true);
+  await test.step("Step8 最近生成与独立发布入口可见", async () => {
+    await expect(page.getByText("最近管道生成结果", { exact: true })).toBeVisible();
+    await expect(page.getByText(/^最近生成/)).toBeVisible();
+    await expect(page.getByRole("button", { name: "发布", exact: true })).toBeEnabled();
   });
 });
