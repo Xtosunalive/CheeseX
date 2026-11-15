@@ -33,8 +33,6 @@ export const ARTICLE_ACTION_WRITES = {
 export const ARTICLE_WORKFLOW_VIEW_COPY = {
   AWAITING_ARCHITECT_LABEL: "待架构师处理",
   AWAITING_ARCHITECT_HINT: "已投稿、等待架构师处理的工作草稿",
-  UPLOAD_TOTAL_LABEL: "全部上传任务",
-  UPLOAD_TOTAL_HINT: "投稿记录总数（含各状态）",
 } as const;
 
 // ── ArticleAdmissionWorkspace（工作草稿工具行）──

@@ -60,11 +60,10 @@ export function ArticleWorkflowView() {
       {/* Master 2026-10-29「横幅都不要了」：DIKW 徽标行＋转换横幅全撤——信息由结构与空态引导承担 */}
 
 
-      {/* WP-037 P7 锚点：投稿工作流规模（待处理 xl＋总任务 lg） */}
+      {/* WP-037 P7 锚点：待架构师处理（2026-11-15 概览退役批撤「全部上传任务」卡——总数由列表分页承载，同数不两现） */}
       {uploads.length > 0 && (
       <BentoGrid>
         <Statistic size="xl" className="lg:col-span-2" label={ARTICLE_WORKFLOW_VIEW_COPY.AWAITING_ARCHITECT_LABEL} value={uploadStatusCounts.awaiting_architect_processing ?? 0} tone={(uploadStatusCounts.awaiting_architect_processing ?? 0) > 0 ? "text-status-warn" : "text-status-fact"} hint={ARTICLE_WORKFLOW_VIEW_COPY.AWAITING_ARCHITECT_HINT} />
-        <Statistic size="lg" label={ARTICLE_WORKFLOW_VIEW_COPY.UPLOAD_TOTAL_LABEL} value={uploadTotal} hint={ARTICLE_WORKFLOW_VIEW_COPY.UPLOAD_TOTAL_HINT} />
       </BentoGrid>
       )}
 

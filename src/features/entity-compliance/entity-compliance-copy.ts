@@ -59,15 +59,12 @@ export const EC_VIEW_COPY = {
 
 // ── SummaryBar（统计主视觉）──
 export const EC_SUMMARY_COPY = {
-  PASSED_HINT: "无阻断无警告的源文档数",
   BLOCKER_LABEL: "存在阻断",
   BLOCKER_HINT: "存在阻断级问题的源文档数",
   WARNING_LABEL: "存在警告",
   WARNING_HINT: "存在警告级问题的源文档数",
   INFO_LABEL: "仅有提示",
   INFO_HINT: "仅提示级信息的源文档数",
-  AVG_SCORE_LABEL: "平均质量分",
-  AVG_SCORE_HINT: "全部受检源文档的平均质量分",
 } as const;
 
 // ── EntityComplianceToolbar（搜索/结论筛选/重新检查）──

@@ -164,8 +164,6 @@ export const CHECK_RESULTS_COPY = {
   STAT_BLOCKER_HINT: "存在模块未填写、模块值无效或源文档关联不一致问题的架构组件数",
   STAT_WARNING_LABEL: "警告架构组件",
   STAT_WARNING_HINT: "不存在阻断问题，但存在属性提取过期或属性格式异常的架构组件数",
-  STAT_TOTAL_LABEL: "受检架构组件",
-  STAT_TOTAL_HINT: "本次参与属性质量检查的架构组件总数",
   /** 工具行 */
   SEARCH_ARIA: "搜索架构组件属性",
   SEARCH_PLACEHOLDER: "搜索架构组件名称或源文档路径",

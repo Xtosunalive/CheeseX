@@ -7,14 +7,14 @@
     {
       "view": "entity-compliance",
       "file": "src/features/entity-compliance/SummaryBar.tsx",
-      "statCount": 5,
+      "statCount": 3,
       "apiSources": [
         "src/features/entity-compliance/entity-compliance-api.ts#fetchEntityCompliance"
       ],
       "sourceApis": [
         "/api/entity/check"
       ],
-      "note": "entity-compliance-api"
+      "note": "entity-compliance-api；2026-11-15 概览退役批撤「检查通过/平均质量分」——动作数三连保留"
     },
     {
       "view": "data-dashboard",
@@ -31,7 +31,7 @@
     {
       "view": "article-workflow",
       "file": "src/features/article-workflow/ArticleWorkflowView.tsx",
-      "statCount": 2,
+      "statCount": 1,
       "apiSources": [
         "src/features/article-workflow/article-workflow-api.ts#fetchPrecleanedArticles",
         "src/features/article-workflow/article-workflow-api.ts#fetchArticleUploads"
@@ -40,7 +40,7 @@
         "/api/articles/precleaned",
         "/api/articles/uploads"
       ],
-      "note": "article-workflow-api"
+      "note": "article-workflow-api；2026-11-15 概览退役批撤「全部上传任务」——总数由列表分页承载"
     },
     {
       "view": "dashboard",
@@ -103,14 +103,14 @@
     {
       "view": "property-check-results",
       "file": "src/features/property-gov/CheckResultsPanel.tsx",
-      "statCount": 3,
+      "statCount": 2,
       "apiSources": [
         "src/features/property-gov/property-api.ts#fetchCheckResults"
       ],
       "sourceApis": [
         "/api/property/check"
       ],
-      "note": "property-store → property-api"
+      "note": "property-store → property-api；2026-11-15 概览退役批撤「受检架构组件」分母卡"
     },
     {
       "view": "property-manifest-list",
