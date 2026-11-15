@@ -276,7 +276,7 @@ function createAnomalyIssueCollector(deps) {
             // 最新一份——字典序最大 hash = 最新内容，去重后 missing_entity 每文章一条，
             // 消除「同文章两条 missing_entity」的多实例行。
             const existing = articleNodes.find((node) => node.id === `doc-article-${fm[DK.ARTICLE.articleId]}`);
-            const candidate = { id: `doc-article-${fm[DK.ARTICLE.articleId]}`, label: fm[DK.ARTICLE.title] || fileName, labels: ["Document"], properties: { [DK.ARTICLE.title]: fm[DK.ARTICLE.title] || fileName, [DK.ARTICLE.module]: String(fm[DK.ARTICLE.module]).trim(), file_path: sourcePath } };
+            const candidate = { id: `doc-article-${fm[DK.ARTICLE.articleId]}`, label: fm[DK.ARTICLE.title] || fileName, labels: ["Document"], properties: { [DK.ARTICLE.title]: fm[DK.ARTICLE.title] || fileName, [DK.ARTICLE.module]: String(fm[DK.ARTICLE.module]).trim(), [DK.ARTICLE.tags]: fm[DK.ARTICLE.tags] ?? null, file_path: sourcePath } };
             if (!existing) articleNodes.push(candidate);
             else if (fileName > path.basename(existing.properties.file_path)) articleNodes[articleNodes.indexOf(existing)] = candidate;
           }
@@ -297,11 +297,19 @@ function createAnomalyIssueCollector(deps) {
       }
       for (const document of articleNodes) {
         const result = checkDocumentModuleEntity(document, entityNodes, validModules).document_module_entity;
-        if (!result.passed && result.moduleName) issues.push({
-          issueId: `missing-entity-${document.id}`, issueKind: "missing_entity", title: `文章 "${result.docTitle}" 模块 "${result.moduleName}" 缺少知识实体`,
-          evidence: [{ kind: "vault-document", path: result.docFilePath, ruleId: "document-module-entity" }], expectedRevisions: { sourceRevision: result.moduleName },
-          proposedAction: { type: "entity-repair", entityId: document.id, sourceKey: `知识库/wiki/entities/${result.moduleName}.md`, field: "module_entity", currentValue: result.moduleName, expected: result.moduleName, hint: `${result.reason}。请在 Obsidian 中创建实体页后重新运行管道。`, allowedValues: [] },
-        });
+        if (!result.passed && result.moduleName) {
+          // 继承快照（Master 2026-11-15 裁）：缺失实体＝继承主战场——实体页尚不存在、合规行查不到，
+          // 文章 frontmatter 可映射字段随议题下发，创建表单据此预填（module=声明模块；tags=文章标签）。
+          // 契约 proposedAction 为自由对象（additionalProperties:true）零契约变更；键名经 DK 单源零手抄。
+          const rawTags = document.properties[DK.ARTICLE.tags];
+          const tags = Array.isArray(rawTags) ? rawTags.map((tag) => String(tag).trim()).filter(Boolean)
+            : rawTags ? [String(rawTags).trim()].filter(Boolean) : [];
+          issues.push({
+            issueId: `missing-entity-${document.id}`, issueKind: "missing_entity", title: `文章 "${result.docTitle}" 模块 "${result.moduleName}" 缺少知识实体`,
+            evidence: [{ kind: "vault-document", path: result.docFilePath, ruleId: "document-module-entity" }], expectedRevisions: { sourceRevision: result.moduleName },
+            proposedAction: { type: "entity-repair", entityId: document.id, sourceKey: `知识库/wiki/entities/${result.moduleName}.md`, field: "module_entity", currentValue: result.moduleName, expected: result.moduleName, hint: `${result.reason}。请在 Obsidian 中创建实体页后重新运行管道。`, allowedValues: [], articleSnapshot: { sourcePath: result.docFilePath, fields: { module: [result.moduleName], tags } } },
+          });
+        }
       }
     } catch (error) { deps.logger.warn({ event: "anomaly-document-module-entity-source-unavailable", error: error.message }); }
     for (const conflict of deps.conflictStore ? deps.conflictStore.list().filter((item) => item.status === "unresolved") : []) issues.push(inferenceCandidateIssue(conflict, deps.relationRegistry));

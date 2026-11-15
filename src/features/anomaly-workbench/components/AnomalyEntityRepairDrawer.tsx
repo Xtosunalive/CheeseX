@@ -181,8 +181,33 @@ export function AnomalyEntityRepairDrawer({ issue, relatedIssues, error, apiErro
       ])));
       setComplianceState("ready");
     }).catch(() => {
+      if (cancelled) return;
+      // 继承快照（Master 2026-11-15 裁）：缺失实体＝继承主战场——实体页尚不存在、合规行必查不到，
+      // 议题携带的文章 frontmatter 快照（module/tags）在此充当基线源（seq208 同款污点保护：
+      // 已手改字段不顶替）；无快照的旧议题维持原硬错行为不变。
+      const currentIssue = issueRef.current;
+      if (currentIssue.issueKind === "missing_entity") {
+        const snapshotFields = record(record(record(currentIssue.proposedAction).articleSnapshot).fields);
+        if (Object.keys(snapshotFields).length > 0) {
+          const specs = activeSpecsRef.current.length ? activeSpecsRef.current : ENTITY_CREATE_FIELDS;
+          const snapshotBaseline: Record<string, unknown> = {};
+          for (const spec of specs) {
+            const snapValue = spec.field in snapshotFields ? snapshotFields[spec.field] : undefined;
+            snapshotBaseline[spec.field] = !isFieldEmpty(snapValue)
+              ? normalizeFieldValue(snapValue, spec)
+              : initialValueForField(issueByFieldRef.current.get(spec.field) || currentIssue, spec);
+          }
+          setBaselineValues(snapshotBaseline);
+          setValues((currentValues) => Object.fromEntries(specs.map((spec) => [
+            spec.field,
+            dirtyFieldsRef.current.has(spec.field) ? currentValues[spec.field] : snapshotBaseline[spec.field],
+          ])));
+          setComplianceState("ready");
+          return;
+        }
+      }
       // 文章源容错：合规查询失败不堵修复（用 issue 基线继续），实体源保持原硬错行为
-      if (!cancelled) setComplianceState(isArticle ? "ready" : "error");
+      setComplianceState(isArticle ? "ready" : "error");
     });
     return () => { cancelled = true; };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- B2（#1412）：合规拉取只随议题范围/来源变化重跑；issue/issueByField/activeSpecs 身份随父层状态翻转变化，列入依赖会连带重置表单（已填值丢失，红灯 T5 守卫）
