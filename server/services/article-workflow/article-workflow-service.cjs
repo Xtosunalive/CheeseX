@@ -15,6 +15,7 @@ const { validateCategoryPath } = require("../../shared/enums-loader.cjs");
 const { createArticleDraftWorkflow } = require("./article-draft-workflow.cjs");
 const { candidateId, computeStandardVersion, readWorkflowState, readWorkflowStateWithRevision, safeArticleDirectory, writeWorkflowState } = require("./article-workflow-store.cjs");
 const { unwrapReference } = require("../../shared/frontmatter-normalize.cjs");
+const { projectArticleFields } = require("../../shared/derivation-compiler/derivation-compiler.cjs");
 
 // seq209：字段中文名唯一事实源 = shared/field-labels.mjs 的文章域字典
 // （node≥22 require(esm) 直吃，照抄 server/shared/version-contract.cjs:11 的 shared 引用写法）。
@@ -257,12 +258,14 @@ function createArticleWorkflowService(options) {
     const record = state.articles.find((entry) => entry.candidateId === id);
     const absolute = resolveVaultRelative(item.sourcePath, precleanedDir);
     const document = loadDocument(fs.readFileSync(absolute, "utf8"), absolute);
+    const derivation = options.readArticleDerivation?.();
     return {
       ...item,
       metadata: normalizeMetadata(document.frontmatter),
       content: document.body,
       complianceBlockers: (Array.isArray(record?.admissionBlockers) ? record.admissionBlockers : []).map(projectFinding),
       standardizationWarnings: (Array.isArray(record?.standardizationWarnings) ? record.standardizationWarnings : []).map(projectFinding),
+      ...(derivation && { derivedFields: projectArticleFields(derivation, document) }),
     };
   }
 

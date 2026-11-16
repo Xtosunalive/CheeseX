@@ -305,4 +305,3 @@ function Section({ title, icon, children }: { title: string; icon?: React.ReactN
     </section>
   );
 }
-export const __poison2 = <i style={{ color: "#ff0000" }}>x</i>;

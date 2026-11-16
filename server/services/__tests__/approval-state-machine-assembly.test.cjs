@@ -165,6 +165,9 @@ test("正式文章外部修改重检待审，旧 Release 不变，重新确认�
 
 test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开接口可读", { timeout: 90_000 }, async () => {
   const vaultPath = fixtureVault();
+  const candidateFixture = "知识库/raw/precleaned/fixture-candidate.md";
+  write(vaultPath, candidateFixture, fs.readFileSync(path.join(vaultPath, candidateFixture), "utf8")
+    .replace(/^(title: .+)$/m, "$1\npreview_note: WP185 visible field"));
   const port = await new Promise((resolve, reject) => { const socket = net.createServer(); socket.once("error", reject); socket.listen(0, "127.0.0.1", () => { const value = socket.address().port; socket.close(() => resolve(value)); }); });
   // WP-170：夹具基底本体缺 KnowledgeArticle（minimal-vault 精简 TheSchema）——注入（与 WP-161 节同款手法）
   {
@@ -210,7 +213,7 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
   child.stderr.on("data", (value) => { log += value; });
   const request = async (method, endpoint, body) => {
     const response = await fetch(`http://127.0.0.1:${port}${endpoint}`, { method, headers: body ? { "Content-Type": "application/json" } : undefined, body: body ? JSON.stringify(body) : undefined, signal: AbortSignal.timeout(10_000) });
-    return { status: response.status, body: await response.json() };
+    return { status: response.status, body: await response.json(), retained: response.headers.get("X-Derivation-Retained") };
   };
   try {
     let ready = false;
@@ -222,6 +225,14 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     const id = "fixture-candidate-001";
     let reviewedEdgeId;
     const statusPath = `/api/articles/${id}/status`;
+    const derivationPath = "/api/derivation/article";
+    const initialDerivation = await request("GET", derivationPath);
+    assert.equal(initialDerivation.status, 200, JSON.stringify(initialDerivation.body));
+    assert.equal(initialDerivation.body.data.classId, "KnowledgeArticle");
+    assert.equal(initialDerivation.body.data.apiRoutes.find(({ actionId }) => actionId === "articles.status").pathTemplate, "/api/articles/:id/status");
+    const parameterized = await request("GET", statusPath);
+    assert.equal(parameterized.body.data.article_id, id);
+    assert.equal(parameterized.body.data.derivation_version, initialDerivation.body.data.version);
     const missing = await request("GET", "/api/articles/nonexistent-article/status");
     assert.equal(missing.status, 200, JSON.stringify(missing.body));
     assert.equal(missing.body.data.stage, "no_draft");
@@ -324,6 +335,7 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     const fieldsPath = path.join(serverEnv.THESCHEMA_DIR, "fields.yaml");
     const fields = yaml.parse(fs.readFileSync(fieldsPath, "utf8"));
     fields.fields.push({ name: "review_note", label: "测试校对说明", type: "string", required: "否", scope: ["article"], layer: "内容属性", value_domain: { source: "free" } });
+    fields.fields.push({ ...fields.fields.at(-1), name: "preview_note" });
     write(vaultPath, "知识库/TheSchema/fields.yaml", yaml.stringify(fields));
     const ontologyPath = path.join(serverEnv.THESCHEMA_DIR, "ontology.yaml");
     const definitions = yaml.parse(fs.readFileSync(ontologyPath, "utf8"));
@@ -331,6 +343,28 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
       subClassOf: "Document", data_properties: { title: { required: true } },
     };
     const saveOntology = () => write(vaultPath, "知识库/TheSchema/ontology.yaml", yaml.stringify(definitions));
+    saveOntology();
+    const candidatePath = `/api/articles/precleaned/${id}`;
+    const beforeField = (await request("GET", derivationPath)).body.data;
+    const candidateBefore = (await request("GET", candidatePath)).body.data;
+    assert.equal(candidateBefore.derivedFields.version, beforeField.version);
+    assert.equal(candidateBefore.derivedFields.values.title, candidateBefore.title);
+    definitions.node_types.KnowledgeArticle.data_properties.module = { required: false };
+    saveOntology();
+    const revised = (await request("GET", derivationPath)).body.data;
+    assert.notEqual(revised.version, beforeField.version);
+    assert(revised.uiConfig.displayFields.includes("module"));
+    const revisedFields = (await request("GET", candidatePath)).body.data.derivedFields;
+    assert.equal(revisedFields.version, revised.version);
+    assert.equal(revisedFields.values.module, "fixture-module");
+    definitions.node_types.KnowledgeArticle.data_properties.unregistered_wp185_field = { required: true };
+    saveOntology();
+    const retained = await request("GET", derivationPath);
+    assert.equal(retained.retained, "true");
+    assert.deepEqual(retained.body.data, revised, "不合法的定义不能激活");
+    assert.deepEqual((await request("GET", candidatePath)).body.data.derivedFields, revisedFields);
+    delete definitions.node_types.KnowledgeArticle.data_properties.unregistered_wp185_field;
+    delete definitions.node_types.KnowledgeArticle.data_properties.module;
     saveOntology();
     assert.equal((await transition("standardize")).status, 200);
     const wrongSource = await transition("confirm", { sourcePath: sourcePath + ".bak" });
@@ -420,6 +454,8 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     assert(releaseReviews.includes(reviewedEdgeId), "历史发布包含该关系的裁决记录");
     const journalPath = path.join(vaultPath, ".ledger/state-journal.jsonl");
     const journalBefore = fs.readFileSync(journalPath);
+    const derivationBeforeRebuild = (await request("GET", derivationPath)).body.data;
+    const fieldsBeforeRebuild = (await request("GET", candidatePath)).body.data.derivedFields;
     let rebuiltTopology;
     let publicGraph;
     for (const round of [1, 2]) {
@@ -442,6 +478,8 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
       }
       const afterRestart = await request("GET", `/api/approval/status/${id}`);
       assert.deepEqual(afterRestart.body.data, pending, "审批状态与变更摘要完整重放");
+      assert.deepEqual((await request("GET", derivationPath)).body.data, derivationBeforeRebuild, "两次完整重建产物一致");
+      assert.deepEqual((await request("GET", candidatePath)).body.data.derivedFields, fieldsBeforeRebuild, "字段投影从原文重建");
       const history = await request("GET", historyPath);
       assert.equal(history.status, 200, JSON.stringify(history.body).slice(0, 400));
       const decisionIdentity = ({ edgeId, action, decidedAt, source, target }) => ({ edgeId, action, decidedAt, source, target });
@@ -499,6 +537,15 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     browser = await require("playwright").chromium.launch({ headless: true });
     const page = await browser.newPage();
     await page.goto(`http://127.0.0.1:${uiPort}/#/article-workflow`);
+    const openPreview = () => page.getByRole("button", { name: "查看 测试候选文章", exact: true }).click({ timeout: 15_000 });
+    await openPreview();
+    assert.equal(await page.getByRole("dialog").getByText("WP185 visible field", { exact: true }).count(), 0);
+    await page.getByRole("dialog").getByRole("button", { name: "关闭", exact: true }).click();
+    definitions.node_types.KnowledgeArticle.data_properties.preview_note = { required: false };
+    saveOntology();
+    await openPreview();
+    await page.getByRole("dialog").getByText("WP185 visible field", { exact: true }).waitFor({ timeout: 15_000 });
+    await page.getByRole("dialog").getByRole("button", { name: "关闭", exact: true }).click();
     await page.getByRole("button", { name: /发布.*测试候选文章/ }).click({ timeout: 15_000 });
     await page.getByTestId("approval-change-summary").waitFor({ timeout: 15_000 });
     assert.match(await page.getByTestId("approval-change-summary").innerText(), /外部新增正文/);

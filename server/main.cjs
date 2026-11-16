@@ -58,9 +58,61 @@ const { initVaultIO, recoverBootDrift, registerShutdownHandlers, onVaultWrite } 
 const vaultIO = initVaultIO({ vaultPath, gitLedger: vaultGitLedger, logger }); // PR-057：模块级缺省通道同步激活（函数式服务模块经 writeVault 取用）
 // WP-048 Wave 1（ADR-014 §6.1）：动作注册快照＋统一执行工厂——必须在路由注册之前装配
 // （快照供 preHandler 角色门与工厂动作查找同源同 revision；首次构建失败＝boot fail-closed）。
-const { initActionRegistry } = require("./shared/action-registry.cjs");
-const { initActionFactory } = require("./shared/action-execution-factory.cjs");
-initActionRegistry({ vaultPath, logger });
+const { initActionRegistry, getActiveActionSnapshot, isRetainedActionSnapshot } = require("./shared/action-registry.cjs");
+const { initActionFactory, executeAction, hasActionExecutor } = require("./shared/action-execution-factory.cjs");
+const { getRequestContext } = require("./shared/request-context.cjs");
+const { compileClassDerivation, assembleDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
+const { lifecycleOf } = require("./shared/ontology-inheritance-resolver.cjs");
+const { loadVocabBundle } = require("./shared/vocab-load-port.cjs");
+const { projectArticleIndividual, validateArticleIndividual } = require("./services/article-workflow/article-individual.cjs");
+const readRequestActionSnapshot = () => {
+  const context = getRequestContext();
+  return context && Object.hasOwn(context, "actionSnapshot")
+    ? context.actionSnapshot
+    : getActiveActionSnapshot();
+};
+const readArticleDerivation = () => readRequestActionSnapshot()?.articleDerivation ?? null;
+let refreshArticleManifests = null;
+const initialActions = initActionRegistry({
+  vaultPath,
+  logger,
+  derivation: {
+    read() {
+      try { return loadVocabBundle(vaultPath, { files: ["fields"] }).files.fields; }
+      catch (error) { return { state: "invalid", error }; }
+    },
+    compile(ontology, fields) {
+      if (ontology.degradedNodes?.some((node) => node.path === "node_types" || node.path?.startsWith("node_types.KnowledgeArticle"))) {
+        throw new Error("文章类本体定义不可用");
+      }
+      const definition = ontology.data?.node_types?.KnowledgeArticle;
+      if (!definition || lifecycleOf(definition, "class", "KnowledgeArticle") !== "approved") return null;
+      if (fields.error) throw fields.error;
+      if (fields.state !== "present" || fields.degradedNodes?.length) {
+        throw new Error("文章类派生缺少可用的字段定义");
+      }
+      return compileClassDerivation(ontology.data, fields.data, "KnowledgeArticle");
+    },
+    validateActivation(previous, next) {
+      const routes = (compiled) => (compiled?.apiRoutes ?? [])
+        .map(({ method, pathTemplate, actionId }) => `${method} ${pathTemplate} ${actionId}`).sort();
+      if (JSON.stringify(routes(previous)) !== JSON.stringify(routes(next))) {
+        throw new Error("文章派生路由拓扑变化，需要重启后激活");
+      }
+      if (next?.apiRoutes.some((route) => !hasActionExecutor(route.executor))) {
+        throw new Error("文章派生动作缺少登记执行器");
+      }
+    },
+    onActivate(previous, next) {
+      if (next?.version === previous?.version || !refreshArticleManifests) return;
+      // 不继承触发本次激活的 HTTP 请求快照，重建统一使用当前活跃修订。
+      setImmediate(() => {
+        try { refreshArticleManifests?.(getActiveActionSnapshot()?.articleDerivation); }
+        catch (error) { logger.warn({ event: "article-manifests-derivation-refresh-failed", error: error.message }); }
+      });
+    },
+  },
+});
 initActionFactory({ vaultPath, logger, approvals: require("./services/governance/action-approval-store.cjs") });
 // boot 漂移修复扫：启动时扫 vault 工作区 vs git HEAD，有变更补 recovery: 提交（crash window 兜底）
 // PR-056：listen 前 await 完成（SPEC-011 WP0「flush 确保在 server 开始处理请求前落账」的顺序兑现）
@@ -245,10 +297,7 @@ let releaseRuntimeRef = null;
 const { createRelationCandidateEmitter, GENERATOR: WP170_GENERATOR } = require("./services/article-workflow/article-relation-candidates.cjs");
 const { scanEntities } = require("./services/entity-compliance/entity-source-scanner.cjs");
 const { buildAliasIndex, aliasesOf } = require("./services/entity-compliance/entity-alias-index.cjs");
-const { loadVocabBundle } = require("./shared/vocab-load-port.cjs");
 const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
-const { compileClassDerivation, registerDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
-const { executeAction } = require("./shared/action-execution-factory.cjs");
 const { readReviewActions } = require("./services/governance/review-action-store.cjs");
 // WP-170（SPEC-095 §3.2 首批）：标准化成功 → 正文实体×类白名单 → 候选边进 staging 图 → 既有摄取/投影/审查链
 const emitRelationCandidates = createRelationCandidateEmitter({
@@ -283,6 +332,7 @@ const emitRelationCandidates = createRelationCandidateEmitter({
 const articleWorkflowService = createArticleWorkflowService({
   vaultPath,
   logger,
+  readArticleDerivation,
   getReleaseReader: () => releaseRuntimeRef?.readerService || null,
   emitRelationCandidates,
 });
@@ -317,7 +367,13 @@ const httpApp = createHttpApp({
   // SPEC-011-W11 WP5·403 白名单（语义不变）：健康端点与 /api/graph/ 族写方法免写者校验
   isWriteGateExempt: (pathname) => pathname === "/api/health" || pathname.startsWith("/api/graph/"),
 });
-const registerRoute = httpApp.registerRoute;
+const articleRoutes = assembleDerivedRoutes({
+  compiled: initialActions.articleDerivation,
+  registerRoute: httpApp.registerRoute,
+  executeAction,
+  hasExecutor: hasActionExecutor,
+});
+const registerRoute = articleRoutes.bind;
 
 require("./shared/retired-route-registrar.cjs").registerRetiredRoutes(registerRoute);
 // PR-048：补齐字段写后即时对账 anomaly issue 卡（钩子经路由层调 reconcileDiagnostic，
@@ -347,7 +403,14 @@ require("./routes/article-workflow-routes.cjs").register(registerRoute, {
 setInterval(() => { try { articleLifecycleReconciler.reconcileWorkingCopies(); } catch (_e) { /* fail-open */ } }, 60 * 60 * 1000).unref();
 // ADR-004 / W2-WP2：审批状态机由服务层装配返回，端点注册归本层（routes 职责）
 // vaultGitLedger 已在管线服务前创建（SPEC-010-W10 WP2/WP3 共用实例）
-const approvalStateMachine = registerApprovalStateMachine({ vaultPath, logger, articleWorkflowService, pipelineRunService, gitLedger: vaultGitLedger });
+const approvalStateMachine = registerApprovalStateMachine({
+  vaultPath, logger, articleWorkflowService, pipelineRunService, gitLedger: vaultGitLedger,
+  validateIndividual(raw) {
+    const snapshot = readRequestActionSnapshot();
+    if (!snapshot?.articleDerivation) return validateArticleIndividual(vaultPath, raw);
+    return projectArticleIndividual(raw, snapshot.articleInputs.ontology, snapshot.articleInputs.fields);
+  },
+});
 formalEditProcessor = require("./services/article-workflow/formal-edit-service.cjs").createFormalEditService({ vaultPath, articleWorkflowService, approvalStateMachine, logger });
 // SPEC-030 §十一批2：precleaned 候选对账消费者注入（服务就绪后，监听事件到达时必已就位）
 articleWorkflowReconcile = () => Promise.resolve(articleWorkflowService.reconcileExternalEdits());
@@ -598,14 +661,15 @@ function loadDashboardRoutes() {
       getVersionStatus: (product, version) => versionRegistryService?.getRegistry().products?.[product]?.versions?.find((item) => item.id === version)?.status || null,
     });
     // Article manifest service — powers type=article-manifests kg/query
-    const articleManifestService = createArticleManifestService({ vaultPath, readMasterGraph });
+    const articleManifestService = createArticleManifestService({ vaultPath, readMasterGraph, readArticleDerivation });
     const { createArticleManifestBatchService } = require("./services/article-workflow/article-manifest-batch-service.cjs");
     const articleManifestBatchService = createArticleManifestBatchService({ articleManifestService });
-    const rebuildArticleManifests = () => {
-      const result = articleManifestBatchService.rebuild();
+    const rebuildArticleManifests = (articleDerivation = getActiveActionSnapshot()?.articleDerivation) => {
+      const result = articleManifestBatchService.rebuild({ articleDerivation });
       logger.info({ event: "article-manifests-rebuilt", ...result, failures: result.failures.slice(0, 10) });
       return result;
     };
+    refreshArticleManifests = rebuildArticleManifests;
     // ADR063/sidaima 批（#1741）：refreshPublishedConsumers 死赋值退役（消费计数 0，能力已由
     // 下方 inventory post-run hook + article-manifests post-run hook 承载，保留即第二实现）。
     // SPEC-012 wave-2：manifest 迁 derived-index.db 行级——boot 重建排在存量目录导入与图族摄取
@@ -900,24 +964,19 @@ logger.info({ subsystem: "api", event: "api_response_schema_enforce_on", contrac
 // SPEC-012 WP-C/WP-A：②类重建、③类流水重放与漂移扫一并落定后再 listen（失败已记录）
 // SPEC-012 wave-2：图族摄取同样在 listen 前落定
 // PR-109：TheSchema 自检同汇合（fail-open——纯读校验，慢/失败不阻断 listen）
-let articleDerivation = null;
-const registerAutoRoutes = registerDerivedRoutes(registerRoute, executeAction, logger);
-const derivationReady = Promise.resolve().then(() => {
-  const { files } = loadVocabBundle(vaultPath, { files: ["ontology", "fields"] });
-  if (files.ontology.state !== "present" || files.fields.state !== "present") {
-    logger.warn({ event: "derivation-compile-skip", reason: "vocab missing" });
-    return;
-  }
-  articleDerivation = compileClassDerivation(files.ontology.data, files.fields.data, "KnowledgeArticle");
-  registerAutoRoutes(articleDerivation);
-  logger.info({ event: "derivation-compile-register-done", routes: articleDerivation.apiRoutes.length });
-}).catch((e) => logger.warn({ event: "derivation-compile-failed", error: e.message }));
-
 registerRoute("GET", "/api/derivation/article", function (_req, res) {
-  return sendJSON(res, 200, { data: articleDerivation });
+  const snapshot = readRequestActionSnapshot();
+  if (snapshot?.articleDerivationUnavailable) {
+    return sendJSON(res, 503, { error_code: "VALIDATOR_UNAVAILABLE", message: "文章派生配置未通过校验" });
+  }
+  const derivation = snapshot?.articleDerivation;
+  if (!derivation) return sendJSON(res, 404, { error_code: "NOT_FOUND", message: "当前本体没有知识文章派生配置" });
+  if (isRetainedActionSnapshot(snapshot)) res.header("X-Derivation-Retained", "true");
+  return sendJSON(res, 200, derivation);
 });
+articleRoutes.finish();
 
-Promise.all([bootDriftReady, derivedIndexReady, stateJournalReplayReady, graphIngestReady, schemaSelfcheckReady, derivationReady]).then(() => {
+Promise.all([bootDriftReady, derivedIndexReady, stateJournalReplayReady, graphIngestReady, schemaSelfcheckReady]).then(() => {
   httpApp.listen({ port: PORT, host: HOST }).then((address) => {
     logger.info({ event: "server-start", port: address.port, vaultPath });
   }).catch((error) => {

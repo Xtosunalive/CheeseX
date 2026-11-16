@@ -97,6 +97,9 @@ test("L3 真进程：文档级豁免闭环——豁免方不进清单、未豁�
       };
       poll();
     });
+    const derivation = await fetch(`${base}/api/derivation/article`);
+    assert.equal(derivation.status, 503, "缺少字段定义的知识库必须显式报告派生不可用");
+    assert.equal((await derivation.json()).error_code, "VALIDATOR_UNAVAILABLE");
 
     // health ok ≠图服务就绪（全量并发负载下 masterGraph 读取可能晚到——asGraph 兜底空图，
     // flaky 实录）；轮询直到夹具两实体可见或超时

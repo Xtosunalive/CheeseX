@@ -7,12 +7,13 @@ const { getDerivedIndexStore } = require("../../shared/persistence/derived-index
 const { readGraphArtifactText } = require("../../shared/persistence/graph-artifact-ingest.cjs"); // SPEC-012 wave-2 图族：主图原文行
 const { buildArticleManifestKey } = require("./article-manifest-paths.cjs");
 
-function createArticleManifestQuery({ vaultPath, queryArticleSources, isSourceExcluded }) {
+function createArticleManifestQuery({ vaultPath, queryArticleSources, isSourceExcluded, readArticleDerivation }) {
   function queryArticleManifests(options = {}) {
     const filter = options.filter || "all";
     const q = String(options.q || "").trim().toLowerCase();
     const limit = Math.min(Math.max(Number(options.limit) || 50, 1), 200);
     const offset = Math.max(Number(options.offset) || 0, 0);
+    const derivationVersion = readArticleDerivation?.()?.version;
     // SPEC-012 wave-2：当前图 hash 改读 derived-index.db 原文（Buffer 同口径——freshness 判定与旧文件字节一致不漂移）
     let currentGraphHash = null;
     let versionGraphHash = null;
@@ -64,6 +65,9 @@ function createArticleManifestQuery({ vaultPath, queryArticleSources, isSourceEx
         } else {
           manifest = { exists: true, fresh: false, status: "unknown", relativePath: `.ledger/article-manifests/${normalizedPath}.json`, generatedAt: manifestData.generatedAt || null, reason: "无法校验 hash", manifestMode };
         }
+        if (derivationVersion && !excluded && source.kind === "standard_article" && manifestData.derivedFields?.version !== derivationVersion) {
+          manifest = { ...manifest, status: "stale", fresh: false, reason: "文章派生定义已变更，清单待重建" };
+        }
       }
 
       counts[manifest.status] += 1;
@@ -82,7 +86,9 @@ function createArticleManifestQuery({ vaultPath, queryArticleSources, isSourceEx
       if (filter === "missing_eligible" && (excluded || manifest.status !== "missing")) continue;
       if (["missing", "fresh", "stale", "unknown"].includes(filter) && manifest.status !== filter) continue;
       if (q && !source.title.toLowerCase().includes(q) && !source.sourcePath.toLowerCase().includes(q) && !normalizedPath.toLowerCase().includes(q)) continue;
-      items.push({ sourcePath: source.sourcePath, normalizedSourcePath: normalizedPath, title: source.title, kind: source.kind, nodeEvidenceCount: source.nodeEvidenceCount, directRelationCount: source.directRelationCount, unresolvedCount: 0, manifest, manifestMode: itemManifestMode || "unknown", excluded, exclusionReason: exclusion.reason || null, eligible: !excluded });
+      const derivedFields = derivationVersion && manifestData?.derivedFields?.version === derivationVersion
+        ? manifestData.derivedFields : null;
+      items.push({ sourcePath: source.sourcePath, normalizedSourcePath: normalizedPath, title: source.title, kind: source.kind, nodeEvidenceCount: source.nodeEvidenceCount, directRelationCount: source.directRelationCount, unresolvedCount: 0, manifest, manifestMode: itemManifestMode || "unknown", excluded, exclusionReason: exclusion.reason || null, eligible: !excluded, ...(derivedFields && { derivedFields }) });
     }
 
     const statusOrder = { missing: 0, stale: 1, unknown: 2, fresh: 3 };

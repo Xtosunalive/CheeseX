@@ -3074,7 +3074,11 @@
               "items": {
                 "type": "array",
                 "items": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "derivedFields": { "$ref": "#/components/schemas/ArticleDerivedFields" }
+                  },
+                  "additionalProperties": true
                 }
               },
               "dataSource": {
@@ -7436,6 +7440,61 @@
           }
         }
       },
+      "ArticleDerivedFields": {
+        "type": "object",
+        "required": ["version", "values"],
+        "properties": {
+          "version": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "values": { "type": "object", "additionalProperties": true }
+        }
+      },
+      "ArticleDerivation": {
+        "type": "object",
+        "required": ["version", "classId", "apiRoutes", "storageFields", "uiConfig"],
+        "properties": {
+          "version": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "classId": { "type": "string", "const": "KnowledgeArticle" },
+          "apiRoutes": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["actionId", "method", "pathTemplate", "executor", "requiredRoles", "classId", "requestBody"],
+              "properties": {
+                "actionId": { "type": "string" },
+                "method": { "type": "string" },
+                "pathTemplate": { "type": "string" },
+                "executor": { "type": "string" },
+                "requiredRoles": { "type": "array", "items": { "type": "string" } },
+                "classId": { "type": "string" },
+                "requestBody": { "type": "boolean" }
+              }
+            }
+          },
+          "storageFields": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["fieldName", "required", "type", "sourceClass"],
+              "properties": {
+                "fieldName": { "type": "string" },
+                "required": { "type": "boolean" },
+                "type": { "type": "string" },
+                "sourceClass": { "type": "string" }
+              }
+            }
+          },
+          "uiConfig": {
+            "type": "object",
+            "required": ["classId", "inheritanceChain", "displayFields", "actionIds"],
+            "properties": {
+              "classId": { "type": "string" },
+              "inheritanceChain": { "type": "array", "items": { "type": "string" } },
+              "displayFields": { "type": "array", "items": { "type": "string" } },
+              "actionIds": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      },
       "PrecleanedArticleDetail": {
         "allOf": [
           {
@@ -7451,6 +7510,9 @@
               "metadata": {
                 "type": "object",
                 "additionalProperties": true
+              },
+              "derivedFields": {
+                "$ref": "#/components/schemas/ArticleDerivedFields"
               },
               "content": {
                 "type": "string"
@@ -16031,6 +16093,10 @@
           "computed_at"
         ],
         "properties": {
+          "derivation_version": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
           "article_id": {
             "type": "string",
             "nullable": true
@@ -27508,16 +27574,36 @@
         "responses": {
           "200": {
             "description": "编译成功，返回路由、字段、UI配置",
+            "headers": {
+              "X-Derivation-Retained": {
+                "description": "候选修订被拒绝，响应仍为上一有效修订",
+                "schema": { "type": "string", "const": "true" }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
+                  "required": ["success", "data", "trace_id"],
                   "properties": {
                     "success": { "type": "boolean", "const": true },
-                    "data": { "type": "object" }
+                    "data": { "$ref": "#/components/schemas/ArticleDerivation" },
+                    "trace_id": { "type": "string" }
                   }
                 }
               }
+            }
+          },
+          "404": {
+            "description": "当前本体没有知识文章派生配置",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+            }
+          },
+          "503": {
+            "description": "文章派生配置未通过校验",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
             }
           }
         }
