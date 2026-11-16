@@ -27956,6 +27956,358 @@
           }
         }
       }
+    },
+    "/api/articles/lifecycle/{articleId}/promote": {
+      "post": {
+        "operationId": "articlesLifecyclePromote",
+        "summary": "投稿稿提升（draft→standard-working）",
+        "description": "投稿稿提升（draft→standard-working）：validate→promote 链，原文随迁归档（Wave3 走查缺口①阶段二：生命周期 transitions 边按 OpenMAIC/Strapi 标准形态登记为每动作专用端点；状态合法性由服务端生命周期守卫执法）",
+        "tags": [
+          "articles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "confirmed"
+                ],
+                "properties": {
+                  "confirmed": {
+                    "type": "boolean",
+                    "description": "显式确认（生命周期写动作防误触闸）"
+                  },
+                  "draftPath": {
+                    "type": "string",
+                    "description": "promote/archive 专用：草稿 vault 相对路径（知识库/raw/drafts/…）；publish/retire 用 articleId 定位"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "promote/archive=draft 相对路径或任务标识；publish/retire=articleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "执行结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "action": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态迁移非法或源已变化",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "确认缺失/角色不符",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/lifecycle/{articleId}/publish": {
+      "post": {
+        "operationId": "articlesLifecyclePublish",
+        "summary": "审批发布（standard-working→standard-formal）",
+        "description": "审批发布（standard-working→standard-formal）：委托审批状态机 publish（单驱动保留，批准哈希=现算哈希前置由审批机执法）（Wave3 走查缺口①阶段二：生命周期 transitions 边按 OpenMAIC/Strapi 标准形态登记为每动作专用端点；状态合法性由服务端生命周期守卫执法）",
+        "tags": [
+          "articles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "confirmed"
+                ],
+                "properties": {
+                  "confirmed": {
+                    "type": "boolean",
+                    "description": "显式确认（生命周期写动作防误触闸）"
+                  },
+                  "draftPath": {
+                    "type": "string",
+                    "description": "promote/archive 专用：草稿 vault 相对路径（知识库/raw/drafts/…）；publish/retire 用 articleId 定位"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "promote/archive=draft 相对路径或任务标识；publish/retire=articleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "执行结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "action": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态迁移非法或源已变化",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "确认缺失/角色不符",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/lifecycle/{articleId}/archive": {
+      "post": {
+        "operationId": "articlesLifecycleArchive",
+        "summary": "草稿归档（draft→source-archive，独立端点）",
+        "description": "草稿归档（draft→source-archive，独立端点）：原文转内容寻址归档＋候选销账（Wave3 走查缺口①阶段二：生命周期 transitions 边按 OpenMAIC/Strapi 标准形态登记为每动作专用端点；状态合法性由服务端生命周期守卫执法）",
+        "tags": [
+          "articles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "confirmed"
+                ],
+                "properties": {
+                  "confirmed": {
+                    "type": "boolean",
+                    "description": "显式确认（生命周期写动作防误触闸）"
+                  },
+                  "draftPath": {
+                    "type": "string",
+                    "description": "promote/archive 专用：草稿 vault 相对路径（知识库/raw/drafts/…）；publish/retire 用 articleId 定位"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "promote/archive=draft 相对路径或任务标识；publish/retire=articleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "执行结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "action": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态迁移非法或源已变化",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "确认缺失/角色不符",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/lifecycle/{articleId}/retire": {
+      "post": {
+        "operationId": "articlesLifecycleRetire",
+        "summary": "退役下架（standard-working→source-archive）",
+        "description": "退役下架（standard-working→source-archive）：退役管理流执行（影响面预览由退役管理页承担，本端点带 confirmed 闸）（Wave3 走查缺口①阶段二：生命周期 transitions 边按 OpenMAIC/Strapi 标准形态登记为每动作专用端点；状态合法性由服务端生命周期守卫执法）",
+        "tags": [
+          "articles"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "confirmed"
+                ],
+                "properties": {
+                  "confirmed": {
+                    "type": "boolean",
+                    "description": "显式确认（生命周期写动作防误触闸）"
+                  },
+                  "draftPath": {
+                    "type": "string",
+                    "description": "promote/archive 专用：草稿 vault 相对路径（知识库/raw/drafts/…）；publish/retire 用 articleId 定位"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "articleId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "promote/archive=draft 相对路径或任务标识；publish/retire=articleId"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "执行结果",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "action": {
+                      "type": "string"
+                    },
+                    "result": {
+                      "type": "object",
+                      "additionalProperties": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "状态迁移非法或源已变化",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "确认缺失/角色不符",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

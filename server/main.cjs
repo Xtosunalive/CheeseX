@@ -426,6 +426,16 @@ formalEditProcessor = require("./services/article-workflow/formal-edit-service.c
 articleWorkflowReconcile = () => Promise.resolve(articleWorkflowService.reconcileExternalEdits());
 formalEditProcessor.reconcile(); // 停机期间 Obsidian 保存的正式文章在启动时重新检测
 require("./routes/approval-state-machine-routes.cjs").register(registerRoute, { approvalStateMachine });
+// Wave3 走查缺口①阶段二（Master 2026-11-17 裁）：生命周期 transitions 端点——每动作专用
+// （OpenMAIC/Strapi 标准形态），执行器委托既有单源（promote=promoteDraft 链、publish=审批机
+// transition 单驱动、archive=归档随迁、retire=retireArticle 退役管理流）；派生计划面（阶段一）
+// 经 inContract 翻转与契约对齐。
+require("./routes/article-lifecycle-routes.cjs").register(registerRoute, {
+  articleWorkflowService,
+  approvalTransitionExecutor: (articleId) => approvalStateMachine.transition(articleId, "publish"),
+  lifecycleReconciler: articleLifecycleReconciler,
+  logger,
+});
 // WP-156：查询面健康度读模型（按契约全量规则筛违规文章＋JSON 导出——与实时面同引擎同契约）
 require("./routes/article-health-routes.cjs").register(registerRoute, { vaultPath });
   // WP-018：变更探针（多用户跨会话通知，轮询消费）

@@ -8682,6 +8682,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/articles/lifecycle/{articleId}/promote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 投稿稿提升（draft→standard-working）
+         * @description 投稿稿提升（draft→standard-working）：validate→promote 链，原文随迁归档（Wave3 走查缺口①阶段二：生命周期 transitions 边按 OpenMAIC/Strapi 标准形态登记为每动作专用端点；状态合法性由服务端生命周期守卫执法）
+         */
+        post: operations["articlesLifecyclePromote"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/lifecycle/{articleId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 审批发布（standard-working→standard-formal）
+         * @description 审批发布（standard-working→standard-formal）：委托审批状态机 publish（单驱动保留，批准哈希=现算哈希前置由审批机执法）（Wave3 走查缺口①阶段二：生命周期 transitions 边按 OpenMAIC/Strapi 标准形态登记为每动作专用端点；状态合法性由服务端生命周期守卫执法）
+         */
+        post: operations["articlesLifecyclePublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/lifecycle/{articleId}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 草稿归档（draft→source-archive，独立端点）
+         * @description 草稿归档（draft→source-archive，独立端点）：原文转内容寻址归档＋候选销账（Wave3 走查缺口①阶段二：生命周期 transitions 边按 OpenMAIC/Strapi 标准形态登记为每动作专用端点；状态合法性由服务端生命周期守卫执法）
+         */
+        post: operations["articlesLifecycleArchive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/articles/lifecycle/{articleId}/retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 退役下架（standard-working→source-archive）
+         * @description 退役下架（standard-working→source-archive）：退役管理流执行（影响面预览由退役管理页承担，本端点带 confirmed 闸）（Wave3 走查缺口①阶段二：生命周期 transitions 边按 OpenMAIC/Strapi 标准形态登记为每动作专用端点；状态合法性由服务端生命周期守卫执法）
+         */
+        post: operations["articlesLifecycleRetire"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -13687,6 +13767,230 @@ export interface operations {
             };
             /** @description ARTICLE_NOT_FOUND */
             404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    articlesLifecyclePromote: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description promote/archive=draft 相对路径或任务标识；publish/retire=articleId */
+                articleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 显式确认（生命周期写动作防误触闸） */
+                    confirmed: boolean;
+                    /** @description promote/archive 专用：草稿 vault 相对路径（知识库/raw/drafts/…）；publish/retire 用 articleId 定位 */
+                    draftPath?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 执行结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        action?: string;
+                        result?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description 确认缺失/角色不符 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 状态迁移非法或源已变化 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    articlesLifecyclePublish: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description promote/archive=draft 相对路径或任务标识；publish/retire=articleId */
+                articleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 显式确认（生命周期写动作防误触闸） */
+                    confirmed: boolean;
+                    /** @description promote/archive 专用：草稿 vault 相对路径（知识库/raw/drafts/…）；publish/retire 用 articleId 定位 */
+                    draftPath?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 执行结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        action?: string;
+                        result?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description 确认缺失/角色不符 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 状态迁移非法或源已变化 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    articlesLifecycleArchive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description promote/archive=draft 相对路径或任务标识；publish/retire=articleId */
+                articleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 显式确认（生命周期写动作防误触闸） */
+                    confirmed: boolean;
+                    /** @description promote/archive 专用：草稿 vault 相对路径（知识库/raw/drafts/…）；publish/retire 用 articleId 定位 */
+                    draftPath?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 执行结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        action?: string;
+                        result?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description 确认缺失/角色不符 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 状态迁移非法或源已变化 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    articlesLifecycleRetire: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description promote/archive=draft 相对路径或任务标识；publish/retire=articleId */
+                articleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 显式确认（生命周期写动作防误触闸） */
+                    confirmed: boolean;
+                    /** @description promote/archive 专用：草稿 vault 相对路径（知识库/raw/drafts/…）；publish/retire 用 articleId 定位 */
+                    draftPath?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 执行结果 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        action?: string;
+                        result?: {
+                            [key: string]: unknown;
+                        };
+                    };
+                };
+            };
+            /** @description 确认缺失/角色不符 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 状态迁移非法或源已变化 */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };
