@@ -2,12 +2,14 @@
 import { create } from "zustand";
 import { TERM } from "@/constants/term-const";
 import { fetchCheckResults, applyPropertyRepair, refreshProperty } from "./property-api";
-import type { CheckResultItem, CheckFilter, RepairAction, RepairPayload, WorkingRevisions } from "./property-types";
+import type { CheckResultItem, CheckSummary, CheckFilter, RepairAction, RepairPayload, WorkingRevisions } from "./property-types";
 import { errorMessageOf, requestFailed, requestLoading, requestSettled, type RequestStatus } from "@/lib/request-status";
 import { PROPERTY_REQUEST_COPY } from "./property-gov-copy";
 
 interface PropertyStore {
   checkResults: CheckResultItem[];
+  /** 2026-11-17 第 1 批接线：阻断/警告聚合恢复持有（工作台量值带前置依赖；概览卡消费自 MAIC 批停用） */
+  summary: CheckSummary | null;
   workingRevisions: WorkingRevisions;
   /** 主请求＝检查结果加载 */
   status: RequestStatus;
@@ -28,7 +30,7 @@ interface PropertyStore {
 }
 
 export const usePropertyStore = create<PropertyStore>((set, get) => ({
-  checkResults: [], workingRevisions: {}, status: "idle", error: null,
+  checkResults: [], summary: null, workingRevisions: {}, status: "idle", error: null,
   filter: "all", query: "", repairingId: null, operationError: null, lastApplySummary: null, lastRefreshQueued: null,
 
   load: async () => {
@@ -36,7 +38,7 @@ export const usePropertyStore = create<PropertyStore>((set, get) => ({
     set(requestLoading());
     try {
       const data = await fetchCheckResults({ filter, q: query });
-      set({ checkResults: data.items, workingRevisions: data.workingRevisions ?? {}, ...requestSettled(data.items.length === 0) });
+      set({ checkResults: data.items, summary: data.summary, workingRevisions: data.workingRevisions ?? {}, ...requestSettled(data.items.length === 0) });
     } catch (e) {
       set(requestFailed(e, TERM.LOAD_FAILED));
     }
