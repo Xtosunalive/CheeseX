@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { Search, ShieldCheck, Database, GitFork, Settings, FileSearch, GitCompareArrows, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
+import { LayoutDashboard, Search, ShieldCheck, Database, GitFork, Settings, FileSearch, GitCompareArrows, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { AppErrorBoundary } from "@/components/app-shell/AppErrorBoundary";
 import { APP_SHELL_COPY } from "@/components/components-copy";
@@ -18,6 +18,7 @@ const ArchitectureVersionView = lazy(() => import("@/features/architecture-versi
 const SchemaManagerView = lazy(() => import("@/features/schema-manager/SchemaManagerView").then(m => ({ default: m.SchemaManagerView })));
 const ArticleWorkflowView = lazy(() => import("@/features/article-workflow/ArticleWorkflowView").then(m => ({ default: m.ArticleWorkflowView })));
 const ArticleAssociationsView = lazy(() => import("@/features/article-associations/ArticleAssociationsView").then(m => ({ default: m.ArticleAssociationsView })));
+const WorkbenchView = lazy(() => import("@/features/workbench/WorkbenchView").then(m => ({ default: m.WorkbenchView })));
 const AnomalyWorkbenchView = lazy(() => import("@/features/anomaly-workbench/AnomalyWorkbenchView").then(m => ({ default: m.AnomalyWorkbenchView })));
 // DEV-only 主题预览（PR-025 阶段 4）：懒加载，生产构建不进主 chunk
 const ThemePreviewView = lazy(() => import("@/features/theme-preview/ThemePreviewView").then(m => ({ default: m.ThemePreviewView })));
@@ -40,6 +41,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     id: "rule-gate", icon: Settings, label: TERM.TASK_RULE_CHECK,
     items: [
+      { id: "workbench", icon: LayoutDashboard, label: TERM.WORKBENCH },
       { id: "schema", icon: Settings, label: TERM.SCHEMA },
       { id: "entity-compliance", icon: ShieldCheck, label: TERM.SOURCE_DOC_CHECK },
       { id: "property", icon: Settings, label: TERM.ARTICLE_AND_COMPONENTS },
@@ -96,6 +98,7 @@ function getNavFromHash(): NavId {
   if (h === "property" || h.startsWith("property/")) return "property";
   if (h === "article-associations") return "article-associations";
   if (h === "schema") return "schema";
+  if (h === "workbench") return "workbench";
   if (h === "anomalies") return "anomalies";
   if (h === "article-workflow") return "article-workflow";
   if (h === "publish") return "article-workflow"; // 审批与发布页退役（2026-10-15 收敛）——旧链接回落文章工作台
@@ -135,6 +138,7 @@ const VIEWS: Record<NavId, React.ComponentType> = {
   property: PropertyGovView,
   schema: SchemaManagerView,
   "article-associations": ArticleAssociationsView,
+  workbench: WorkbenchView,
   anomalies: AnomalyWorkbenchView,
   "document-inventory": DocumentInventoryView,
   "article-workflow": ArticleWorkflowView,
@@ -153,6 +157,7 @@ const VIEW_BOUNDARIES: Record<NavId, string> = {
   property: "PropertyGovView",
   schema: "SchemaManagerView",
   "article-associations": "ArticleAssociationsView",
+  workbench: "WorkbenchView",
   anomalies: "AnomalyWorkbenchView",
   "document-inventory": "DocumentInventoryView",
   "article-workflow": "ArticleWorkflowView",

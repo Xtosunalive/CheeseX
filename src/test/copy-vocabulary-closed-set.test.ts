@@ -50,6 +50,7 @@ const TERMINOLOGY_REPLACEMENTS = [
 const CLOSED_SET_FILES = new Set([
   "src/constants/term-const.ts",
   "src/features/property-gov/property-gov-copy.ts",
+  "src/features/workbench/workbench-copy.ts",
   "src/features/anomaly-workbench/anomaly-workbench-copy.ts",
   "src/features/anomaly-workbench/action-routing-reasons.ts",
   "src/features/theme-preview/theme-preview-copy.ts", // theme-preview 页级文案单源（WP-147 入册时本投影漏列，记档 1 补齐）

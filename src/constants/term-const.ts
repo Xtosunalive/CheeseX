@@ -205,6 +205,7 @@ export const TERM = {
   /** 文章映射和架构组件属性检查组合入口 */
   ARTICLE_AND_COMPONENTS: "属性治理",
   /** 自动检查无法直接确认的待处理问题 */
+  WORKBENCH: "工作台",
   PENDING_ISSUES: "待处理问题",
 
   // ── 应用壳层 Application Shell ──
