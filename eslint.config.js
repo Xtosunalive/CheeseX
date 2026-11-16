@@ -489,7 +489,8 @@ export default tseslint.config(
 {
   files: [
     "src/constants/term-const.ts", // 文案闭集母体：term-const.ts 术语词表单源（全站 TERM 消费）——单列文件名不用目录 glob（红队 F2：目录 glob 会让未来放进该目录的文件静默入闭集，ADR-019 §三.4 闭集仪式必须真实可审）
-    "src/features/property-gov/property-gov-copy.ts", // property-gov 页级文案单源
+    "src/features/property-gov/property-gov-copy.ts",
+    "src/features/workbench/workbench-copy.ts", // property-gov 页级文案单源
     "src/features/anomaly-workbench/anomaly-workbench-copy.ts", // anomaly-workbench 页级文案单源
     "src/features/anomaly-workbench/action-routing-reasons.ts", // anomaly 动作路由豁免/待定理由声明串单源（WP-150 入册——独立叶子防 copy↔routing 初始化期双向依赖）
     "src/features/theme-preview/theme-preview-copy.ts", // theme-preview 页级文案单源（WP-147 二期尾项入册，token 预览镜像对账仍按 ThemePreviewView 原文执法）

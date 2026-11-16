@@ -59,7 +59,7 @@ describe("Skeleton Management navigation", () => {
     expect(window.location.hash).toBe("#/schema");
     const globalNavigation = screen.getByTestId("global-navigation");
     const routeButtons = within(globalNavigation).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route");
-    expect(routeButtons).toHaveLength(13);
+    expect(routeButtons).toHaveLength(14);
     expect(within(globalNavigation).queryByText("参考资料")).not.toBeInTheDocument();
     expect(within(globalNavigation).queryByText("backup")).not.toBeInTheDocument();
     const sidebarRoute = within(globalNavigation).getByRole("button", { name: "图谱规则配置" });
@@ -88,8 +88,8 @@ describe("Skeleton Management navigation", () => {
       // F3 视图懒加载：各视图首挂异步解析，改 findBy 等待
       expect(await screen.findByText(page)).toBeInTheDocument();
       const navigation = within(screen.getByTestId("global-navigation"));
-      // 完整树常驻：全 13 个 route（发布页退役后；2026-11-17 运行概览退役），当前页面标记 aria-current
-      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(13);
+      // 完整树常驻：全 14 个 route（2026-11-17 第 2 批：工作台入组），当前页面标记 aria-current
+      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(14);
       expect(navigation.getByRole("button", { name: activeRoute })).toHaveAttribute("aria-current", "page");
       view.unmount();
     }
@@ -125,7 +125,7 @@ describe("Skeleton Management navigation", () => {
     render(<App />);
     const sidebar = screen.getByTestId("global-navigation");
     expect(sidebar).toHaveAttribute("aria-label", "全局导航");
-    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(13);
+    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(14);
   });
 
   it("professional pages remain independently accessible and are not anomaly sub-routes", () => {
