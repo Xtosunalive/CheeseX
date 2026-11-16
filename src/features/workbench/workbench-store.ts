@@ -6,10 +6,8 @@
 //   映射待处理 ← manifests summary（stale＋missingEligible 合计；清单非队列，仅信号）
 // 未知口径：null＝尚未加载，不冒充真零（WP-134 波2 口径沿袭）。
 import { create } from "zustand";
-import { apiFetchEnvelope } from "@/lib/api";
-import type { AnomalyListData } from "@/features/anomaly-workbench/anomaly-workbench-types";
 import { isAnomalyPending } from "@/features/anomaly-workbench/anomaly-workbench-types";
-import type { ManifestListData } from "@/features/property-gov/property-types";
+import { fetchAnomalyPendingSignals, fetchManifestSignals } from "./workbench-api";
 
 interface WorkbenchSignals {
   /** 待审关系数（第 1 批接线源）；null＝未知 */
@@ -38,15 +36,15 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
     if (get().loaded) return;
     set({ loaded: true });
     const [anomaliesRes, manifestRes] = await Promise.allSettled([
-      apiFetchEnvelope<AnomalyListData>("/api/anomalies", { cache: "no-store" }),
-      apiFetchEnvelope<ManifestListData>("/api/kg/query?type=article-manifests&filter=all&limit=1", { cache: "no-store" }),
+      fetchAnomalyPendingSignals(),
+      fetchManifestSignals(),
     ]);
     const patch: Partial<WorkbenchSignals> = {};
-    if (anomaliesRes.status === "fulfilled" && anomaliesRes.value.ok) {
-      patch.anomalies = anomaliesRes.value.data?.issues.filter((i) => isAnomalyPending(i.status)).length ?? null;
+    if (anomaliesRes.status === "fulfilled" && anomaliesRes.value) {
+      patch.anomalies = anomaliesRes.value.issues.filter((issue) => isAnomalyPending(issue.status)).length;
     }
-    if (manifestRes.status === "fulfilled" && manifestRes.value.ok) {
-      const s = manifestRes.value.data?.summary;
+    if (manifestRes.status === "fulfilled" && manifestRes.value) {
+      const s = manifestRes.value.summary;
       patch.manifestPending = s ? (("missingEligible" in s ? s.missingEligible : s.missing) ?? 0) + (s.stale ?? 0) : null;
     }
     set(patch as WorkbenchSignals);

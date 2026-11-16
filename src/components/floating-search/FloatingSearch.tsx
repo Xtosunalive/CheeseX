@@ -22,9 +22,14 @@ export function FloatingSearch() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const { route } = useNavLocation();
 
-  // On document-inventory, focus the existing page search bar instead of opening the panel
+  // On 文档检索（第 3 批：原 document-inventory 路由并入对象浏览器 search 页签），聚焦页面检索框而非开面板
+  const onDocSearchSurface = () => {
+    const loc = readNavLocation();
+    if (loc.route === "document-inventory") return true;
+    return loc.route === "data-dashboard" && (loc.sub === "search" || new URLSearchParams(loc.hash.split("?")[1] ?? "").get("tab") === "search");
+  };
   const triggerSearch = useCallback(() => {
-    if (readNavLocation().route === "document-inventory") {
+    if (onDocSearchSurface()) {
       const input = document.querySelector<HTMLInputElement>(`input[aria-label="${TERM.DOCUMENT_SEARCH_INPUT}"]`);
       input?.scrollIntoView?.({ block: "center", behavior: "smooth" });
       setTimeout(() => input?.focus(), 300);
@@ -33,9 +38,10 @@ export function FloatingSearch() {
     setOpen((prev) => !prev);
   }, []);
 
-  // Close when hash navigates to document-inventory
+  // Close when hash navigates to 文档检索（第 3 批：原路由或 hub search 页签）
   useEffect(() => {
-    if (route === "document-inventory") setOpen(false);
+    const loc = readNavLocation();
+    if (loc.route === "document-inventory" || (loc.route === "data-dashboard" && loc.sub === "search")) setOpen(false);
   }, [route]);
 
   // Autofocus the search input when the card opens
@@ -100,6 +106,7 @@ export function FloatingSearch() {
       {/* ── Glassmorphism expanded search card — only rendered when open, top-centered ── */}
       {open && (
         <div
+          data-testid="floating-search-panel"
           ref={cardRef}
           className="fixed top-[calc(var(--app-bar-height)+0.5rem)] right-4 left-4 z-overlay mx-auto max-w-[720px] transition-all duration-[var(--duration-base)] opacity-100 translate-y-0 scale-100"
         >

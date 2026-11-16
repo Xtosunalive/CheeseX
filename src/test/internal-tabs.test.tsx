@@ -121,7 +121,7 @@ describe("InternalTabs", () => {
     const hub = render(<DataDashboardView />);
     // seq212：relations 页退役，双 tab 基线由图谱检索枢纽承载（拓扑|关系）
     // 页内主标题已删（同上拍板）——tablist 即页面身份锚点
-    expect(screen.getByRole("tablist", { name: "图谱检索视图" })).toHaveClass("grid-cols-2", "bg-surface-root", "p-0.5", "ring-border-thin");
+    expect(screen.getByRole("tablist", { name: "图谱检索视图" })).toHaveClass("grid-cols-4", "bg-surface-root", "p-0.5", "ring-border-thin");
     expect(screen.getByRole("tab", { name: "拓扑" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "关系" })).toBeInTheDocument();
     hub.unmount();

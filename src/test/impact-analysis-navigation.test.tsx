@@ -6,6 +6,7 @@ import App from "@/App";
 vi.mock("@/components/ui/sonner", () => ({ Toaster: () => null }));
 vi.mock("@/components/document-inventory", () => ({ DocumentSearchBar: () => null }));
 vi.mock("@/features/impact-analysis/ImpactAnalysisView", () => ({ ImpactAnalysisView: () => <div>影响面分析页</div> }));
+vi.mock("@/features/data-dashboard/DataDashboardView", () => ({ DataDashboardView: () => <div data-testid="hub-host" /> }));
 vi.mock("@/features/architecture-version/ArchitectureVersionView", () => ({ ArchitectureVersionView: () => <div>版本对比页</div> }));
 vi.mock("@/features/document-inventory/DocumentInventoryView", () => ({ DocumentInventoryView: () => null }));
 vi.mock("@/features/dashboard/DashboardView", () => ({ DashboardView: () => <div>dashboard</div> }));
@@ -13,6 +14,12 @@ vi.mock("@/features/admission/AdmissionView", () => ({ AdmissionView: () => null
 
 describe("impact analysis navigation", () => {
   beforeEach(() => { window.location.hash = "#/dashboard"; });
-  it("opens the feature page from the always-on sidebar", async () => { render(<App />); fireEvent.click(screen.getByRole("button", { name: TERM.TASK_IMPACT_ANALYSIS })); expect(await screen.findByText("影响面分析页")).toBeInTheDocument(); });
+  it(`${TERM.TASK_IMPACT_ANALYSIS}入口随第 3 批并入对象浏览器（导航项退役；hash 兼容回落枢纽 impact 页签）`, async () => {
+    render(<App />);
+    expect(screen.queryByRole("button", { name: TERM.TASK_IMPACT_ANALYSIS })).not.toBeInTheDocument();
+    window.location.hash = "#/impact-analysis";
+    // 归一渲染枢纽宿主（ImpactAnalysisView 已 mock，无其文案）——断言宿主可达即可
+    expect(await screen.findByTestId("hub-host")).toBeInTheDocument();
+  });
   it("opens architecture version comparison from the always-on sidebar", async () => { render(<App />); fireEvent.click(screen.getByRole("button", { name: TERM.VERSION_ANALYSIS })); expect(await screen.findByText("版本对比页")).toBeInTheDocument(); });
 });

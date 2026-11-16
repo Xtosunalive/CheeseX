@@ -19,7 +19,9 @@ vi.mock("@/features/document-inventory/components", () => ({
   DocumentSearchBar: () => <input aria-label={TERM.DOCUMENT_SEARCH_INPUT} />,
 }));
 vi.mock("@/features/dashboard/DashboardView", () => ({ DashboardView: () => <div>dashboard</div> }));
-vi.mock("@/features/data-dashboard/DataDashboardView", () => ({ DataDashboardView: () => null }));
+vi.mock("@/features/data-dashboard/DataDashboardView", () => ({
+  DataDashboardView: () => <input aria-label={TERM.DOCUMENT_SEARCH_INPUT} data-testid="page-search-input" />,
+}));
 vi.mock("@/features/admission/AdmissionView", () => ({ AdmissionView: () => null }));
 vi.mock("@/features/review/ReviewView", () => ({ ReviewView: () => <div>关系审核页</div> }));
 vi.mock("@/features/gap-engine/GapEngineView", () => ({ GapEngineView: () => null }));
@@ -90,23 +92,19 @@ describe("global navigation sidebar", () => {
       TERM.TASK_KNOWLEDGE_APPROVAL,
       TERM.TASK_ASSET_LOOKUP,
       TERM.TASK_RULE_CHECK,
-      TERM.TASK_IMPACT_ANALYSIS,
     ]) {
       expect(within(dialog).getByText(label)).toBeInTheDocument();
     }
     for (const label of [
       TERM.ARTICLE_ADMISSION,
-      TERM.GRAPH_ADMISSION,
       TERM.RELATION_REVIEW,
       TERM.TOPOLOGY_GAP_REVIEW,
       TERM.ARTICLE_MAPPING_REPAIR,
       TERM.GRAPH_EXPLORER,
-      TERM.DOC_LOOKUP,
       TERM.SCHEMA,
       TERM.SOURCE_DOC_CHECK,
       TERM.ARTICLE_AND_COMPONENTS,
       TERM.PENDING_ISSUES,
-      TERM.COMPONENT_IMPACT,
       TERM.VERSION_ANALYSIS,
     ]) {
       expect(within(dialog).getByRole("button", { name: label })).toBeInTheDocument();
@@ -179,13 +177,13 @@ describe("document search in application bar", () => {
   it("opens the panel on click and focuses the full-text input", async () => {
     render(<App />);
     fireEvent.click(screen.getByRole("button", { name: TERM.DOCUMENT_SEARCH_ACTION }));
-    await waitFor(() => expect(screen.getByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT })).toHaveFocus());
+    await waitFor(() => expect(screen.getAllByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT })[0]).toHaveFocus());
   });
 
   it("opens the panel with the slash shortcut outside editing contexts", async () => {
     render(<App />);
     fireEvent.keyDown(document.body, { key: "/" });
-    expect(await screen.findByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT })).toBeInTheDocument();
+    expect((await screen.findAllByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT }))[0]).toBeInTheDocument();
   });
 
   it("ignores the slash shortcut inside editing contexts", () => {
@@ -199,7 +197,7 @@ describe("document search in application bar", () => {
     try {
       for (const target of [input, textarea, select, editable]) {
         fireEvent.keyDown(target, { key: "/" });
-        expect(screen.queryByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT })).not.toBeInTheDocument();
+        expect(screen.queryByTestId("floating-search-panel")).not.toBeInTheDocument();
       }
     } finally {
       input.remove(); textarea.remove(); select.remove(); editable.remove();
@@ -210,13 +208,13 @@ describe("document search in application bar", () => {
     render(<App />);
     const trigger = screen.getByRole("button", { name: TERM.DOCUMENT_SEARCH_ACTION });
     fireEvent.click(trigger);
-    expect(await screen.findByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT })).toBeInTheDocument();
+    expect((await screen.findAllByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT }))[0]).toBeInTheDocument();
     fireEvent.keyDown(document, { key: "Escape" });
-    expect(screen.queryByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("floating-search-panel")).not.toBeInTheDocument();
     fireEvent.click(screen.getByRole("button", { name: TERM.DOCUMENT_SEARCH_ACTION }));
-    expect(await screen.findByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT })).toBeInTheDocument();
+    expect((await screen.findAllByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT }))[0]).toBeInTheDocument();
     fireEvent.mouseDown(document.body);
-    expect(screen.queryByRole("textbox", { name: TERM.DOCUMENT_SEARCH_INPUT })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("floating-search-panel")).not.toBeInTheDocument();
   });
 
   it("focuses the existing page search box on the document inventory page", async () => {

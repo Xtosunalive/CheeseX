@@ -48,15 +48,15 @@ function fixture({
   return root;
 }
 
-test("真仓：3 文件 4 点 3 来源全部合规，0 违例", () => {
-  // 9→3 文件／16→4 点＝2026-11-15 MAIC 形态批（Master 实测 OpenMAIC 后裁 A 全套对齐：常驻统计卡
+test("真仓：3 文件 7 点 3 来源全部合规，0 违例", () => {
+  // 3 文件不变／4→7 点＝2026-11-17 第 3 批补登 workbench 视图（第 2 批漏账；pending-review 经 store 接线非直拉不入登记）；前史：9→3 文件／16→4 点＝MAIC 形态批（Master 实测 OpenMAIC 后裁 A 全套对齐：常驻统计卡
   // 全退役——dashboard/document-inventory/article-workflow/entity-compliance/property-check-results/
   // property-manifest-list 六视图清出登记，仅存数据仪表盘 2＋拓扑缺口 1＋待审关系 1）。前史：
   // 12→10 文件／38→33 点＝量值对齐批（退役五卡）；10→9／33→16＝概览退役两波（映射 11→1、实体合规
   // 5→3、投稿 2→1、检查结果 3→2）。来源 12→3＝随视图清出同批收敛。
   const result = runUiStatProvenance();
   assert.equal(result.ok, true, result.violations.join("\n"));
-  assert.deepEqual(result.stats, { files: 3, statPoints: 4, views: 3, sourceApis: 3 });
+  assert.deepEqual(result.stats, { files: 3, statPoints: 7, views: 3, sourceApis: 3 });
 });
 
 test("绿：合规夹具（视图登记＋来源存在＋有 summary）→ ok", () => {
