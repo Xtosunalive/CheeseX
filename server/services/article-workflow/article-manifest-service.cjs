@@ -8,6 +8,9 @@ const { createArticleManifestQuery } = require("./article-manifest-query.cjs");
 const { classifySourceMatch, isSourceExcluded, normalizeSourcePath } = require("./article-manifest-policy.cjs");
 const { relationSourceEvidence, sourceKind } = require("../../shared/article-manifest-lineage.cjs");
 const { getRuntimeStateStore } = require("../../shared/persistence/runtime-state-store.cjs"); // SPEC-012 WP-A：pipeline_version 读侧迁库
+const { readVaultSourceIdentity } = require("../../shared/working-artifact-snapshot.cjs");
+const { loadDocument } = require("../../shared/document-load-port.cjs");
+const { projectArticleFields } = require("../../shared/derivation-compiler/derivation-compiler.cjs");
 const { getDerivedIndexStore } = require("../../shared/persistence/derived-index-store.cjs"); // SPEC-012 wave-2：manifest 投影迁 derived-index.db（行级）
 const { readGraphArtifactText } = require("../../shared/persistence/graph-artifact-ingest.cjs"); // SPEC-012 wave-2 图族：主图原文行
 
@@ -25,6 +28,7 @@ function currentMasterGraphHash(vaultPath) {
 function createArticleManifestService({
   vaultPath,
   readMasterGraph,
+  readArticleDerivation,
 }) {
   function queryArticleMount(sourcePath, includeSynthetic) {
     if (!sourcePath || typeof sourcePath !== "string" || !sourcePath.trim()) {
@@ -432,6 +436,10 @@ function createArticleManifestService({
       nodeEvidenceCount: (mountResult.extracted_entities || []).length,
       relationEvidenceCount: (mountResult.generated_relations || []).length,
     };
+    const derivation = options?.articleDerivation ?? readArticleDerivation?.();
+    const source = derivation && sourceKind(normalizedPath) === "standard_article"
+      && readVaultSourceIdentity(vaultPath, `知识库/${normalizedPath}`, { includeContent: true });
+    const derivedFields = source && projectArticleFields(derivation, loadDocument(source.content, source.sourceKey));
 
     return {
       manifestVersion: 2,
@@ -446,6 +454,7 @@ function createArticleManifestService({
       pipelineRunId,
       freshness: { status: freshnessStatus, checkedAt: new Date().toISOString(), reason: freshnessReason },
       article,
+      ...(derivedFields && { derivedFields }),
       extraction,
       evidence,
       review: mountResult.summary?.review || null,
@@ -484,7 +493,7 @@ function createArticleManifestService({
     return { key, removed: true };
   }
 
-  const queryArticleManifests = createArticleManifestQuery({ vaultPath, queryArticleSources, isSourceExcluded });
+  const queryArticleManifests = createArticleManifestQuery({ vaultPath, queryArticleSources, isSourceExcluded, readArticleDerivation });
 
   return {
     queryArticleMount,

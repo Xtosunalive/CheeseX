@@ -107,3 +107,36 @@ test("maps approved article relations from lineage coordinates and keeps article
   assert.deepEqual(manifest.extraction.relationKeys, ["doc-article-ART-1→component:DOCUMENTS"]);
   fs.rmSync(vaultPath, { recursive: true, force: true });
 });
+
+test("rebuild exposes only the active field projection from a formal Markdown source", () => {
+  const vaultPath = fs.mkdtempSync(path.join(os.tmpdir(), "article-manifest-derivation-"));
+  try {
+    const sourcePath = "知识库/wiki/articles/ops/test.md";
+    const absolute = path.join(vaultPath, sourcePath);
+    fs.mkdirSync(path.dirname(absolute), { recursive: true });
+    fs.writeFileSync(absolute, "---\ntitle: Markdown title\nmodule: module-from-source\n---\n");
+    const graph = { nodes: [{ id: "test", properties: { source_path: sourcePath } }], connections: [] };
+    const { compileClassDerivation } = require("../../../shared/derivation-compiler/index.cjs");
+    const ontology = { node_types: { KnowledgeArticle: { data_properties: { title: { required: true } } } } };
+    const dictionary = { fields: [{ name: "title", type: "string" }, { name: "module", type: "string" }] };
+    let compiled = compileClassDerivation(ontology, dictionary, "KnowledgeArticle");
+    const service = createArticleManifestService({
+      vaultPath, readMasterGraph: () => graph, readArticleDerivation: () => compiled,
+    });
+    const batch = createArticleManifestBatchService({ articleManifestService: service });
+    const firstItem = () => service.queryArticleManifests().items[0];
+    assert.equal(batch.rebuild().written, 1);
+    assert.deepEqual(firstItem().derivedFields, { version: compiled.version, values: { title: "Markdown title" } });
+    ontology.node_types.KnowledgeArticle.data_properties.module = { required: false };
+    compiled = compileClassDerivation(ontology, dictionary, "KnowledgeArticle");
+    assert.equal(firstItem().manifest.status, "stale");
+    assert.equal(firstItem().derivedFields, undefined);
+    assert.equal(batch.rebuild().written, 1);
+    assert.deepEqual(firstItem().derivedFields, {
+      version: compiled.version,
+      values: { title: "Markdown title", module: "module-from-source" },
+    });
+  } finally {
+    fs.rmSync(vaultPath, { recursive: true, force: true });
+  }
+});

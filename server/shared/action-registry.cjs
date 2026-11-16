@@ -43,8 +43,7 @@ function contractOperationKeys() {
   return ops;
 }
 
-function buildSnapshot(vaultPath, logger) {
-  const ontology = readOntology(vaultPath); // 抛错＝构建失败（首次即 boot 红）
+function buildSnapshot(vaultPath, logger, ontology) {
   const data = ontology.data || {};
   const actions = new Map();
   const risks = new Map();
@@ -148,11 +147,29 @@ function buildSnapshot(vaultPath, logger) {
   };
 }
 
-function initActionRegistry({ vaultPath, logger } = {}) {
+function buildCandidate({ vaultPath, logger, derivation }, ontology, additionalInput, boot = false) {
+  const snapshot = buildSnapshot(vaultPath, logger, ontology);
+  if (derivation) {
+    try {
+      snapshot.articleDerivation = derivation.compile(ontology, additionalInput);
+    } catch (error) {
+      if (!boot) throw error;
+      logger?.warn({ event: "article-derivation-unavailable", error: error.message });
+      snapshot.articleDerivation = null;
+      snapshot.articleDerivationUnavailable = true;
+    }
+    snapshot.articleFieldsRevision = additionalInput?.fingerprint ?? null;
+    snapshot.articleInputs = { ontology: ontology.data, fields: additionalInput?.data };
+  }
+  return snapshot;
+}
+
+function initActionRegistry({ vaultPath, logger, derivation } = {}) {
   if (!vaultPath) throw new TypeError("[action-registry] initActionRegistry 需要 vaultPath");
   // 首次构建失败＝boot fail-closed（仓内基线必然合法；活库改坏本体属现场事故，大声失败）
-  const snapshot = buildSnapshot(vaultPath, logger);
-  state = { vaultPath, logger, snapshot };
+  const options = { vaultPath, logger, derivation };
+  const snapshot = buildCandidate(options, readOntology(vaultPath), derivation?.read(), true);
+  state = { ...options, snapshot, rejectedRevision: null, rejected: false };
   return snapshot;
 }
 
@@ -160,13 +177,28 @@ function getActiveActionSnapshot() {
   if (!state) return null;
   try {
     const current = readOntology(state.vaultPath);
-    if (current.revision === state.snapshot.revision) return state.snapshot;
-    const next = buildSnapshot(state.vaultPath, state.logger);
+    const additionalInput = state.derivation?.read();
+    const fieldRevision = additionalInput?.fingerprint ?? null;
+    if (current.revision === state.snapshot.revision && fieldRevision === (state.snapshot.articleFieldsRevision ?? null)) {
+      state.rejectedRevision = null;
+      state.rejected = false;
+      return state.snapshot;
+    }
+    const revision = `${current.revision}:${fieldRevision}`;
+    if (revision === state.rejectedRevision) return state.snapshot;
+    state.rejectedRevision = revision;
+    const next = buildCandidate(state, current, additionalInput);
+    state.derivation?.validateActivation(state.snapshot.articleDerivation, next.articleDerivation);
+    const previous = state.snapshot;
     state.snapshot = next;
+    state.rejectedRevision = null;
+    state.rejected = false;
+    state.derivation?.onActivate?.(previous.articleDerivation, next.articleDerivation);
     return next;
   } catch (error) {
     // 重建失败：保留旧快照（新 revision 不激活），显式报错——ADR-014 §6.1
     if (state.logger) state.logger.error({ event: "action-registry-rebuild-failed", error: error.message });
+    state.rejected = true;
     return state.snapshot;
   }
 }
@@ -190,4 +222,8 @@ function resetActionRegistry() {
   state = null;
 }
 
-module.exports = { initActionRegistry, getActiveActionSnapshot, actionRouteRoleFor, resetActionRegistry, canonicalRouteKey };
+function isRetainedActionSnapshot(snapshot) {
+  return state?.snapshot === snapshot && state?.rejected === true;
+}
+
+module.exports = { initActionRegistry, getActiveActionSnapshot, actionRouteRoleFor, isRetainedActionSnapshot, resetActionRegistry, canonicalRouteKey };

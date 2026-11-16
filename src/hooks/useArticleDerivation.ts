@@ -1,34 +1,23 @@
 import { useEffect, useState } from "react";
 import { fetchArticleDerivation, type ArticleDerivation } from "../lib/api";
 
-interface UseArticleDerivationResult {
-  data: ArticleDerivation | null;
-  loading: boolean;
-  error: string | null;
-}
-
-export function useArticleDerivation(): UseArticleDerivationResult {
+export function useArticleDerivation(version: string | undefined): ArticleDerivation | null {
   const [data, setData] = useState<ArticleDerivation | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!version) return;
     let cancelled = false;
-    setLoading(true);
     fetchArticleDerivation()
       .then((d) => {
         if (!cancelled) setData(d);
       })
-      .catch((e) => {
-        if (!cancelled) setError(e instanceof Error ? e.message : "加载失败");
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
+      .catch(() => {
+        if (!cancelled) setData(null);
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [version]);
 
-  return { data, loading, error };
+  return data?.version === version ? data : null;
 }

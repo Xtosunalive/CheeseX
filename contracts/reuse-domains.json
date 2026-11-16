@@ -125,7 +125,9 @@
         "src/test/anomaly-workbench-api.test.ts",
         "src/test/api-envelope-trace.test.ts",
         "src/test/field-graph-panel.test.tsx",
-        "scripts/quality/__tests__/check-error-codes.test.mjs"
+        "scripts/quality/__tests__/check-error-codes.test.mjs",
+        "server/shared/derivation-compiler/__tests__/derivation-compiler.test.cjs",
+        "server/services/__tests__/approval-state-machine-assembly.test.cjs"
       ],
       "guide": null,
       "register_entry": "docs/plans/problem-register.md#PR-060",

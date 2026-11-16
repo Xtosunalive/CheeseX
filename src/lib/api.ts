@@ -1,3 +1,5 @@
+import type { paths } from "@/lib/generated/api-types";
+
 // Web 版 API 客户端 — Vite 代理 /api → rebuild 后端 :18083
 
 const API_BASE = ""; // 空字符串,所有 /api/* 由 Vite proxy 转发
@@ -151,38 +153,7 @@ export async function unwrapEnvelope<T>(
 }
 
 // ── 派生编译器产物类型 ──
-export interface DerivedRoute {
-  actionId: string;
-  method: string;
-  pathTemplate: string;
-  executor: string;
-  requiredRoles: string[];
-  classId: string;
-}
-
-export interface DerivedStorageField {
-  fieldName: string;
-  required: boolean;
-  type: string;
-  sourceClass: string;
-}
-
-export interface DerivedUiConfig {
-  classId: string;
-  inheritanceChain: string[];
-  displayFields: string[];
-  actionIds: string[];
-  statusConsumptionRule: string;
-}
-
-export interface ArticleDerivation {
-  version: string;
-  compiledAt: number | string;
-  classId: string;
-  apiRoutes: DerivedRoute[];
-  storageFields: DerivedStorageField[];
-  uiConfig: DerivedUiConfig;
-}
+export type ArticleDerivation = paths["/api/derivation/article"]["get"]["responses"][200]["content"]["application/json"]["data"];
 
 export async function fetchArticleDerivation(): Promise<ArticleDerivation> {
   return unwrapEnvelope<ArticleDerivation>(

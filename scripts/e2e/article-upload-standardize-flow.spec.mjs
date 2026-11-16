@@ -38,11 +38,15 @@ test("投稿上传 → 标准化 → 候选列表 → 审批发布闭环", async
     "POST /api/articles/drafts/validate",
     "POST /api/articles/drafts/promote",
     "GET /api/articles/precleaned",
+    "GET /api/derivation/article",
     "POST /api/articles/precleaned/{id}/standardization",
     "GET /api/approval/status/{articleId}",
     "POST /api/approval/{articleId}/transition",
     "PATCH /api/articles/precleaned/{id}/fields",
   ]);
+  const derivation = await api(request, "/api/derivation/article");
+  expect(derivation.status).toBe(200);
+  expect(derivation.body?.data?.classId).toBe("KnowledgeArticle");
 
   const stamp = Date.now();
   const fileName = `e2e-test-article-${stamp}.md`;

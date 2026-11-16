@@ -266,6 +266,7 @@ function createFormalKnowledgeConsumerService({ releaseReader }) {
         excluded: false,
         exclusionReason: null,
         eligible: true,
+        ...(value.derivedFields && { derivedFields: value.derivedFields }),
       })).filter((item) => !q || item.title.toLowerCase().includes(q) || item.sourcePath.toLowerCase().includes(q));
       return addIdentity({ summary: { totalSources: items.length, totalManifests: items.length, fresh: items.length, missing: 0, stale: 0, unknown: 0 }, items: items.slice(offset, offset + limit) }, identity);
     }

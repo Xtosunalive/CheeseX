@@ -147,7 +147,7 @@ function readPropertyInspectionArtifacts(vaultPath) {
   };
 }
 
-function readVaultSourceIdentity(vaultPath, sourcePath) {
+function readVaultSourceIdentity(vaultPath, sourcePath, { includeContent = false } = {}) {
   if (typeof sourcePath !== "string" || !sourcePath.trim()) return null;
   const resolved = path.isAbsolute(sourcePath)
     ? { absolutePath: path.resolve(sourcePath.trim()) }
@@ -173,6 +173,7 @@ function readVaultSourceIdentity(vaultPath, sourcePath) {
   }
   return {
     sourceKey: path.relative(rootRealPath, sourceRealPath).split(path.sep).join("/"),
+    ...(includeContent && { content: bytes.toString("utf8") }),
     revision: {
       mtimeMs: stat.mtimeMs,
       size: stat.size,

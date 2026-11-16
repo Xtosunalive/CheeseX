@@ -205,6 +205,9 @@ copyFromFixture("知识库/TheSchema/ontology.yaml");
   const fixtureOntology = fs.existsSync(fixtureOntologyPath) ? (YAML.parse(fs.readFileSync(fixtureOntologyPath, "utf8")) || {}) : {};
   if (repoOntology.action_types) fixtureOntology.action_types = repoOntology.action_types;
   if (repoOntology.risk_types) fixtureOntology.risk_types = repoOntology.risk_types;
+  if (repoOntology.node_types?.KnowledgeArticle) {
+    fixtureOntology.node_types = { ...fixtureOntology.node_types, KnowledgeArticle: repoOntology.node_types.KnowledgeArticle };
+  }
   fs.writeFileSync(fixtureOntologyPath, YAML.stringify(fixtureOntology));
 }
 write("知识库/TheSchema/dependencies.yaml", "rules: []\n");

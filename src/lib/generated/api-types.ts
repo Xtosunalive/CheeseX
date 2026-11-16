@@ -8536,6 +8536,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/derivation/article": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 文章类本体派生编译产物（WP-185 Wave3核心） */
+        get: operations["derivation.article"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/articles/{id}/status": {
         parameters: {
             query?: never;
@@ -9465,7 +9482,11 @@ export interface components {
         };
         ArticleManifestQueryData: (components["schemas"]["FormalReleaseIdentity"] | components["schemas"]["WorktreeIdentity"]) & {
             summary: Record<string, never>;
-            items: Record<string, never>[];
+            items: ({
+                derivedFields?: components["schemas"]["ArticleDerivedFields"];
+            } & {
+                [key: string]: unknown;
+            })[];
             /**
              * @description 数据来源标识：worktree=工作树投影（E3 例外分支）；release=正式 Release 投影；precleaned-worktree=候选文章 precleaned 工作区。与 releaseId/sourceCommit 互斥。
              * @enum {string}
@@ -10715,6 +10736,38 @@ export interface components {
             /** Format: date-time */
             generatedAt: string;
         };
+        ArticleDerivedFields: {
+            version: string;
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        ArticleDerivation: {
+            version: string;
+            /** @constant */
+            classId: "KnowledgeArticle";
+            apiRoutes: {
+                actionId: string;
+                method: string;
+                pathTemplate: string;
+                executor: string;
+                requiredRoles: string[];
+                classId: string;
+                requestBody: boolean;
+            }[];
+            storageFields: {
+                fieldName: string;
+                required: boolean;
+                type: string;
+                sourceClass: string;
+            }[];
+            uiConfig: {
+                classId: string;
+                inheritanceChain: string[];
+                displayFields: string[];
+                actionIds: string[];
+            };
+        };
         PrecleanedArticleDetail: {
             /** @description SPEC-030 §十一批1：blocked 态阻断原因（与 getStatusCandidate 同源 record.admissionBlockers） */
             complianceBlockers?: components["schemas"]["BlockerDetail"][];
@@ -10724,6 +10777,7 @@ export interface components {
             metadata: {
                 [key: string]: unknown;
             };
+            derivedFields?: components["schemas"]["ArticleDerivedFields"];
             content: string;
         });
         ArticleTaskEnvelope: {
@@ -13187,6 +13241,7 @@ export interface components {
             retry_after_s?: number;
         };
         ArticleStatus: {
+            derivation_version?: string;
             article_id: string | null;
             stage: components["schemas"]["ArticleStage"];
             blockers: components["schemas"]["ArticleStatusBlocker"][];
@@ -13543,6 +13598,51 @@ export interface operations {
             };
             /** @description APPROVAL_ALREADY_DECIDED */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    "derivation.article": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 编译成功，返回路由、字段、UI配置 */
+            200: {
+                headers: {
+                    /** @description 候选修订被拒绝，响应仍为上一有效修订 */
+                    "X-Derivation-Retained"?: "true";
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        /** @constant */
+                        success: true;
+                        data: components["schemas"]["ArticleDerivation"];
+                        trace_id: string;
+                    };
+                };
+            };
+            /** @description 当前本体没有知识文章派生配置 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 文章派生配置未通过校验 */
+            503: {
                 headers: {
                     [name: string]: unknown;
                 };

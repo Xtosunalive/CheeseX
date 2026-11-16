@@ -51,10 +51,10 @@ function register(registerRoute, { articleAssociationService }) {
   // WP-048 W1-B 动作化：article-associations.save / remove
   registerRoute("POST", "/api/article-associations/save", (req, res) => {
     return executeAction({ actionId: "article-associations.save", executor: __exec_article_associations_save, request: req, reply: res });
-  });
+  }, "article-associations.save");
   registerRoute("POST", "/api/article-associations/remove", (req, res) => {
     return executeAction({ actionId: "article-associations.remove", executor: __exec_article_associations_remove, request: req, reply: res });
-  });
+  }, "article-associations.remove");
 }
 
 module.exports = { register };

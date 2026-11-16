@@ -2,85 +2,59 @@
   "version": "1.0.0",
   "_format_version": "1.0",
   "_generated_by": "generate-sa.py",
-  "_generated_at": "2026-11-15T14:11:26.573095+00:00",
+  "_generated_at": "2026-11-13T06:19:29.106413+00:00",
   "_generated_for_version": "master",
   "_source": "wiki/entities/ (arch_component: true)",
-  "product": "E2eProduct",
-  "updatedAt": "2026-10-08",
-  "components": [
-    {
-      "id": "e2e-complete-component",
-      "label": "E2E Complete Component",
-      "sublabel": "",
-      "module": "e2e-module",
-      "modules": [
-        "e2e-module"
-      ],
-      "layer": "service",
-      "category": "服务",
-      "arch_layer": "service",
-      "arch_layer_canonical": "service",
-      "arch_category": "服务",
-      "arch_category_canonical": "服务",
-      "arch_subdomain": "maintain",
-      "arch_subdomain_canonical": "maintain",
-      "colorKey": "blue",
-      "status": "approved",
-      "projectionLevel": "core",
-      "sourcePath": "知识库/wiki/entities/e2e-complete-component.md"
-    },
-    {
-      "id": "e2e-incomplete-component",
-      "label": "E2E Incomplete Component",
-      "sublabel": "",
-      "module": "e2-test-module",
-      "modules": [
-        "e2-test-module"
-      ],
-      "layer": "service",
-      "category": "服务",
-      "arch_layer": "service",
-      "arch_layer_canonical": "service",
-      "arch_category": "服务",
-      "arch_category_canonical": "服务",
-      "arch_subdomain": "maintain",
-      "arch_subdomain_canonical": "maintain",
-      "colorKey": "blue",
-      "status": "approved",
-      "projectionLevel": "core",
-      "sourcePath": "知识库/wiki/entities/e2e-incomplete-component.md"
-    }
-  ],
+  "product": "测试产品",
+  "updatedAt": "2026-11-13T06:19:29.106325+00:00",
+  "components": [],
   "layers": [
     {
-      "id": "external",
-      "label": "外部系统",
+      "id": "gateway",
+      "label": "网关与安全边界",
       "color": "slate"
     },
     {
-      "id": "gateway",
-      "label": "接入网关",
+      "id": "foundation",
+      "label": "基础支撑层",
+      "color": "indigo"
+    },
+    {
+      "id": "data-lake",
+      "label": "内容数据湖",
       "color": "amber"
     },
     {
-      "id": "service",
-      "label": "业务服务",
-      "color": "blue"
+      "id": "cloud-native",
+      "label": "云原生基础设施",
+      "color": "slate"
     },
     {
-      "id": "foundation",
-      "label": "基础设施",
-      "color": "stone"
-    }
-  ],
-  "dependencies": [
+      "id": "service",
+      "label": "核心服务层",
+      "color": "cyan"
+    },
     {
-      "from": "e2e-complete-component",
-      "to": "e2e-incomplete-component",
-      "label": "",
-      "color": "",
-      "relationType": "DEPENDS_ON"
+      "id": "open",
+      "label": "开放接口层",
+      "color": "indigo"
+    },
+    {
+      "id": "application",
+      "label": "一体化应用层",
+      "color": "teal"
+    },
+    {
+      "id": "external",
+      "label": "外部系统与集成",
+      "color": "gray"
+    },
+    {
+      "id": "crosscutting",
+      "label": "横切能力与安全",
+      "color": "rose"
     }
   ],
+  "dependencies": [],
   "crosscutting": []
 }

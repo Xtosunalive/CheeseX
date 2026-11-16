@@ -355,5 +355,6 @@ module.exports = {
   registerEffectVerifier,
   executeAction,
   checkActionAvailability,
+  hasActionExecutor: (id) => state?.executors.has(id) === true,
   resetActionFactory,
 };

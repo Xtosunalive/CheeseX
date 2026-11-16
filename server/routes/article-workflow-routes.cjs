@@ -82,7 +82,7 @@ function register(registerRoute, dependencies) {
           ?? { allowed: false, reason: "VALIDATOR_UNAVAILABLE" };
         return { ...availability, ...transition };
       };
-      return resolveArticleStatus({
+      const status = resolveArticleStatus({
         articleId: item?.id || null,
         standardizationStatus: item?.standardizationStatus,
         approvalStatus: approval?.status,
@@ -94,6 +94,8 @@ function register(registerRoute, dependencies) {
         transitionInput: item ? { sourcePath: item.sourcePath, contentHash: item.currentContentHash, title: item.title } : undefined,
         evaluateAction,
       });
+      if (ctx.snapshot.articleDerivation) status.derivation_version = ctx.snapshot.articleDerivation.version;
+      return status;
     } catch (e) { return rethrowWorkflow(e); }
   };
   registerActionExecutor("article-workflow.status", __exec_article_workflow_status);;
@@ -101,7 +103,7 @@ function register(registerRoute, dependencies) {
   // WP-048 W1-B 动作化：upload（success_status 201 声明于动作定义）
   registerRoute("POST", "/api/articles/upload", function (req, res) {
     return executeAction({ actionId: "articles.upload", executor: __exec_article_workflow_upload, request: req, reply: res });
-  });
+  }, "articles.upload");
 
   registerRoute("GET", "/api/articles/status/:taskId", function (req, res) {
     handle(res, function () { return service.getTask(req.params.taskId); });
@@ -117,7 +119,7 @@ function register(registerRoute, dependencies) {
   // 执行沿 source_file 链事务性全清（工作副本/正式版/原文归档/清单行），失败回滚不留半态
   registerRoute("POST", "/api/articles/retire", function (req, res) {
     return executeAction({ actionId: "articles.retire", executor: __exec_article_workflow_retire, request: req, reply: res });
-  });
+  }, "articles.retire");
 
   registerRoute("GET", "/api/articles/precleaned", function (_req, res) {
     handle(res, function () { return service.listPrecleaned(); });
@@ -157,7 +159,7 @@ function register(registerRoute, dependencies) {
   // 标准化校验：ERROR 阻断（409 ARTICLE_STANDARDIZATION_BLOCKED）——WP-048 W1-B 动作化：articles.standardize
   registerRoute("POST", "/api/articles/precleaned/:id/standardization", function (req, res) {
     return executeAction({ actionId: "articles.standardize", executor: __exec_article_workflow_standardize, request: req, reply: res });
-  });
+  }, "articles.standardize");
 
   // 候选字段补齐（腿B）：白名单四字段（product/article_type/module/version），可用值与标准化引擎同源（loadArticleRuleSet）。
   registerRoute("GET", "/api/articles/field-completion-options", function (_req, res) {
@@ -167,21 +169,21 @@ function register(registerRoute, dependencies) {
   // WP-048 W1-B 动作化：articles.patch-fields（写后异常对账钩子随执行器保留）
   registerRoute("PATCH", "/api/articles/precleaned/:id/fields", function (req, res) {
     return executeAction({ actionId: "articles.patch-fields", executor: __exec_article_workflow_patch_fields, request: req, reply: res });
-  });
+  }, "articles.patch-fields");
 
   // WP-173（SPEC-095 §3.6 收窄版）：GET /api/articles/:id/status——只读计算端点
   registerRoute("GET", "/api/articles/:id/status", function (req, res) {
     return executeAction({ actionId: "articles.status", executor: __exec_article_workflow_status, request: req, reply: res });
-  });
+  }, "articles.status");
   // WP-171（SPEC-095 §3.3 首批）：articles.drafts-validate 动作化——对外路径/请求/响应形态零变化
   registerRoute("POST", "/api/articles/drafts/validate", function (req, res) {
     return executeAction({ actionId: "articles.drafts-validate", executor: __exec_article_workflow_drafts_validate, request: req, reply: res });
-  });
+  }, "articles.drafts-validate");
 
   // WP-048 W1-B 动作化：articles.drafts-promote
   registerRoute("POST", "/api/articles/drafts/promote", function (req, res) {
     return executeAction({ actionId: "articles.drafts-promote", executor: __exec_article_workflow_drafts_promote, request: req, reply: res });
-  });
+  }, "articles.drafts-promote");
 
 }
 

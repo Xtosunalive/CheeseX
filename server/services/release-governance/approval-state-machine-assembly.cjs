@@ -175,7 +175,9 @@ function registerApprovalStateMachine(options) {
     vaultPath: options.vaultPath,
     logger: options.logger,
     standardizationProbe,
-    validateIndividual: standardizationProbe ? (raw) => validateArticleIndividual(options.vaultPath, raw) : null,
+    validateIndividual: standardizationProbe
+      ? options.validateIndividual ?? ((raw) => validateArticleIndividual(options.vaultPath, raw))
+      : null,
     publishArticle: typeof options.disablePublish === "function" && options.disablePublish() ? null : publishArticle,
     snapshotArticle,
     // B1/D1：publish 前置准入失败/releaseId 非法时落持久 Issue（S4 单源 = publisherService.recordFailure）

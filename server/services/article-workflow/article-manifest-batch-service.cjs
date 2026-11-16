@@ -7,7 +7,7 @@ function createArticleManifestBatchService(options = {}) {
   const pageSize = Math.min(Math.max(Number(options.pageSize) || 200, 1), 200);
   if (!articleManifestService) throw new TypeError("articleManifestService 不能为空");
 
-  function rebuild() {
+  function rebuild(options) {
     const sources = [];
     let offset = 0;
     while (true) {
@@ -38,7 +38,7 @@ function createArticleManifestBatchService(options = {}) {
         continue;
       }
       try {
-        articleManifestService.writeArticleManifest(sourcePath);
+        articleManifestService.writeArticleManifest(sourcePath, options);
         written += 1;
       } catch (error) {
         failures.push({ sourcePath, error: error instanceof Error ? error.message : String(error) });

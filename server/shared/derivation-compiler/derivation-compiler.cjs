@@ -1,6 +1,9 @@
 "use strict";
 
 const { resolveClassInheritance } = require("../ontology-inheritance-resolver.cjs");
+const { createHash } = require("node:crypto");
+const { lookupRoute } = require("../contract-request-schema.cjs");
+const { docField } = require("../document-load-port.cjs");
 
 /**
  * 轻量本体派生编译器（纯函数）
@@ -8,18 +11,24 @@ const { resolveClassInheritance } = require("../ontology-inheritance-resolver.cj
  * 输出：可直接消费的API路由、存储投影、UI配置
  * 同输入永远同输出，无副作用，不碰文件不连库
  */
-function compileClassDerivation(ontology, fields, classId, options = {}) {
+function compileClassDerivation(ontology, fields, classId) {
   const resolvedClass = resolveClassInheritance(ontology, classId, fields);
-  const revision = options.revision || "1.0.0";
-  const compiledAt = options.deterministic ? "deterministic" : Date.now();
+  const version = "sha256:" + createHash("sha256")
+    .update(JSON.stringify([classId, ontology, fields])).digest("hex");
 
   // 1. 派生API路由：直接取类绑定的动作，不重复定义
   const apiRoutes = resolvedClass.action_types.map((boundAction) => {
-    const [method, ...pathParts] = boundAction.definition.http_route.split(" ");
+    const [method, template] = String(boundAction.definition.http_route ?? "").trim().split(/\s+/, 2);
+    const contract = lookupRoute(method, template);
+    if (!contract.inContract || !boundAction.definition.executor) {
+      throw new Error(`动作 ${boundAction.id} 缺少公开 HTTP 契约或登记执行器`);
+    }
+    const pathTemplate = contract.path.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, ":$1");
     return {
       actionId: boundAction.id,
       method,
-      pathTemplate: pathParts.join(" "),
+      pathTemplate,
+      requestBody: contract.hasRequestBody,
       executor: boundAction.definition.executor,
       requiredRoles: boundAction.definition.required_roles || [],
       classId: boundAction.class_id,
@@ -40,12 +49,10 @@ function compileClassDerivation(ontology, fields, classId, options = {}) {
     inheritanceChain: resolvedClass.inheritance_chain,
     displayFields: storageFields.map((f) => f.fieldName),
     actionIds: resolvedClass.action_types.map((a) => a.id),
-    statusConsumptionRule: "直接消费状态接口allowed字段，页面不手写权限判断",
   };
 
   return {
-    version: revision,
-    compiledAt,
+    version,
     classId,
     apiRoutes,
     storageFields,
@@ -53,47 +60,12 @@ function compileClassDerivation(ontology, fields, classId, options = {}) {
   };
 }
 
-/**
- * 编译全量类（仅编译approved状态）
- */
-function compileAllClasses(ontology, fields, options = {}) {
-  const classIds = Object.keys(ontology.classes || {}).filter((id) => {
-    const cls = ontology.classes[id];
-    return (cls.lifecycle_status || "approved") === "approved";
-  });
-  return Object.fromEntries(
-    classIds.map((id) => [id, compileClassDerivation(ontology, fields, id, options)])
-  );
+function projectArticleFields(compiled, document) {
+  const values = Object.fromEntries(compiled.storageFields.flatMap(({ fieldName }) => {
+    const field = docField(document, fieldName);
+    return field.value === undefined ? [] : [[fieldName, field.value]];
+  }));
+  return { version: compiled.version, values };
 }
 
-function registerDerivedRoutes(registerRoute, executeAction, logger = console) {
-  return function (compiled) {
-    let registered = 0;
-    let skipped = 0;
-    for (const route of compiled.apiRoutes) {
-      try {
-        registerRoute(route.method, route.pathTemplate, function (req, res) {
-          return executeAction({
-            actionId: route.actionId,
-            request: req,
-            reply: res,
-          });
-        });
-        registered += 1;
-      } catch (e) {
-        if (e.message.includes("already declared")) {
-          skipped += 1;
-        } else {
-          throw e;
-        }
-      }
-    }
-    logger.warn?.({ event: "derivation-route-skip-duplicate", registered, skipped });
-  };
-}
-
-module.exports = {
-  compileClassDerivation,
-  compileAllClasses,
-  registerDerivedRoutes,
-};
+module.exports = { compileClassDerivation, projectArticleFields };

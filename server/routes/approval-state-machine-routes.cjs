@@ -40,7 +40,7 @@ function register(registerRoute, dependencies) {
   // 角色升级行 action_types payload_role_overrides 声明式承载）
   registerRoute("POST", "/api/approval/:articleId/transition", function (req, res) {
     return executeAction({ actionId: "approval.transition", executor: __exec_approval_state_machine_transition, request: req, reply: res });
-  });
+  }, "approval.transition");
 }
 
 module.exports = { register };
