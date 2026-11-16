@@ -10767,6 +10767,19 @@ export interface components {
                 displayFields: string[];
                 actionIds: string[];
             };
+            /** @description Wave3 走查缺口①阶段一：article-lifecycle.json transitions 边派生的路由计划（计划面——inContract=false 的端点契约待登记，漂移显式可见） */
+            lifecycleRoutes?: {
+                action: string;
+                from: string;
+                to: string;
+                note?: string | null;
+                routeTemplate: string;
+                inContract: boolean;
+                stateGuard: {
+                    from: string;
+                    to: string;
+                };
+            }[];
         };
         PrecleanedArticleDetail: {
             /** @description SPEC-030 §十一批1：blocked 态阻断原因（与 getStatusCandidate 同源 record.admissionBlockers） */

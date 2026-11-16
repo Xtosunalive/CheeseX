@@ -61,7 +61,9 @@ const vaultIO = initVaultIO({ vaultPath, gitLedger: vaultGitLedger, logger }); /
 const { initActionRegistry, getActiveActionSnapshot, isRetainedActionSnapshot } = require("./shared/action-registry.cjs");
 const { initActionFactory, executeAction, hasActionExecutor } = require("./shared/action-execution-factory.cjs");
 const { getRequestContext } = require("./shared/request-context.cjs");
-const { compileClassDerivation, assembleDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
+const { compileClassDerivation, compileLifecycleRoutes, assembleDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
+// Wave3 走查缺口①阶段一：生命周期 transitions 单源（PR-329 批已收编的路径单源同一契约族）
+const ARTICLE_LIFECYCLE = require("../contracts/article-lifecycle.json");
 const { lifecycleOf } = require("./shared/ontology-inheritance-resolver.cjs");
 const { loadVocabBundle } = require("./shared/vocab-load-port.cjs");
 const { projectArticleIndividual, validateArticleIndividual } = require("./services/article-workflow/article-individual.cjs");
@@ -91,7 +93,7 @@ const initialActions = initActionRegistry({
       if (fields.state !== "present" || fields.degradedNodes?.length) {
         throw new Error("文章类派生缺少可用的字段定义");
       }
-      return compileClassDerivation(ontology.data, fields.data, "KnowledgeArticle");
+      return { ...compileClassDerivation(ontology.data, fields.data, "KnowledgeArticle"), lifecycleRoutes: compileLifecycleRoutes(ARTICLE_LIFECYCLE) };
     },
     validateActivation(previous, next) {
       const routes = (compiled) => (compiled?.apiRoutes ?? [])

@@ -1,4 +1,4 @@
-const { compileClassDerivation } = require("./derivation-compiler.cjs");
+const { compileClassDerivation, compileLifecycleRoutes } = require("./derivation-compiler.cjs");
 const { normalizeTemplate } = require("../contract-request-schema.cjs");
 
 function assembleDerivedRoutes({ compiled, registerRoute, executeAction, hasExecutor }) {
@@ -37,4 +37,4 @@ function assembleDerivedRoutes({ compiled, registerRoute, executeAction, hasExec
   };
 }
 
-module.exports = { compileClassDerivation, assembleDerivedRoutes };
+module.exports = { compileClassDerivation, compileLifecycleRoutes, assembleDerivedRoutes };

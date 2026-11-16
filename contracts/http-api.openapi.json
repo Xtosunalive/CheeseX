@@ -3076,7 +3076,9 @@
                 "items": {
                   "type": "object",
                   "properties": {
-                    "derivedFields": { "$ref": "#/components/schemas/ArticleDerivedFields" }
+                    "derivedFields": {
+                      "$ref": "#/components/schemas/ArticleDerivedFields"
+                    }
                   },
                   "additionalProperties": true
                 }
@@ -7442,31 +7444,77 @@
       },
       "ArticleDerivedFields": {
         "type": "object",
-        "required": ["version", "values"],
+        "required": [
+          "version",
+          "values"
+        ],
         "properties": {
-          "version": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-          "values": { "type": "object", "additionalProperties": true }
+          "version": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "values": {
+            "type": "object",
+            "additionalProperties": true
+          }
         }
       },
       "ArticleDerivation": {
         "type": "object",
-        "required": ["version", "classId", "apiRoutes", "storageFields", "uiConfig"],
+        "required": [
+          "version",
+          "classId",
+          "apiRoutes",
+          "storageFields",
+          "uiConfig"
+        ],
         "properties": {
-          "version": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
-          "classId": { "type": "string", "const": "KnowledgeArticle" },
+          "version": {
+            "type": "string",
+            "pattern": "^sha256:[a-f0-9]{64}$"
+          },
+          "classId": {
+            "type": "string",
+            "const": "KnowledgeArticle"
+          },
           "apiRoutes": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["actionId", "method", "pathTemplate", "executor", "requiredRoles", "classId", "requestBody"],
+              "required": [
+                "actionId",
+                "method",
+                "pathTemplate",
+                "executor",
+                "requiredRoles",
+                "classId",
+                "requestBody"
+              ],
               "properties": {
-                "actionId": { "type": "string" },
-                "method": { "type": "string" },
-                "pathTemplate": { "type": "string" },
-                "executor": { "type": "string" },
-                "requiredRoles": { "type": "array", "items": { "type": "string" } },
-                "classId": { "type": "string" },
-                "requestBody": { "type": "boolean" }
+                "actionId": {
+                  "type": "string"
+                },
+                "method": {
+                  "type": "string"
+                },
+                "pathTemplate": {
+                  "type": "string"
+                },
+                "executor": {
+                  "type": "string"
+                },
+                "requiredRoles": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "classId": {
+                  "type": "string"
+                },
+                "requestBody": {
+                  "type": "boolean"
+                }
               }
             }
           },
@@ -7474,23 +7522,111 @@
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["fieldName", "required", "type", "sourceClass"],
+              "required": [
+                "fieldName",
+                "required",
+                "type",
+                "sourceClass"
+              ],
               "properties": {
-                "fieldName": { "type": "string" },
-                "required": { "type": "boolean" },
-                "type": { "type": "string" },
-                "sourceClass": { "type": "string" }
+                "fieldName": {
+                  "type": "string"
+                },
+                "required": {
+                  "type": "boolean"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "sourceClass": {
+                  "type": "string"
+                }
               }
             }
           },
           "uiConfig": {
             "type": "object",
-            "required": ["classId", "inheritanceChain", "displayFields", "actionIds"],
+            "required": [
+              "classId",
+              "inheritanceChain",
+              "displayFields",
+              "actionIds"
+            ],
             "properties": {
-              "classId": { "type": "string" },
-              "inheritanceChain": { "type": "array", "items": { "type": "string" } },
-              "displayFields": { "type": "array", "items": { "type": "string" } },
-              "actionIds": { "type": "array", "items": { "type": "string" } }
+              "classId": {
+                "type": "string"
+              },
+              "inheritanceChain": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "displayFields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "actionIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "lifecycleRoutes": {
+            "type": "array",
+            "description": "Wave3 走查缺口①阶段一：article-lifecycle.json transitions 边派生的路由计划（计划面——inContract=false 的端点契约待登记，漂移显式可见）",
+            "items": {
+              "type": "object",
+              "required": [
+                "action",
+                "from",
+                "to",
+                "routeTemplate",
+                "inContract",
+                "stateGuard"
+              ],
+              "properties": {
+                "action": {
+                  "type": "string"
+                },
+                "from": {
+                  "type": "string"
+                },
+                "to": {
+                  "type": "string"
+                },
+                "note": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "routeTemplate": {
+                  "type": "string"
+                },
+                "inContract": {
+                  "type": "boolean"
+                },
+                "stateGuard": {
+                  "type": "object",
+                  "required": [
+                    "from",
+                    "to"
+                  ],
+                  "properties": {
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
             }
           }
         }
@@ -27570,25 +27706,41 @@
       "get": {
         "summary": "文章类本体派生编译产物（WP-185 Wave3核心）",
         "operationId": "derivation.article",
-        "tags": ["derivation"],
+        "tags": [
+          "derivation"
+        ],
         "responses": {
           "200": {
             "description": "编译成功，返回路由、字段、UI配置",
             "headers": {
               "X-Derivation-Retained": {
                 "description": "候选修订被拒绝，响应仍为上一有效修订",
-                "schema": { "type": "string", "const": "true" }
+                "schema": {
+                  "type": "string",
+                  "const": "true"
+                }
               }
             },
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
-                  "required": ["success", "data", "trace_id"],
+                  "required": [
+                    "success",
+                    "data",
+                    "trace_id"
+                  ],
                   "properties": {
-                    "success": { "type": "boolean", "const": true },
-                    "data": { "$ref": "#/components/schemas/ArticleDerivation" },
-                    "trace_id": { "type": "string" }
+                    "success": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/ArticleDerivation"
+                    },
+                    "trace_id": {
+                      "type": "string"
+                    }
                   }
                 }
               }
@@ -27597,13 +27749,21 @@
           "404": {
             "description": "当前本体没有知识文章派生配置",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
             }
           },
           "503": {
             "description": "文章派生配置未通过校验",
             "content": {
-              "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } }
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
             }
           }
         }

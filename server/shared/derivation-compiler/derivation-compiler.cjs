@@ -68,4 +68,29 @@ function projectArticleFields(compiled, document) {
   return { version: compiled.version, values };
 }
 
-module.exports = { compileClassDerivation, projectArticleFields };
+/**
+ * 生命周期转移 → 路由计划派生（Wave3 走查缺口①收口·阶段一）：
+ * article-lifecycle.json 的 transitions 边（promote/publish/archive/retire）自动派生出
+ * 路由计划（动作/起点态/目标态/守卫语义），替代"手动接线"。阶段一产物＝计划面（含
+ * inContract 标记：契约未登记的端点显式可见，漂移不再沉默）；阶段二＝按计划安装绑定。
+ * 纯函数：同输入同输出。
+ */
+function compileLifecycleRoutes(lifecycle) {
+  const transitions = Array.isArray(lifecycle?.transitions) ? lifecycle.transitions : [];
+  return transitions.map((transition) => {
+    const action = String(transition.action || "");
+    const canonical = `/api/articles/lifecycle/:articleId/${action}`;
+    const contract = lookupRoute("POST", canonical);
+    return {
+      action,
+      from: String(transition.from || ""),
+      to: String(transition.to || ""),
+      note: transition.note || null,
+      routeTemplate: contract.inContract ? contract.path : canonical,
+      inContract: contract.inContract === true,
+      stateGuard: { from: String(transition.from || ""), to: String(transition.to || "") },
+    };
+  });
+}
+
+module.exports = { compileClassDerivation, projectArticleFields, compileLifecycleRoutes };

@@ -31,7 +31,6 @@ test("PR-327 哨兵：生产 document_index 无指向不存在文件的行（fix
     t.skip(`非本机常态（VAULT_PATH 或生产 master_graph.db 缺席）：${PROD_DB}`);
     return;
   }
-  const { DatabaseSync } = sqlite3;
   const db = new DatabaseSync(PROD_DB, { readOnly: true });
   try {
     const rows = db.prepare("SELECT node_id, file_path FROM document_index").all();
