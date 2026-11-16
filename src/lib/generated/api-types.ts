@@ -10596,7 +10596,7 @@ export interface components {
             state: "idle" | "running" | "cancelling" | "cancelled" | "succeeded" | "failed";
             jobId?: string | null;
             /** @enum {string|null} */
-            mode?: "full" | "quick" | null;
+            mode?: "full" | "quick" | "resume" | null;
             /** @enum {string|null} */
             purpose?: "global_diagnostic" | "article_graph" | "article_graph_staging" | null;
             stage?: string | null;
