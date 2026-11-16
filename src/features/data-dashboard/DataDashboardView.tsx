@@ -293,9 +293,6 @@ export function DataDashboardView() {
                     <span className="flex flex-wrap items-center gap-x-1 gap-y-1">
                       {/* 规模口径说明句＝term-const 闭集单源（WP-145 N3：裸标签 ArchitectureComponent/Module 正名消费 TERM 词条） */}
                       {termTopologyScaleHint(knowledgeNodes.length, nodes.length)}
-                      <Button variant="link" className="h-auto px-0.5 py-0 text-xs" onClick={() => setTab("relations")}>
-                        {DD_VIEW_COPY.GO_RELATIONS_LINK}
-                      </Button>
                     </span>
                   }
                 >

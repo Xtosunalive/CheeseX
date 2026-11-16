@@ -25,7 +25,6 @@ export const DD_VIEW_COPY = {
   STAT_RELATION_LABEL: `${TERM.RELATION}数`,
   STAT_RELATION_HINT: `已构建${TERM.RELATION}总数（含被筛选隐藏）`,
   /** 规模口径提示条（说明句本体住 term-const termTopologyScaleHint） */
-  GO_RELATIONS_LINK: "去「关系」视图看全部节点与关系",
   SCALE_ALERT_TITLE: "本页只统计已准入的架构实体",
   /** 投影维度折叠子视图 */
   TAXONOMY_SUBVIEW: "按知识分类浏览（分类轴）",

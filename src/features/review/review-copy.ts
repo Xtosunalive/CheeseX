@@ -31,14 +31,6 @@ export const REVIEW_VIEW_COPY = {
   TABS_ARIA: "关系审核视图",
 } as const;
 
-/** ReviewView 主视觉统计卡（label/hint 含 TERM.RELATION——学 schema-manager-copy 插值句先例） */
-export function reviewPendingStatLabel(): string {
-  return `待审核${TERM.RELATION}`;
-}
-export function reviewPendingStatHint(): string {
-  return `全部待审核${TERM.RELATION}总数`;
-}
-
 // ── EdgeReviewPanel（待审核关系表）──
 export const EDGE_REVIEW_COPY = {
   /** 操作 toast / 失败兜底 */

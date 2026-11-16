@@ -27,20 +27,6 @@
         "/api/dashboard/topology"
       ],
       "note": "lib/topology-store"
-    },
-    {
-      "view": "review",
-      "file": "src/features/review/ReviewView.tsx",
-      "statCount": 1,
-      "apiSources": [
-        "src/features/review/review-api.ts#fetchPendingReview",
-        "src/features/review/inference-conflict-api.ts#fetchConflicts"
-      ],
-      "sourceApis": [
-        "/api/kg/inference-conflicts",
-        "/api/kg/pending-review"
-      ],
-      "note": "review-data-store → review-api"
     }
   ],
   "excluded": [

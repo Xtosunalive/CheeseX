@@ -1,9 +1,4 @@
 {
-  "src/features/property-gov/property-api.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/lib/edge-api.ts": {
     "no-restricted-syntax": {
       "count": 1

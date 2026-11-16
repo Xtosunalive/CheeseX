@@ -96,38 +96,6 @@ export const PROPERTY_REQUEST_COPY = {
   REPAIR_WRITTEN: "已写回",
 } as const;
 
-/** GET /api/pipeline/status 非 2xx 兜底（服务端 message/error 缺省） */
-export function pipelineStatusFetchFailed(httpStatus: number): string {
-  return `管道状态读取失败（HTTP ${httpStatus}）`;
-}
-
-// ── pipeline-gen-presentation（管道生成状态展示）──
-export const PIPELINE_GEN_COPY = {
-  TIME_UNKNOWN: "时间未知",
-  STAGE_UNKNOWN: "未知",
-  RUN_FAILED: "管道运行失败",
-} as const;
-
-/** 运行中标签 */
-export function pipelineGenRunningLabel(stage: string): string {
-  return `运行中 · 阶段 ${stage}`;
-}
-
-/** 失败标签 */
-export function pipelineGenFailedLabel(stage: string): string {
-  return `失败 · 阶段 ${stage}`;
-}
-
-/** 成功标签（实体/关系总量） */
-export function pipelineGenSuccessLabel(nodes: number, connections: number): string {
-  return `成功 · ${nodes} ${TERM.ENTITY} · ${connections} ${TERM.RELATION}`;
-}
-
-/** 成功 title */
-export function pipelineGenSuccessTitle(timeText: string): string {
-  return `最近一次管道生成的主图总量 · ${timeText}`;
-}
-
 // ── PropertyGovView（属性治理页签）──
 export const PROPERTY_GOV_VIEW_COPY = {
   TAB_MAPPING: "人工映射校正",

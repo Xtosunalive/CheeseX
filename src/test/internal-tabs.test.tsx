@@ -4,7 +4,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FileText, ShieldCheck } from "lucide-react";
 import { InternalTabs, type InternalTabItem } from "@/components/internal-tabs";
 import { PropertyGovView } from "@/features/property-gov/PropertyGovView";
-import { getPipelineGenPresentation } from "@/features/property-gov/pipeline-gen-presentation";
 import { DataDashboardView } from "@/features/data-dashboard/DataDashboardView";
 import { ReviewView } from "@/features/review/ReviewView";
 
@@ -44,7 +43,6 @@ vi.mock("@xyflow/react", async () => {
     useEdgesState: <T,>(initial: T[]) => { const [s, setS] = React.useState(initial); return [s, setS, vi.fn()] as const; },
   };
 });
-vi.mock("@/features/property-gov/property-api", () => ({ fetchPipelineGenStatus: vi.fn().mockResolvedValue(null) }));
 vi.mock("@/features/property-gov/property-store", () => ({
   usePropertyStore: { getState: () => ({ setQuery: vi.fn() }) },
 }));
@@ -129,36 +127,4 @@ describe("InternalTabs", () => {
     hub.unmount();
   });
 
-  it("formats the latest persisted pipeline summary instead of a placeholder", () => {
-    expect(getPipelineGenPresentation({
-      state: "idle",
-      message: "Pipeline 尚未运行",
-      logs: [],
-      lastRun: {
-        runTs: "20260716-063858",
-        timestamp: "2026-07-16T06:39:00.451135+00:00",
-        status: "success",
-        nodes: 37,
-        connections: 29,
-        components: 1,
-        plates: 0,
-        failedStage: null,
-        error: null,
-        durationMs: 2305,
-      },
-    })).toMatchObject({
-      label: "成功 · 37 实体 · 29 关系",
-      tone: "success",
-      title: expect.stringContaining("最近一次管道生成的主图总量"),
-    });
-  });
-
-  it("empty tone carries no display copy (WP-146 裁决2：数据层文案不上屏)", () => {
-    expect(getPipelineGenPresentation({
-      state: "idle",
-      message: "Pipeline 尚未运行",
-      logs: [],
-      lastRun: null,
-    })).toMatchObject({ label: "", tone: "empty" });
-  });
 });
