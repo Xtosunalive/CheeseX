@@ -44,6 +44,11 @@ describe("SchemaIntentNav（意图分区导航——消费 schemaPartitions 现�
     }
   });
 
+  it("窄屏时导航改为全宽可滚动面板，避免挤压右侧内容", () => {
+    render(<SchemaIntentNav activeTab="domains" onSelect={() => {}} topology={cleanTopology} />);
+    expect(screen.getByTestId("schema-intent-nav")).toHaveClass("w-full", "max-h-48", "md:w-[220px]");
+  });
+
   it("13 页签叶名 ≡ TAB_LABELS 且逐叶可点达（onSelect 收到 TabId）", () => {
     const onSelect = vi.fn();
     render(<SchemaIntentNav activeTab="domains" onSelect={onSelect} topology={cleanTopology} />);

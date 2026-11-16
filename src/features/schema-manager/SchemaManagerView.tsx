@@ -237,7 +237,7 @@ export function SchemaManagerView() {
         {/* E3'b2：Schema Proposal 生命周期已退役，编辑直接写回权威源（乐观锁 revision） */}
 
         {/* Sidebar + Content */}
-        <div className="flex flex-1 min-h-0">
+        <div className="flex flex-1 min-h-0 flex-col md:flex-row">
           {/* SCHEMA-IA-001 批2：两导航互斥挂载（并存会产生重名按钮破坏 getByRole 断言面）＋形态切换 */}
           <SchemaIntentNav activeTab={store.activeTab} onSelect={store.setActiveTab} topology={topology} />
 
