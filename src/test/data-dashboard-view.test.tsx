@@ -153,13 +153,12 @@ describe("DataDashboardView · 图谱检索枢纽", () => {
     expect(container.firstElementChild).not.toHaveClass("w-[292px]", "min-w-[292px]", "max-w-[292px]");
   });
 
-  it("拓扑 tab 展示口径说明，点引导可切到关系视图", async () => {
+  it("拓扑 tab 展示口径说明；重复切换链接已退役（元素 15 删——页签即入口）", async () => {
     render(<DataDashboardView />);
     const alert = screen.getByTestId("ui-alert");
     expect(alert).toHaveTextContent("本页只统计已准入的架构实体");
     expect(alert).toHaveTextContent("全量知识图共");
-    fireEvent.click(screen.getByRole("button", { name: "去「关系」视图看全部节点与关系" }));
-    expect(await screen.findByPlaceholderText("搜索源实体、目标实体、类型或来源")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "去「关系」视图看全部节点与关系" })).not.toBeInTheDocument();
   });
 });
 

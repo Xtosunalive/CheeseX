@@ -6,15 +6,13 @@ import { InferenceConflictPanel } from "./components/InferenceConflictPanel";
 import { EdgeReviewPanel } from "./EdgeReviewPanel";
 import { AuditLogPanel } from "./AuditLogPanel";
 import { useLoadTopology } from "@/lib/topology-store";
-import { useReviewPendingCount } from "@/lib/review-data-store";
-import { Statistic } from "@/components/statistic/Statistic";
 import type { ReviewTab } from "./review-types";
 import { navigate, type NavLocation } from "@/lib/navigation";
 import { useNavLocation } from "@/hooks/use-nav-location";
 import { PageContainer } from "@/components/page-container";
 import { TERM } from "@/constants/term-const";
 import { Panel } from "@/components/panel";
-import { REVIEW_VIEW_COPY, reviewPendingStatHint, reviewPendingStatLabel } from "./review-copy";
+import { REVIEW_VIEW_COPY } from "./review-copy";
 
 const TABS: InternalTabItem<ReviewTab>[] = [
   { id: "edges", icon: GitMerge, label: TERM.PENDING_RELATIONS },
@@ -40,7 +38,6 @@ export function ReviewView() {
   const navLocation = useNavLocation();
   const [tab, setTab] = useState<ReviewTab>(() => tabFromLocation(navLocation));
   const loadTopology = useLoadTopology();
-  const pendingCount = useReviewPendingCount();
 
   useEffect(() => { loadTopology(); }, [loadTopology]);
 
@@ -53,11 +50,6 @@ export function ReviewView() {
 
   return (
     <PageContainer>
-
-      {/* WP-037 P7 锚点：待审核关系数主视觉（xl）；P3 页签独立行。
-          WP-134 波2 假零拆除：pendingCount 的 null 是 store 初值（review-data-store.ts:18）＝未加载，
-          旧写法 `?? 0` 让「还没取到数」在标签为「全部待审核总数」的卡上显示成 0。 */}
-      <Statistic size="xl" label={reviewPendingStatLabel()} value={pendingCount} tone={(pendingCount ?? 0) > 0 ? "text-status-warn" : "text-status-fact"} hint={reviewPendingStatHint()} />
 
       <InternalTabs ariaLabel={REVIEW_VIEW_COPY.TABS_ARIA} items={TABS} value={tab} onValueChange={selectTab} />
 

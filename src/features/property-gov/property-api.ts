@@ -1,6 +1,5 @@
 // property-api.ts — 文章图谱映射 + 架构组件属性 API 调用
 import { apiFetchEnvelope, apiFetchJson } from "@/lib/api";
-import type { paths } from "@/lib/generated/api-types";
 import type {
   CheckResponse,
   CheckResultItem,
@@ -10,7 +9,7 @@ import type {
 } from "./property-types";
 import { previewEntityRepair, applyEntityRepair } from "@/lib/domain/entity-repair-api";
 import type { EntityRepairApplyData } from "@/lib/domain/entity-repair-api";
-import { PROPERTY_REQUEST_COPY, pipelineStatusFetchFailed } from "./property-gov-copy";
+import { PROPERTY_REQUEST_COPY } from "./property-gov-copy";
 
 // ── Manifest list (existing) ──
 
@@ -22,18 +21,6 @@ export async function fetchArticleManifests(params: {
     limit: String(params.limit), offset: String(params.offset),
   });
   return apiFetchEnvelope<ManifestListData>(`/api/kg/query?type=article-manifests&${p}`);
-}
-
-// ── Pipeline health (existing) ──
-
-type PipelineStatusEnvelope = paths["/api/pipeline/status"]["get"]["responses"][200]["content"]["application/json"];
-export type PipelineJob = PipelineStatusEnvelope["data"];
-
-export async function fetchPipelineGenStatus(): Promise<PipelineJob> {
-  const response = await fetch("/api/pipeline/status", { cache: "no-store" });
-  const envelope = (await response.json()) as PipelineStatusEnvelope & { message?: string; error?: string };
-  if (!response.ok) throw new Error(envelope.message || envelope.error || pipelineStatusFetchFailed(response.status));
-  return envelope.data;
 }
 
 // ── Check results ──

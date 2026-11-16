@@ -28,14 +28,12 @@ const stores = vi.hoisted(() => ({
   entities: [
     { componentName: "AnyBackup", entityId: "product:anybackup", layer: "product", category: "产品", articlePath: "wiki/entities/anybackup.md", admissionStatus: "APPROVED", hasSourceArticle: true, frontmatter: {} },
   ],
-  reviewLoad: vi.fn().mockResolvedValue(undefined),
   openDrawer: vi.fn(),
 }));
 
 vi.mock("@/features/review/review-api", () => api);
 vi.mock("@/lib/edge-api", () => edgeApi);
 vi.mock("@/lib/topology-store", () => ({ useAdmittedEdges: () => stores.edges, useAdmittedNodes: () => stores.nodes, useKnowledgeEdges: () => stores.edges, useKnowledgeNodes: () => stores.nodes }));
-vi.mock("@/lib/review-data-store", () => ({ useReviewStore: (selector: (state: { load: () => Promise<void>; pendingCount: number }) => unknown) => selector({ load: stores.reviewLoad, pendingCount: 1 }) }));
 vi.mock("@/features/admission/admission-store", () => ({ useRegistryItems: () => stores.entities, useOpenDrawer: () => stores.openDrawer }));
 
 describe("review table controls", () => {
