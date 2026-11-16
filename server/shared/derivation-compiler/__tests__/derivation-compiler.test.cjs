@@ -71,3 +71,26 @@ test("真实 Fastify 注册使用路径参数并拒绝接管异主入口", async
     await app.close();
   }
 });
+
+// Wave3 走查缺口①阶段一：生命周期 transitions 边 → 路由计划派生（计划面，漂移显式可见）
+const lifecycle = JSON.parse(
+  fs.readFileSync(path.join(repoRoot, "contracts/article-lifecycle.json"), "utf8")
+);
+const { compileLifecycleRoutes } = require("../derivation-compiler.cjs");
+
+test("生命周期路由计划：四条 transitions 边全部派生，起点/目标态守卫随行", () => {
+  const plan = compileLifecycleRoutes(lifecycle);
+  assert.equal(plan.length, lifecycle.transitions.length, "边数＝计划数（一条不漏）");
+  for (const route of plan) {
+    assert.ok(route.action, "动作名非空");
+    assert.ok(route.from && route.to, "起点态/目标态守卫随行");
+    assert.equal(route.inContract, false, "阶段一：生命周期端点尚未登记契约——计划面显式标记（漂移可见，不再沉默手动接线）");
+    assert.match(route.routeTemplate, /^\/api\/articles\/lifecycle\/:articleId\//, "规范路由模板");
+  }
+  const actions = plan.map((route) => route.action);
+  assert.deepEqual(actions, ["promote", "publish", "archive", "retire"], "四边动作与契约一致");
+});
+
+test("生命周期路由计划：同输入同输出（纯函数）", () => {
+  assert.deepEqual(compileLifecycleRoutes(lifecycle), compileLifecycleRoutes(lifecycle));
+});

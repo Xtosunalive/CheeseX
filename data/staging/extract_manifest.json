@@ -1,22 +1,37 @@
 {
   "version": 1,
   "vault": "/Users/magic/xqy/cheese/知识库",
-  "generatedAt": "2026-11-13T14:19:28.866653",
+  "generatedAt": "2026-11-17T00:43:44.047521",
   "files": {
+    "知识库/raw/archive/本地草稿/fe154decdce4a1010e586efb9cf0b0cd0f374b4615fd055e028a3fbb438b5307-秩序-决策中心.md": {
+      "mtime_ns": 1794690677917269423,
+      "size": 1951,
+      "sha16": "fe154decdce4a101"
+    },
     "知识库/raw/boards/_enums-cache.md": {
-      "mtime_ns": 1794550754767849511,
-      "size": 372,
-      "sha16": "ce692d59638cfc2b"
+      "mtime_ns": 1794784933263882105,
+      "size": 391,
+      "sha16": "c5545129458a83af"
+    },
+    "知识库/raw/precleaned/秩序-决策中心.md": {
+      "mtime_ns": 1794781534345847558,
+      "size": 2827,
+      "sha16": "99ca0acc1b23df8c"
+    },
+    "知识库/wiki/entities/测试模块1.md": {
+      "mtime_ns": 1794784973472417056,
+      "size": 361,
+      "sha16": "a2110955a0ac44c1"
     },
     "知识库/wiki/graph-status.md": {
-      "mtime_ns": 1794550768863470160,
-      "size": 1304,
-      "sha16": "644485e83cd8b8ef"
+      "mtime_ns": 1794847424040433790,
+      "size": 1603,
+      "sha16": "d59c5a52b599b085"
     },
     "知识库/wiki/log.md": {
-      "mtime_ns": 1794550755082001763,
-      "size": 247452,
-      "sha16": "9365daf402886659"
+      "mtime_ns": 1794784933837714509,
+      "size": 264210,
+      "sha16": "cc1eb8143528f520"
     },
     ".ledger/vocab/article_associations.yaml": {
       "mtime_ns": 0,
@@ -41,7 +56,7 @@
     ".ledger/vocab/ontology.yaml": {
       "mtime_ns": 0,
       "size": 32,
-      "sha16": "3e345cdb8b9ff077"
+      "sha16": "f2795dcb8ea79976"
     },
     ".ledger/vocab/versions.yaml": {
       "mtime_ns": 0,
