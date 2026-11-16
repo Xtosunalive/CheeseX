@@ -6653,6 +6653,7 @@
             "enum": [
               "full",
               "quick",
+              "resume",
               null
             ]
           },
