@@ -35,3 +35,57 @@ test("PR-317 同 gapId 第二次 resolve → 409 GAP_ALREADY_RESOLVED 且账本�
     assert.equal(other.statusCode, 200);
   } finally { fs.rmSync(vault, { recursive: true, force: true }); }
 });
+
+// PR-317 反悔通道（2026-11-17 裁）：resolve → reopen → 重新 resolve 全链——最新条目胜出语义。
+test("PR-317 反悔：resolve → reopen（缺口重新可见）→ 重新 resolve 成功", async () => {
+  const vault = fs.mkdtempSync(path.join(os.tmpdir(), "kg-reopen-"));
+  try {
+    setupActionRuntime({ vaultPath: vault });
+    const store = createGovernanceActionStore({ vaultPath: vault });
+    const h = createRouteHarness();
+    kgRoutes.setVaultPath(vault);
+    kgRoutes.register(h.registerRoute, {
+      readSemanticArchitecture: () => null,
+      readMasterGraph: () => ({ nodes: [], connections: [] }),
+      addGovernanceAction: store.addAction,
+      getResolvedGapIds: store.getResolvedGapIds,
+      listGovernanceActions: store.readActions,
+    });
+    const resolveUrl = "POST /api/governance/resolve";
+    await h.call(resolveUrl, undefined, { gapId: "gap-reopen-me", action: "ignored", note: "首次忽略" });
+    assert.equal(store.getResolvedGapIds().has("gap-reopen-me"), true);
+
+    const reopen = await h.call("POST /api/governance/reopen", undefined, { gapId: "gap-reopen-me", confirmed: true, note: "情况变了" });
+    assert.equal(reopen.statusCode, 200, JSON.stringify(reopen.payload));
+    assert.equal(store.getResolvedGapIds().has("gap-reopen-me"), false, "reopened 后缺口退出已处置集（重新可见）");
+    const reopenedRow = store.readActions().find((a) => a.gapId === "gap-reopen-me");
+    assert.equal(reopenedRow.action, "reopened");
+
+    const again = await h.call(resolveUrl, undefined, { gapId: "gap-reopen-me", action: "ignored", note: "重新处置" });
+    assert.equal(again.statusCode, 200, "reopened 后允许重新 resolve");
+    assert.equal(store.getResolvedGapIds().has("gap-reopen-me"), true);
+  } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+});
+
+test("PR-317 已处置清单端点：GET /api/governance/actions 返回账本与已处置集", async () => {
+  const vault = fs.mkdtempSync(path.join(os.tmpdir(), "kg-actions-"));
+  try {
+    setupActionRuntime({ vaultPath: vault });
+    const store = createGovernanceActionStore({ vaultPath: vault });
+    const h = createRouteHarness();
+    kgRoutes.setVaultPath(vault);
+    kgRoutes.register(h.registerRoute, {
+      readSemanticArchitecture: () => null,
+      readMasterGraph: () => ({ nodes: [], connections: [] }),
+      addGovernanceAction: store.addAction,
+      getResolvedGapIds: store.getResolvedGapIds,
+      listGovernanceActions: store.readActions,
+    });
+    await h.call("POST /api/governance/resolve", undefined, { gapId: "gap-list", action: "ignored" });
+    const response = await h.call("GET /api/governance/actions", "/api/governance/actions");
+    assert.equal(response.statusCode, 200);
+    assert.equal(response.body.data.total, 1);
+    assert.deepEqual(response.body.data.resolvedGapIds, ["gap-list"]);
+    assert.equal(response.body.data.actions[0].gapId, "gap-list");
+  } finally { fs.rmSync(vault, { recursive: true, force: true }); }
+});

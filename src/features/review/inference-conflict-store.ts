@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { TERM } from "@/constants/term-const";
-import { fetchConflicts } from "./inference-conflict-api";
+import { fetchConflicts, reviewConflict } from "./inference-conflict-api";
 import type { InferenceConflict } from "./review-types";
 import { requestFailed, requestLoading, requestSettled, type RequestStatus } from "@/lib/request-status";
 
@@ -11,9 +11,13 @@ type State = {
   status: RequestStatus;
   error: string | null;
   expandedIds: Set<string>;
+  /** Wave3 阶段三：裁决/重开进行中的行（busy 位） */
+  reviewingIds: Set<string>;
   setStatusFilter: (filter: "unresolved" | "resolved" | "all") => void;
   toggleExpand: (id: string) => void;
   load: () => Promise<void>;
+  /** 裁决/重开（store.review 单源委托）：成功后原位更新该行 */
+  review: (conflictId: string, request: Parameters<typeof reviewConflict>[1]) => Promise<void>;
 };
 
 export const useInferenceConflictStore = create<State>((set, get) => ({
@@ -23,6 +27,7 @@ export const useInferenceConflictStore = create<State>((set, get) => ({
   status: "idle",
   error: null,
   expandedIds: new Set<string>(),
+  reviewingIds: new Set<string>(),
   setStatusFilter: (statusFilter) => set({ statusFilter }),
   toggleExpand: (id) =>
     set((state) => {
@@ -37,6 +42,20 @@ export const useInferenceConflictStore = create<State>((set, get) => ({
       set({ conflicts: result.conflicts, total: result.total, ...requestSettled(result.conflicts.length === 0) });
     } catch (error) {
       set(requestFailed(error, TERM.LOAD_FAILED));
+    }
+  },
+  review: async (conflictId, request) => {
+    const reviewing = new Set(get().reviewingIds).add(conflictId);
+    set({ reviewingIds: reviewing });
+    try {
+      const updated = await reviewConflict(conflictId, request);
+      set((state) => ({
+        conflicts: state.conflicts.map((c) => (c.conflictId === conflictId ? updated : c)),
+      }));
+    } finally {
+      const next = new Set(get().reviewingIds);
+      next.delete(conflictId);
+      set({ reviewingIds: next });
     }
   },
 }));

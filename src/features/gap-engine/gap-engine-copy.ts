@@ -61,6 +61,15 @@ export const GAP_ENGINE_VIEW_COPY = {
 
 // ── GovernanceTodoTab（缺口清单＋两步登记例外）──
 export const GOVERNANCE_TODO_COPY = {
+  /** gap-api 错误文案（信封出口） */
+  ACTIONS_FETCH_FAILED: "读取治理决策失败",
+  REOPEN_FAILED: "撤销已处置缺口失败",
+  /** PR-317 反悔通道（2026-11-17 裁）：已处置清单标题＋重开钮 */
+  RESOLVED_SECTION_TITLE: "已处置缺口",
+  RESOLVED_SECTION_ARIA: "已处置缺口清单",
+  REOPEN_ACTION: "重开",
+  REOPEN_ARIA: "重开此缺口",
+
   EMPTY_TITLE: "暂无待处理数据质量问题",
   /** 缺口类型缺登记回落 */
   UNREGISTERED_GAP_TYPE: "未登记的缺口类型",

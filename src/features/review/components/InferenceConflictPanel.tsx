@@ -1,11 +1,13 @@
 // InferenceConflictPanel — W1 迁移（决策卡 §12.1）：骨架/三态/分页/排序/搜索走 DataTable＋useTableList；
 // conflictId 深链自动展开（action-routing ②A）原样保留；formatDate 收敛到 formatDateTime（D9）。
 import { TableToolbar, TableToolbarSearch } from "@/components/table-toolbar";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { EFFECT_LABELS as SHARED_EFFECT_LABELS } from "@/lib/domain";
 import { ChevronDown, ChevronUp, RotateCcw} from "lucide-react";
 import { TERM } from "@/constants/term-const";
 import { FilterSelect } from "@/components/filter-select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { TableSortHeader } from "@/components/table-sort-header";
 import { TablePagination } from "@/components/table-pagination";
 import { DataTable } from "@/components/data-table/DataTable";
@@ -53,7 +55,11 @@ function ConflictDetail({ conflict }: { conflict: InferenceConflict }) {
   return (
     <div className="space-y-3 px-4 py-3">
       {conflict.status === "unresolved" ? (
-        <p className="text-xs text-status-warn">{INFERENCE_CONFLICT_COPY.BLOCKED_NOTE}</p>
+        <>
+          <p className="text-xs text-status-warn">{INFERENCE_CONFLICT_COPY.BLOCKED_NOTE}</p>
+          {/* Wave3 阶段三（Master 2026-11-17 裁）：裁决入口——结构化裁决（选 effect＋sourceRevision 乐观守卫）＋理由 */}
+          <ResolveForm conflict={conflict} />
+        </>
       ) : (
         <div className="space-y-1">
           <div className="text-kg-xs text-text-hint">{INFERENCE_CONFLICT_COPY.AUDIT_NOTE}</div>
@@ -62,8 +68,86 @@ function ConflictDetail({ conflict }: { conflict: InferenceConflict }) {
             <div className="text-xs text-text-sub">{conflict.decision?.selectedEffect ? EFFECT_LABELS[conflict.decision.selectedEffect] : conflict.resolution || INFERENCE_CONFLICT_COPY.DECISION_UNSTRUCTURED}</div>
             {conflict.decision?.note && <div className="text-kg-xs text-text-hint">{conflict.decision.note}</div>}
           </div>
+          {/* Wave3 阶段三：重开（PR-317 同款反悔语义，OpenMAIC unpublish 同款专用动作） */}
+          <ReopenButton conflict={conflict} />
         </div>
       )}
+    </div>
+  );
+}
+
+function ResolveForm({ conflict }: { conflict: InferenceConflict }) {
+  const store = useInferenceConflictStore();
+  const effects = [...new Set(conflict.conclusions.map((item) => item.effect))];
+  const [selectedEffect, setSelectedEffect] = useState<string>(effects[0] ?? "");
+  const [reason, setReason] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const busy = store.reviewingIds.has(conflict.conflictId);
+
+  const submit = async () => {
+    if (!selectedEffect || !reason.trim()) {
+      setError(INFERENCE_CONFLICT_COPY.RESOLVE_FORM_ERROR);
+      return;
+    }
+    setError(null);
+    try {
+      await store.review(conflict.conflictId, {
+        action: "resolve",
+        reviewer: "local-architect",
+        reason: reason.trim(),
+        decision: { decision: "select_effect", selectedEffect, sourceRevision: conflict.sourceRevision },
+      });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  return (
+    <div className="space-y-2 rounded-lg ring-1 ring-border-thin bg-surface-root p-3">
+      <label className="block text-kg-xs text-text-hint">{INFERENCE_CONFLICT_COPY.RESOLVE_EFFECT_LABEL}</label>
+      <select
+        aria-label={INFERENCE_CONFLICT_COPY.RESOLVE_EFFECT_ARIA}
+        value={selectedEffect}
+        onChange={(e) => setSelectedEffect(e.target.value)}
+        className="block w-full rounded-md border border-border-thin bg-surface-card px-2 py-1.5 text-xs text-text-main"
+        disabled={busy}
+      >
+        {effects.map((effect) => (
+          <option key={effect} value={effect}>{EFFECT_LABELS[effect]}</option>
+        ))}
+      </select>
+      <Input aria-label={INFERENCE_CONFLICT_COPY.RESOLVE_REASON_ARIA} value={reason} onChange={(e) => setReason(e.target.value)} placeholder={INFERENCE_CONFLICT_COPY.RESOLVE_REASON_PLACEHOLDER} disabled={busy} className="text-xs" />
+      {error && <p className="text-xs text-status-error">{error}</p>}
+      <Button type="button" size="sm" aria-label={INFERENCE_CONFLICT_COPY.RESOLVE_ACTION_ARIA} onClick={() => void submit()} disabled={busy || !selectedEffect || !reason.trim()}>
+        {busy ? INFERENCE_CONFLICT_COPY.RESOLVING : INFERENCE_CONFLICT_COPY.RESOLVE_ACTION}
+      </Button>
+    </div>
+  );
+}
+
+function ReopenButton({ conflict }: { conflict: InferenceConflict }) {
+  const store = useInferenceConflictStore();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const reopen = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      await store.review(conflict.conflictId, { action: "reopen", reviewer: "local-architect", reason: INFERENCE_CONFLICT_COPY.REOPEN_DEFAULT_REASON });
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div>
+      <Button type="button" variant="outline" size="sm" aria-label={INFERENCE_CONFLICT_COPY.REOPEN_ACTION_ARIA} onClick={() => void reopen()} disabled={busy}>
+        {busy ? INFERENCE_CONFLICT_COPY.REOPENING : INFERENCE_CONFLICT_COPY.REOPEN_ACTION}
+      </Button>
+      {error && <p className="mt-1 text-xs text-status-error">{error}</p>}
     </div>
   );
 }

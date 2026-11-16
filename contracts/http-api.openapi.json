@@ -28309,6 +28309,245 @@
           }
         }
       }
+    },
+    "/api/kg/inference-conflicts/{conflictId}/review": {
+      "post": {
+        "operationId": "kgInferenceConflictReview",
+        "summary": "推理冲突裁决/重开（store.review 单源：resolve 需结构化裁决或文本＋sourceRevision 乐观守卫；reopen 反悔）",
+        "tags": [
+          "Review"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "action",
+                  "reviewer"
+                ],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": [
+                      "resolve",
+                      "reopen"
+                    ],
+                    "description": "resolve=裁决（需 decision 或 resolution＋reason）；reopen=重开"
+                  },
+                  "reviewer": {
+                    "type": "string",
+                    "description": "裁决人标识"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "description": "裁决/重开理由（resolve 必填；reopen 可选）"
+                  },
+                  "resolution": {
+                    "type": "string",
+                    "description": "legacy 纯文本裁决（与 decision 二选一）"
+                  },
+                  "decision": {
+                    "type": "object",
+                    "description": "结构化裁决（select_effect＋sourceRevision）",
+                    "properties": {
+                      "decision": {
+                        "type": "string",
+                        "enum": [
+                          "select_effect",
+                          "select_rules",
+                          "defer",
+                          "reopen"
+                        ]
+                      },
+                      "selectedEffect": {
+                        "type": "string",
+                        "enum": [
+                          "ASSERT",
+                          "WAIVE",
+                          "BLOCK",
+                          "SUSPEND"
+                        ]
+                      },
+                      "selectedRuleIds": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "sourceRevision": {
+                        "type": "string"
+                      },
+                      "note": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "conflictId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "裁决后的冲突对象",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InferenceConflict"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "冲突不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/governance/reopen": {
+      "post": {
+        "operationId": "governanceReopen",
+        "summary": "已处置缺口撤销（追加 action=reopened 行，最新条目胜出——缺口重新可见）",
+        "tags": [
+          "Gaps"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "gapId",
+                  "confirmed"
+                ],
+                "properties": {
+                  "gapId": {
+                    "type": "string"
+                  },
+                  "confirmed": {
+                    "type": "boolean"
+                  },
+                  "note": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "撤销后的账本长度",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "校验失败",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/governance/actions": {
+      "get": {
+        "operationId": "governanceActionsList",
+        "summary": "治理决策账本清单（已处置视图数据面）",
+        "tags": [
+          "Gaps"
+        ],
+        "responses": {
+          "200": {
+            "description": "账本全部条目＋当前已处置集",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "actions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "gapId": {
+                            "type": "string"
+                          },
+                          "action": {
+                            "type": "string"
+                          },
+                          "note": {
+                            "type": "string"
+                          },
+                          "resolvedAt": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "resolvedGapIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "total": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }

@@ -714,7 +714,7 @@ function loadDashboardRoutes() {
       inferenceEngine: context.inferenceEngine,
       getVersionStatus: (product, version) => context.readVersionRegistry().products?.[product]?.versions?.find((item) => item.id === version)?.status || null,
     });
-    kgr.register(registerRoute, { readSemanticArchitecture, readMasterGraph, documentInventoryService, impactAnalysisService, formalConsumer, impactAnalysisFactory: formalImpactAnalysisFactory, articleManifestService, addGovernanceAction: governanceActionStore.addAction, getResolvedGapIds: governanceActionStore.getResolvedGapIds, graphDriftCheck: () => graphDriftRefresher.checkAndSchedule() });
+    kgr.register(registerRoute, { readSemanticArchitecture, readMasterGraph, documentInventoryService, impactAnalysisService, formalConsumer, impactAnalysisFactory: formalImpactAnalysisFactory, articleManifestService, addGovernanceAction: governanceActionStore.addAction, getResolvedGapIds: governanceActionStore.getResolvedGapIds, listGovernanceActions: governanceActionStore.readActions, graphDriftCheck: () => graphDriftRefresher.checkAndSchedule() });
     const pr = require("./routes/property-routes.cjs");
     pr.register(registerRoute, { readSemanticArchitecture, readMasterGraph, vaultPath });
     const ecr = require("./routes/entity-compliance-routes.cjs");

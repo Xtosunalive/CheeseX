@@ -750,7 +750,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/routes/kg-routes.cjs:460"
+        "server/routes/kg-routes.cjs:461"
       ]
     },
     "GRAPH_UNAVAILABLE": {
@@ -802,8 +802,11 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/routes/kg-routes.cjs:455",
-        "server/routes/kg-routes.cjs:468",
+        "server/routes/kg-routes.cjs:456",
+        "server/routes/kg-routes.cjs:469",
+        "server/routes/kg-routes.cjs:486",
+        "server/routes/kg-routes.cjs:493",
+        "server/routes/kg-routes.cjs:506",
         "server/routes/sync-routes.cjs:84",
         "server/shared/http-app.cjs:132",
         "server/shared/http-app.cjs:264"
@@ -2109,8 +2112,9 @@ module.exports = {
         "server/routes/article-association-routes.cjs:38",
         "server/routes/enums-routes.cjs:114",
         "server/routes/enums-routes.cjs:127",
-        "server/routes/kg-routes.cjs:438",
-        "server/routes/kg-routes.cjs:443",
+        "server/routes/kg-routes.cjs:439",
+        "server/routes/kg-routes.cjs:444",
+        "server/routes/kg-routes.cjs:485",
         "server/routes/obsidian-open-routes.cjs:18",
         "server/routes/ontology-routes.cjs:67",
         "server/routes/ontology-routes.cjs:76",

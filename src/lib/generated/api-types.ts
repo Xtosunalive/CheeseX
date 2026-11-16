@@ -8762,6 +8762,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/kg/inference-conflicts/{conflictId}/review": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 推理冲突裁决/重开（store.review 单源：resolve 需结构化裁决或文本＋sourceRevision 乐观守卫；reopen 反悔） */
+        post: operations["kgInferenceConflictReview"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/governance/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 已处置缺口撤销（追加 action=reopened 行，最新条目胜出——缺口重新可见） */
+        post: operations["governanceReopen"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/governance/actions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 治理决策账本清单（已处置视图数据面） */
+        get: operations["governanceActionsList"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -13996,6 +14047,141 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    kgInferenceConflictReview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conflictId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /**
+                     * @description resolve=裁决（需 decision 或 resolution＋reason）；reopen=重开
+                     * @enum {string}
+                     */
+                    action: "resolve" | "reopen";
+                    /** @description 裁决人标识 */
+                    reviewer: string;
+                    /** @description 裁决/重开理由（resolve 必填；reopen 可选） */
+                    reason?: string;
+                    /** @description legacy 纯文本裁决（与 decision 二选一） */
+                    resolution?: string;
+                    /** @description 结构化裁决（select_effect＋sourceRevision） */
+                    decision?: {
+                        /** @enum {string} */
+                        decision?: "select_effect" | "select_rules" | "defer" | "reopen";
+                        /** @enum {string} */
+                        selectedEffect?: "ASSERT" | "WAIVE" | "BLOCK" | "SUSPEND";
+                        selectedRuleIds?: string[];
+                        sourceRevision?: string;
+                        note?: string;
+                    };
+                };
+            };
+        };
+        responses: {
+            /** @description 裁决后的冲突对象 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["InferenceConflict"];
+                };
+            };
+            /** @description 校验失败 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 冲突不存在 */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    governanceReopen: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    gapId: string;
+                    confirmed: boolean;
+                    note?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 撤销后的账本长度 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        success?: boolean;
+                        total?: number;
+                    };
+                };
+            };
+            /** @description 校验失败 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    governanceActionsList: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 账本全部条目＋当前已处置集 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        actions?: {
+                            gapId?: string;
+                            action?: string;
+                            note?: string;
+                            resolvedAt?: string;
+                        }[];
+                        resolvedGapIds?: string[];
+                        total?: number;
+                    };
                 };
             };
         };

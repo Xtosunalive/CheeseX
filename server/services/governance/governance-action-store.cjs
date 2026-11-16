@@ -24,9 +24,16 @@ function createGovernanceActionStore(options) {
   }
 
   function getResolvedGapIds() {
-    const resolvedGapIds = new Set();
+    // PR-317 加固批（Master 裁）：最新条目胜出——同 gapId 的 reopened 行使其退出已处置集
+    //（缺口重新可见可处置）；resolved/ignored/exempted 仍在集内。
+    const RESOLVED_ACTIONS = new Set(["resolved", "ignored", "exempted"]);
+    const latestByGap = new Map();
     for (const action of readActions()) {
-      if (action.gapId) resolvedGapIds.add(action.gapId);
+      if (action.gapId) latestByGap.set(action.gapId, action);
+    }
+    const resolvedGapIds = new Set();
+    for (const [gapId, action] of latestByGap) {
+      if (RESOLVED_ACTIONS.has(action.action)) resolvedGapIds.add(gapId);
     }
     return resolvedGapIds;
   }
