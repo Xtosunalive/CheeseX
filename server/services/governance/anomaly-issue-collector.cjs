@@ -271,11 +271,16 @@ function createAnomalyIssueCollector(deps) {
             if (!entry.name.endsWith(".md")) continue;
             const sourcePath = path.relative(deps.vaultPath, full).split(path.sep).join("/");
             let fm = null;
+            let mtime = null;
+            // PR-329（P2 记档收口）：读/析/取 mtime 全部纳入 per-file 容错——扫描间隙删文件
+            // （含断链符号链接 statSync ENOENT）只跳过该文件，不再丢整个 missing_entity 族。
             try {
+              const stat = fs.statSync(full);
               fm = loadDocument(fs.readFileSync(full, "utf8"), sourcePath).frontmatter || {};
-            } catch (_e) { continue; } // 单文件解析失败不阻断（与族内守卫同型）
+              mtime = stat.mtimeMs;
+            } catch (_e) { continue; } // 单文件读取/解析失败不阻断（与族内守卫同型）
             if (!fm[DK.ARTICLE.articleId] || !String(fm[DK.ARTICLE.module] || "").trim()) continue;
-            stageEntries.push({ stage, sourcePath, fm, mtime: fs.statSync(full).mtimeMs });
+            stageEntries.push({ stage, sourcePath, fm, mtime });
           }
         };
         walk(root);

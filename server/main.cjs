@@ -236,6 +236,8 @@ let draftDropAutomation = null;
 let formalEditProcessor = null;
 // SPEC-030 §十一批2（2026-11-16 监听扩面）：precleaned 候选对账消费者占位——同上注入模式
 let articleWorkflowReconcile = null;
+// PR-328（P2 记档收口）：对账去抖窗句柄（批量外部写合并为一窗一次对账）
+let reconcileDebounceTimer = undefined;
 const precleanedWatchRoot = path.join(vaultPath, require("./shared/article-lifecycle-paths.cjs").WORKING_ROOT) + path.sep; // 路径单源（article-lifecycle 哨兵执法）
 const vaultWatcher = createVaultWatcherService({
     vaultPath, gitLedger: vaultGitLedger, vaultIO, logger,
@@ -251,8 +253,14 @@ const vaultWatcher = createVaultWatcherService({
     // SPEC-030 §十一批2（2026-11-16 监听扩面）：precleaned 候选外部写（Obsidian 编辑已入库文章）
     // → 工作流自动对账（WP-063 链：哈希回退→自动重标准化）——formal 区由 formalEditProcessor 承接，
     // 本桥补 precleaned 侧；paths 为绝对路径（监听器原样透传），fail-open 只告警（与同族桥一致）。
+    // PR-328（P2 记档收口）：去抖窗合并触发——批量编辑 N 文件只对账一次（一窗一跑），
+    // 不再逐文件直触发（N×M 量级）；对账幂等，延迟窗 1s 不劣化单文件触达。
     if (articleWorkflowReconcile && paths.some((p) => p.startsWith(precleanedWatchRoot))) {
-      void articleWorkflowReconcile().catch((e) => logger.warn({ event: "article-workflow-external-reconcile-failed", error: e.message }));
+      if (reconcileDebounceTimer !== undefined) clearTimeout(reconcileDebounceTimer);
+      reconcileDebounceTimer = setTimeout(() => {
+        reconcileDebounceTimer = undefined;
+        void articleWorkflowReconcile().catch((e) => logger.warn({ event: "article-workflow-external-reconcile-failed", error: e.message }));
+      }, 1000);
     }
   },
   // WP-027（PR-142）：图输入 schema 写事件桥（内部写早退于 onExternalWrite，本桥独立于归属判定）
