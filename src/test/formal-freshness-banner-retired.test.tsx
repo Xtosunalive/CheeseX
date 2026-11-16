@@ -17,7 +17,6 @@ describe("ADR067 正式代次横幅退役墙", () => {
 
   it("R-T2 全部视图与 store 不再引用横幅组件或 hook", () => {
     const consumers = [
-      "src/features/dashboard/DashboardView.tsx",
       "src/features/data-dashboard/DataDashboardView.tsx",
       "src/features/gap-engine/GapEngineView.tsx",
       "src/features/admission/AdmissionView.tsx",

@@ -508,7 +508,6 @@ export default tseslint.config(
     "src/features/admission/admission-copy.ts", // admission 页级文案单源（WP-152 收官批入册，ADR-019 §三.4 仪式）
     "src/features/article-associations/article-associations-copy.ts", // article-associations 页级文案单源（WP-152 收官批入册，ADR-019 §三.4 仪式）
     "src/features/architecture-version/architecture-version-copy.ts", // architecture-version 页级文案单源（WP-152 收官批入册，ADR-019 §三.4 仪式；差异字段名仍住同目录 version-diff-field-labels）
-    "src/features/dashboard/dashboard-copy.ts", // dashboard（运行概览）页级文案单源（WP-152 收官批入册，ADR-019 §三.4 仪式）
     "src/components/components-copy.ts", // components 共享组件库＋App 外壳文案单源（WP-152 收官批入册，ADR-019 §三.4 仪式）
     "src/lib/lib-copy.ts", // lib 层文案单源：请求兜底/写门阻断中文化/本体校验理由/导航诊断/防区显示名/schema 分区与页签正名镜像（WP-152 收官批入册，ADR-019 §三.4 仪式）
     "src/features/architecture-version/components/version-diff-field-labels.ts", // 版本对比字段标签单源

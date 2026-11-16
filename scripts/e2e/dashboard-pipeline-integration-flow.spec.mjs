@@ -1,4 +1,4 @@
-// @component: Dashboard 运行概览→管道诊断（零副作用）→图谱投影一致性——Playwright 迁移件（WP-096 T3 批）
+// @component: 图谱检索枢纽→管道诊断（零副作用）→图谱投影一致性——Playwright 迁移件（WP-096 T3 批；2026-11-17 运行概览退役批改钉 #/data-dashboard——原宿主页随批退役，断言集逐条同源不变）
 // @context: 旧件 scripts/e2e/dashboard-pipeline-integration-flow.e2e.mjs 的运行器层等价迁移——
 //   断言集逐条同源（旧 record() 步 ↔ 本 expect/test.step 块；旧 observe() 软观察 ↔ console.log），
 //   不借机改测试口径。关键语义（G-e/#1773 教训立法）：POST /api/pipeline/run = 只读全局诊断
@@ -33,7 +33,7 @@ async function readTopology(request) {
   };
 }
 
-test("Dashboard 运行概览 → 管道诊断（零副作用契约）→ 图谱投影一致性", async ({ page, request }) => {
+test("图谱检索枢纽 → 管道诊断（零副作用契约）→ 图谱投影一致性", async ({ page, request }) => {
   // 诊断轮询上界 30×2s=60s，叠加页面加载与诊断执行，给足运行器超时余量（断言语义不变）
   test.setTimeout(180_000);
   // 契约锚定（旧件同位）
@@ -45,13 +45,13 @@ test("Dashboard 运行概览 → 管道诊断（零副作用契约）→ 图谱�
   ]);
   void VAULT_PATH; // 守卫已证；本流只读＋诊断（零发布，与旧件同）
 
-  // Step 1: 加载运行概览页（#/dashboard，非图谱检索页——后者由 seq212 切片测试承载）。
-  // 911e42d 删页内 h1 主标题——页面名唯一承载=PageHeader app-bar-location。
-  await test.step("Step1 加载运行概览", async () => {
-    await page.goto("/#/dashboard", { waitUntil: "networkidle" });
+  // Step 1: 加载图谱检索枢纽（#/data-dashboard；2026-11-17 运行概览退役后本旅程宿主页随之改挂）。
+  // 页面名唯一承载=PageHeader app-bar-location。
+  await test.step("Step1 加载图谱检索枢纽", async () => {
+    await page.goto("/#/data-dashboard", { waitUntil: "networkidle" });
     await expect(
-      page.locator('[data-testid="app-bar-location"]').filter({ hasText: "运行概览" }).first(),
-      "Load dashboard (#/dashboard)",
+      page.locator('[data-testid="app-bar-location"]').filter({ hasText: "图谱检索" }).first(),
+      "Load graph explorer (#/data-dashboard)",
     ).toBeVisible();
   });
 

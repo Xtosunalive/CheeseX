@@ -2,7 +2,7 @@
 // 拓扑 tab：修复后的 ArchProjFlow 真实拓扑（ReactFlow+Dagre）+ 三上下文侧栏 + 关系类型 chip + 范围切换
 // 关系 tab：LocalGraph（Obsidian 式局部图）为主体＋RelationLibraryTab / RelationsPanel；TaxonomySidebar / BandStack 保留为折叠子视图
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, GitBranch, Network, Share2, FileSearch } from "lucide-react";
+import { ChevronDown, Database, GitBranch, Network, Share2, FileSearch } from "lucide-react";
 import { ArchitectureProjectionFlow, buildProjectionModel } from "@/components/architecture-projection";
 import { TopologyStateGate } from "@/components/topology-state-gate";
 import { TaxonomySidebar } from "@/features/data-dashboard/components/taxonomy-sidebar";
@@ -33,7 +33,11 @@ import { BentoGrid } from "@/components/bento";
 import { Statistic } from "@/components/statistic/Statistic";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { DD_VIEW_COPY } from "./data-dashboard-copy";
+import { EmptyState } from "@/components/empty-state";
+import { ACTIVE_RELATION_TYPES, ENTITY_TYPES, relationTypeLabel, type RelationTypeName } from "@/lib/ontology";
+import { ENTITY_CATEGORY } from "@/lib/domain/EntityCategory";
+import { COMPOSITION_COPY, DD_VIEW_COPY, ontologyUsage } from "./data-dashboard-copy";
+import { ReleaseMintCard } from "./components/release-mint-card";
 
 type HubTab = "topo" | "relations";
 
@@ -62,6 +66,149 @@ function ProjectionSubView({ title, icon, children }: { title: string; icon: Rea
         </CollapsibleContent>
       </Panel>
     </Collapsible>
+  );
+}
+
+// 键名从生成物驱动（WP-138 R5a·收紧）：全穷尽 Record<RelationTypeName, string>（键单源＝
+// ontology.ts 对生成物 RELATION_TYPES 键集的派生）——registry 新增关系类型而本表未配色、或
+// 改名/删名留陈旧键，typecheck 即红。治理语义边（derivation/usage/reference/co_editing/
+// containment）手抄期不入表、经 `|| "text-text-sub"` 兜底——显式入表并取该兜底值，渲染
+// bit 级不变；未登记类型（不在联合内）仍经 `|| "text-text-sub"` 运行时兜底。USES 为
+// legacy_policy=delete 的退役类型，保留手抄期既定配色档；registry 删除该键时此处编译红，
+// 由维护者届时显式决定去留。（2026-11-15 运行概览退役批自 dashboard 页迁入）
+const RELATION_TYPE_COLORS: Record<string, string> = {
+  CONNECTS_TO: "text-status-loading", DEPENDS_ON: "text-status-warn", BACKS_UP: "text-grass-11",
+  INDEXES: "text-purple-10", STORES_IN: "text-blue-9", ENCRYPTS: "text-status-error",
+  BELONGS_TO: "text-sky-10", DOCUMENTS: "text-lime-10",
+  REFERENCES: "text-plum-10", MENTIONS: "text-pink-10", RELATED: "text-text-hint",
+  HAS_VERSION: "text-status-fact", HAS_SYMPTOM: "text-orange-10", USES: "text-yellow-9",
+  APPLIES_TO: "text-status-inferred", ASSOCIATED_WITH: "text-teal-10",
+  derivation: "text-text-sub", usage: "text-text-sub", reference: "text-text-sub",
+  co_editing: "text-text-sub", containment: "text-text-sub",
+} satisfies Record<RelationTypeName, string>;
+
+function CompositionSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <div className="mb-3 flex items-center gap-2">
+        <h3 className="text-sm font-semibold text-text-main">{title}</h3>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/** 实体类别分布（占比条；行尾绝对数已随 MAIC 形态批撤——构成占比由条宽表达） */
+function EntityTypeBars({ nodes }: { nodes: { category: string }[] }) {
+  const EXCLUDED = new Set<string>([ENTITY_CATEGORY.DOMAIN, ENTITY_CATEGORY.OTHER]);
+  const counts: Record<string, number> = {};
+  for (const n of nodes) {
+    if (EXCLUDED.has(n.category)) continue;
+    counts[n.category] = (counts[n.category] || 0) + 1;
+  }
+  const entries = Object.entries(counts).sort(([, a], [, b]) => b - a);
+  const total = Object.values(counts).reduce((a, b) => a + b, 0);
+
+  return (
+    <CompositionSection title={COMPOSITION_COPY.CATEGORY_DISTRIBUTION}>
+      <div className="space-y-1.5">
+        {entries.length === 0 ? (
+          <EmptyState title={COMPOSITION_COPY.CATEGORY_EMPTY} />
+        ) : (
+          entries.map(([type, count]) => (
+            <div key={type} className="flex items-center gap-2">
+              <span className="w-20 font-mono text-xs text-text-sub">{type}</span>
+              <div className="h-3 flex-1 rounded-full bg-surface-root">
+                <div className="h-full rounded-full bg-text-sub/40" style={{ width: `${(count / total) * 100}%` }} />
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </CompositionSection>
+  );
+}
+
+/** 关系类型分布（占比条） */
+function RelationTypeBars({ edges }: { edges: { type: string }[] }) {
+  const counts: Record<string, number> = {};
+  for (const e of edges) {
+    const t = e.type || "?";
+    counts[t] = (counts[t] || 0) + 1;
+  }
+  const entries = Object.entries(counts).sort(([, a], [, b]) => b - a);
+  const total = edges.length;
+
+  return (
+    <CompositionSection title={COMPOSITION_COPY.RELATION_TYPE_DISTRIBUTION}>
+      <div className="space-y-1.5">
+        {entries.length === 0 ? (
+          <EmptyState title={COMPOSITION_COPY.RELATION_TYPE_EMPTY} />
+        ) : (
+          entries.map(([type, count]) => (
+            <div key={type} className="flex items-center gap-2">
+              <span className={`w-24 text-xs ${RELATION_TYPE_COLORS[type] || "text-text-sub"}`}>{relationTypeLabel(type)}</span>
+              <div className="h-3 flex-1 rounded-full bg-surface-root">
+                <div className="h-full rounded-full bg-status-loading-6" style={{ width: `${(count / total) * 100}%` }} />
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </CompositionSection>
+  );
+}
+
+/** 图谱规则使用情况（本体注册与主图实际内容的对照；默认收起） */
+function RuleUsageSection({ nodes, edges }: { nodes: { category: string }[]; edges: { type: string }[] }) {
+  const [open, setOpen] = useState(false);
+
+  const usedCategories: Record<string, number> = {};
+  for (const n of nodes) {
+    const cat = n.category || "?";
+    usedCategories[cat] = (usedCategories[cat] || 0) + 1;
+  }
+
+  const usedRelations: Record<string, number> = {};
+  for (const e of edges) {
+    const t = e.type || "";
+    if (t) usedRelations[t] = (usedRelations[t]) + 1;
+  }
+
+  return (
+    <section>
+      <Button variant="ghost" size="sm" onClick={() => setOpen(!open)} className="mb-2 -ml-2 gap-1.5 text-xs text-text-hint hover:text-text-main">
+        <Database className="h-3 w-3" /> {COMPOSITION_COPY.RULE_USAGE}
+      </Button>
+      {open && (
+        <div className="space-y-2 rounded-lg ring-1 ring-border-thin bg-surface-root p-3">
+          <div>
+            <div className="mb-1 font-mono text-xs text-text-hint">
+              {TERM.CATEGORY} {ontologyUsage(Object.keys(usedCategories).length, ENTITY_TYPES.length)}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {ENTITY_TYPES.map(t => (
+                <span key={t} className={`rounded px-1.5 py-0.5 font-mono text-xs ${usedCategories[t] ? "bg-blue-2 text-blue-9" : "bg-surface-card text-text-placeholder"}`}>
+                  {t}{usedCategories[t] ? ` (${usedCategories[t]})` : ""}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div>
+            <div className="mb-1 font-mono text-xs text-text-hint">
+              {COMPOSITION_COPY.RELATION_TYPE_LABEL} {ontologyUsage(Object.keys(usedRelations).filter(key => key in ACTIVE_RELATION_TYPES).length, Object.keys(ACTIVE_RELATION_TYPES).length)}
+            </div>
+            <div className="flex flex-wrap gap-1">
+              {Object.entries(ACTIVE_RELATION_TYPES).map(([key, def]) => (
+                <span key={key} className={`rounded px-1.5 py-0.5 font-mono text-xs ${usedRelations[key] ? "bg-status-loading-2 text-status-loading" : "bg-surface-card text-text-placeholder"}`}>
+                  {def.label}{usedRelations[key] ? ` x${usedRelations[key]}` : ""}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -183,6 +330,17 @@ export function DataDashboardView() {
                 <ProjectionSubView title={DD_VIEW_COPY.BAND_SUBVIEW} icon={<Network className="h-4 w-4" />}>
                   <BandStack nodes={nodes} />
                 </ProjectionSubView>
+                {/* 图谱构成分布（2026-11-15 运行概览退役批自 dashboard 页迁入——本体注册对照表，
+                    受众＝本体调整时的对账；默认折叠挂拓扑页签尾，行尾绝对数已随 MAIC 形态批撤） */}
+                <ProjectionSubView title={COMPOSITION_COPY.SUBVIEW_TITLE} icon={<GitBranch className="h-4 w-4" />}>
+                  <div className="space-y-6">
+                    <EntityTypeBars nodes={nodes} />
+                    <RelationTypeBars edges={edges} />
+                    <RuleUsageSection nodes={nodes} edges={edges} />
+                  </div>
+                </ProjectionSubView>
+                {/* 全库定版发布卡（发布永不自动＝人 gate；定版紧挨着它冻结的图） */}
+                <ReleaseMintCard />
               </div>
             ) : (
               <div className="flex min-h-0 flex-1 flex-col gap-4">

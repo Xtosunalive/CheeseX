@@ -68,7 +68,6 @@ const CLOSED_SET_FILES = new Set([
   "src/features/admission/admission-copy.ts",
   "src/features/article-associations/article-associations-copy.ts",
   "src/features/architecture-version/architecture-version-copy.ts",
-  "src/features/dashboard/dashboard-copy.ts",
   "src/components/components-copy.ts",
   "src/lib/lib-copy.ts",
   "src/features/architecture-version/components/version-diff-field-labels.ts",

@@ -56,7 +56,7 @@
     "test": "npm run test:frontend && npm run test:node",
     "test:e2e": "node scripts/e2e/run-all-e2e.mjs",
     "test:e2e:article": "node scripts/e2e/run-all-e2e.mjs --only \"Article Upload\"",
-    "test:e2e:dashboard": "node scripts/e2e/run-all-e2e.mjs --only \"Dashboard\"",
+    "test:e2e:graph-explorer": "node scripts/e2e/run-all-e2e.mjs --only \"GraphExplorer\"",
     "test:e2e:entity": "node scripts/e2e/run-all-e2e.mjs --only \"Entity Compliance\"",
     "test:e2e:review": "node scripts/e2e/run-all-e2e.mjs --only \"Relation Review\"",
     "test:e2e:schema": "node scripts/e2e/run-all-e2e.mjs --only \"Schema Release\"",

@@ -6,7 +6,7 @@
 // topology view moved to a tree-table renderer. What remains is the
 // arch_layer → container assignment rule (single source of truth — Rule 13)
 // and the cross-container edge detector, both consumed by the tree table.
-import type { TopoNode, TopoEdge, ContainerDef } from "@/features/dashboard/dashboard-types";
+import type { TopoNode, TopoEdge, ContainerDef } from "@/lib/topology-types";
 import { BAND_DISPLAY_NAMES } from "./lib-copy";
 import { ENTITY_CATEGORY } from "./domain/EntityCategory";
 

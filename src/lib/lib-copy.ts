@@ -153,3 +153,9 @@ export const SCHEMA_TAB_NAMES = {
   FIELDS: "字段字典",
   DISCOVERY: "未收录值",
 } as const;
+
+// ── 拓扑总览请求兜底（topology-api；2026-11-15 运行概览退役批自 dashboard-copy 迁入 lib 层——
+// fetchTopology 服务 topology-store，消费面＝图谱检索枢纽/缺口引擎，兜底文案随 api 模块同址）──
+export function topologyRequestFailed(status: number): string {
+  return `总览请求失败（HTTP ${status}）`;
+}

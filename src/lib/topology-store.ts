@@ -4,7 +4,7 @@
 
 import { create } from "zustand";
 import { TERM } from "@/constants/term-const";
-import { DashboardApiError, fetchTopology } from "@/features/dashboard/dashboard-api";
+import { DashboardApiError, fetchTopology } from "@/lib/topology-api";
 import { GraphAdmissionService } from "@/lib/domain";
 import type { TopoNode, TopoEdge, ScopeMode, TopologyStats } from "./topology-types";
 import type { GapItem } from "@/features/gap-engine/gap-types";
@@ -156,9 +156,6 @@ export function useTopologyError() {
   return useTopologyStore((s) => s.error);
 }
 
-export function useTopologyErrorCode() {
-  return useTopologyStore((s) => s.errorCode);
-}
 
 export function useTopologyScope() {
   return useTopologyStore((s) => s.scope);

@@ -9,7 +9,7 @@
       "file": "src/features/data-dashboard/DataDashboardView.tsx",
       "statCount": 2,
       "apiSources": [
-        "src/features/dashboard/dashboard-api.ts#fetchTopology"
+        "src/lib/topology-api.ts#fetchTopology"
       ],
       "sourceApis": [
         "/api/dashboard/topology"
@@ -21,7 +21,7 @@
       "file": "src/features/gap-engine/GapEngineView.tsx",
       "statCount": 1,
       "apiSources": [
-        "src/features/dashboard/dashboard-api.ts#fetchTopology"
+        "src/lib/topology-api.ts#fetchTopology"
       ],
       "sourceApis": [
         "/api/dashboard/topology"
