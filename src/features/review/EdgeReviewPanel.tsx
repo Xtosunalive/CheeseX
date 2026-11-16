@@ -3,6 +3,7 @@
 // 行内动作钮换 ui/button（B1，保留 spinner/禁用/动态 title）；关系类型/来源/文档徽章换 ui/tag（D6）。
 // candidates become graph-fact Proposals; facts are approved on the Proposal page.
 import { TableToolbar, TableToolbarSearch } from "@/components/table-toolbar";
+import { useReviewDataStore } from "@/lib/review-data-store";
 import { ARTICLE_STAGE_LABEL } from "@/features/article-workflow/article-workflow-copy";
 import { useState, useEffect, useCallback } from "react";
 import { useUniqueSorted } from "@/hooks/useUniqueSorted";
@@ -44,20 +45,24 @@ export function EdgeReviewPanel() {
   const [workingRevision, setWorkingRevision] = useState<string | null>(null);
   const [actingId, setActingId] = useState<string | null>(null);
   const [bandByEdge, setBandByEdge] = useState<Record<string, "high" | "medium" | "low" | "">>({});
+  const setPendingCount = useReviewDataStore((s) => s.setPendingCount);
 
   const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await fetchPendingReview();
-      setEdges(data.edges.filter((e) => e.reviewStatus === "pending"));
+      const pending = data.edges.filter((e) => e.reviewStatus === "pending");
+      setEdges(pending);
+      // 2026-11-17 第 1 批接线：待审计数上提共享源（工作台量值带前置依赖，见 review-data-store）
+      setPendingCount(pending.length);
       setWorkingRevision((data as typeof data & { workingRevision?: string }).workingRevision ?? null);
     } catch (e) {
       setError(e instanceof Error ? e.message : TERM.LOAD_FAILED);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [setPendingCount]);
 
   useEffect(() => { load(); }, [load]);
 
