@@ -42,10 +42,10 @@ function register(registerRoute, dependencies) {
   registerActionExecutor("articles.lifecycle.retire", __exec_lifecycle_retire);
 
   // 路径字面量逐条注册（contract-route-parity 契约⇄路由双向对齐口径）
-  registerRoute("POST", "/api/articles/lifecycle/:articleId/promote", (req, res) => executeAction({ actionId: "articles.lifecycle.promote", executor: __exec_lifecycle_promote, request: req, reply: res }));
-  registerRoute("POST", "/api/articles/lifecycle/:articleId/publish", (req, res) => executeAction({ actionId: "articles.lifecycle.publish", executor: __exec_lifecycle_publish, request: req, reply: res }));
-  registerRoute("POST", "/api/articles/lifecycle/:articleId/archive", (req, res) => executeAction({ actionId: "articles.lifecycle.archive", executor: __exec_lifecycle_archive, request: req, reply: res }));
-  registerRoute("POST", "/api/articles/lifecycle/:articleId/retire", (req, res) => executeAction({ actionId: "articles.lifecycle.retire", executor: __exec_lifecycle_retire, request: req, reply: res }));
+  registerRoute("POST", "/api/articles/lifecycle/:articleId/promote", (req, res) => executeAction({ actionId: "articles.lifecycle.promote", executor: __exec_lifecycle_promote, request: req, reply: res }), "articles.lifecycle.promote");
+  registerRoute("POST", "/api/articles/lifecycle/:articleId/publish", (req, res) => executeAction({ actionId: "articles.lifecycle.publish", executor: __exec_lifecycle_publish, request: req, reply: res }), "articles.lifecycle.publish");
+  registerRoute("POST", "/api/articles/lifecycle/:articleId/archive", (req, res) => executeAction({ actionId: "articles.lifecycle.archive", executor: __exec_lifecycle_archive, request: req, reply: res }), "articles.lifecycle.archive");
+  registerRoute("POST", "/api/articles/lifecycle/:articleId/retire", (req, res) => executeAction({ actionId: "articles.lifecycle.retire", executor: __exec_lifecycle_retire, request: req, reply: res }), "articles.lifecycle.retire");
   log.info({ event: "article-lifecycle-routes-registered", actions: ["promote", "publish", "archive", "retire"] });
 }
 
