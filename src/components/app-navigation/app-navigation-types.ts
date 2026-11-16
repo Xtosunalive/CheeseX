@@ -9,7 +9,6 @@ import type React from "react";
 
 /** 全部页面路由 ID —— 与历史 hash 路由保持向后兼容 */
 export type NavId =
-  | "dashboard"
   | "data-dashboard"
   | "entity-compliance"
   | "admission"

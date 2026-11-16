@@ -1,11 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fetchTopology } from "@/features/dashboard/dashboard-api";
+import { fetchTopology } from "@/lib/topology-api";
 import { apiFetchJson } from "@/lib/api";
 import { useGraphStore } from "@/lib/graph-data";
 import { useTopologyStore } from "@/lib/topology-store";
 
-vi.mock("@/features/dashboard/dashboard-api", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@/features/dashboard/dashboard-api")>();
+vi.mock("@/lib/topology-api", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/topology-api")>();
   return { ...actual, fetchTopology: vi.fn() };
 });
 

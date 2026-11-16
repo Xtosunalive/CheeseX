@@ -216,3 +216,39 @@ export function bandWarnTitle(n: number): string {
 export function taxonomyDocCountTitle(n: number): string {
   return `${n} 文档`;
 }
+
+// ── 图谱构成分布（2026-11-15 运行概览退役批自 dashboard 页迁入——本体注册与主图实际内容的对照表，
+// 受众＝本体调整时的对账；默认折叠挂拓扑页签尾）──
+export const COMPOSITION_COPY = {
+  SUBVIEW_TITLE: "图谱构成分布",
+  CATEGORY_DISTRIBUTION: `${TERM.CATEGORY}分布`,
+  CATEGORY_EMPTY: `暂无${TERM.CATEGORY}数据`,
+  RELATION_TYPE_DISTRIBUTION: `${TERM.RELATION}类型分布`,
+  RELATION_TYPE_EMPTY: `暂无${TERM.RELATION}类型数据`,
+  /** 图谱规则使用情况折叠区 */
+  RULE_USAGE: "图谱规则使用情况",
+  RELATION_TYPE_LABEL: `${TERM.RELATION}类型`,
+} as const;
+
+/** 规则使用计数「(已用/总数 已使用)」 */
+export function ontologyUsage(used: number, total: number): string {
+  return `(${used}/${total} 已使用)`;
+}
+
+// ── ReleaseMintCard（全库定版发布卡；2026-11-15 运行概览退役批自 dashboard 页迁入——
+// 发布永不自动（D6 人 gate），定版紧挨着它冻结的图）──
+export const RELEASE_MINT_COPY = {
+  DESCRIPTION: "发布当前全库定版（正式消费面读取的版本）",
+  PUBLISHING: "发布中…",
+  PUBLISH: "发布",
+  /** PR-321/WP-178＋Master 2026-11-15「文案收敛」：两段式确认只留动作——发布→确认发布/取消，不配解说词 */
+  CONFIRM_YES: "确认发布",
+  CONFIRM_NO: "取消",
+} as const;
+
+export function releaseMintRequestIncomplete(status: number): string {
+  return `请求未完成（HTTP ${status}）`;
+}
+export function releaseMintPublished(artifactCount: number): string {
+  return `已发布新版本，共 ${artifactCount} 件产物`;
+}

@@ -11,7 +11,6 @@ import { NAV_DIAG_COPY, navIllegalHashSubRoute, navIllegalSubRoute, navIllegalTa
 
 /** 全部可跳转的页面路由（与 App.tsx getNavFromHash 的识别清单对账） */
 export const NAV_ROUTES = [
-  "dashboard",
   "data-dashboard",
   "entity-compliance",
   "admission",

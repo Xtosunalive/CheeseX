@@ -54,7 +54,7 @@ const tests = [
     runner: "playwright",
   },
   {
-    name: "Dashboard → Pipeline Integration",
+    name: "GraphExplorer → Pipeline Integration",
     script: "dashboard-pipeline-integration-flow.spec.mjs",
     requiresVault: true,
     runner: "playwright",

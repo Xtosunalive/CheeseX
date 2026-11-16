@@ -1,12 +1,11 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { LayoutDashboard, Search, ShieldCheck, Database, GitFork, Settings, FileSearch, GitCompareArrows, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
+import { Search, ShieldCheck, Database, GitFork, Settings, FileSearch, GitCompareArrows, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { AppErrorBoundary } from "@/components/app-shell/AppErrorBoundary";
 import { APP_SHELL_COPY } from "@/components/components-copy";
 // ── F3（体检收账，2026-10-26）：15 视图全部路由级懒加载 ──
 // 首屏只装应用壳（导航/抽屉/Toaster），各视图及其独占依赖（@xyflow/react 等）随访问
 // 拆入独立 chunk——与 ThemePreviewView 同式（.then 取具名导出），vi.mock 动态导入可拦截。
-const DashboardView = lazy(() => import("@/features/dashboard/DashboardView").then(m => ({ default: m.DashboardView })));
 const DataDashboardView = lazy(() => import("@/features/data-dashboard/DataDashboardView").then(m => ({ default: m.DataDashboardView })));
 const AdmissionView = lazy(() => import("@/features/admission/AdmissionView").then(m => ({ default: m.AdmissionView })));
 const ReviewView = lazy(() => import("@/features/review/ReviewView").then(m => ({ default: m.ReviewView })));
@@ -65,7 +64,6 @@ const NAV_GROUPS: NavGroup[] = [
   {
     id: "graph-architecture", icon: Search, label: TERM.TASK_ASSET_LOOKUP,
     items: [
-      { id: "dashboard", icon: LayoutDashboard, label: TERM.DASHBOARD },
       { id: "data-dashboard", icon: Database, label: TERM.GRAPH_EXPLORER },
       { id: "document-inventory", icon: FileSearch, label: TERM.DOC_LOOKUP },
     ],
@@ -84,7 +82,8 @@ function getNavFromHash(): NavId {
   const raw = window.location.hash.replace("#/", "");
   const h = raw.split("?")[0]; // strip query params for nav resolution
   if (h === "admission" || h.startsWith("admission") || h === "node" || h.startsWith("node")) return "admission";
-  if (h === "dashboard") return "dashboard";
+  // 运行概览退役（2026-11-17 Master 裁 B）：旧 hash 回落图谱检索枢纽（publish→article-workflow 同款兼容先例）
+  if (h === "dashboard") return "data-dashboard";
   if (h === "data-dashboard") return "data-dashboard";
   if (h === "entity-compliance") return "entity-compliance";
   if (h === "review" || h.startsWith("review/")) return "review";
@@ -102,7 +101,7 @@ function getNavFromHash(): NavId {
   if (h === "publish") return "article-workflow"; // 审批与发布页退役（2026-10-15 收敛）——旧链接回落文章工作台
   // 主题预览仅 DEV 可达（import.meta.env.DEV）；生产回落 dashboard
   if (h === "theme" && import.meta.env.DEV) return "theme";
-  return "dashboard";
+  return "data-dashboard";
 }
 
 /** NAV_GROUPS 全部导航项 id（运行时从 NAV_GROUPS 派生，保持导航配置单一来源；组 id 不是路由 id） */
@@ -126,7 +125,6 @@ function ThemePreviewLazy() {
 
 /** View components keyed by NavId — single source of truth for view resolution */
 const VIEWS: Record<NavId, React.ComponentType> = {
-  dashboard: DashboardView,
   "data-dashboard": DataDashboardView,
   "entity-compliance": EntityComplianceView,
   admission: AdmissionView,
@@ -145,7 +143,6 @@ const VIEWS: Record<NavId, React.ComponentType> = {
 
 /** Human-readable boundary names for ErrorBoundary */
 const VIEW_BOUNDARIES: Record<NavId, string> = {
-  dashboard: "DashboardView",
   "data-dashboard": "DataDashboardView",
   "entity-compliance": "EntityComplianceView",
   admission: "AdmissionView",
@@ -206,7 +203,7 @@ export default function App() {
   const navigateTo = (id: NavId) => {
     setActiveNav(id);
     // 原 #/${id} 动态直写；theme 为 DEV-only 预览路由不经 navigate，非法 id 兜底 dashboard
-    navigate((NAV_ROUTES as readonly string[]).includes(id) ? (id as NavRoute) : "dashboard");
+    navigate((NAV_ROUTES as readonly string[]).includes(id) ? (id as NavRoute) : "data-dashboard");
   };
 
   const ActiveView = VIEWS[activeNav];

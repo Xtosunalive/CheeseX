@@ -5,7 +5,7 @@ import { useState, useEffect, useMemo } from "react";
 import { useAdmittedNodes, useAdmittedEdges, useGapItems } from "@/lib/topology-store";
 import { runImpactAnalysis } from "@/features/impact-analysis/impact-analysis-api";
 import type { ImpactAnalysisResult } from "@/features/impact-analysis/impact-analysis-types";
-import type { TopoNode, TopoEdge } from "@/features/dashboard/dashboard-types";
+import type { TopoNode, TopoEdge } from "@/lib/topology-types";
 import type { GapItem } from "@/features/gap-engine/gap-types";
 import { TERM } from "@/constants/term-const";
 

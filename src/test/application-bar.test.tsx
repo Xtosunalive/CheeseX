@@ -100,7 +100,6 @@ describe("global navigation sidebar", () => {
       TERM.RELATION_REVIEW,
       TERM.TOPOLOGY_GAP_REVIEW,
       TERM.ARTICLE_MAPPING_REPAIR,
-      TERM.DASHBOARD,
       TERM.GRAPH_EXPLORER,
       TERM.DOC_LOOKUP,
       TERM.SCHEMA,

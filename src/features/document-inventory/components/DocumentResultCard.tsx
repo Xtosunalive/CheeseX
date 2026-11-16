@@ -78,7 +78,7 @@ export function DocumentResultCard({ document, expanded, onToggle }: { document:
               onClick={(e) => {
                 e.stopPropagation();
                 setActiveEntityId(nodeId);
-                navigate("dashboard", { query: { highlight: nodeId } });
+                navigate("data-dashboard");
               }}
               className="inline-flex items-center gap-1 rounded-md bg-surface-hover px-2.5 py-1 text-xs text-text-sub hover:text-text-main hover:bg-accent-bg transition-colors"
               title={DOCUMENT_RESULT_CARD_COPY.GRAPH_HIGHLIGHT_TITLE}

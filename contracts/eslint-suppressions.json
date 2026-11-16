@@ -1,9 +1,4 @@
 {
-  "src/features/dashboard/dashboard-api.ts": {
-    "no-restricted-syntax": {
-      "count": 1
-    }
-  },
   "src/features/gap-engine/gap-api.ts": {
     "no-restricted-syntax": {
       "count": 1
