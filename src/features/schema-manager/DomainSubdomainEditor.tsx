@@ -184,9 +184,9 @@ export function DomainSubdomainEditor({
 
   return (
     <section aria-label={DOMAIN_EDITOR_COPY.SECTION_ARIA} className="space-y-3">
-      <div className="flex gap-4">
+      <div className="flex flex-col gap-4 md:flex-row">
         {/* Left: Domain list */}
-        {showDomainList && <div className="w-56 shrink-0 space-y-2">
+        {showDomainList && <div className="w-full shrink-0 space-y-2 md:w-56">
           {domainIds.map((id) => (
             <div
               key={id}
@@ -424,7 +424,7 @@ export function DomainSubdomainEditor({
                 </fieldset>
               )}
               {!disabled && (
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <input
                     type="text"
                     value={newSubdomain}
@@ -432,7 +432,7 @@ export function DomainSubdomainEditor({
                     onKeyDown={(e) => { if (e.key === "Enter") addSubdomain(); }}
                     placeholder={DOMAIN_EDITOR_COPY.NEW_SUBDOMAIN_ID_PLACEHOLDER}
                     disabled={disabled}
-                    className="w-40 rounded-lg ring-1 ring-border-thin bg-surface-card px-3 py-2 text-sm text-text-main placeholder:text-text-placeholder focus:ring-1 focus:ring-accent-base focus:outline-none"
+                    className="w-full min-w-0 flex-1 rounded-lg ring-1 ring-border-thin bg-surface-card px-3 py-2 text-sm text-text-main placeholder:text-text-placeholder focus:ring-1 focus:ring-accent-base focus:outline-none sm:w-40 sm:flex-none"
                   />
                   <input
                     type="text"
@@ -441,7 +441,7 @@ export function DomainSubdomainEditor({
                     onKeyDown={(e) => { if (e.key === "Enter") addSubdomain(); }}
                     placeholder={DOMAIN_EDITOR_COPY.SUBDOMAIN_LABEL_PLACEHOLDER}
                     disabled={disabled}
-                    className="w-48 rounded-lg ring-1 ring-border-thin bg-surface-card px-3 py-2 text-sm text-text-sub placeholder:text-text-placeholder focus:ring-1 focus:ring-accent-base focus:outline-none"
+                    className="w-full min-w-0 flex-1 rounded-lg ring-1 ring-border-thin bg-surface-card px-3 py-2 text-sm text-text-sub placeholder:text-text-placeholder focus:ring-1 focus:ring-accent-base focus:outline-none sm:w-48 sm:flex-none"
                   />
                   <button
                     onClick={addSubdomain}

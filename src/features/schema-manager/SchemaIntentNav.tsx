@@ -33,7 +33,7 @@ export function SchemaIntentNav({
     <aside
       aria-label={INTENT_NAV_COPY.NAV_ARIA}
       data-testid="schema-intent-nav"
-      className="w-[220px] shrink-0 flex flex-col bg-surface-root/40 border-r border-border-thin overflow-hidden"
+      className="w-full max-h-48 shrink-0 flex flex-col bg-surface-root/40 border-b border-border-thin overflow-hidden md:max-h-none md:w-[220px] md:border-b-0 md:border-r"
     >
       <div className="flex-1 overflow-y-auto overflow-x-hidden pt-3 px-2 space-y-1.5">
         {schemaPartitions().map((partition) => {
