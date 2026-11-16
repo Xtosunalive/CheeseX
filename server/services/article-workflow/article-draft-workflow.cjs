@@ -226,7 +226,9 @@ function createArticleDraftWorkflow({ vaultPath, logger, workflowError, ensureUp
     return { precleanedPath: relativeVaultPath(precleaned), message: result.stdout.trim() };
   }
 
-  return { validateDraft, promoteDraft };
+  // PR-327 加固批·生命周期端点（Master 2026-11-17 裁「archive 独立端点」）：归档随迁语义的独立暴露——
+  // 原文转内容寻址归档（幂等：已归档即回现有路径），供生命周期 archive 动作委托（不造第二语义）。
+  return { validateDraft, promoteDraft, archiveDraftSource };
 }
 
 module.exports = { createArticleDraftWorkflow };

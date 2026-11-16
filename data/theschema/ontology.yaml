@@ -1299,6 +1299,40 @@ action_types:
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/drafts/promote requestBody"
+  # Wave3 走查缺口①阶段二（Master 2026-11-17 裁）：生命周期 transitions 边四动作绑进文章类——
+  # 本体登记→注册表/派生计划全链自动（OpenMAIC/Strapi 每动作专用端点标准形态）。
+  articles.lifecycle.promote:
+    class_id: KnowledgeArticle
+    http_route: "POST /api/articles/lifecycle/{articleId}/promote"
+    executor: articles.lifecycle.promote
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/articles/lifecycle/{articleId}/promote requestBody"
+  articles.lifecycle.publish:
+    class_id: KnowledgeArticle
+    http_route: "POST /api/articles/lifecycle/{articleId}/publish"
+    executor: articles.lifecycle.publish
+    required_roles: [ review ]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/articles/lifecycle/{articleId}/publish requestBody"
+  articles.lifecycle.archive:
+    class_id: KnowledgeArticle
+    http_route: "POST /api/articles/lifecycle/{articleId}/archive"
+    executor: articles.lifecycle.archive
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/articles/lifecycle/{articleId}/archive requestBody"
+  articles.lifecycle.retire:
+    class_id: KnowledgeArticle
+    http_route: "POST /api/articles/lifecycle/{articleId}/retire"
+    executor: articles.lifecycle.retire
+    required_roles: [ review ]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/articles/lifecycle/{articleId}/retire requestBody"
   # WP-171（SPEC-095 §3.3 首批）：validate 为生命周期首站写操作（归档+自动填+任务快照）——
   # 最后一个旁路写路径收编，文章写操作六/六全经工厂（登记即执法）
   articles.drafts-validate:

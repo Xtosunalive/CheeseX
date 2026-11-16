@@ -499,7 +499,7 @@ test('每条失败路径保留原始 ID 与完整替代链，不改源定义', (
   }
 });
 
-test("仓内知识文章只继承自身九条现役写动作", () => {
+test("仓内知识文章只继承自身现役写动作（Wave3 生命周期四动作绑入后＝13 条）", () => {
   const { parse } = require("yaml");
   const fs = require("node:fs");
   const path = require("node:path");
@@ -509,8 +509,9 @@ test("仓内知识文章只继承自身九条现役写动作", () => {
   const writes = resolved.action_types.filter(({ definition }) => /^(POST|PATCH) /.test(definition.http_route));
   assert.deepEqual(writes.map(({ id }) => id).sort(), [
     "approval.transition", "article-associations.remove", "article-associations.save",
-    "articles.drafts-promote", "articles.drafts-validate", "articles.patch-fields",
-    "articles.retire", "articles.standardize", "articles.upload",
+    "articles.drafts-promote", "articles.drafts-validate", "articles.lifecycle.archive",
+    "articles.lifecycle.promote", "articles.lifecycle.publish", "articles.lifecycle.retire",
+    "articles.patch-fields", "articles.retire", "articles.standardize", "articles.upload",
   ]);
   assert.deepEqual(resolved.action_types.filter(({ definition }) => definition.http_route.startsWith("GET ")).map(({ id }) => id), ["articles.status"]);
   for (const { definition } of writes) {

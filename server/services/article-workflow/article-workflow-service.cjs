@@ -688,6 +688,16 @@ function createArticleWorkflowService(options) {
     getStatusCandidate,
     listPublishedVersions: listCurrentStandardVersions,
     validateDraft: (filePath, options) => draftWorkflow.validateDraft(filePath, options), promoteDraft: promoteDraftWithSync,
+    // 生命周期 archive 动作（Master 2026-11-17 裁「archive 独立端点」）：原文归档（幂等）＋撤出工作区
+    //——草稿文件删除后由读时销账（①源删除销账）自然闭合候选，不新增状态值。
+    archiveDraft: async (filePath, confirmed) => {
+      if (confirmed !== true) throw workflowError("CONFIRMATION_REQUIRED", "归档动作需要 confirmed: true 显式确认");
+      const archive = draftWorkflow.archiveDraftSource(filePath);
+      const absolute = resolveVaultRelative(filePath, precleanedDir);
+      if (fs.existsSync(absolute)) fs.rmSync(absolute);
+      synchronizedState();
+      return { ...archive, removed: true };
+    },
     digestUploadTasks,
   };
 

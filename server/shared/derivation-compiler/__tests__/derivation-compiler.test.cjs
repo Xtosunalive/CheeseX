@@ -22,9 +22,9 @@ test("文章类编译：正确生成路由、字段、UI配置", () => {
   });
   assert.equal(compiled.classId, "KnowledgeArticle");
   assert.deepEqual(compiled.uiConfig.inheritanceChain, ["Document", "KnowledgeArticle"]);
-  assert.equal(compiled.apiRoutes.length, 10);
+  assert.equal(compiled.apiRoutes.length, 14); // Wave3 阶段二：+4 生命周期动作绑定
   assert.ok(compiled.storageFields.some((f) => f.fieldName === "title" && f.required));
-  assert.equal(compiled.uiConfig.actionIds.length, 10);
+  assert.equal(compiled.uiConfig.actionIds.length, 14);
 });
 
 test("编译确定性：同输入两次产物完全一致", () => {
@@ -84,8 +84,8 @@ test("生命周期路由计划：四条 transitions 边全部派生，起点/目
   for (const route of plan) {
     assert.ok(route.action, "动作名非空");
     assert.ok(route.from && route.to, "起点态/目标态守卫随行");
-    assert.equal(route.inContract, false, "阶段一：生命周期端点尚未登记契约——计划面显式标记（漂移可见，不再沉默手动接线）");
-    assert.match(route.routeTemplate, /^\/api\/articles\/lifecycle\/:articleId\//, "规范路由模板");
+    assert.equal(route.inContract, true, "阶段二：契约已登记四端点——计划面 inContract 翻转（漂移可见机制闭环实证）");
+    assert.match(route.routeTemplate, /^\/api\/articles\/lifecycle\/\{articleId\}\//, "契约登记的规范路由模板");
   }
   const actions = plan.map((route) => route.action);
   assert.deepEqual(actions, ["promote", "publish", "archive", "retire"], "四边动作与契约一致");
