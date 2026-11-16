@@ -1210,6 +1210,20 @@ action_types:
     preconditions: []
     input_schema:
       contract_ref: "POST /api/governance/resolve requestBody"
+  governance.reopen:
+    http_route: "POST /api/governance/reopen"
+    executor: governance.reopen
+    required_roles: []
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/governance/reopen requestBody"
+  inference.review:
+    http_route: "POST /api/kg/inference-conflicts/{conflictId}/review"
+    executor: inference.review
+    required_roles: [ review ]
+    preconditions: []
+    input_schema:
+      contract_ref: "POST /api/kg/inference-conflicts/{conflictId}/review requestBody"
 
   # WP-048 W1-B 批（ADR-014 §八 #1/2/3/5/6/10/11/13/18/44/48/49）：文章/异常/评审族 12 个动作。
   # approval.transition 载荷敏感角色升级（operation=publish→publish 角色）以 payload_role_overrides

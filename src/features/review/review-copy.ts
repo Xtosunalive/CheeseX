@@ -22,6 +22,8 @@ export const REVIEW_REQUEST_COPY = {
   REQUEST_FAILED: "关系评审请求失败",
   /** GET /api/kg/inference-conflicts 读取 */
   CONFLICTS_FETCH_FAILED: "获取冲突列表失败",
+  /** POST …/{conflictId}/review 裁决/重开（Wave3 阶段三） */
+  REVIEW_FAILED: "冲突裁决请求失败",
 } as const;
 
 // ── ReviewView（关系审核 Tab 页入口）──
@@ -142,6 +144,19 @@ export function edgeReviewBlockerText(kindLabel: string, entityId: string | null
 
 // ── InferenceConflictPanel（规则冲突表）──
 export const INFERENCE_CONFLICT_COPY = {
+  /** Wave3 阶段三：裁决表单（unresolved 展开详情）＋重开（resolved 展开详情） */
+  RESOLVE_EFFECT_LABEL: "采纳的裁决效果",
+  RESOLVE_EFFECT_ARIA: "选择裁决效果",
+  RESOLVE_REASON_ARIA: "裁决理由",
+  RESOLVE_REASON_PLACEHOLDER: "裁决理由（必填）",
+  RESOLVE_ACTION_ARIA: "确认裁决",
+  RESOLVE_ACTION: "确认裁决",
+  RESOLVING: "裁决提交中…",
+  RESOLVE_FORM_ERROR: "请选择裁决效果并填写理由",
+  REOPEN_ACTION_ARIA: "重开此冲突",
+  REOPEN_ACTION: "重开",
+  REOPENING: "重开中…",
+  REOPEN_DEFAULT_REASON: "裁决复核后重开",
   /** 状态筛选三选（STATUS_OPTIONS）＋statusLabel 同族（同一事实只一份） */
   STATUS_ALL: "全部状态",
   STATUS_UNRESOLVED: "待解决",

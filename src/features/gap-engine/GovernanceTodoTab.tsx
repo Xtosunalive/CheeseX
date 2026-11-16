@@ -1,10 +1,10 @@
 // GovernanceTodoTab — Tab 3: 真实数据质量问题 (gap-engine powered)
 // v3: two-step exempt flow with Obsidian guidance + frontmatter snippet
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ShieldCheck, Lightbulb, ExternalLink, X } from "lucide-react";
 import { useGapItems, useTopologyStore } from "@/lib/topology-store";
-import { resolveGap } from "./gap-api";
+import { listGovernanceActions, reopenGap, resolveGap } from "./gap-api";
 import { TERM } from "@/constants/term-const";
 import {
   GOVERNANCE_TODO_COPY,
@@ -13,6 +13,8 @@ import {
   governanceTodoExemptedShort,
 } from "./gap-engine-copy";
 import { EmptyState } from "@/components/empty-state";
+import { Button } from "@/components/ui/button";
+import { Tag } from "@/components/ui/tag";
 import { ObsidianLink } from "@/components/obsidian";
 import {
   GAP_TYPE_LABEL,
@@ -111,7 +113,69 @@ export function GovernanceTodoTab() {
           onCancelExempt={() => setPendingExempt(null)}
         />
       )}
+      {/* PR-317 反悔通道（2026-11-17 裁）：已处置缺口折叠区——重开使缺口重新可见可处置 */}
+      <ResolvedGapsSection />
     </div>
+  );
+}
+
+// ── Resolved Gaps Section（PR-317 反悔通道）──
+
+function ResolvedGapsSection() {
+  const [open, setOpen] = useState(false);
+  const [rows, setRows] = useState<Array<{ gapId: string; action: string; note: string; resolvedAt: string }> | null>(null);
+  const [reopening, setReopening] = useState<string | null>(null);
+  const loadable = open && rows === null;
+
+  useEffect(() => {
+    if (!loadable) return;
+    let cancelled = false;
+    listGovernanceActions()
+      .then((data) => { if (!cancelled) setRows(data.actions.filter((a) => a.action !== "reopened")); })
+      .catch(() => { if (!cancelled) setRows([]); });
+    return () => { cancelled = true; };
+  }, [loadable]);
+
+  const reopen = async (gapId: string) => {
+    setReopening(gapId);
+    try {
+      await reopenGap(gapId);
+      setRows((prev) => (prev ? prev.filter((row) => row.gapId !== gapId) : prev));
+    } finally {
+      setReopening(null);
+    }
+  };
+
+  if (!open) {
+    return (
+      <Button type="button" variant="link" size="sm" onClick={() => setOpen(true)} className="h-auto p-0 text-xs font-normal text-text-hint hover:text-text-main">
+        {GOVERNANCE_TODO_COPY.RESOLVED_SECTION_TITLE} →
+      </Button>
+    );
+  }
+  return (
+    <section aria-label={GOVERNANCE_TODO_COPY.RESOLVED_SECTION_ARIA} className="rounded-xl bg-surface-card ring-1 ring-border-thin p-5">
+      <h2 className="mb-3 text-sm font-semibold text-text-main">{GOVERNANCE_TODO_COPY.RESOLVED_SECTION_TITLE}</h2>
+      {rows === null ? (
+        <p className="text-xs text-text-hint">{TERM.LOADING}</p>
+      ) : rows.length === 0 ? (
+        <p className="text-xs text-text-hint">{GOVERNANCE_TODO_COPY.EMPTY_TITLE}</p>
+      ) : (
+        <ul className="space-y-1.5">
+          {rows.map((row) => (
+            <li key={`${row.gapId}-${row.action}`} className="flex items-center justify-between gap-2 text-xs">
+              <span className="truncate text-text-sub">{row.gapId}</span>
+              <span className="flex items-center gap-2">
+                <Tag tone="neutral">{row.action}</Tag>
+                <Button type="button" variant="outline" size="sm" aria-label={`${GOVERNANCE_TODO_COPY.REOPEN_ARIA} ${row.gapId}`} onClick={() => void reopen(row.gapId)} disabled={reopening === row.gapId}>
+                  {reopening === row.gapId ? TERM.LOADING : GOVERNANCE_TODO_COPY.REOPEN_ACTION}
+                </Button>
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 

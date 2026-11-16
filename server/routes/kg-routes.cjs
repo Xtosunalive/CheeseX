@@ -38,6 +38,7 @@ function register(registerRoute, deps) {
   const formalConsumer = deps.formalConsumer || null;
   const impactAnalysisFactory = deps.impactAnalysisFactory || null;
   const addGovernanceAction = deps.addGovernanceAction;
+  const listGovernanceActions = deps.listGovernanceActions || null;
   const getResolvedGapIds = typeof deps.getResolvedGapIds === "function" ? deps.getResolvedGapIds : null;
   // 图族刷新收敛（2026-10-15）：图服务读路径顺带做漂移检测（节流；漂移→后台去抖自动重算，绝不阻塞读）
   const graphDriftCheck = typeof deps.graphDriftCheck === "function" ? deps.graphDriftCheck : null;
@@ -453,11 +454,11 @@ function register(registerRoute, deps) {
     };
 
     if (typeof addGovernanceAction !== "function") throw createError("INTERNAL_ERROR", "写入治理决策失败", 500);
-    // PR-317（WP-178）：幂等拒绝——同 gapId 已处置（resolved/ignored/exempted 任一）再 resolve 即 409，
-    // 杜绝重复账本追加。退出路径显式登记：账本 append-only 无系统内撤销通道，恢复=人工账本侧处理
-    // （治理仓 data 侧条目清理），不建 revert 端点（另案裁决）。
+    // PR-317（WP-178）＋PR-327 加固批修订：幂等拒绝语义改「最新条目胜出」——同 gapId 已处置
+    // （resolved/ignored/exempted 任一）再 resolve 即 409；reopened 后允许重新 resolve
+    //（撤销通道＝governance.reopen 端点，OpenMAIC unpublish 同款专用反向动作形态）。
     if (getResolvedGapIds && getResolvedGapIds().has(gapId)) {
-      throw createError("GAP_ALREADY_RESOLVED", "该治理缺口已处置，不得重复 resolve（账本 append-only 无撤销）", 409, { gapId, action });
+      throw createError("GAP_ALREADY_RESOLVED", "该治理缺口已处置，不得重复 resolve（可用 governance/reopen 撤销后再处置）", 409, { gapId, action });
     }
     var existing;
     try {
@@ -474,6 +475,43 @@ function register(registerRoute, deps) {
 
   registerRoute("POST", "/api/governance/resolve", (req, res) => {
     return executeAction({ actionId: "governance.resolve", executor: __exec_governance_resolve, request: req, reply: res });
+  });
+
+  // ── POST /api/governance/reopen — 已处置缺口撤销（PR-317 反悔通道；PR-327 加固批落端点）──
+  // 语义：追加 action=reopened 行（最新条目胜出）→ 缺口重新可见可处置；无确认参数由前端二次确认承担。
+  const __exec_governance_reopen = function (ctx) {
+    var payload = ctx.body;
+    var gapId = (payload.gapId || "").trim();
+    if (!gapId) throw createError("VALIDATION_ERROR", "gapId 为必填项", 400);
+    if (typeof addGovernanceAction !== "function") throw createError("INTERNAL_ERROR", "写入治理决策失败", 500);
+    var existing;
+    try {
+      existing = addGovernanceAction({ gapId: gapId, action: "reopened", note: (payload.note || "").trim() });
+      logger.info({ event: "governance-reopened", gapId: gapId });
+    } catch (e) {
+      logger.error({ event: "governance-write-failed", error: e.message });
+      throw createError("INTERNAL_ERROR", "写入治理决策失败", 500);
+    }
+    return { success: true, total: existing ? existing.length : 1 };
+  };
+  registerActionExecutor("governance.reopen", __exec_governance_reopen);
+  registerRoute("POST", "/api/governance/reopen", (req, res) => {
+    return executeAction({ actionId: "governance.reopen", executor: __exec_governance_reopen, request: req, reply: res });
+  });
+
+  // ── GET /api/governance/actions — 已处置缺口清单（已处置视图＋reopen 入口的数据面，PR-317 反悔通道）──
+  registerRoute("GET", "/api/governance/actions", (req, res) => {
+    try {
+      if (typeof listGovernanceActions !== "function") {
+        throw createError("INTERNAL_ERROR", "治理决策存储未初始化", 500);
+      }
+      const list = listGovernanceActions();
+      const resolvedIds = getResolvedGapIds ? getResolvedGapIds() : [];
+      sendJSON(res, 200, { actions: list, resolvedGapIds: [...resolvedIds], total: list.length });
+    } catch (error) {
+      const code = error && error.code ? error.code : "INTERNAL_ERROR";
+      sendJSON(res, error.status || 500, { error_code: code, message: error.message || "读取治理决策失败" });
+    }
   });
 }
 
