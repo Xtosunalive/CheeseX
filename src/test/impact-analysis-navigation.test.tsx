@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { TERM } from "@/constants/term-const";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "@/App";
@@ -21,5 +21,11 @@ describe("impact analysis navigation", () => {
     // 归一渲染枢纽宿主（ImpactAnalysisView 已 mock，无其文案）——断言宿主可达即可
     expect(await screen.findByTestId("hub-host")).toBeInTheDocument();
   });
-  it("opens architecture version comparison from the always-on sidebar", async () => { render(<App />); fireEvent.click(screen.getByRole("button", { name: TERM.VERSION_ANALYSIS })); expect(await screen.findByText("版本对比页")).toBeInTheDocument(); });
+  it("版本分析入口随第 5 批并入审批发布区（导航项退役；hash 归一 article-workflow/version-diff 页签）", async () => {
+    render(<App />);
+    expect(screen.queryByRole("button", { name: TERM.VERSION_ANALYSIS })).not.toBeInTheDocument();
+    window.location.hash = "#/architecture-version";
+    // 归一渲染文章准入宿主（ArchitectureVersionView 已 mock，无其文案）——断言宿主可达即可
+    expect(await screen.findByTestId("hub-host")).toBeInTheDocument();
+  });
 });

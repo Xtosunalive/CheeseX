@@ -35,6 +35,7 @@ export type NavRoute = (typeof NAV_ROUTES)[number];
 const SUB_ROUTES: Partial<Record<NavRoute, string[]>> = {
   review: ["edges", "nodes", "conflicts", "audit"],
   property: ["manifest", "entities", "edges", "checks", "mapping", "entity-compliance"],
+  "article-workflow": ["drafts", "version-diff"],
 };
 
 function isNavRoute(id: string): id is NavRoute {

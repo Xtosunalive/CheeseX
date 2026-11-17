@@ -90,7 +90,6 @@ describe("global navigation sidebar", () => {
     // 多页任务域保留分组标题；内容管道已随发布页退役拍平为单页域（标题不再渲染）
     for (const label of [
       TERM.TASK_KNOWLEDGE_APPROVAL,
-      TERM.TASK_ASSET_LOOKUP,
       TERM.TASK_RULE_CHECK,
     ]) {
       expect(within(dialog).getByText(label)).toBeInTheDocument();
@@ -104,7 +103,6 @@ describe("global navigation sidebar", () => {
       TERM.SCHEMA,
       TERM.ARTICLE_AND_COMPONENTS,
       TERM.PENDING_ISSUES,
-      TERM.VERSION_ANALYSIS,
     ]) {
       expect(within(dialog).getByRole("button", { name: label })).toBeInTheDocument();
     }
@@ -116,7 +114,7 @@ describe("global navigation sidebar", () => {
     const dialog = screen.getByRole("complementary", { name: TERM.GLOBAL_NAVIGATION });
     expect(within(dialog).getByRole("button", { name: TERM.RELATION_REVIEW })).toHaveAttribute("aria-current", "page");
     expect(within(dialog).getByText(TERM.TASK_KNOWLEDGE_APPROVAL)).toHaveAttribute("aria-current", "location");
-    expect(within(dialog).getByText(TERM.TASK_ASSET_LOOKUP)).not.toHaveAttribute("aria-current");
+    expect(within(dialog).getByRole("button", { name: TERM.GRAPH_EXPLORER })).not.toHaveAttribute("aria-current", "page"); // 单页域拍平后组标签不渲染（第 5 批）
   });
 
   it("marks the flattened single-page domain item as the current page", () => {

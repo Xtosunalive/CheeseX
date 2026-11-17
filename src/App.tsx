@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { LayoutDashboard, Search, ShieldCheck, Database, GitFork, Settings, GitCompareArrows, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
+import { LayoutDashboard, ShieldCheck, Database, GitFork, Settings, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { AppErrorBoundary } from "@/components/app-shell/AppErrorBoundary";
 import { APP_SHELL_COPY } from "@/components/components-copy";
@@ -62,10 +62,9 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    id: "graph-architecture", icon: Search, label: TERM.TASK_ASSET_LOOKUP,
+    id: "graph-architecture", icon: Database, label: TERM.TASK_ASSET_LOOKUP,
     items: [
       { id: "data-dashboard", icon: Database, label: TERM.GRAPH_EXPLORER },
-      { id: "architecture-version", icon: GitCompareArrows, label: TERM.VERSION_ANALYSIS },
     ],
   },
 ];
@@ -85,7 +84,8 @@ function getNavFromHash(): NavId {
   // 第 3 批对象浏览器：三旧路由并入图谱检索枢纽页签（hash 原样透传，页签初值读 sub）
   if (h === "document-inventory" || h.startsWith("document-inventory")) return "data-dashboard";
   if (h === "impact-analysis" || h.startsWith("impact-analysis")) return "data-dashboard";
-  if (h === "architecture-version") return "architecture-version";
+  // 第 5 批：版本分析并入审批与发布区（version-diff 页签；hash 透传 sub 供页签初值）
+  if (h === "architecture-version") return "article-workflow";
   // seq212：旧「关系查询」路由并入图谱检索枢纽——渲染映射 + URL 归一化（见下方 normalize 效果）
   if (h === "relations" || h.startsWith("relations")) return "data-dashboard";
   if (h === "property" || h.startsWith("property/")) return "property";
