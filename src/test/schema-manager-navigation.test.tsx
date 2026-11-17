@@ -34,7 +34,7 @@ describe("Skeleton Management navigation", () => {
   it("exposes task-domain titles and the flattened pipeline entry in the global navigation sheet", () => {
     render(<App />);
     const dialog = screen.getByRole("complementary", { name: "全局导航" });
-    for (const label of ["知识审批", "图谱架构", "规则门禁", TERM.TASK_ASSET_LOOKUP]) {
+    for (const label of ["知识审批", "规则门禁"]) {
       expect(within(dialog).getByText(label)).toBeInTheDocument();
     }
     // 发布页退役（2026-10-15 收敛）后内容管道仅剩一项：单项组拍平，无组标题，仅剩「文章准入」按钮
@@ -46,7 +46,7 @@ describe("Skeleton Management navigation", () => {
   it("orders task domains by operational dependency", () => {
     render(<App />);
     const dialog = screen.getByRole("complementary", { name: "全局导航" });
-    const labels = ["规则门禁", "知识审批", "图谱架构", TERM.TASK_ASSET_LOOKUP];
+    const labels = ["规则门禁", "知识审批"];
     const positions = labels.map((label) => within(dialog).getByText(label, { exact: true }).getBoundingClientRect().top);
     expect(positions.every((position, index) => index === 0 || position >= positions[index - 1])).toBe(true);
     // 拍平的「文章准入」仍占内容管道原排序位：规则门禁之后、知识审批之前（jsdom 无布局，用 DOM 序断言）
@@ -63,7 +63,7 @@ describe("Skeleton Management navigation", () => {
     expect(window.location.hash).toBe("#/schema");
     const globalNavigation = screen.getByTestId("global-navigation");
     const routeButtons = within(globalNavigation).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route");
-    expect(routeButtons).toHaveLength(10);
+    expect(routeButtons).toHaveLength(9);
     expect(within(globalNavigation).queryByText("参考资料")).not.toBeInTheDocument();
     expect(within(globalNavigation).queryByText("backup")).not.toBeInTheDocument();
     const sidebarRoute = within(globalNavigation).getByRole("button", { name: "图谱规则配置" });
@@ -93,8 +93,8 @@ describe("Skeleton Management navigation", () => {
       // F3 视图懒加载：各视图首挂异步解析，改 findBy 等待
       expect(await screen.findByText(page)).toBeInTheDocument();
       const navigation = within(screen.getByTestId("global-navigation"));
-      // 完整树常驻：全 10 个 route（第 4 批：实体合规入修复中心页签），当前页面标记 aria-current
-      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(10);
+      // 完整树常驻：全 9 个 route（第 5 批：版本分析并入审批发布区），当前页面标记 aria-current
+      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(9);
       expect(navigation.getByRole("button", { name: activeRoute })).toHaveAttribute("aria-current", "page");
       view.unmount();
     }
@@ -130,7 +130,7 @@ describe("Skeleton Management navigation", () => {
     render(<App />);
     const sidebar = screen.getByTestId("global-navigation");
     expect(sidebar).toHaveAttribute("aria-label", "全局导航");
-    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(10);
+    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(9);
   });
 
   it("professional pages remain independently accessible and are not anomaly sub-routes", () => {
