@@ -149,6 +149,7 @@ export const SCHEMA_TAB_NAMES = {
   VERSIONS: "产品版本",
   /** 版本快照＝git 账页（无字典对象，TAB_LABEL_FALLBACKS 声明回退名） */
   HISTORY: "版本快照",
+  AUDIT_TIMELINE: "审计时间线",
   RELATIONS: "关系类型",
   FIELDS: "字段字典",
   DISCOVERY: "未收录值",

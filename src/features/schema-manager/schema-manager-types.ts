@@ -68,7 +68,7 @@ export interface FormalAbsorbRequest {
 import { canonicalTabLabels } from "@/lib/schema-shape";
 import { OBJECT_DICTIONARY } from "@/lib/object-dictionary";
 
-export type TabId = "domains" | "layers" | "categories" | "taxonomy" | "modules" | "tags" | "discovery" | "ontology" | "dependencies" | "versions" | "history" | "fields" | "concepts" | "relations";
+export type TabId = "domains" | "layers" | "categories" | "taxonomy" | "modules" | "tags" | "discovery" | "ontology" | "dependencies" | "versions" | "history" | "audit-timeline" | "fields" | "concepts" | "relations";
 
 export type SaveStatus = "clean" | "dirty" | "saving" | "saved" | "error";
 
@@ -78,7 +78,7 @@ export type SaveStatus = "clean" | "dirty" | "saving" | "saved" | "error";
 const TAB_IDS = [
   "domains", "layers", "categories", "taxonomy", "modules", "discovery",
   "tags", "concepts", "ontology", "dependencies", "versions",
-  "history", "relations", "fields",
+  "history", "audit-timeline", "relations", "fields",
 ] as const satisfies readonly TabId[];
 
 export const TAB_LABELS: Record<TabId, string> = canonicalTabLabels(

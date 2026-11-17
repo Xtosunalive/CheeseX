@@ -53,7 +53,7 @@ const cleanOntology: ShapeOntologyInput = {
 };
 
 describe("schemaPartitions（静态分区单源）", () => {
-  it("五分区叶子并集 ≡ TAB_LABELS 键集（双向全等：无重无漏无漂移）", () => {
+  it("分区叶子并集 ≡ TAB_LABELS 键集（双向全等：无重无漏无漂移）", () => {
     const leaves = schemaPartitions().flatMap((p) => p.tabs);
     expect(new Set(leaves).size).toBe(leaves.length);
     expect([...leaves].sort()).toEqual(Object.keys(TAB_LABELS).sort());
@@ -268,16 +268,17 @@ describe("语义投影 tabSemantics/canonicalTabLabels", () => {
     expect(labels["unknown-tab"]).toBe("unknown-tab");
   });
 
-  it("真字典投影：14 页签正名齐备且与 Master 裁决名一致（批10 +产品模块）", () => {
-    const TABS = ["domains","layers","categories","taxonomy","modules","discovery","tags","concepts","ontology","dependencies","versions","history","relations","fields"];
+  it("真字典投影：15 页签正名齐备且与 Master 裁决名一致（批10 +产品模块）", () => {
+    const TABS = ["domains","layers","categories","taxonomy","modules","discovery","tags","concepts","ontology","dependencies","versions","history","audit-timeline","relations","fields"];
     const labels = canonicalTabLabels(OBJECT_DICTIONARY, TABS);
-    expect(Object.keys(labels)).toHaveLength(14);
+    expect(Object.keys(labels)).toHaveLength(15);
     expect(labels.modules).toBe("产品模块"); // 批10 拆页签（Master 2026-10-26「1 拆」）
     expect(Object.values(labels).every((v) => v && v.length > 0)).toBe(true);
     expect(labels.discovery).toBe("未收录值");
     expect(labels.tags).toBe("标签词表");
     expect(labels.taxonomy).toBe("文章字段值域");
     expect(labels.ontology).toBe("知识本体");
+    expect(labels["audit-timeline"]).toBe("审计时间线"); // 第 6 批：回退名单源（无字典对象页签）
   });
 });
 
@@ -301,7 +302,7 @@ describe("editabilityState（对象编辑性 × 页签写侧角色 × 当前角�
 // ── 形态声明表（批8：结构性收敛——形态从编辑器私产升为投影声明）──
 describe("TAB_FORMS 形态声明", () => {
   it("13 页签全覆盖且形态值域合法", () => {
-    const TABS = ["domains","layers","categories","taxonomy","modules","discovery","tags","concepts","ontology","dependencies","versions","history","relations","fields"];
+    const TABS = ["domains","layers","categories","taxonomy","modules","discovery","tags","concepts","ontology","dependencies","versions","history","audit-timeline","relations","fields"];
     expect(Object.keys(TAB_FORMS).sort()).toEqual([...TABS].sort());
     const legal = new Set(["table", "master-detail", "chips", "cards"]);
     expect(Object.values(TAB_FORMS).every((f) => legal.has(f))).toBe(true);
@@ -323,7 +324,7 @@ describe("TAB_FORMS 形态声明", () => {
 
 // ── 内容区 sections 声明（批14：组装层入投影——未声明=无挂载点）──
 describe("TAB_SECTIONS 内容区声明", () => {
-  it("键集 ≡ TAB_FORMS 键集（14 页签全覆盖）且每页签至少一节", () => {
+  it("键集 ≡ TAB_FORMS 键集（15 页签全覆盖）且每页签至少一节", () => {
     expect(Object.keys(TAB_SECTIONS).sort()).toEqual(Object.keys(TAB_FORMS).sort());
     expect(Object.values(TAB_SECTIONS).every((secs) => secs.length > 0)).toBe(true);
   });
@@ -341,7 +342,7 @@ describe("TAB_SECTIONS 内容区声明", () => {
 
 // ── 内容区 sections 声明（批14：组装层入投影——未声明=无挂载点）──
 describe("TAB_SECTIONS 内容区声明", () => {
-  it("键集 ≡ TAB_FORMS 键集（14 页签全覆盖）且每页签至少一节", () => {
+  it("键集 ≡ TAB_FORMS 键集（15 页签全覆盖）且每页签至少一节", () => {
     expect(Object.keys(TAB_SECTIONS).sort()).toEqual(Object.keys(TAB_FORMS).sort());
     expect(Object.values(TAB_SECTIONS).every((secs) => secs.length > 0)).toBe(true);
   });
@@ -365,12 +366,13 @@ describe("schema-edit changeOf（变更构造单点——load/save/error 装配�
   const LAZY_EXPECTED: Record<string, string | null> = {
     domains: null, layers: null, categories: null, taxonomy: null, modules: "loadVersions",
     tags: null, concepts: null, ontology: "loadOntology", dependencies: "loadDependencies",
-    versions: "loadVersions", history: null, relations: null, fields: null, discovery: "loadDiscovery",
+    versions: "loadVersions", history: null, "audit-timeline": null, relations: null, fields: null, discovery: "loadDiscovery",
   };
   const SAVE_READY_EXPECTED: Record<string, string> = {
     domains: "saveEnums", layers: "saveEnums", categories: "saveEnums", taxonomy: "saveEnums",
     modules: "saveEnums", tags: "saveEnums", concepts: "saveEnums", ontology: "saveOntology",
     dependencies: "saveDependencies", versions: "saveVersions", history: "saveEnums",
+    "audit-timeline": "saveEnums",
     relations: "saveEnums", fields: "saveEnums", discovery: "saveEnums",
   };
 
@@ -483,7 +485,7 @@ describe("TAB_EDIT_META 正名键元数据表（R4 装配声明单源）", () =>
     }
   });
 
-  it("编辑族与懒加载资源值域合法且 14 页签全覆盖", () => {
+  it("编辑族与懒加载资源值域合法且 15 页签全覆盖", () => {
     const families = new Set(["enums", "ontology", "dependencies", "versions"]);
     const resources = new Set([null, ...Object.keys(LAZY_RESOURCES)]);
     for (const meta of Object.values(TAB_EDIT_META)) {
