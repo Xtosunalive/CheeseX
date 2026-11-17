@@ -79,6 +79,8 @@ export const TAB_EDIT_META: Readonly<Record<string, TabEditMeta>> = {
   [SCHEMA_TAB_NAMES.RELATIONS]: { tab: "relations", family: "enums", lazyResource: null, headerSave: false },
   [SCHEMA_TAB_NAMES.FIELDS]: { tab: "fields", family: "enums", lazyResource: null, headerSave: false },
   [SCHEMA_TAB_NAMES.DISCOVERY]: { tab: "discovery", family: "enums", lazyResource: "discovery" },
+  // 第 6 批配置与审计：audit-timeline＝只读挂载（嵌 AuditLogPanel 只读面，无编辑族/保存钮——沿 history 先例）
+  [SCHEMA_TAB_NAMES.AUDIT_TIMELINE]: { tab: "audit-timeline", family: "enums", lazyResource: null, headerSave: false },
 };
 
 /** 页签→字典正名（canonicalTabLabels 投影——正名单源=字典；无对象页签走声明回退） */

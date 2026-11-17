@@ -55,7 +55,7 @@ const SCHEMA_PARTITIONS: readonly ShapePartition[] = [
   {
     id: "ledger",
     ...SCHEMA_PARTITION_COPY.ledger,
-    tabs: ["relations", "versions", "modules", "history"],
+    tabs: ["relations", "versions", "modules", "history", "audit-timeline"],
   },
   {
     id: "intake",
@@ -259,6 +259,7 @@ export interface ShapeDictionaryObject {
 
 /** 无字典对象页签的声明位（如 history=git 快照账，非字典对象）；正名单源仍归字典 */
 export const TAB_LABEL_FALLBACKS: Readonly<Record<string, string>> = {
+  "audit-timeline": SCHEMA_TAB_NAMES.AUDIT_TIMELINE,
   history: SCHEMA_TAB_NAMES.HISTORY,
 };
 
@@ -279,6 +280,7 @@ export const TAB_FORMS: Readonly<Record<string, TabForm>> = {
   dependencies: "table",
   versions: "table",
   history: "table",
+  "audit-timeline": "table",
   modules: "table",
   relations: "table",
   fields: "table",
@@ -357,6 +359,7 @@ export type SectionId =
   | "dependency-rules"
   | "version-registry"
   | "version-snapshots"
+  | "audit-timeline"
   | "relation-ledger"
   | "field-graph"
   | "fields-editor";
@@ -379,6 +382,7 @@ export const TAB_SECTIONS: Readonly<Record<string, readonly SectionId[]>> = {
   dependencies: ["dependency-rules"],
   versions: ["version-registry"],
   history: ["version-snapshots"],
+  "audit-timeline": ["audit-timeline"],
   relations: ["relation-ledger"],
   fields: ["field-graph", "fields-editor"],
 };

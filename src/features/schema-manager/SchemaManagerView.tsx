@@ -21,6 +21,8 @@ import { LayerEditor } from "./LayerEditor";
 import { TagEditor } from "./TagEditor";
 import { SchemaDiscoveryTab } from "./SchemaDiscoveryTab";
 import { SchemaHistoryEditor } from "./SchemaHistoryEditor";
+import { lazy, Suspense } from "react";
+const AuditLogPanel = lazy(() => import("@/features/review/AuditLogPanel").then(m => ({ default: m.AuditLogPanel })));
 import { FieldsEditor } from "./FieldsEditor";
 import { FieldGraphPanel } from "./FieldGraphPanel";
 import { ConceptVocabularyTab } from "./ConceptVocabularyTab";
@@ -204,6 +206,8 @@ export function SchemaManagerView() {
     "dependency-rules": () => (<div className="p-5"><DependencyRulesEditor disabled={isEditingDisabled} /></div>),
     "version-registry": () => (<div className="p-5"><VersionRegistryEditor disabled={isEditingDisabled} /></div>),
     "version-snapshots": () => (<div className="p-5"><SchemaHistoryEditor disabled={isEditingDisabled} /></div>),
+    // 第 6 批配置与审计：审计时间线只读面归区（PR-08 只读流水子形状；数据源 review_actions 异构共存——下钻修正口径）
+    "audit-timeline": () => (<div className="p-5"><Suspense fallback={<div className="p-5 text-sm text-text-hint">{TERM.LOADING}</div>}><AuditLogPanel /></Suspense></div>),
     "relation-ledger": () => (<div className="p-5"><RelationsEditor /></div>),
     "field-graph": () => (<div className="p-5"><FieldGraphPanel /></div>),
     "fields-editor": () => (<div className="p-5"><FieldsEditor disabled={isEditingDisabled} /></div>),
