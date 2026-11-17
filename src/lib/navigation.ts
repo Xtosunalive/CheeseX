@@ -34,7 +34,7 @@ export type NavRoute = (typeof NAV_ROUTES)[number];
  *  startsWith 分支早已识别、原 registry 手拼过这两个 hash），此前未登记入清单。 */
 const SUB_ROUTES: Partial<Record<NavRoute, string[]>> = {
   review: ["edges", "nodes", "conflicts", "audit"],
-  property: ["manifest", "entities", "edges", "checks", "mapping"],
+  property: ["manifest", "entities", "edges", "checks", "mapping", "entity-compliance"],
 };
 
 function isNavRoute(id: string): id is NavRoute {

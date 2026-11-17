@@ -102,7 +102,6 @@ describe("global navigation sidebar", () => {
       TERM.ARTICLE_MAPPING_REPAIR,
       TERM.GRAPH_EXPLORER,
       TERM.SCHEMA,
-      TERM.SOURCE_DOC_CHECK,
       TERM.ARTICLE_AND_COMPONENTS,
       TERM.PENDING_ISSUES,
       TERM.VERSION_ANALYSIS,

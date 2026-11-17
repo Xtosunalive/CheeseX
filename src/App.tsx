@@ -43,7 +43,6 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: "workbench", icon: LayoutDashboard, label: TERM.WORKBENCH },
       { id: "schema", icon: Settings, label: TERM.SCHEMA },
-      { id: "entity-compliance", icon: ShieldCheck, label: TERM.SOURCE_DOC_CHECK },
       { id: "property", icon: Settings, label: TERM.ARTICLE_AND_COMPONENTS },
       { id: "anomalies", icon: AlertTriangle, label: TERM.PENDING_ISSUES },
     ],
@@ -79,7 +78,8 @@ function getNavFromHash(): NavId {
   // 运行概览退役（2026-11-17 Master 裁 B）：旧 hash 回落图谱检索枢纽（publish→article-workflow 同款兼容先例）
   if (h === "dashboard") return "data-dashboard";
   if (h === "data-dashboard") return "data-dashboard";
-  if (h === "entity-compliance") return "entity-compliance";
+  // 第 4 批修复中心：实体合规入属性治理页签（hash 透传 sub，页签初值读 sub）
+  if (h === "entity-compliance" || h.startsWith("entity-compliance")) return "property";
   if (h === "review" || h.startsWith("review/")) return "review";
   if (h === "gaps") return "gaps";
   // 第 3 批对象浏览器：三旧路由并入图谱检索枢纽页签（hash 原样透传，页签初值读 sub）

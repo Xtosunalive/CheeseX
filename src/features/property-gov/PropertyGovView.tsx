@@ -1,9 +1,11 @@
 // PropertyGovView — 文章图谱映射 + 架构组件属性
 import { useState, useEffect, useRef } from "react";
 import { FileText, Link2, ShieldCheck } from "lucide-react";
+import { lazy, Suspense } from "react";
 import { InternalTabs, type InternalTabItem } from "@/components/internal-tabs";
 import { TERM } from "@/constants/term-const";
 import { ManifestListPanel } from "./ManifestListPanel";
+const EntityComplianceView = lazy(() => import("@/features/entity-compliance/EntityComplianceView").then(m => ({ default: m.EntityComplianceView })));
 import { CheckResultsPanel } from "./CheckResultsPanel";
 import { useSetActiveEntityId } from "@/lib/topology-store";
 import { usePropertyStore } from "./property-store";
@@ -14,17 +16,19 @@ import { PageContainer } from "@/components/page-container";
 import { Panel } from "@/components/panel";
 import { PROPERTY_GOV_VIEW_COPY } from "./property-gov-copy";
 
-type TabId = "manifest" | "checks" | "mapping";
+type TabId = "manifest" | "checks" | "mapping" | "entity-compliance";
 
 const TABS: InternalTabItem<TabId>[] = [
   { id: "manifest", icon: FileText, label: TERM.ARTICLE_GRAPH_MAPPING },
   { id: "checks", icon: ShieldCheck, label: TERM.ARCH_COMPONENT_ATTRIBUTES },
   { id: "mapping", icon: Link2, label: PROPERTY_GOV_VIEW_COPY.TAB_MAPPING },
+  { id: "entity-compliance", icon: ShieldCheck, label: TERM.SOURCE_DOC_CHECK },
 ];
 
 function tabFromLocation(location: NavLocation): TabId {
   if (location.route === "article-associations" || location.sub === "mapping") return "mapping";
   if (location.sub === "checks") return "checks";
+  if (location.sub === "entity-compliance") return "entity-compliance";
   return "manifest";
 }
 
@@ -72,6 +76,11 @@ export function PropertyGovView() {
         {tab === "manifest" && <ManifestListPanel />}
         {tab === "checks" && <CheckResultsPanel />}
         {tab === "mapping" && <ArticleAssociationsView embedded />}
+        {tab === "entity-compliance" && (
+          <Suspense fallback={<div className="p-6 text-sm text-text-hint">{TERM.LOADING}</div>}>
+            <EntityComplianceView />
+          </Suspense>
+        )}
       </Panel>
     </PageContainer>
   );

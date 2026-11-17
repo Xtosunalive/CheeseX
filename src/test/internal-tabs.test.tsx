@@ -104,7 +104,7 @@ describe("InternalTabs", () => {
     const property = render(<PropertyGovView />);
     // 页内主标题已删（与顶栏重复，PR③ Master 2026-10-07 04:44 拍板）——副标题仍在
     expect(screen.getByRole("tablist", { name: "文章与组件视图" })).toBeInTheDocument(); // 页题已裁删——页签条为锚
-    expect(screen.getByRole("tablist", { name: "文章与组件视图" })).toHaveClass("grid-cols-3", "bg-surface-root", "p-0.5", "ring-border-thin");
+    expect(screen.getByRole("tablist", { name: "文章与组件视图" })).toHaveClass("grid-cols-4", "bg-surface-root", "p-0.5", "ring-border-thin");
     property.unmount();
 
     window.location.hash = "#/review";
