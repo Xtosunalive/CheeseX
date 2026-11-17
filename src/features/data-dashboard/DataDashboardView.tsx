@@ -317,7 +317,7 @@ export function DataDashboardView() {
               </>
             )}
 
-            {tab === "topo" ? (
+            {tab === "topo" && (
               <div className="flex flex-col gap-4">
                 <GraphExplorerToolbar
                   availableTypes={availableTypes}
@@ -355,7 +355,9 @@ export function DataDashboardView() {
                 {/* 全库定版发布卡（发布永不自动＝人 gate；定版紧挨着它冻结的图） */}
                 <ReleaseMintCard />
               </div>
-            ) : (
+            )}
+            {/* 关系页签：子页签（查询/总览）——与拓扑/三并入页平级互斥（2026-11-17 修正：原三元默认分支致关系内容常驻在上） */}
+            {tab === "relations" && (
               <div className="flex min-h-0 flex-1 flex-col gap-4">
                 <InternalTabs ariaLabel={DD_VIEW_COPY.RELATIONS_TABS_ARIA} items={RELATIONS_TABS} value={relationsTab} onValueChange={setRelationsTab} />
                 <div className="min-h-0 flex-1">
