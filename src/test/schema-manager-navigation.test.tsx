@@ -20,6 +20,7 @@ vi.mock("@/features/document-inventory/DocumentInventoryView", () => ({ Document
 vi.mock("@/features/impact-analysis/ImpactAnalysisView", () => ({ ImpactAnalysisView: () => null }));
 vi.mock("@/features/article-workflow/ArticleWorkflowView", () => ({ ArticleWorkflowView: () => <div>投稿模块页</div> }));
 vi.mock("@/features/anomaly-workbench/AnomalyWorkbenchView", () => ({ AnomalyWorkbenchView: () => <div>待处理问题页</div> }));
+vi.mock("@/features/workbench/WorkbenchView", () => ({ WorkbenchView: () => <div>工作台深入页</div> }));
 
 describe("Skeleton Management navigation", () => {
   beforeEach(() => { window.location.hash = "#/dashboard"; });
@@ -34,8 +35,12 @@ describe("Skeleton Management navigation", () => {
   it("exposes task-domain titles and the flattened pipeline entry in the global navigation sheet", () => {
     render(<App />);
     const dialog = screen.getByRole("complementary", { name: "全局导航" });
-    for (const label of ["知识审批", "规则门禁"]) {
-      expect(within(dialog).getByText(label)).toBeInTheDocument();
+    // 组标签仅多页组渲染：工作台(2)/修复中心(2)/配置与审计(2)；单页组对象浏览器/审批与发布拍平为页按钮
+    for (const label of [TERM.REGION_WORKBENCH, TERM.REGION_REPAIR_CENTER, TERM.REGION_CONFIG_AUDIT]) {
+      expect(within(dialog).getAllByText(label).length).toBeGreaterThan(0);
+    }
+    for (const page of [TERM.GRAPH_EXPLORER, TERM.ARTICLE_ADMISSION]) {
+      expect(within(dialog).getByRole("button", { name: page })).toBeInTheDocument();
     }
     // 发布页退役（2026-10-15 收敛）后内容管道仅剩一项：单项组拍平，无组标题，仅剩「文章准入」按钮
     expect(within(dialog).getByRole("button", { name: "文章准入" })).toBeInTheDocument();
@@ -46,13 +51,13 @@ describe("Skeleton Management navigation", () => {
   it("orders task domains by operational dependency", () => {
     render(<App />);
     const dialog = screen.getByRole("complementary", { name: "全局导航" });
-    const labels = ["规则门禁", "知识审批"];
-    const positions = labels.map((label) => within(dialog).getByText(label, { exact: true }).getBoundingClientRect().top);
+    const order = [TERM.REGION_WORKBENCH, TERM.GRAPH_EXPLORER, TERM.ARTICLE_ADMISSION, TERM.ARTICLE_MAPPING_REPAIR, TERM.SCHEMA]; // 组序以组内首个页项按钮为锚（单页组标签拍平不渲染）
+    const positions = order.map((label) => within(dialog).getAllByRole("button", { name: label })[0].getBoundingClientRect().top);
     expect(positions.every((position, index) => index === 0 || position >= positions[index - 1])).toBe(true);
-    // 拍平的「文章准入」仍占内容管道原排序位：规则门禁之后、知识审批之前（jsdom 无布局，用 DOM 序断言）
+    // 「文章准入」占审批与发布组排序位：对象浏览器之后、修复中心之前
     const flattened = within(dialog).getByRole("button", { name: "文章准入" });
-    expect(flattened.compareDocumentPosition(within(dialog).getByText("规则门禁", { exact: true })) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
-    expect(flattened.compareDocumentPosition(within(dialog).getByText("知识审批", { exact: true })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(flattened.compareDocumentPosition(within(dialog).getByRole("button", { name: TERM.GRAPH_EXPLORER })) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy();
+    expect(flattened.compareDocumentPosition(within(dialog).getByRole("button", { name: TERM.ARTICLE_MAPPING_REPAIR })) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("opens Skeleton Management from the global navigation sheet", async () => {
@@ -63,7 +68,7 @@ describe("Skeleton Management navigation", () => {
     expect(window.location.hash).toBe("#/schema");
     const globalNavigation = screen.getByTestId("global-navigation");
     const routeButtons = within(globalNavigation).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route");
-    expect(routeButtons).toHaveLength(9);
+    expect(routeButtons).toHaveLength(8);
     expect(within(globalNavigation).queryByText("参考资料")).not.toBeInTheDocument();
     expect(within(globalNavigation).queryByText("backup")).not.toBeInTheDocument();
     const sidebarRoute = within(globalNavigation).getByRole("button", { name: "图谱规则配置" });
@@ -82,7 +87,8 @@ describe("Skeleton Management navigation", () => {
   it("keeps the complete navigation tree visible on every task page", async () => {
     const cases = [
       ["#/anomalies", "待处理问题页", "待处理问题"],
-      ["#/gaps", "拓扑缺口深入页", TERM.TOPOLOGY_GAP_REVIEW],
+      // 第 5 批收尾批 A：gaps 导航项退役（工作台量值带深链）——旧 hash 仍可达，aria-current 落工作台
+      ["#/gaps", "工作台深入页", TERM.WORKBENCH], // 归一工作台（WorkbenchView mock）
       ["#/review", "关系审核深入页", "关系审核"],
       // 第 4 批：entity-compliance 归一入属性治理（aria-current 落 property 组项）
       ["#/entity-compliance", `${TERM.SOURCE_DOC_CHECK}深入页`, TERM.ARTICLE_AND_COMPONENTS],
@@ -93,9 +99,10 @@ describe("Skeleton Management navigation", () => {
       // F3 视图懒加载：各视图首挂异步解析，改 findBy 等待
       expect(await screen.findByText(page)).toBeInTheDocument();
       const navigation = within(screen.getByTestId("global-navigation"));
-      // 完整树常驻：全 9 个 route（第 5 批：版本分析并入审批发布区），当前页面标记 aria-current
-      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(9);
-      expect(navigation.getByRole("button", { name: activeRoute })).toHaveAttribute("aria-current", "page");
+      // 完整树常驻：全 8 个 route（第 5 批收尾批 A：版本分析入审批区＋gaps 项退役入工作台量值带），当前页面标记 aria-current
+      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(8);
+      const currentButton = navigation.getAllByRole("button", { name: activeRoute }).find((b) => b.getAttribute("data-navigation-kind") === "route");
+      expect(currentButton).toHaveAttribute("aria-current", "page");
       view.unmount();
     }
   });
@@ -130,7 +137,7 @@ describe("Skeleton Management navigation", () => {
     render(<App />);
     const sidebar = screen.getByTestId("global-navigation");
     expect(sidebar).toHaveAttribute("aria-label", "全局导航");
-    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(9);
+    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(8);
   });
 
   it("professional pages remain independently accessible and are not anomaly sub-routes", () => {

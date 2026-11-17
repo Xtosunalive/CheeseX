@@ -1,0 +1,779 @@
+{
+  "meta": {
+    "note": "首扫基线（第 7 批收官）",
+    "components": 203,
+    "pairs": 758
+  },
+  "pairs": [
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/anomaly-workbench/AnomalyWorkbenchView.tsx#AnomalyWorkbenchView",
+      "score": 0.9503693444136657
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/anomaly-workbench/AnomalyWorkbenchView.tsx#AnomalyWorkbenchView",
+      "score": 0.9503693444136657
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/anomaly-workbench/AnomalyWorkbenchView.tsx#AnomalyWorkbenchView",
+      "score": 0.9471375807940905
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "score": 0.9458204334365325
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "score": 0.9458204334365325
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "score": 0.9458204334365325
+    },
+    {
+      "a": "src/features/admission/AdmissionView.tsx#AdmissionView",
+      "b": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "score": 0.9334045584045583
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/schema-manager/FieldGraphPanel.tsx#FieldGraphPanel",
+      "score": 0.9328756674294433
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/schema-manager/FieldGraphPanel.tsx#FieldGraphPanel",
+      "score": 0.9328756674294433
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/theme-preview/ThemePreviewView.tsx#ThemePreviewView",
+      "score": 0.9274945175438597
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/theme-preview/ThemePreviewView.tsx#ThemePreviewView",
+      "score": 0.9274945175438597
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/theme-preview/ThemePreviewView.tsx#ThemePreviewView",
+      "score": 0.9274945175438597
+    },
+    {
+      "a": "src/features/anomaly-workbench/AnomalyWorkbenchView.tsx#AnomalyWorkbenchView",
+      "b": "src/features/data-dashboard/DataDashboardView.tsx#DataDashboardView",
+      "score": 0.9211880008663633
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/components/pipeline/PipelinePanel.tsx#PipelinePanel",
+      "score": 0.9197285666997683
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/components/pipeline/PipelinePanel.tsx#PipelinePanel",
+      "score": 0.9197285666997683
+    },
+    {
+      "a": "src/components/pipeline/PipelinePanel.tsx#PipelinePanel",
+      "b": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "score": 0.9197285666997683
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/schema-manager/FieldGraphPanel.tsx#FieldGraphPanel",
+      "score": 0.9168573607932876
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/impact-analysis/components/ImpactAnalysisPanel.tsx#ImpactAnalysisPanel",
+      "score": 0.9165674366912757
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/impact-analysis/components/ImpactAnalysisPanel.tsx#ImpactAnalysisPanel",
+      "score": 0.9165674366912757
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/impact-analysis/components/ImpactAnalysisPanel.tsx#ImpactAnalysisPanel",
+      "score": 0.9165674366912757
+    },
+    {
+      "a": "src/components/app-sidebar/BrandSwitcher.tsx#BrandSwitcher",
+      "b": "src/features/admission/AdmissionView.tsx#AdmissionView",
+      "score": 0.9142156862745099
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "score": 0.9115881809787627
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "score": 0.9115881809787627
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "score": 0.9115881809787627
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/features/gap-engine/GapEngineView.tsx#GapEngineView",
+      "score": 0.9084757834757834
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "score": 0.9078947368421052
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "score": 0.9014844804318488
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "score": 0.9014844804318488
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "score": 0.9014844804318488
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/features/anomaly-workbench/AnomalyWorkbenchView.tsx#AnomalyWorkbenchView",
+      "score": 0.9002770083102494
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/entity-compliance/RelationRepairPanel.tsx#RelationRepairPanel",
+      "score": 0.8971420486700622
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/entity-compliance/RelationRepairPanel.tsx#RelationRepairPanel",
+      "score": 0.8971420486700622
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/entity-compliance/RelationRepairPanel.tsx#RelationRepairPanel",
+      "score": 0.8971420486700622
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.8961538461538462
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.8882051282051282
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/features/impact-analysis/ImpactAnalysisView.tsx#ImpactAnalysisView",
+      "score": 0.8833333333333333
+    },
+    {
+      "a": "src/components/app-shell/EntityHubDrawer.tsx#EntityHubDrawer",
+      "b": "src/features/data-dashboard/components/relation-library-tab/RelationLibraryTab.tsx#RelationLibraryTab",
+      "score": 0.8813538205980066
+    },
+    {
+      "a": "src/features/admission/AdmissionView.tsx#AdmissionView",
+      "b": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "score": 0.8718323586744638
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "score": 0.8708771929824562
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "score": 0.8708771929824562
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "score": 0.8708771929824562
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/data-dashboard/components/release-mint-card.tsx#ReleaseMintCard",
+      "score": 0.8684210526315791
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/data-dashboard/components/release-mint-card.tsx#ReleaseMintCard",
+      "score": 0.8684210526315791
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/data-dashboard/components/release-mint-card.tsx#ReleaseMintCard",
+      "score": 0.8684210526315791
+    },
+    {
+      "a": "src/components/app-shell/AppErrorBoundary.tsx#AppErrorBoundary",
+      "b": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "score": 0.8659998412320393
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/document-inventory/DocumentInventoryView.tsx#DocumentInventoryView",
+      "score": 0.8650472334682862
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/document-inventory/DocumentInventoryView.tsx#DocumentInventoryView",
+      "score": 0.8650472334682862
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/document-inventory/DocumentInventoryView.tsx#DocumentInventoryView",
+      "score": 0.8650472334682862
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "score": 0.8596153846153846
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/article-workflow/ArticleWorkflowView.tsx#ArticleWorkflowView",
+      "score": 0.8546365914786966
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/article-workflow/ArticleWorkflowView.tsx#ArticleWorkflowView",
+      "score": 0.8546365914786966
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/article-workflow/ArticleWorkflowView.tsx#ArticleWorkflowView",
+      "score": 0.8546365914786966
+    },
+    {
+      "a": "src/components/app-sidebar/BrandSwitcher.tsx#BrandSwitcher",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "score": 0.8530701754385965
+    },
+    {
+      "a": "src/components/app-sidebar/BrandSwitcher.tsx#BrandSwitcher",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "score": 0.8530701754385965
+    },
+    {
+      "a": "src/components/app-sidebar/BrandSwitcher.tsx#BrandSwitcher",
+      "b": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "score": 0.8530701754385965
+    },
+    {
+      "a": "src/features/schema-manager/DependencyRulesEditor.tsx#DependencyRulesEditor",
+      "b": "src/features/schema-manager/FieldsEditor.tsx#FieldsEditor",
+      "score": 0.8523277467411545
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/components/pipeline/GlobalPipelineControl.tsx#GlobalPipelineControl",
+      "score": 0.8515519568151148
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/components/pipeline/GlobalPipelineControl.tsx#GlobalPipelineControl",
+      "score": 0.8515519568151148
+    },
+    {
+      "a": "src/components/pipeline/GlobalPipelineControl.tsx#GlobalPipelineControl",
+      "b": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "score": 0.8515519568151148
+    },
+    {
+      "a": "src/components/app-shell/AppErrorBoundary.tsx#AppErrorBoundary",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "score": 0.8479532163742689
+    },
+    {
+      "a": "src/components/app-shell/AppErrorBoundary.tsx#AppErrorBoundary",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "score": 0.8479532163742689
+    },
+    {
+      "a": "src/components/app-shell/AppErrorBoundary.tsx#AppErrorBoundary",
+      "b": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "score": 0.8479532163742689
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/entity-compliance/EntityComplianceToolbar.tsx#EntityComplianceToolbar",
+      "score": 0.844804318488529
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/entity-compliance/EntityComplianceToolbar.tsx#EntityComplianceToolbar",
+      "score": 0.844804318488529
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/entity-compliance/EntityComplianceToolbar.tsx#EntityComplianceToolbar",
+      "score": 0.844804318488529
+    },
+    {
+      "a": "src/components/app-shell/EntityHubDrawer.tsx#EntityHubDrawer",
+      "b": "src/features/gap-engine/GovernanceTodoTab.tsx#GovernanceTodoTab",
+      "score": 0.8444490586932447
+    },
+    {
+      "a": "src/features/review/AuditLogPanel.tsx#AuditLogPanel",
+      "b": "src/features/schema-manager/RelationsEditor.tsx#RelationsEditor",
+      "score": 0.8421428571428571
+    },
+    {
+      "a": "src/features/gap-engine/GovernanceTodoTab.tsx#GovernanceTodoTab",
+      "b": "src/features/schema-manager/SchemaDiscoveryTab.tsx#SchemaDiscoveryTab",
+      "score": 0.8415873015873016
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/features/admission/AdmissionView.tsx#AdmissionView",
+      "score": 0.8351515151515152
+    },
+    {
+      "a": "src/components/app-sidebar/BrandSwitcher.tsx#BrandSwitcher",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.831140350877193
+    },
+    {
+      "a": "src/features/gap-engine/GapEngineView.tsx#GapEngineView",
+      "b": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "score": 0.8299220272904484
+    },
+    {
+      "a": "src/features/admission/EntityRegistryTable.tsx#EntityRegistryTable",
+      "b": "src/features/data-dashboard/components/relation-library-tab/RelationLibraryTab.tsx#RelationLibraryTab",
+      "score": 0.8294642857142857
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/features/schema-manager/FieldGraphPanel.tsx#FieldGraphPanel",
+      "score": 0.8287566742944318
+    },
+    {
+      "a": "src/components/app-sidebar/BrandSwitcher.tsx#BrandSwitcher",
+      "b": "src/features/gap-engine/GapEngineView.tsx#GapEngineView",
+      "score": 0.8284313725490196
+    },
+    {
+      "a": "src/components/app-sidebar/BrandSwitcher.tsx#BrandSwitcher",
+      "b": "src/features/impact-analysis/ImpactAnalysisView.tsx#ImpactAnalysisView",
+      "score": 0.8284313725490196
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/entity-compliance/EntityComplianceView.tsx#EntityComplianceView",
+      "score": 0.8259109311740891
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/entity-compliance/EntityComplianceView.tsx#EntityComplianceView",
+      "score": 0.8259109311740891
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/entity-compliance/EntityComplianceView.tsx#EntityComplianceView",
+      "score": 0.8259109311740891
+    },
+    {
+      "a": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.8258333333333333
+    },
+    {
+      "a": "src/features/anomaly-workbench/AnomalyWorkbenchView.tsx#AnomalyWorkbenchView",
+      "b": "src/features/article-workflow/ArticleWorkflowView.tsx#ArticleWorkflowView",
+      "score": 0.8188840155945419
+    },
+    {
+      "a": "src/features/data-dashboard/components/relations-panel/RelationsPanel.tsx#RelationsPanel",
+      "b": "src/features/schema-manager/SchemaDiscoveryTab.tsx#SchemaDiscoveryTab",
+      "score": 0.8176984126984126
+    },
+    {
+      "a": "src/components/app-shell/EntityHubDrawer.tsx#EntityHubDrawer",
+      "b": "src/features/data-dashboard/components/relations-panel/RelationsPanel.tsx#RelationsPanel",
+      "score": 0.8149224806201549
+    },
+    {
+      "a": "src/components/app-shell/EntityHubDrawer.tsx#EntityHubDrawer",
+      "b": "src/features/review/components/InferenceConflictPanel.tsx#InferenceConflictPanel",
+      "score": 0.8134274640088592
+    },
+    {
+      "a": "src/features/admission/EntityRegistryTable.tsx#EntityRegistryTable",
+      "b": "src/features/gap-engine/GovernanceTodoTab.tsx#GovernanceTodoTab",
+      "score": 0.8097619047619048
+    },
+    {
+      "a": "src/components/pipeline/GlobalPipelineControl.tsx#GlobalPipelineControl",
+      "b": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "score": 0.8092706313294548
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.805090909090909
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "score": 0.8008771929824562
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "score": 0.8008771929824562
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "score": 0.8008771929824562
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/features/gap-engine/GapEngineView.tsx#GapEngineView",
+      "score": 0.7962626262626263
+    },
+    {
+      "a": "src/components/app-shell/EntityHubDrawer.tsx#EntityHubDrawer",
+      "b": "src/features/property-gov/ManifestListPanel.tsx#ManifestListPanel",
+      "score": 0.7928571428571429
+    },
+    {
+      "a": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.7909356725146198
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.7907272727272726
+    },
+    {
+      "a": "src/features/data-dashboard/components/local-graph/LocalGraph.tsx#LocalGraph",
+      "b": "src/features/gap-engine/GovernanceTodoTab.tsx#GovernanceTodoTab",
+      "score": 0.7882243258749282
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/components/app-shell/AppErrorBoundary.tsx#AppErrorBoundary",
+      "score": 0.7863157894736842
+    },
+    {
+      "a": "src/features/review/ReviewView.tsx#ReviewView",
+      "b": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "score": 0.7787524366471735
+    },
+    {
+      "a": "src/components/bento/BentoCard.tsx#BentoCard",
+      "b": "src/components/panel/Panel.tsx#Panel",
+      "score": 0.7769905533063428
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/features/entity-compliance/EntityComplianceView.tsx#EntityComplianceView",
+      "score": 0.776025641025641
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.7719298245614035
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.7719298245614035
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.7719298245614035
+    },
+    {
+      "a": "src/components/app-shell/AppErrorBoundary.tsx#AppErrorBoundary",
+      "b": "src/features/admission/AdmissionView.tsx#AdmissionView",
+      "score": 0.7712418300653595
+    },
+    {
+      "a": "src/features/data-dashboard/DataDashboardView.tsx#DataDashboardView",
+      "b": "src/features/schema-manager/FieldGraphPanel.tsx#FieldGraphPanel",
+      "score": 0.7701500127129417
+    },
+    {
+      "a": "src/components/app-sidebar/BrandSwitcher.tsx#BrandSwitcher",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.7697368421052632
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/features/entity-compliance/EntityComplianceToolbar.tsx#EntityComplianceToolbar",
+      "score": 0.766025641025641
+    },
+    {
+      "a": "src/components/app-shell/EntityHubDrawer.tsx#EntityHubDrawer",
+      "b": "src/features/review/AuditLogPanel.tsx#AuditLogPanel",
+      "score": 0.7656284606866003
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/features/impact-analysis/ImpactAnalysisView.tsx#ImpactAnalysisView",
+      "score": 0.7611111111111112
+    },
+    {
+      "a": "src/components/app-shell/EntityHubDrawer.tsx#EntityHubDrawer",
+      "b": "src/features/property-gov/CheckResultsPanel.tsx#CheckResultsPanel",
+      "score": 0.7602990033222592
+    },
+    {
+      "a": "src/features/data-dashboard/components/local-graph/LocalGraph.tsx#LocalGraph",
+      "b": "src/features/data-dashboard/components/relations-panel/RelationsPanel.tsx#RelationsPanel",
+      "score": 0.7593516924842225
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/features/article-workflow/ArticleWorkflowView.tsx#ArticleWorkflowView",
+      "score": 0.7568922305764412
+    },
+    {
+      "a": "src/features/article-workflow/ArticleWorkflowView.tsx#ArticleWorkflowView",
+      "b": "src/features/data-dashboard/DataDashboardView.tsx#DataDashboardView",
+      "score": 0.7567155067155066
+    },
+    {
+      "a": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "b": "src/features/gap-engine/GapEngineView.tsx#GapEngineView",
+      "score": 0.7554824561403508
+    },
+    {
+      "a": "src/features/schema-manager/DocumentTaxonomyEditor.tsx#DocumentTaxonomyEditor",
+      "b": "src/features/schema-manager/TagGovernanceEditor.tsx#TagGovernanceEditor",
+      "score": 0.7531556802244038
+    },
+    {
+      "a": "src/App.tsx#App",
+      "b": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "score": 0.7487272727272727
+    },
+    {
+      "a": "src/features/admission/EntityRegistryTable.tsx#EntityRegistryTable",
+      "b": "src/features/data-dashboard/components/relations-panel/RelationsPanel.tsx#RelationsPanel",
+      "score": 0.7474999999999999
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.7456140350877194
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.7456140350877194
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.7456140350877194
+    },
+    {
+      "a": "src/components/pool-panel/PoolShell.tsx#PoolRecallButton",
+      "b": "src/features/property-gov/property-gov-ui.tsx#ClearFilterButton",
+      "score": 0.7385964912280703
+    },
+    {
+      "a": "src/components/pipeline/GlobalPipelineControl.tsx#GlobalPipelineControl",
+      "b": "src/features/admission/AdmissionView.tsx#AdmissionView",
+      "score": 0.7359584859584859
+    },
+    {
+      "a": "src/features/data-dashboard/components/relations-panel/RelationsPanel.tsx#RelationsPanel",
+      "b": "src/features/schema-manager/RelationsEditor.tsx#RelationsEditor",
+      "score": 0.7327586206896551
+    },
+    {
+      "a": "src/features/admission/AdmissionView.tsx#AdmissionView",
+      "b": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "score": 0.7324561403508771
+    },
+    {
+      "a": "src/features/entity-compliance/EntityComplianceView.tsx#EntityComplianceView",
+      "b": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "score": 0.7322055137844611
+    },
+    {
+      "a": "src/features/entity-compliance/RelationRepairPanel.tsx#RelationRepairPanel",
+      "b": "src/features/gap-engine/GapEngineView.tsx#GapEngineView",
+      "score": 0.7311827956989247
+    },
+    {
+      "a": "src/features/review/EdgeReviewPanel.tsx#EdgeReviewPanel",
+      "b": "src/features/schema-manager/RelationsEditor.tsx#RelationsEditor",
+      "score": 0.7279901960784314
+    },
+    {
+      "a": "src/features/entity-compliance/EntityComplianceView.tsx#EntityComplianceView",
+      "b": "src/features/entity-compliance/RelationRepairPanel.tsx#RelationRepairPanel",
+      "score": 0.7266177908113391
+    },
+    {
+      "a": "src/features/schema-manager/RelationsEditor.tsx#RelationsEditor",
+      "b": "src/features/schema-manager/SchemaManagerView.tsx#SchemaManagerView",
+      "score": 0.7264151186790505
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/components/pipeline/PipelinePanel.tsx#PipelinePanel",
+      "score": 0.7250910294604437
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "score": 0.7243589743589742
+    },
+    {
+      "a": "src/features/entity-compliance/RelationRepairPanel.tsx#RelationRepairPanel",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.7241935483870967
+    },
+    {
+      "a": "src/features/data-dashboard/components/relation-library-tab/RelationLibraryTab.tsx#RelationLibraryTab",
+      "b": "src/features/review/AuditLogPanel.tsx#AuditLogPanel",
+      "score": 0.7241819291819293
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "score": 0.7236842105263158
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "score": 0.7236842105263158
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "score": 0.7236842105263158
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "score": 0.7236842105263158
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "score": 0.7236842105263158
+    },
+    {
+      "a": "src/features/architecture-version/ArchitectureVersionView.tsx#ArchitectureVersionView",
+      "b": "src/features/article-workflow/ArticleWorkflowView.tsx#ArticleWorkflowView",
+      "score": 0.7230769230769231
+    },
+    {
+      "a": "src/features/review/AuditLogPanel.tsx#AuditLogPanel",
+      "b": "src/features/review/components/InferenceConflictPanel.tsx#InferenceConflictPanel",
+      "score": 0.722032967032967
+    },
+    {
+      "a": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.7196271929824561
+    },
+    {
+      "a": "src/features/gap-engine/GovernanceTodoTab.tsx#GovernanceTodoTab",
+      "b": "src/features/review/AuditLogPanel.tsx#AuditLogPanel",
+      "score": 0.7195360195360194
+    },
+    {
+      "a": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.7192982456140351
+    },
+    {
+      "a": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "b": "src/features/workbench/WorkbenchView.tsx#WorkbenchView",
+      "score": 0.7173489278752437
+    },
+    {
+      "a": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "b": "src/features/impact-analysis/ImpactAnalysisView.tsx#ImpactAnalysisView",
+      "score": 0.7171052631578947
+    },
+    {
+      "a": "src/features/admission/ArticleDrawer.tsx#ArticleDrawer",
+      "b": "src/features/schema-manager/FieldGraphPanel.tsx#FieldGraphPanel",
+      "score": 0.716988727858293
+    },
+    {
+      "a": "src/features/entity-compliance/RelationRepairPanel.tsx#RelationRepairPanel",
+      "b": "src/features/review/ReviewView.tsx#ReviewView",
+      "score": 0.7157258064516129
+    },
+    {
+      "a": "src/components/app-shell/AppErrorBoundary.tsx#AppErrorBoundary",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.7134502923976608
+    },
+    {
+      "a": "src/features/entity-compliance/EntityComplianceToolbar.tsx#EntityComplianceToolbar",
+      "b": "src/features/entity-compliance/RelationRepairPanel.tsx#RelationRepairPanel",
+      "score": 0.7120397523623331
+    },
+    {
+      "a": "src/features/gap-engine/GovernanceTodoTab.tsx#GovernanceTodoTab",
+      "b": "src/features/review/EdgeReviewPanel.tsx#EdgeReviewPanel",
+      "score": 0.7115266106442576
+    },
+    {
+      "a": "src/features/entity-compliance/EntityRepairDrawer.tsx#EntityRepairDrawer",
+      "b": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "score": 0.7104166666666667
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/features/data-dashboard/components/release-mint-card.tsx#ReleaseMintCard",
+      "score": 0.7017543859649122
+    },
+    {
+      "a": "src/features/admission/AdmissionView.tsx#AdmissionView",
+      "b": "src/features/property-gov/PropertyGovView.tsx#PropertyGovView",
+      "score": 0.7009259259259258
+    },
+    {
+      "a": "src/features/data-dashboard/components/local-graph/LocalGraph.tsx#LocalGraph",
+      "b": "src/features/data-dashboard/components/relation-library-tab/RelationLibraryTab.tsx#RelationLibraryTab",
+      "score": 0.7009036144578313
+    },
+    {
+      "a": "src/features/review/components/InferenceConflictPanel.tsx#InferenceConflictPanel",
+      "b": "src/features/schema-manager/SchemaDiscoveryTab.tsx#SchemaDiscoveryTab",
+      "score": 0.7005555555555555
+    },
+    {
+      "a": "src/components/app-shell/sidebar-primitives.tsx#EmptyLeaf",
+      "b": "src/components/no-data/MissingValue.tsx#MissingValue",
+      "score": 0.7
+    }
+  ]
+}

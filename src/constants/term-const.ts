@@ -103,6 +103,11 @@ export const TERM = {
   TASK_CONTENT_PIPELINE: "内容管道",
   TASK_KNOWLEDGE_APPROVAL: "知识审批",
   TASK_RULE_CHECK: "规则门禁",
+  REGION_WORKBENCH: "工作台",
+  REGION_OBJECT_BROWSER: "对象浏览器",
+  REGION_APPROVAL_PUBLISH: "审批与发布",
+  REGION_REPAIR_CENTER: "修复中心",
+  REGION_CONFIG_AUDIT: "配置与审计",
   TASK_IMPACT_ANALYSIS: "影响分析",
   TASK_ASSET_LOOKUP: "图谱架构",
   /** 五组任务下的短入口标签 */

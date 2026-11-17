@@ -2,7 +2,10 @@
 # 无尾斜杠：钩子在 fresh worktree 推荐 ln -s 主仓 node_modules，带斜杠的规则不认符号链接。
 /node_modules
 dist/
-test-results/
+test-results/*
+!test-results/doppel/
+test-results/doppel/*
+!test-results/doppel/baseline.json
 *.log
 .DS_Store
 

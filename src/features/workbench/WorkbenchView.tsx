@@ -3,7 +3,7 @@
 // 口径（目标 IA 下钻修正）：本视图只做信号聚合与导航分发——队列动作仍在各工作页
 // （待审→关系审核、缺口→拓扑缺口检查、异常→待处理问题、映射→修复中心），不搬动作。
 import { useEffect } from "react";
-import { Link2, GitFork, AlertTriangle, FilePenLine } from "lucide-react";
+import { Link2, GitFork, AlertTriangle, FilePenLine, ShieldCheck } from "lucide-react";
 import { navigate } from "@/lib/navigation";
 import { PageContainer } from "@/components/page-container";
 import { Statistic } from "@/components/statistic/Statistic";
@@ -11,6 +11,7 @@ import { BentoGrid } from "@/components/bento";
 import { useReviewDataStore } from "@/lib/review-data-store";
 import { useUnresolvedGapCount } from "@/lib/topology-store";
 import { useWorkbenchStore } from "./workbench-store";
+import { usePropertyStore } from "@/features/property-gov/property-store";
 import { WORKBENCH_VIEW_COPY } from "./workbench-copy";
 
 export function WorkbenchView() {
@@ -19,6 +20,9 @@ export function WorkbenchView() {
   const topologyGaps = useUnresolvedGapCount();
   const anomalies = useWorkbenchStore((s) => s.anomalies);
   const manifestPending = useWorkbenchStore((s) => s.manifestPending);
+  // 199 阻断/警告聚合（第 1 批接线源：property-store.summary 持有，check 端点直发）
+  const checkSummary = usePropertyStore((s) => s.summary);
+  const checkIssues = (checkSummary?.blockerCount ?? 0) + (checkSummary?.warningCount ?? 0);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -63,6 +67,16 @@ export function WorkbenchView() {
           icon={<FilePenLine className="h-4 w-4 text-status-warn" />}
           onClick={() => navigate("property", { sub: "mapping" })}
           hint={WORKBENCH_VIEW_COPY.STAT_MANIFEST_HINT}
+        />
+        <Statistic
+          size="lg"
+          testId="wb-check-issues"
+          label={WORKBENCH_VIEW_COPY.STAT_CHECK_ISSUES}
+          value={checkSummary ? checkIssues : null}
+          tone={checkIssues > 0 ? "text-status-warn" : undefined}
+          icon={<ShieldCheck className={`h-4 w-4 ${checkIssues > 0 ? "text-status-warn" : "text-status-fact"}`} />}
+          onClick={() => navigate("property", { sub: "checks" })}
+          hint={WORKBENCH_VIEW_COPY.STAT_CHECK_ISSUES_HINT}
         />
       </BentoGrid>
     </PageContainer>

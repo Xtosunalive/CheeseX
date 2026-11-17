@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { LayoutDashboard, ShieldCheck, Database, GitFork, Settings, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
+import { LayoutDashboard, Search, ShieldCheck, Database, Settings, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { AppErrorBoundary } from "@/components/app-shell/AppErrorBoundary";
 import { APP_SHELL_COPY } from "@/components/components-copy";
@@ -37,34 +37,40 @@ import { navigate, getNavQueryParam, NAV_ROUTES, type NavRoute } from "@/lib/nav
 // ── Task-oriented navigation: each top-level entry starts a user workflow ──
 // 说明句/徽标文案链已于 #1756 整链退役（含 nav-copy.ts，见 ADR053）——本表只保留结构（id/icon/label/items）
 
+// 五区域导航（2026-11-17 收尾批 A，目标 IA 五区域映射）：
+// 工作台（待办聚合）｜对象浏览器（对象与检索）｜审批与发布（变更生命周期）｜修复中心（诊断修复）｜配置与审计（规则与账）
 const NAV_GROUPS: NavGroup[] = [
   {
-    id: "rule-gate", icon: Settings, label: TERM.TASK_RULE_CHECK,
+    id: "region-workbench", icon: LayoutDashboard, label: TERM.REGION_WORKBENCH,
     items: [
       { id: "workbench", icon: LayoutDashboard, label: TERM.WORKBENCH },
-      { id: "schema", icon: Settings, label: TERM.SCHEMA },
-      { id: "property", icon: Settings, label: TERM.ARTICLE_AND_COMPONENTS },
       { id: "anomalies", icon: AlertTriangle, label: TERM.PENDING_ISSUES },
     ],
   },
   {
-    id: "content-pipeline", icon: Upload, label: TERM.TASK_CONTENT_PIPELINE,
+    id: "region-object-browser", icon: Search, label: TERM.REGION_OBJECT_BROWSER,
+    items: [
+      { id: "data-dashboard", icon: Database, label: TERM.GRAPH_EXPLORER },
+    ],
+  },
+  {
+    id: "region-approval-publish", icon: Upload, label: TERM.REGION_APPROVAL_PUBLISH,
     items: [
       { id: "article-workflow", icon: Upload, label: TERM.ARTICLE_ADMISSION },
     ],
   },
   {
-    id: "knowledge-approval", icon: ShieldCheck, label: TERM.TASK_KNOWLEDGE_APPROVAL,
+    id: "region-repair-center", icon: ShieldCheck, label: TERM.REGION_REPAIR_CENTER,
     items: [
+      { id: "property", icon: Settings, label: TERM.ARTICLE_AND_COMPONENTS },
       { id: "article-associations", icon: FilePenLine, label: TERM.ARTICLE_MAPPING_REPAIR },
-      { id: "review", icon: Link2, label: TERM.RELATION_REVIEW },
-      { id: "gaps", icon: GitFork, label: TERM.TOPOLOGY_GAP_REVIEW },
     ],
   },
   {
-    id: "graph-architecture", icon: Database, label: TERM.TASK_ASSET_LOOKUP,
+    id: "region-config-audit", icon: Settings, label: TERM.REGION_CONFIG_AUDIT,
     items: [
-      { id: "data-dashboard", icon: Database, label: TERM.GRAPH_EXPLORER },
+      { id: "schema", icon: Settings, label: TERM.SCHEMA },
+      { id: "review", icon: Link2, label: TERM.RELATION_REVIEW },
     ],
   },
 ];
@@ -80,7 +86,8 @@ function getNavFromHash(): NavId {
   // 第 4 批修复中心：实体合规入属性治理页签（hash 透传 sub，页签初值读 sub）
   if (h === "entity-compliance" || h.startsWith("entity-compliance")) return "property";
   if (h === "review" || h.startsWith("review/")) return "review";
-  if (h === "gaps") return "gaps";
+  // 第 5 批收尾批 A：gaps 导航项退役（工作台量值带深链）——旧 hash 归一工作台
+  if (h === "gaps") return "workbench";
   // 第 3 批对象浏览器：三旧路由并入图谱检索枢纽页签（hash 原样透传，页签初值读 sub）
   if (h === "document-inventory" || h.startsWith("document-inventory")) return "data-dashboard";
   if (h === "impact-analysis" || h.startsWith("impact-analysis")) return "data-dashboard";

@@ -63,7 +63,7 @@ describe("application bar", () => {
     render(<App />);
     const location = within(screen.getByRole("banner")).getByTestId("app-bar-location");
     expect(within(location).getByText(TERM.RELATION_REVIEW)).toBeInTheDocument();
-    expect(within(location).getByText(TERM.TASK_KNOWLEDGE_APPROVAL)).toBeInTheDocument();
+    expect(within(location).getByText(TERM.REGION_CONFIG_AUDIT)).toBeInTheDocument();
   });
 
   it("shows only the page name when the domain flattens to a single page", () => {
@@ -88,16 +88,18 @@ describe("global navigation sidebar", () => {
     render(<App />);
     const dialog = screen.getByRole("complementary", { name: TERM.GLOBAL_NAVIGATION });
     // 多页任务域保留分组标题；内容管道已随发布页退役拍平为单页域（标题不再渲染）
+    // 组标签仅多页组渲染（单页组拍平为页按钮——AppSidebar:73 既有行为）：
+    // 多页组＝工作台(2)/修复中心(2)/配置与审计(2)；单页组＝对象浏览器/审批与发布（组标签不渲染）
     for (const label of [
-      TERM.TASK_KNOWLEDGE_APPROVAL,
-      TERM.TASK_RULE_CHECK,
+      TERM.REGION_WORKBENCH,
+      TERM.REGION_REPAIR_CENTER,
+      TERM.REGION_CONFIG_AUDIT,
     ]) {
-      expect(within(dialog).getByText(label)).toBeInTheDocument();
+      expect(within(dialog).getAllByText(label).length).toBeGreaterThan(0);
     }
     for (const label of [
       TERM.ARTICLE_ADMISSION,
       TERM.RELATION_REVIEW,
-      TERM.TOPOLOGY_GAP_REVIEW,
       TERM.ARTICLE_MAPPING_REPAIR,
       TERM.GRAPH_EXPLORER,
       TERM.SCHEMA,
@@ -113,7 +115,7 @@ describe("global navigation sidebar", () => {
     render(<App />);
     const dialog = screen.getByRole("complementary", { name: TERM.GLOBAL_NAVIGATION });
     expect(within(dialog).getByRole("button", { name: TERM.RELATION_REVIEW })).toHaveAttribute("aria-current", "page");
-    expect(within(dialog).getByText(TERM.TASK_KNOWLEDGE_APPROVAL)).toHaveAttribute("aria-current", "location");
+    expect(within(dialog).getByText(TERM.REGION_CONFIG_AUDIT)).toHaveAttribute("aria-current", "location");
     expect(within(dialog).getByRole("button", { name: TERM.GRAPH_EXPLORER })).not.toHaveAttribute("aria-current", "page"); // 单页域拍平后组标签不渲染（第 5 批）
   });
 
@@ -128,7 +130,7 @@ describe("global navigation sidebar", () => {
     render(<App />);
     const dialog = screen.getByRole("complementary", { name: TERM.GLOBAL_NAVIGATION });
     // 悬浮分组标题不再弹出任何 Tooltip
-    fireEvent.pointerMove(within(dialog).getByText(TERM.TASK_KNOWLEDGE_APPROVAL));
+    fireEvent.pointerMove(within(dialog).getByText(TERM.REGION_CONFIG_AUDIT));
     expect(screen.queryByRole("tooltip")).not.toBeInTheDocument();
   });
 

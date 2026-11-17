@@ -11,4 +11,6 @@ export const WORKBENCH_VIEW_COPY = {
   STAT_ANOMALIES_HINT: "待处理问题数（详见待处理问题工作台）",
   STAT_MANIFEST: `${TERM.ARTICLE_GRAPH_MAPPING}待处理`,
   STAT_MANIFEST_HINT: `${TERM.ARTICLE_GRAPH_MAPPING}过期与未生成合计（详见${TERM.ARTICLE_AND_COMPONENTS}·人工映射校正）`,
+  STAT_CHECK_ISSUES: "架构组件待修复",
+  STAT_CHECK_ISSUES_HINT: `存在阻断或警告问题的架构组件数（详见${TERM.ARTICLE_AND_COMPONENTS}·架构组件属性）`,
 } as const;
