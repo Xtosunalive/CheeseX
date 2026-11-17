@@ -10,7 +10,11 @@ vi.mock("@/features/dashboard/DashboardView", () => ({ DashboardView: () => <div
 vi.mock("@/features/admission/AdmissionView", () => ({ AdmissionView: () => null }));
 vi.mock("@/features/review/ReviewView", () => ({ ReviewView: () => <div>关系审核深入页</div> }));
 vi.mock("@/features/gap-engine/GapEngineView", () => ({ GapEngineView: () => <div>拓扑缺口深入页</div> }));
-vi.mock("@/features/property-gov/PropertyGovView", () => ({ PropertyGovView: () => null }));
+// 第 4 批：entity-compliance 归一入 property——PropertyGovView mock 需透传实体合规 mock 件（树常驻用例验「深入页」文本）
+vi.mock("@/features/property-gov/PropertyGovView", async () => {
+  const mod = await vi.importMock<Record<string, () => JSX.Element>>("@/features/entity-compliance/EntityComplianceView");
+  return { PropertyGovView: () => <mod.EntityComplianceView /> };
+});
 vi.mock("@/features/entity-compliance/EntityComplianceView", () => ({ EntityComplianceView: () => <div>{TERM.SOURCE_DOC_CHECK}深入页</div> }));
 vi.mock("@/features/document-inventory/DocumentInventoryView", () => ({ DocumentInventoryView: () => null }));
 vi.mock("@/features/impact-analysis/ImpactAnalysisView", () => ({ ImpactAnalysisView: () => null }));
@@ -59,7 +63,7 @@ describe("Skeleton Management navigation", () => {
     expect(window.location.hash).toBe("#/schema");
     const globalNavigation = screen.getByTestId("global-navigation");
     const routeButtons = within(globalNavigation).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route");
-    expect(routeButtons).toHaveLength(11);
+    expect(routeButtons).toHaveLength(10);
     expect(within(globalNavigation).queryByText("参考资料")).not.toBeInTheDocument();
     expect(within(globalNavigation).queryByText("backup")).not.toBeInTheDocument();
     const sidebarRoute = within(globalNavigation).getByRole("button", { name: "图谱规则配置" });
@@ -80,7 +84,8 @@ describe("Skeleton Management navigation", () => {
       ["#/anomalies", "待处理问题页", "待处理问题"],
       ["#/gaps", "拓扑缺口深入页", TERM.TOPOLOGY_GAP_REVIEW],
       ["#/review", "关系审核深入页", "关系审核"],
-      ["#/entity-compliance", `${TERM.SOURCE_DOC_CHECK}深入页`, TERM.SOURCE_DOC_CHECK],
+      // 第 4 批：entity-compliance 归一入属性治理（aria-current 落 property 组项）
+      ["#/entity-compliance", `${TERM.SOURCE_DOC_CHECK}深入页`, TERM.ARTICLE_AND_COMPONENTS],
     ] as const;
     for (const [hash, page, activeRoute] of cases) {
       window.location.hash = hash;
@@ -88,8 +93,8 @@ describe("Skeleton Management navigation", () => {
       // F3 视图懒加载：各视图首挂异步解析，改 findBy 等待
       expect(await screen.findByText(page)).toBeInTheDocument();
       const navigation = within(screen.getByTestId("global-navigation"));
-      // 完整树常驻：全 11 个 route（第 3 批：三检索项并入对象浏览器页签），当前页面标记 aria-current
-      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(11);
+      // 完整树常驻：全 10 个 route（第 4 批：实体合规入修复中心页签），当前页面标记 aria-current
+      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(10);
       expect(navigation.getByRole("button", { name: activeRoute })).toHaveAttribute("aria-current", "page");
       view.unmount();
     }
@@ -125,15 +130,16 @@ describe("Skeleton Management navigation", () => {
     render(<App />);
     const sidebar = screen.getByTestId("global-navigation");
     expect(sidebar).toHaveAttribute("aria-label", "全局导航");
-    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(11);
+    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(10);
   });
 
   it("professional pages remain independently accessible and are not anomaly sub-routes", () => {
     const independentRoutes = [
       ["#/article-associations", TERM.ARTICLE_MAPPING_REPAIR],
-      ["#/entity-compliance", TERM.SOURCE_DOC_CHECK],
       ["#/review", "关系审核"],
       ["#/property", TERM.ARTICLE_AND_COMPONENTS],
+      // 第 4 批：entity-compliance 归一——hash 仍可达（页签初值读 sub），aria-current 落 property
+      ["#/entity-compliance", TERM.ARTICLE_AND_COMPONENTS],
     ] as const;
     for (const [hash, navLabel] of independentRoutes) {
       window.location.hash = hash;
