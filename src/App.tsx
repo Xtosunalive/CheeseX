@@ -1,5 +1,5 @@
 import { useState, useEffect, lazy, Suspense } from "react";
-import { LayoutDashboard, Search, ShieldCheck, Database, GitFork, Settings, FileSearch, GitCompareArrows, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
+import { LayoutDashboard, Search, ShieldCheck, Database, GitFork, Settings, GitCompareArrows, Link2, AlertTriangle, Upload, FilePenLine } from "lucide-react";
 import { Toaster } from "@/components/ui/sonner";
 import { AppErrorBoundary } from "@/components/app-shell/AppErrorBoundary";
 import { APP_SHELL_COPY } from "@/components/components-copy";
@@ -58,7 +58,6 @@ const NAV_GROUPS: NavGroup[] = [
     id: "knowledge-approval", icon: ShieldCheck, label: TERM.TASK_KNOWLEDGE_APPROVAL,
     items: [
       { id: "article-associations", icon: FilePenLine, label: TERM.ARTICLE_MAPPING_REPAIR },
-      { id: "admission", icon: Database, label: TERM.GRAPH_ADMISSION },
       { id: "review", icon: Link2, label: TERM.RELATION_REVIEW },
       { id: "gaps", icon: GitFork, label: TERM.TOPOLOGY_GAP_REVIEW },
     ],
@@ -67,13 +66,6 @@ const NAV_GROUPS: NavGroup[] = [
     id: "graph-architecture", icon: Search, label: TERM.TASK_ASSET_LOOKUP,
     items: [
       { id: "data-dashboard", icon: Database, label: TERM.GRAPH_EXPLORER },
-      { id: "document-inventory", icon: FileSearch, label: TERM.DOC_LOOKUP },
-    ],
-  },
-  {
-    id: "impact-analysis", icon: GitCompareArrows, label: TERM.COMPONENT_IMPACT,
-    items: [
-      { id: "impact-analysis", icon: GitFork, label: TERM.TASK_IMPACT_ANALYSIS },
       { id: "architecture-version", icon: GitCompareArrows, label: TERM.VERSION_ANALYSIS },
     ],
   },
@@ -83,15 +75,16 @@ const NAV_GROUPS: NavGroup[] = [
 function getNavFromHash(): NavId {
   const raw = window.location.hash.replace("#/", "");
   const h = raw.split("?")[0]; // strip query params for nav resolution
-  if (h === "admission" || h.startsWith("admission") || h === "node" || h.startsWith("node")) return "admission";
+  if (h === "admission" || h.startsWith("admission") || h === "node" || h.startsWith("node")) return "data-dashboard"; // 第 3 批：准入注册表入枢纽页签
   // 运行概览退役（2026-11-17 Master 裁 B）：旧 hash 回落图谱检索枢纽（publish→article-workflow 同款兼容先例）
   if (h === "dashboard") return "data-dashboard";
   if (h === "data-dashboard") return "data-dashboard";
   if (h === "entity-compliance") return "entity-compliance";
   if (h === "review" || h.startsWith("review/")) return "review";
   if (h === "gaps") return "gaps";
-  if (h === "document-inventory") return "document-inventory";
-  if (h === "impact-analysis" || h.startsWith("impact-analysis")) return "impact-analysis";
+  // 第 3 批对象浏览器：三旧路由并入图谱检索枢纽页签（hash 原样透传，页签初值读 sub）
+  if (h === "document-inventory" || h.startsWith("document-inventory")) return "data-dashboard";
+  if (h === "impact-analysis" || h.startsWith("impact-analysis")) return "data-dashboard";
   if (h === "architecture-version") return "architecture-version";
   // seq212：旧「关系查询」路由并入图谱检索枢纽——渲染映射 + URL 归一化（见下方 normalize 效果）
   if (h === "relations" || h.startsWith("relations")) return "data-dashboard";
@@ -178,17 +171,16 @@ export default function App() {
     return () => window.removeEventListener("hashchange", onHash);
   }, []);
 
-  // seq212：旧 #/relations（含子路由）URL 归一化到枢纽地址（渲染已由 getNavFromHash 映射，这里保持地址栏一致、可直接分享）
+  // seq212＋第 3 批：旧 relations/document-inventory/admission/impact 地址归一化到枢纽
+  // （渲染已由 getNavFromHash 映射；地址栏改写带 tab query，页签初值读取不受影响——初值函数读 path 段）
   useEffect(() => {
-    const normalizeRelationsHash = () => {
+    const normalizeLegacyHash = () => {
       const raw = window.location.hash.replace("#/", "").split("?")[0];
-      if (raw === "relations" || raw.startsWith("relations/")) {
-        navigate("data-dashboard");
-      }
+      if (raw === "relations" || raw.startsWith("relations/")) navigate("data-dashboard");
     };
-    normalizeRelationsHash();
-    window.addEventListener("hashchange", normalizeRelationsHash);
-    return () => window.removeEventListener("hashchange", normalizeRelationsHash);
+    normalizeLegacyHash();
+    window.addEventListener("hashchange", normalizeLegacyHash);
+    return () => window.removeEventListener("hashchange", normalizeLegacyHash);
   }, []);
 
   useEffect(() => {

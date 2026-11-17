@@ -93,6 +93,8 @@ vi.mock("@/lib/topology-store", () => ({
 import { LocalGraph } from "@/features/data-dashboard/components/local-graph/LocalGraph";
 import { isEdgeVisible, isFileBackedNode, matchesQuery } from "@/lib/topology-types";
 import { DataDashboardView } from "@/features/data-dashboard/DataDashboardView";
+import { DD_VIEW_COPY } from "@/features/data-dashboard/data-dashboard-copy";
+import { TERM } from "@/constants/term-const";
 // 红灯态用当前路径（B 步迁移后随组件改指 @/components/app-shell/sidebar-primitives）
 import { SidebarShell } from "@/components/app-shell/sidebar-primitives";
 
@@ -102,14 +104,15 @@ describe("DataDashboardView · 图谱检索枢纽", () => {
     window.location.hash = "#/data-dashboard";
   });
 
-  it("以「图谱检索」为题并提供 拓扑/关系 双 tab", () => {
+  it("以「图谱检索」为题并提供对象浏览器五页签（拓扑/关系/准入/检索/影响）", () => {
     render(<DataDashboardView />);
     // 页内主标题已删（与顶栏 PageHeader 重复，PR③ Master 2026-10-07 04:44 拍板）——
     // 「题」改由应用栏 app-bar-location 承载；此处断言 tab 结构不变
     const tabs = screen.getByRole("tablist", { name: "图谱检索视图" });
-    expect(tabs).toHaveClass("grid-cols-2");
-    expect(screen.getByRole("tab", { name: "拓扑" })).toBeInTheDocument();
-    expect(screen.getByRole("tab", { name: "关系" })).toBeInTheDocument();
+    expect(tabs).toHaveClass("grid-cols-4");
+    for (const label of [DD_VIEW_COPY.TAB_TOPO, TERM.RELATION, TERM.GRAPH_ADMISSION, TERM.DOC_LOOKUP, TERM.TASK_IMPACT_ANALYSIS]) {
+      expect(screen.getByRole("tab", { name: label })).toBeInTheDocument();
+    }
   });
 
   it("拓扑 tab 真渲染 ArchProjFlow：拓扑节点可见（证伪孤儿未接入）", async () => {

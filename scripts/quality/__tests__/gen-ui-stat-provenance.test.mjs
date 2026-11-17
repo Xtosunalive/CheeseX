@@ -27,13 +27,13 @@ test("①真仓幂等：全部视图派生结果与登记面逐字一致（--che
 
 test("②撤线即红：把某视图的 apiSources 换成另一次真实调用，派生面必须漂移", () => {
   const registry = JSON.parse(fs.readFileSync(path.join(ROOT, "contracts", "ui-stat-provenance.json"), "utf8"));
-  // 2026-11-15 MAIC 形态批改钉 review 视图（原 admission 视图随量值批清出登记）——同模块内另一次
-  // 真实调用（review-history）：登记面记的是 pending-review＋inference-conflicts，二者必不等
-  const view = registry.views.find((v) => v.view === "review");
+  // 2026-11-17 第 3 批改钉 workbench 视图（原 review 视图随删除子批清出登记）——同模块内另一次
+  // 真实调用（manifests）：登记面记的是 anomalies，二者必不等
+  const view = registry.views.find((v) => v.view === "workbench");
   const original = [...view.apiSources];
-  view.apiSources = ["src/features/review/review-api.ts#fetchReviewHistory"];
+  view.apiSources = ["src/features/workbench/workbench-api.ts#fetchManifestSignals"];
   const derived = deriveSourceApis(ROOT, view.apiSources, realOpenapi);
-  assert.deepEqual(derived, ["/api/kg/review-history"]);
+  assert.deepEqual(derived, ["/api/kg/query"]);
   assert.notDeepEqual(derived, view.sourceApis, "改口径后派生结果仍等于旧登记＝本例判力为零");
   view.apiSources = original;
   assert.deepEqual(deriveSourceApis(ROOT, view.apiSources, realOpenapi), view.sourceApis, "复原后应回到一致（本例自净）");

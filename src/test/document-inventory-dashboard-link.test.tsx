@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { TERM } from "@/constants/term-const";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import App from "@/App";
@@ -6,6 +6,7 @@ import App from "@/App";
 vi.mock("@/features/document-inventory/DocumentInventoryView", () => ({ DocumentInventoryView: () => <div>文档溯源检索页</div> }));
 vi.mock("@/components/ui/sonner", () => ({ Toaster: () => null }));
 vi.mock("@/features/dashboard/DashboardView", () => ({ DashboardView: () => <div>dashboard</div> }));
+vi.mock("@/features/data-dashboard/DataDashboardView", () => ({ DataDashboardView: () => <div data-testid="hub-host">图谱检索枢纽</div> }));
 vi.mock("@/features/admission/AdmissionView", () => ({ AdmissionView: () => null }));
 vi.mock("@/features/review/ReviewView", () => ({ ReviewView: () => null }));
 vi.mock("@/features/gap-engine/GapEngineView", () => ({ GapEngineView: () => null }));
@@ -16,11 +17,13 @@ vi.mock("@/features/schema-manager/SchemaManagerView", () => ({ SchemaManagerVie
 describe("document inventory navigation", () => {
   beforeEach(() => { window.location.hash = "#/dashboard"; });
 
-  it("opens the page from the global navigation sheet", async () => {
+  it("检索入口随第 3 批并入对象浏览器——导航项退役，hash 兼容回落枢纽页签", async () => {
     render(<App />);
-    fireEvent.click(within(screen.getByRole("complementary", { name: "全局导航" })).getByRole("button", { name: TERM.DOC_LOOKUP }));
-    expect(window.location.hash).toBe("#/document-inventory");
-    // F3 视图懒加载：视图首挂异步解析，改 findBy 等待
-    expect(await screen.findByText("文档溯源检索页")).toBeInTheDocument();
+    // 导航项已撤（DTO_LOOKUP 归图谱检索枢纽 search 页签）；旧 hash 兼容回落仍可达
+    expect(screen.queryByRole("button", { name: TERM.DOC_LOOKUP })).not.toBeInTheDocument();
+    window.location.hash = "#/document-inventory";
+    // 归一后渲染枢纽宿主（DocumentInventoryView 已被 mock，无其文案）——断言落到 data-dashboard 页签宿主
+    await screen.findByTestId("hub-host");
+    expect(window.location.hash.startsWith("#/document-inventory")).toBe(true); // hash 透传（页签初值读 sub）
   });
 });

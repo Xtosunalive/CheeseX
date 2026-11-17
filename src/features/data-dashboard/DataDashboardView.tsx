@@ -2,12 +2,17 @@
 // 拓扑 tab：修复后的 ArchProjFlow 真实拓扑（ReactFlow+Dagre）+ 三上下文侧栏 + 关系类型 chip + 范围切换
 // 关系 tab：LocalGraph（Obsidian 式局部图）为主体＋RelationLibraryTab / RelationsPanel；TaxonomySidebar / BandStack 保留为折叠子视图
 import { useEffect, useMemo, useState } from "react";
-import { ChevronDown, Database, GitBranch, Network, Share2, FileSearch } from "lucide-react";
+import { ChevronDown, Database, GitBranch, Network, Share2, FileSearch, GitCompareArrows } from "lucide-react";
 import { ArchitectureProjectionFlow, buildProjectionModel } from "@/components/architecture-projection";
 import { TopologyStateGate } from "@/components/topology-state-gate";
 import { TaxonomySidebar } from "@/features/data-dashboard/components/taxonomy-sidebar";
 import { BandStack } from "@/features/data-dashboard/components/band-stack";
 import { InternalTabs, type InternalTabItem } from "@/components/internal-tabs";
+import { lazy, Suspense } from "react";
+import { useNavLocation } from "@/hooks/use-nav-location";
+const AdmissionView = lazy(() => import("@/features/admission/AdmissionView").then(m => ({ default: m.AdmissionView })));
+const DocumentInventoryView = lazy(() => import("@/features/document-inventory/DocumentInventoryView").then(m => ({ default: m.DocumentInventoryView })));
+const ImpactAnalysisView = lazy(() => import("@/features/impact-analysis/ImpactAnalysisView").then(m => ({ default: m.ImpactAnalysisView })));
 import { RelationLibraryTab } from "@/features/data-dashboard/components/relation-library-tab";
 import { LocalGraph } from "@/features/data-dashboard/components/local-graph/LocalGraph";
 import { RelationsPanel } from "@/features/data-dashboard/components/relations-panel";
@@ -39,11 +44,14 @@ import { ENTITY_CATEGORY } from "@/lib/domain/EntityCategory";
 import { COMPOSITION_COPY, DD_VIEW_COPY, ontologyUsage } from "./data-dashboard-copy";
 import { ReleaseMintCard } from "./components/release-mint-card";
 
-type HubTab = "topo" | "relations";
+type HubTab = "topo" | "relations" | "registry" | "search" | "impact";
 
 const HUB_TABS: InternalTabItem<HubTab>[] = [
   { id: "topo", icon: Network, label: DD_VIEW_COPY.TAB_TOPO },
   { id: "relations", icon: Share2, label: TERM.RELATION },
+  { id: "registry", icon: Database, label: TERM.GRAPH_ADMISSION },
+  { id: "search", icon: FileSearch, label: TERM.DOC_LOOKUP },
+  { id: "impact", icon: GitCompareArrows, label: TERM.TASK_IMPACT_ANALYSIS },
 ];
 
 type RelationsTab = "query" | "overview";
@@ -224,7 +232,15 @@ export function DataDashboardView() {
   const setScope = useSetTopologyScope();
 
   const hubFocus = useHubDrawerState((s) => s.focus);
-  const [tab, setTab] = useState<HubTab>("topo");
+  // 页签初值读 hash sub（#/data-dashboard/search → search）；下钻口径：页签宿主不搬组件，四页原样嵌入
+  const navLocation = useNavLocation();
+  const [tab, setTab] = useState<HubTab>(() => {
+    const sub = navLocation.sub ?? "";
+    // 第 3 批旧路由兼容：document-inventory→search、admission/node→registry、impact-analysis→impact
+    const legacy: Record<string, HubTab> = { "document-inventory": "search", admission: "registry", node: "registry", "impact-analysis": "impact" };
+    const mapped = legacy[sub] ?? (["relations", "registry", "search", "impact"].includes(sub) ? sub : undefined);
+    return (mapped ?? "topo") as HubTab;
+  });
   const [relationsTab, setRelationsTab] = useState<RelationsTab>("query");
   const [relFilter, setRelFilter] = useState<Set<string>>(new Set());
 
@@ -354,9 +370,29 @@ export function DataDashboardView() {
                 </div>
               </div>
             )}
+            {/* 2026-11-17 第 3 批：对象浏览器页签宿主——三页 View 原样嵌入（不搬组件），Suspense 惰性 */}
+            {tab === "registry" && (
+              <Suspense fallback={<LoadingFallback />}>
+                <AdmissionView />
+              </Suspense>
+            )}
+            {tab === "search" && (
+              <Suspense fallback={<LoadingFallback />}>
+                <DocumentInventoryView />
+              </Suspense>
+            )}
+            {tab === "impact" && (
+              <Suspense fallback={<LoadingFallback />}>
+                <ImpactAnalysisView />
+              </Suspense>
+            )}
           </PageContainer>
         );
       })()}
     </TopologyStateGate>
   );
+}
+
+function LoadingFallback() {
+  return <div className="flex h-32 items-center justify-center text-sm text-text-hint">{TERM.LOADING}</div>;
 }
