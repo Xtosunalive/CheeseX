@@ -526,7 +526,7 @@
       "guide": null,
       "register_entry": "docs/work-packages/WP-187.json",
       "note": "；WP-187（2026-11-19）：借镜 OpenMAIC lib/model-settings 管线——键域（server/shared/field-policy.cjs 活算）×标签（shared/field-labels.mjs seq209 单源）在生成器单点装配（join 校验 fail-closed：策略键缺标签即拒绝生成），产 src/lib/generated/field-view.ts；前端禁直连标签单源（eslint no-restricted-imports 执法）。candidate 裸登记合法，推进走 playbook 生命周期。",
-      "verification_evidence": "gen:field-view --check 绿＋entity-fields-ssot/field-labels-ssot 差分锁绿（随提交回填）",
+      "verification_evidence": "gen:field-view --check 绿＋entity-fields-ssot/field-labels-ssot 差分锁绿（L1-L8）；波4 试点（WP-188）：同值列头 3 处（准入登记表 layer/category＋搜索字段标签、检查结果表 layer）收编派生面取值，显示零变化",
       "metrics": null,
       "last_updated": "2026-11-19",
       "generator": "gen:field-view"

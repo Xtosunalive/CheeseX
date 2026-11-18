@@ -231,4 +231,29 @@ describe("field labels SSOT locks (seq209)", () => {
     expect(generatedFieldLabel("not_a_field")).toBe(fieldLabel("not_a_field"));
     expect(generatedFieldLabel("")).toBe(fieldLabel(""));
   });
+
+  // L8 同值列头收编锁（WP-188 波4）：列头显示词与字段中文名「同值同义」且列数据即该字段值者，
+  // 经派生面 fieldLabel 取（WP-151「同值同义者引既有键不另抄」判据的列头面延伸）——禁经 TERM 转抄
+  // 或字面量第二份。页面语义词列头（文章标题/源实体/产品 / 模块等）不适用本锁（非字段键投影，
+  // 收编即改产品语义——WP-188 合同 non_goals 在案）。
+  it("L8 同值列头经派生面取（WP-188 波4：准入登记表＋检查结果表）", () => {
+    // 接线：两 copy 模块的同值列头经派生面取（显式域）
+    const admissionCopy = readRepo("src/features/admission/admission-copy.ts");
+    expect(admissionCopy).toContain('COL_LAYER: fieldLabel("arch_layer", "entity")');
+    expect(admissionCopy).toContain('COL_CATEGORY: fieldLabel("arch_category", "entity")');
+    const propertyGovCopy = readRepo("src/features/property-gov/property-gov-copy.ts");
+    expect(propertyGovCopy).toContain('COL_LAYER: sharedFieldLabel("arch_layer", "entity")');
+    // 反例：两组件不再以 TERM 转抄同值列头（筛选器 DocumentSearchBar 的 TERM.CATEGORY/TERM.LAYER
+    // 是 facet 过滤标签，非表格列头，不在本锁射程）
+    const registryTable = readRepo("src/features/admission/EntityRegistryTable.tsx");
+    expect(registryTable).not.toContain("TERM.LAYER");
+    expect(registryTable).not.toContain("TERM.CATEGORY");
+    const checkResultsPanel = readRepo("src/features/property-gov/CheckResultsPanel.tsx");
+    expect(checkResultsPanel).not.toContain("TERM.LAYER");
+    // 值等价：派生值与原 TERM 字面量逐字同（显示零变化）
+    expect(FIELD_LABELS.entity.arch_layer).toBe("架构分层");
+    expect(FIELD_LABELS.entity.arch_category).toBe("实体类别");
+    expect(generatedFieldLabel("arch_layer", "entity")).toBe("架构分层");
+    expect(generatedFieldLabel("arch_category", "entity")).toBe("实体类别");
+  });
 });
