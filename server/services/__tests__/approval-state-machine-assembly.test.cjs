@@ -552,7 +552,9 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     const formalSearch = await request("GET", "/api/documents/search");
     assert.equal(formalSearch.status, 200, JSON.stringify(formalSearch.body).slice(0, 600));
     assert(formalSearch.body.data.documents.some((document) => document.documentKind === "standard-article"), JSON.stringify(formalSearch.body.data).slice(0, 1200));
-    await page.goto(`http://127.0.0.1:${uiPort}/#/document-inventory`);
+    // 第 3 批对象浏览器 IA：document-inventory 旧路由并入图谱检索枢纽页签——正式文件全景住
+    // 枢纽 search 页签（#/data-dashboard/search；#/document-inventory 旧 hash 落枢纽 topo 页签）
+    await page.goto(`http://127.0.0.1:${uiPort}/#/data-dashboard/search`);
     await page.getByRole("button", { name: /测试候选文章/ }).first().click({ timeout: 15_000 });
     const formalDetail = page.getByRole("region", { name: "文章全景" });
     await formalDetail.waitFor({ timeout: 15_000 });
