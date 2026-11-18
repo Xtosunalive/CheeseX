@@ -31,16 +31,18 @@
     {
       "view": "workbench",
       "file": "src/features/workbench/WorkbenchView.tsx",
-      "statCount": 4,
+      "statCount": 5,
       "apiSources": [
         "src/features/workbench/workbench-api.ts#fetchAnomalyPendingSignals",
-        "src/features/workbench/workbench-api.ts#fetchManifestSignals"
+        "src/features/workbench/workbench-api.ts#fetchManifestSignals",
+        "src/features/property-gov/property-api.ts#fetchCheckResults"
       ],
       "sourceApis": [
         "/api/anomalies",
-        "/api/kg/query"
+        "/api/kg/query",
+        "/api/property/check"
       ],
-      "note": "第 2 批工作台量值带（2026-11-17）：四源聚合（pending 第 1 批接线源 EdgeReviewPanel 回写／gaps topology 同源／anomalies+manifests 经 workbench-api 自拉）；第 3 批补登＋api 分层正位"
+      "note": "第 2 批工作台量值带（2026-11-17）：四源聚合（pending 第 1 批接线源 EdgeReviewPanel 回写／gaps topology 同源／anomalies+manifests 经 workbench-api 自拉）；第 3 批补登＋api 分层正位；第 5 卡阻断/警告聚合（property-store.summary ← /api/property/check）2026-11-18 补登（statCount 4→5）"
     }
   ],
   "excluded": [

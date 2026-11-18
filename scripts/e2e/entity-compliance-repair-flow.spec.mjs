@@ -52,9 +52,11 @@ test("实体合规修复流（上传缺失字段实体 → 修复抽屉 → 预�
       expect(body?.data?.reconcileStale).toBe(false);
     });
 
-    // Step 2: 加载源文档检查页——搜索框随检查数据渲染（真等待由运行器托管）
+    // Step 2: 加载源文档检查页——搜索框随检查数据渲染（真等待由运行器托管）。
+    // 第 4 批修复中心 IA：实体合规并入属性治理页签（#/property/entity-compliance）；
+    // 旧 hash #/entity-compliance 落属性治理默认页签，合规视图不在场。
     await test.step("Step2 加载源文档检查视图", async () => {
-      await page.goto("/#/entity-compliance", { waitUntil: "networkidle" });
+      await page.goto("/#/property/entity-compliance", { waitUntil: "networkidle" });
       await expect(page.getByLabel("搜索源文档检查结果")).toBeVisible();
     });
 

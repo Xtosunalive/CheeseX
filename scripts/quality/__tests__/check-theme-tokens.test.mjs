@@ -15,7 +15,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.resolve(__dirname, "..", "theme-token-faces.mjs");
 const ROOT = path.resolve(__dirname, "..", "..", "..");
-const PROBE = path.join(ROOT, "src", "features", "dashboard", "DashboardView.tsx");
+const PROBE = path.join(ROOT, "src", "features", "data-dashboard", "DataDashboardView.tsx");
 const INDEX_CSS = path.join(ROOT, "src", "index.css");
 
 function runGate() {

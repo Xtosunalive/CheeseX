@@ -13,7 +13,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.resolve(__dirname, "..", "check-ui-kit.mjs");
 const ROOT = path.resolve(__dirname, "..", "..", "..");
 const BASELINE = path.join(ROOT, "contracts", "ui-kit-baseline.json");
-const PROBE = path.join(ROOT, "src", "features", "dashboard", "__tag_probe__.tsx");
+const PROBE = path.join(ROOT, "src", "features", "data-dashboard", "__tag_probe__.tsx");
 
 function runGate() {
   try {

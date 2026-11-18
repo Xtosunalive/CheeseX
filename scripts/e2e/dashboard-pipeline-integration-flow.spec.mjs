@@ -1,4 +1,4 @@
-// @component: 图谱检索枢纽→管道诊断（零副作用）→图谱投影一致性——Playwright 迁移件（WP-096 T3 批；2026-11-17 运行概览退役批改钉 #/data-dashboard——原宿主页随批退役，断言集逐条同源不变）
+// @component: 图谱检索枢纽→管道诊断（零副作用）→图谱投影一致性——Playwright 迁移件（WP-096 T3 批；2026-11-17 运行概览退役批改钉 #/data-dashboard；2026-11-18 终验批随批迁移 Step6/8 断言宿主——Step6 关系分布改断言拓扑页签「图谱构成分布」折叠子视图、Step8 同步日志区块已退役改断言 ReleaseMintCard 发布入口）
 // @context: 旧件 scripts/e2e/dashboard-pipeline-integration-flow.e2e.mjs 的运行器层等价迁移——
 //   断言集逐条同源（旧 record() 步 ↔ 本 expect/test.step 块；旧 observe() 软观察 ↔ console.log），
 //   不借机改测试口径。关键语义（G-e/#1773 教训立法）：POST /api/pipeline/run = 只读全局诊断
@@ -108,7 +108,10 @@ test("图谱检索枢纽 → 管道诊断（零副作用契约）→ 图谱投�
     ).toBe(true);
   });
 
-  await test.step("Step6 运行概览显示关系分布", async () => {
+  // Step 6: 关系分布呈现（2026-11-17 运行概览退役批：关系类型占比条迁图谱检索枢纽拓扑页签尾
+  // 「图谱构成分布」子视图——默认折叠，展开后断言；断言对象不变，宿主面随批迁移）
+  await test.step("Step6 拓扑页签图谱构成分布显示关系分布", async () => {
+    await page.getByRole("button", { name: "图谱构成分布" }).click();
     await expect(page.getByText("关系类型分布", { exact: true })).toBeVisible();
   });
 
@@ -121,9 +124,9 @@ test("图谱检索枢纽 → 管道诊断（零副作用契约）→ 图谱投�
     ).toBe(true);
   });
 
-  await test.step("Step8 最近生成与独立发布入口可见", async () => {
-    await expect(page.getByText("最近管道生成结果", { exact: true })).toBeVisible();
-    await expect(page.getByText(/^最近生成/)).toBeVisible();
+  // Step 8: 独立发布入口可见（同步日志/最近生成区块已随 2026-11-17 退役批撤——数据源已死，
+  // 新鲜度职责由自动刷新兑现；全库定版发布卡＝ReleaseMintCard 住拓扑页签尾，断言保留发布入口）
+  await test.step("Step8 全库定版发布入口可见", async () => {
     await expect(page.getByRole("button", { name: "发布", exact: true })).toBeEnabled();
   });
 });

@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.resolve(__dirname, "..", "check-table-usage.mjs");
 const ROOT = path.resolve(__dirname, "..", "..", "..");
-const PROBE_FEATURE = path.join(ROOT, "src", "features", "dashboard", "__usage_probe__.tsx");
+const PROBE_FEATURE = path.join(ROOT, "src", "features", "data-dashboard", "__usage_probe__.tsx");
 
 function runGate() {
   try {

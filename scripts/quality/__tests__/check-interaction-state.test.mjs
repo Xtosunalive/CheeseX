@@ -12,7 +12,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SCRIPT = path.resolve(__dirname, "..", "check-interaction-state.mjs");
 const ROOT = path.resolve(__dirname, "..", "..", "..");
-const PROBE = path.join(ROOT, "src", "features", "dashboard", "__state_probe__-store.ts");
+const PROBE = path.join(ROOT, "src", "features", "data-dashboard", "__state_probe__-store.ts");
 
 function runGate() {
   try {
