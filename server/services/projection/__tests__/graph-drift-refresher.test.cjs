@@ -281,10 +281,16 @@ test("PR-307 同内容重写不算漂移（mtime 抖动被内容确认吸收）�
     const churn2At = Date.now() + 10000;
     fs.utimesSync(cache, new Date(), new Date(churn2At));
     assert.equal(refresher.check("external-write").drifted, false, "吸收持久——连续抖动持续不漂移");
-    // 吸收已落 kv（红队记档⑤）：基线条目 mtime 抬升到第二次抖动值（回写真实落账，非仅行为等价）
+    // 吸收已落 kv（红队记档⑤）：基线条目 mtime 抬升到第二次抖动值（回写真实落账，非仅行为等价）。
+    // 对账对象＝FS 实际存储的 mtime（CI 文件系统对 utimes 写入有毫秒级截断，对 Date.now() 字面值
+    // 做等号断言即间歇假红；吸收语义＝基线持有文件现值而非旧值，新旧相差约 5s，判据不弱化）
     const stored = JSON.parse(getDerivedIndexStore(vaultPath).kv.get(GRAPH_DRIFT_KV_KEY));
     assert.equal(stored.v, 2, "基线 v2 形态");
-    assert.equal(stored.files["知识库/raw/boards/_enums-cache.md"].mtimeMs, Math.floor(churn2At), "第二次吸收的 mtime 已写入基线");
+    assert.equal(
+      stored.files["知识库/raw/boards/_enums-cache.md"].mtimeMs,
+      Math.floor(fs.statSync(cache).mtimeMs),
+      "第二次吸收的 mtime 已写入基线（按 FS 实际存储值对账）",
+    );
     assert.ok(!events.some((e) => e.event === "graph-drift-refresh-triggered"), "全程零触发");
   } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
 });
