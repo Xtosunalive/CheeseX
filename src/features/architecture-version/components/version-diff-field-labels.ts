@@ -1,9 +1,9 @@
 // 版本对比字段中文名表（自 VersionComponentDiff 拆出——组件文件只留组件）。
-// seq209：字段中文名收口到 shared/field-labels.mjs。
+// seq209：字段中文名经派生面 src/lib/generated/field-view 取（单源装配）。
 // change.field 的取值集合由 architecture-version-service.cjs:183 的组件四键（label/layer/category/role）
 // 与 :185 的文章三键（articleId/title/sourcePath）决定，下面逐个登记：属于字段名的从字典派生，
 // 不是字段名的保持字面量并写明理由（免得后人当成漏网之鱼又改回去）。
-import { FIELD_LABELS as SHARED_FIELD_LABELS } from "../../../../shared/field-labels.mjs";
+import { FIELD_LABELS as SHARED_FIELD_LABELS } from "@/lib/generated/field-view";
 
 export const VERSION_DIFF_FIELD_LABELS: Record<string, string> = {
   // ── 是字段名 ──

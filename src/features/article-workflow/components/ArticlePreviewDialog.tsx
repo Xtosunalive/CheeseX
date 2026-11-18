@@ -6,7 +6,7 @@ import { ARTICLE_STANDARDIZATION_ACTION } from "@/features/article-workflow/arti
 import { type CandidateFieldCompletion, type CandidateFieldOptions, type PrecleanedArticleDetail } from "@/features/article-workflow/article-workflow-types";
 import { standardizationStatusDisplay } from "@/lib/domain/StatusDisplay";
 import { useArticleDerivation } from "@/hooks/useArticleDerivation";
-import { fieldLabel } from "../../../../shared/field-labels.mjs";
+import { fieldLabel } from "@/lib/generated/field-view";
 import { CandidateFieldForm } from "./CandidateFieldForm";
 import { ARTICLE_PREVIEW_COPY, articlePreviewReceiptText, articlePreviewWarningText } from "../article-workflow-copy";
 

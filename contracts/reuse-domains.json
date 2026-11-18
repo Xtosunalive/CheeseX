@@ -509,6 +509,27 @@
       "register_entry": "docs/plans/problem-register.md#PR-287",
       "note": "；WP-140（2026-11-07）：复用机制领域机制层外迁为自包含子包（schema/通用块/门禁/playbook/skill），本仓库 file: 自消费，别名 check:domain-registry 同名义零感切换；账本层（登记簿/台账/合同）不进包（ADR-018 切分线）。candidate 裸登记合法，推进走 playbook 生命周期。",
       "last_updated": "2026-11-07"
+    },
+    {
+      "id": "field-view",
+      "name": "字段视图派生面（字段中文名×白名单键域装配生成物）",
+      "status": "candidate",
+      "authority": null,
+      "contract": "docs/spec/SPEC-087-单源收口-词表信封与键名生成物驱动.md（WP-187 节）",
+      "gate": null,
+      "tests": [
+        "src/test/entity-fields-ssot.test.ts",
+        "src/test/field-labels-ssot.test.ts"
+      ],
+      "writers": [],
+      "recipes": null,
+      "guide": null,
+      "register_entry": "docs/work-packages/WP-187.json",
+      "note": "；WP-187（2026-11-19）：借镜 OpenMAIC lib/model-settings 管线——键域（server/shared/field-policy.cjs 活算）×标签（shared/field-labels.mjs seq209 单源）在生成器单点装配（join 校验 fail-closed：策略键缺标签即拒绝生成），产 src/lib/generated/field-view.ts；前端禁直连标签单源（eslint no-restricted-imports 执法）。candidate 裸登记合法，推进走 playbook 生命周期。",
+      "verification_evidence": "gen:field-view --check 绿＋entity-fields-ssot/field-labels-ssot 差分锁绿（随提交回填）",
+      "metrics": null,
+      "last_updated": "2026-11-19",
+      "generator": "gen:field-view"
     }
   ]
 }

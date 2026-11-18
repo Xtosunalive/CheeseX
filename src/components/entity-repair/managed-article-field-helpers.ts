@@ -1,6 +1,6 @@
 // 文章受管字段纯函数集（自 managed-article-field.tsx 拆出——组件文件只留组件，PR-050 单源语义不变）。
 // 控件形态/联动/回退语义仍单源；此文件只承载无 JSX 的取数函数，补齐表单与修复抽屉两棵表单树共用。
-import { FIELD_LABELS } from "../../../shared/field-labels.mjs";
+import { FIELD_LABELS } from "@/lib/generated/field-view";
 
 export type ManagedArticleProduct = { name: string; versions: string[] };
 

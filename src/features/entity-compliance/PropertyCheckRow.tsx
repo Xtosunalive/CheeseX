@@ -18,7 +18,7 @@ const SEV_LABEL: Record<NonNullable<ComplianceFinding["severity"]>, string> = { 
 
 // seq208 值所有权法则：行内「现值」唯一来源=sourceValues（源文档）；finding.value 诊断回显退役（ESLint 执法）
 export function PropertyCheckRow({ finding, sourceValues }: { finding: ComplianceFinding; sourceValues?: Record<string, unknown> | null }) {
-  // seq209：中文名走 shared/field-labels.mjs 单源（经 entity-repair-api.fieldLabel 转出）
+  // seq209：中文名走派生面 src/lib/generated/field-view（seq209 单源经生成器装配，经 entity-repair-api.fieldLabel 转出）
   const fieldLabel = finding.field ? resolveFieldLabel(finding.field) : finding.label || TERM.FIELD_LABEL_FALLBACK;
   const sourceValue = (finding.field && sourceValues && finding.field in sourceValues) ? sourceValues[finding.field] : undefined;
   if (finding.passed) {

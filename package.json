@@ -36,6 +36,7 @@
     "gen:error-registry": "node scripts/quality/gen-error-registry.mjs",
     "gen:ui-stat-provenance": "node scripts/quality/gen-ui-stat-provenance.mjs",
     "gen:value-domains": "node scripts/quality/gen-value-domains.mjs",
+    "gen:field-view": "node scripts/generate-field-view.mjs",
     "generate:ontology-registry": "node scripts/generate-ontology-registry.mjs",
     "gov:path": "node scripts/governance-kit/kit.mjs path",
     "gov:reconcile": "node scripts/governance-kit/kit.mjs reconcile",

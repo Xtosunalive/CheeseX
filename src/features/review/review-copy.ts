@@ -6,8 +6,8 @@
 // CLOSED_SET_FILES 投影＋SPEC-091 §2.1（ADR-019 §三.4 闭集仪式）。
 
 import { TERM } from "@/constants/term-const";
-// seq209：字段中文名从 shared/field-labels.mjs 派生（status 字段名「状态」——禁手写第二份）
-import { fieldLabel as sharedFieldLabel } from "../../../shared/field-labels.mjs";
+// seq209：字段中文名从派生面 src/lib/generated/field-view 取（seq209 单源装配；status 字段名「状态」——禁手写第二份）
+import { fieldLabel as sharedFieldLabel } from "@/lib/generated/field-view";
 
 // ── 三页签共用（同一事实只一份）──
 export const REVIEW_COPY = {
@@ -174,7 +174,7 @@ export const INFERENCE_CONFLICT_COPY = {
   COL_CANDIDATES: "候选结论",
   COL_CANDIDATES_ASC: "结论升序",
   COL_CANDIDATES_DESC: "结论降序",
-  // 「状态」＝shared/field-labels.mjs 实体域 status 字段中文名（seq209 单源原则：字段中文名不手写第二份，经派生）
+  // 「状态」＝派生面 src/lib/generated/field-view 的实体域 status 字段中文名（seq209 单源原则：字段中文名不手写第二份，经派生）
   COL_STATUS: sharedFieldLabel("status"),
   COL_STATUS_ASC: "待解决优先",
   COL_STATUS_DESC: "历史审计优先",
