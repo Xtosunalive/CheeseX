@@ -7,8 +7,8 @@
 // CLOSED_SET_FILES 投影＋SPEC-091 §2.1（ADR-019 §三.4 闭集仪式）。
 
 import { TERM } from "@/constants/term-const";
-// seq209：字段中文名从 shared/field-labels.mjs 派生（status 字段名「状态」——禁手写第二份，WP-150 review-copy 同款）
-import { fieldLabel as sharedFieldLabel } from "../../../shared/field-labels.mjs";
+// seq209：字段中文名从派生面 src/lib/generated/field-view 取（seq209 单源装配；status 字段名「状态」——禁手写第二份，WP-150 review-copy 同款）
+import { fieldLabel as sharedFieldLabel } from "@/lib/generated/field-view";
 
 // ── api／store 层请求兜底（env.error 缺省／非 Error 对象时的 fallback）──
 export const ARTICLE_REQUEST_COPY = {
@@ -263,7 +263,7 @@ export const UPLOAD_HISTORY_COPY = {
   COL_FILE: "文件",
   COL_SIZE: "大小",
   COL_CREATED_AT: "投稿时间",
-  // 「状态」＝shared/field-labels.mjs 实体域 status 字段中文名（seq209 单源原则：字段中文名不手写第二份，经派生）
+  // 「状态」＝派生面 src/lib/generated/field-view 的实体域 status 字段中文名（seq209 单源原则：字段中文名不手写第二份，经派生）
   COL_STATUS: sharedFieldLabel("status"),
   COLLAPSE_ARIA: "收起投稿记录",
   EXPAND_ARIA: "展开投稿记录",

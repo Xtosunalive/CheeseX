@@ -523,14 +523,33 @@ export default tseslint.config(
   },
 },
 
+// ═══ WP-186 字段中文名派生面边界（seq209 单源消费面收口）═══
+// shared/field-labels.mjs 仍是字段中文名唯一事实源，但其消费面已收口：服务端与生成器直连，
+// 前端一律消费构建期生成物 src/lib/generated/field-view.ts（键域×标签在生成器单点装配，
+// 装配校验 fail-closed）。前端直连即绕开装配校验，故 lint 拦截（门禁切分铁律：产品边界→lint/CI）。
+{
+  files: ["src/**/*.{ts,tsx}"],
+  rules: {
+    "no-restricted-imports": ["error", {
+      patterns: [{
+        group: ["**/shared/field-labels.mjs", "**/shared/field-labels"],
+        message: "字段中文名一律从 src/lib/generated/field-view 派生面取（WP-186：shared/field-labels.mjs 仅服务端与生成器可消费）",
+      }],
+    }],
+  },
+},
+
 // ═══ WP-142 波 1（SPEC-091 §2.1 注释豁免面）测试豁免块 ═══
 // src/test/** 的中文是断言夹具与行为描述（测试自身即其「闭集」），不是用户可见文案介质——
 // SPEC-091 §2.1 签收文本明写「注释豁免面：src/test/** 断言」，与闭集块同机制（只摘两族、
 // 保留基础纯净度集），故测试区不进基线、不占销账规模（波 3 射程＝生产展示面）。
+// WP-186：测试区同时豁免字段标签派生面限制——field-labels-ssot.test.ts 是源侧锁，
+// 必须直连 shared/field-labels.mjs 才能锁定单源本体（差分对照不是运行时消费）。
 {
   files: ["src/test/**"],
   rules: {
     "no-restricted-syntax": ["error", ...frontendPuritySelectors],
+    "no-restricted-imports": "off",
   },
 }
 );

@@ -3,7 +3,7 @@
 // 只在本文件声明：按消费组件分段导出 const 对象，插值句用函数（学 review-copy 先例）；多组件共用的同一事实只一份
 // （图谱状态词与「文内关系」前缀：DocumentResultCard 与 ArticlePanorama 共用 DOCUMENT_SHARED_COPY）。
 // 分工：字段中文名仍住同目录 article-panorama-labels.ts／document-result-field-labels.ts（从
-// shared/field-labels.mjs 派生，本文件不收字段名）；本文件只收页面文案。
+// 派生面 src/lib/generated/field-view 取，本文件不收字段名）；本文件只收页面文案。
 // 禁在其他 document-inventory 文件内联同值中文（lint CJK 字面量族执法，本文件经闭集豁免块豁免）；
 // 改文案只改这里。闭集清单登记：eslint.config.js 尾部闭集豁免块＋src/test/copy-vocabulary-closed-set.test.ts
 // CLOSED_SET_FILES 投影＋SPEC-091 §2.1（ADR-019 §三.4 闭集仪式）。

@@ -1,5 +1,5 @@
-// seq209：字段中文名从 shared/field-labels.mjs 派生（本域=entity），本文件不再持有中文字面量。
-import { FIELD_LABELS } from "../../../shared/field-labels.mjs";
+// seq209：字段中文名从派生面 src/lib/generated/field-view 取（seq209 单源装配；本域=entity），本文件不再持有中文字面量。
+import { FIELD_LABELS } from "@/lib/generated/field-view";
 import { ENTITY_FIELD_GROUP_LABELS, ENTITY_FIELD_PLACEHOLDER_COPY } from "../components-copy";
 
 export type EntityFieldGroup = "identity" | "classification" | "lifecycle" | "relations";

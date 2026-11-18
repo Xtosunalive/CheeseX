@@ -1,8 +1,8 @@
 import { ENTITY_CREATE_FIELDS, type EntityFieldControl, type EntityFieldGroup } from "./entity-create-fields";
 import type { RepairFieldKind } from "./RepairFieldEditor";
-// seq209：字段中文名从 shared/field-labels.mjs 派生（本域=article 的文章级属性 / entity 的实体属性），
+// seq209：字段中文名从派生面 src/lib/generated/field-view 取（seq209 单源装配；本域=article 的文章级属性 / entity 的实体属性），
 // 本文件不再持有中文字面量。
-import { FIELD_LABELS } from "../../../shared/field-labels.mjs";
+import { FIELD_LABELS } from "@/lib/generated/field-view";
 import { TERM } from "@/constants/term-const";
 import { ENTITY_FIELD_PLACEHOLDER_COPY } from "../components-copy";
 

@@ -1,7 +1,7 @@
 import { apiFetchEnvelope, unwrapEnvelope } from "@/lib/api";
 import type { components } from "@/lib/generated/api-types";
-// seq209：字段中文名从 shared/field-labels.mjs 派生（实体修复主链路：entity 域优先、article 域兜底）。
-import { fieldLabel as sharedFieldLabel } from "../../../shared/field-labels.mjs";
+// seq209：字段中文名从派生面 src/lib/generated/field-view 取（实体修复主链路：entity 域优先、article 域兜底；seq209 单源经生成器装配）。
+import { fieldLabel as sharedFieldLabel } from "@/lib/generated/field-view";
 import { ENTITY_REPAIR_BLOCKER_COPY, ENTITY_REPAIR_BLOCKER_MESSAGES, LIB_REQUEST_COPY, entityRepairBlockerWithRaw, entityRepairCurrentValue } from "@/lib/lib-copy";
 
 export type EntityRepairPreviewRequest = components["schemas"]["EntityRepairPreviewRequest"];
@@ -82,7 +82,7 @@ export function extractPostCheckBlockers(postCheck: unknown): RepairWriteGateBlo
   return normalizeBlockerRecords(raw);
 }
 
-// 字段中文名读取入口（seq181 合并 → seq209 收口到 shared/field-labels.mjs）。
+// 字段中文名读取入口（seq181 合并 → seq209 经派生面 src/lib/generated/field-view 取（单源装配））。
 // 消费方：EntityRepairDrawer.fieldLabel、PropertyCheckRow.fieldLabel、extractFieldBlocker 行内报错拼装。
 // 本模块不再持有中文字面量——改键只需动 shared 一份。
 export function fieldLabel(field: string): string {
@@ -92,7 +92,7 @@ export function fieldLabel(field: string): string {
 // seq181：preview 请求被拒通道的字段归一化（第三入口，与 extractRepairBlockers/extractPostCheckBlockers
 // 共同汇入 repairBlockers 单槽）。后端字段级校验错误（VALIDATION_ERROR 族）携带 details={field,rule}
 // （EG-1b details 透传结构承载），本函数将其归一为 {ruleId, field, message}，message 拼装中文字段标签
-// （shared/field-labels.mjs 单源）+ 去字段名前缀的规则文本；无 field 归因的错误返回 null（保持全局条兜底）。
+// （派生面 src/lib/generated/field-view）+ 去字段名前缀的规则文本；无 field 归因的错误返回 null（保持全局条兜底）。
 export function extractFieldBlocker(error: unknown): RepairWriteGateBlocker | null {
   if (!error || typeof error !== "object") return null;
   const candidate = error as { errorCode?: unknown; message?: unknown; details?: unknown };

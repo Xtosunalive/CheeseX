@@ -3,9 +3,9 @@ import { isAnomalyPending } from "./anomaly-workbench-types";
 import { TERM } from "@/constants/term-const";
 import { ACTION_ROUTING, buildHandoffHash } from "./action-routing";
 import type { AnomalyActionKind } from "./anomaly-action-registry";
-// seq209：字段中文名从 shared/field-labels.mjs 派生（异常工作台是实体修复主链路，
+// seq209：字段中文名从派生面 src/lib/generated/field-view 取（seq209 单源装配；异常工作台是实体修复主链路，
 // entity 域优先、article 域兜底——同一条修复链路会同时出现实体字段与文章字段）。
-import { fieldLabel as sharedFieldLabel } from "../../../shared/field-labels.mjs";
+import { fieldLabel as sharedFieldLabel } from "@/lib/generated/field-view";
 
 /** issueKind 正名（单源导出——规则通道信号卡等跨面消费，禁各处另抄） */
 export const ISSUE_KIND_LABELS: Record<AnomalyIssue["issueKind"], string> = {
@@ -498,7 +498,7 @@ export const ANOMALY_ISSUE_FORM_COPY = {
   COL_EXPECTED: "规则要求",
   COL_EXPECTED_ASC: "规则要求升序",
   COL_EXPECTED_DESC: "规则要求降序",
-  // 「状态」＝shared/field-labels.mjs 实体域 status 字段中文名（seq209 L2 锁：禁手写字段名，经派生）
+  // 「状态」＝派生面 src/lib/generated/field-view 的实体域 status 字段中文名（seq209 L2 锁：禁手写字段名，经派生）
   COL_STATUS: sharedFieldLabel("status"),
   COL_STATUS_ASC: "状态升序",
   COL_STATUS_DESC: "状态降序",

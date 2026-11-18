@@ -2,6 +2,7 @@ import { createRequire } from "node:module";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { ENTITY_WRITE_KEYS, ARTICLE_WRITE_KEYS, RENDER_KEYS } from "@/lib/generated/field-view";
 import { ENTITY_CREATE_FIELDS } from "@/components/entity-repair/entity-create-fields";
 import { CREATE_FIELDS } from "@/features/entity-compliance/EntityComplianceView";
 import { EDITABLE } from "@/features/entity-compliance/EntityRepairDrawer";
@@ -155,11 +156,14 @@ describe("entity fields SSOT locks (seq189 P3a)", () => {
     expect(view).toContain("ENTITY_CREATE_FIELDS.map((spec) => spec.field)");
     const drawer = readRepo("src/features/entity-compliance/EntityRepairDrawer.tsx");
     expect(drawer).not.toContain('"arch_version_overrides", "module", "status", "date", "updated"');
-    // seq205→WP-138 R2：EDITABLE 派生随白名单单点化再迁——从字段字典（seq209 单源 field-labels）派生，
-    // 禁止字段名数组字面量回填（唯一允许的字段名字面量＝body 排除项，语义对应服务端 ARTICLE_CONTENT_FIELDS）
+    // seq205→WP-138 R2：EDITABLE 派生随白名单单点化再迁；WP-186 派生面再上移——从构建期生成物
+    // src/lib/generated/field-view.ts 的 RENDER_KEYS 派生（键域×标签生成器单点装配），前端禁直连标签单源，
+    // 禁止字段名数组字面量回填（唯一允许的字段名字面量＝body 排除项，语义对应服务端 ARTICLE_CONTENT_FIELDS；
+    // body 本就不在 RENDER 键域——原前端「并集后滤 body」过滤随派生面上移退役）
     const editableFields = readRepo("src/features/entity-compliance/entity-editable-fields.ts");
-    expect(editableFields).toContain("Object.keys(FIELD_LABELS.entity)");
-    expect(editableFields).toContain("Object.keys(FIELD_LABELS.article)");
+    expect(editableFields).toContain("RENDER_KEYS");
+    // 禁的是直连 import 语句（注释提及单源出处不违禁）
+    expect(editableFields).not.toMatch(/from "[^"]*shared\/field-labels\.mjs"/);
     expect(drawer).toContain('export { EDITABLE }');
   });
 });
@@ -227,7 +231,30 @@ describe("field-policy predicate SSOT (WP-138 R2)", () => {
     expect(Object.is(compliance.EDITABLE_FIELDS, fieldPolicy.DIAGNOSIS_FIELDS)).toBe(true);
     expect(Object.is(repair.EDITABLE_FIELDS, fieldPolicy.ENTITY_WRITE_FIELDS)).toBe(true);
     expect(Object.is(repair.ARTICLE_EDITABLE_FIELDS, fieldPolicy.ARTICLE_WRITE_FIELDS)).toBe(true);
-    // 前端渲染门槛与谓词渲染 view 逐字段同源（前端经字段字典派生，差分锁死漂移）
+    // 前端渲染门槛与谓词渲染 view 逐字段同源（前端经派生面 RENDER_KEYS 派生，差分锁死漂移）
     expect(setEquals(EDITABLE, [...fieldPolicy.RENDER_FIELDS])).toBe(true);
+  });
+});
+
+// ── WP-186：字段视图派生面 ≡ field-policy 活算（生成物差分锁）──
+// 前端消费的 src/lib/generated/field-view.ts 三组键集必须与 server/shared/field-policy.cjs 活算键集
+// 逐字段同值（生成器装配时的策略快照 vs 测试期活算）——漂移即红，与 gen:field-view --check
+// （check-derivation-sync 注册表纳管）构成测试期＋构建期双面锁。
+describe("field-view derived face ≡ field-policy live derivation (WP-186)", () => {
+  it("ENTITY_WRITE_KEYS ≡ ENTITY_WRITE_FIELDS（15 项逐字段）", () => {
+    expect(ENTITY_WRITE_KEYS.length).toBe(15);
+    expect([...ENTITY_WRITE_KEYS].sort()).toEqual([...fieldPolicy.ENTITY_WRITE_FIELDS].sort());
+  });
+
+  it("ARTICLE_WRITE_KEYS ≡ ARTICLE_WRITE_FIELDS（11 项逐字段）", () => {
+    expect(ARTICLE_WRITE_KEYS.length).toBe(11);
+    expect([...ARTICLE_WRITE_KEYS].sort()).toEqual([...fieldPolicy.ARTICLE_WRITE_FIELDS].sort());
+  });
+
+  it("RENDER_KEYS ≡ RENDER_FIELDS（21 项逐字段，序＝实体域在前文章独有键随后）", () => {
+    expect(RENDER_KEYS.length).toBe(21);
+    expect([...RENDER_KEYS]).toEqual([...fieldPolicy.RENDER_FIELDS]);
+    // 正文不在渲染键域（原前端「并集后滤 body」的语义由生成键域保证）
+    expect(RENDER_KEYS).not.toContain("body");
   });
 });

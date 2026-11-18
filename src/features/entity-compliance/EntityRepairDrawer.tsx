@@ -9,7 +9,7 @@ import { TERM } from "@/constants/term-const";
 import { RepairFieldEditor, FieldBlockerReason, type RepairFieldKind } from "@/components/entity-repair";
 import { isEnumStarvedField } from "@/components/entity-repair/entity-repair-field-model";
 import { TAB_LABELS } from "@/features/schema-manager/schema-manager-types";
-import { FIELD_LABELS } from "../../../shared/field-labels.mjs";
+import { FIELD_LABELS } from "@/lib/generated/field-view";
 import { ENTITY_CREATE_FIELDS } from "@/components/entity-repair/entity-create-fields";
 import { EDITABLE } from "./entity-editable-fields";
 import { repairableFieldIssues } from "./repairable-fields";
@@ -39,7 +39,7 @@ const SKELETON_DEFAULTS: Record<string, unknown> = {
 };
 const SKELETON_FIELDS = Object.keys(SKELETON_DEFAULTS);
 
-// seq209：中文名走 shared/field-labels.mjs 单源（经 entity-repair-api.fieldLabel 转出）
+// seq209：中文名走派生面 src/lib/generated/field-view（seq209 单源经生成器装配，经 entity-repair-api.fieldLabel 转出）
 function fieldLabel(field: string | null | undefined) {
   return field ? resolveFieldLabel(field) : TERM.FIELD_LABEL_FALLBACK;
 }

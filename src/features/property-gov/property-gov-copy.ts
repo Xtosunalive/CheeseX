@@ -2,14 +2,14 @@
 // 此前三份并存（CheckResultsPanel 汇总卡数组/展开详情内联/ComponentCheckDetail CHECK_LABELS）
 // 且同物多名（「模块未填写」vs「module 属性未填写」）——收编本文件，口径统一不带属性键名。
 // 编译期满配钉：Record<CheckKey, string> 七键——后端 findings 加检查键不登记即 tsc 红。
-// 字段中文名单源仍是 shared/field-labels.mjs（本文件只管检查标签，不重复字段名）。
+// 字段中文名经派生面 src/lib/generated/field-view 取（seq209 单源装配；本文件只管检查标签，不重复字段名）。
 // WP-151 散写销账第三批：property-gov 目录其余用户可见文案增量进本文件（文件尾部分段，ADR-019 §二
 // 展示面介质唯一出口）——按消费组件分段导出 const 对象，插值句用函数；多组件共用的同一事实只一份
-// （PROPERTY_GOV_SHARED_COPY）；与字段中文名同值的列头经 shared/field-labels.mjs 派生，不手写第二份。
+// （PROPERTY_GOV_SHARED_COPY）；与字段中文名同值的列头经派生面 src/lib/generated/field-view 取，不手写第二份。
 // 禁在其他 property-gov 文件内联同值中文（lint CJK 字面量族执法，本文件已在闭集豁免块）。
 
 import { TERM } from "@/constants/term-const";
-import { fieldLabel as sharedFieldLabel } from "../../../shared/field-labels.mjs";
+import { fieldLabel as sharedFieldLabel } from "@/lib/generated/field-view";
 
 /** 检查键集（与 CheckResultItem.checks 形状同源——加键须同批登记标签） */
 export type GovCheckKey =
@@ -246,7 +246,7 @@ export const MANIFEST_LIST_COPY = {
   /** 筛选分组 */
   FILTER_GROUP_STATUS: "处理状态",
   FILTER_GROUP_COVERAGE: "内容分类",
-  /** 列头与排序句柄（「标题」＝shared/field-labels.mjs 文章域 title 字段中文名，经派生不手写第二份） */
+  /** 列头与排序句柄（「标题」＝派生面 src/lib/generated/field-view 的文章域 title 字段中文名，经派生不手写第二份） */
   COL_TITLE: sharedFieldLabel("title", "article"),
   COL_TITLE_ASC: "标题 A-Z",
   COL_TITLE_DESC: "标题 Z-A",

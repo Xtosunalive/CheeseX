@@ -2,13 +2,13 @@
 // 本特性（文章关联页：标准文章候选选择＋纠错方式＋关联组件/版本＋映射差异预览＋已保存映射表＋api/store 兜底）的
 // 用户可见文案只在本文件声明：按消费组件分段导出 const 对象，插值句用函数（学 review-copy 先例）。
 // 页名「文章关联」不在此手写——引用 TERM.ARTICLE_MAPPING_REPAIR（页面正名守卫，copy-vocabulary-closed-set 组四）；
-// 文章字段中文名（产品/产品版本）从 shared/field-labels.mjs 派生（seq209 单源，禁手写第二份）。
+// 文章字段中文名（产品/产品版本）从派生面 src/lib/generated/field-view 取（seq209 单源装配，禁手写第二份）。
 // 禁在其他 article-associations 文件内联同值中文（lint CJK 字面量族执法，本文件经闭集豁免块豁免）；改文案只改这里。
 // 闭集清单登记：eslint.config.js 尾部闭集豁免块＋src/test/copy-vocabulary-closed-set.test.ts CLOSED_SET_FILES
 // 投影＋SPEC-091 §2.1（ADR-019 §三.4 闭集仪式）。
 
 import { TERM } from "@/constants/term-const";
-import { FIELD_LABELS } from "../../../shared/field-labels.mjs";
+import { FIELD_LABELS } from "@/lib/generated/field-view";
 
 // ── 多组件共用（同一事实只一份）──
 export const ARTICLE_ASSOCIATION_COPY = {
