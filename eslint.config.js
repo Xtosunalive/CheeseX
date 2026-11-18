@@ -266,14 +266,14 @@ export default tseslint.config(
       "no-restricted-syntax": ["error", ...frontendPuritySelectors, ...COPY_MEDIA_SELECTORS],
       // T2 ①：依赖方向边界（前后端＋Node 侧脚本区）——import 声明面载体（动态 import 由上方 ③ 选择器补位）。
       // 根形态承 seq184 ③ 原边界；相对逃逸形态（../../server 等）为本次补齐。依据与勘察见文件顶部 T2 注释块。
-      // WP-186：追加 field-labels 派生面边界（并入本组 patterns 而非另立同射程块——flat config 同名规则
+      // WP-187：追加 field-labels 派生面边界（并入本组 patterns 而非另立同射程块——flat config 同名规则
       // 后块整组替换语义，WP-129 坑；独立块会整组顶掉本组 T2 禁令）。合法直连三类：server/、生成器、
       // src/test/field-labels-ssot.test.ts（源侧锁差分对照，per-file 豁免见文件尾）。
       "no-restricted-imports": ["error", {
         patterns: [
           { regex: "^(?:\\.\\./)*server(/|$)", message: "前端禁止引用 server/ 模块：校验与计算单源在后端，前端经 HTTP 契约消费（T2 立法，承 seq184 ③边界）" },
           { regex: "^(?:\\.\\./)*scripts(/|$)", message: "前端禁止引用 scripts/ 模块：scripts 为 Node 侧治理/运行时脚本，非浏览器依赖面（T2 立法，勘察现存 0 处）" },
-          { group: ["**/shared/field-labels.mjs", "**/shared/field-labels"], message: "字段中文名一律从 src/lib/generated/field-view 派生面取（WP-186：shared/field-labels.mjs 仅服务端、生成器与单源锁测试可消费）" },
+          { group: ["**/shared/field-labels.mjs", "**/shared/field-labels"], message: "字段中文名一律从 src/lib/generated/field-view 派生面取（WP-187：shared/field-labels.mjs 仅服务端、生成器与单源锁测试可消费）" },
         ],
       }],
     },
@@ -538,7 +538,7 @@ export default tseslint.config(
   },
 },
 
-// ═══ WP-186 per-file 存量豁免（只减不增）：字段中文名单源锁 ═══
+// ═══ WP-187 per-file 存量豁免（只减不增）：字段中文名单源锁 ═══
 // field-labels-ssot.test.ts 是 seq209 单源的源侧锁——必须直连 shared/field-labels.mjs 做差分对照
 // （非运行时消费，C-10 三类合法直连之一）。豁免按文件收窄（不按 src/test/** 整域 off——
 // 红队复核 P2-1 教训：同射程整组重设会顶掉 T2 禁令，WP-129 同款坑）。本文件无 server/scripts

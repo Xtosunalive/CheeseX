@@ -1,5 +1,5 @@
 // PR-250（WP-138 R2）：字段白名单字面量表退役——渲染门槛改为从字段字典派生。
-// WP-186：派生面上移——EDITABLE 改从构建期生成物 src/lib/generated/field-view.ts 的 RENDER_KEYS 派生
+// WP-187：派生面上移——EDITABLE 改从构建期生成物 src/lib/generated/field-view.ts 的 RENDER_KEYS 派生
 // （键域×标签在生成器单点装配：键域活算自 server/shared/field-policy.cjs，标签取 seq209 单源
 // shared/field-labels.mjs；前端不再直连标签单源，eslint no-restricted-imports 执法）。
 // 服务端唯一持有方＝server/shared/field-policy.cjs（诊断/写门/渲染三 view 谓词）；生成键集与谓词活算的

@@ -1,6 +1,6 @@
 // seq209-field-label-ssot：字段中文名全库唯一事实源（ESM 载体）
 // 载体形态照抄 seq208 的 shared/date-contract.mjs：后端 node≥22 require(esm) 直吃；checker 零 npm 依赖。
-// 【消费面（WP-186 收口）】服务端与生成器直连本文件；前端一律消费构建期派生面
+// 【消费面（WP-187 收口）】服务端与生成器直连本文件；前端一律消费构建期派生面
 // src/lib/generated/field-view.ts（gen:field-view 装配：键域×标签在生成器单点会合，装配校验
 // fail-closed）——前端直连本文件被 eslint no-restricted-imports 拦截。seq209 本质不变：本文件仍是
 // 字段中文名的唯一书写处，改中文名只动这里，再跑 npm run gen:field-view。

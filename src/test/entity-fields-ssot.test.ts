@@ -156,7 +156,7 @@ describe("entity fields SSOT locks (seq189 P3a)", () => {
     expect(view).toContain("ENTITY_CREATE_FIELDS.map((spec) => spec.field)");
     const drawer = readRepo("src/features/entity-compliance/EntityRepairDrawer.tsx");
     expect(drawer).not.toContain('"arch_version_overrides", "module", "status", "date", "updated"');
-    // seq205→WP-138 R2：EDITABLE 派生随白名单单点化再迁；WP-186 派生面再上移——从构建期生成物
+    // seq205→WP-138 R2：EDITABLE 派生随白名单单点化再迁；WP-187 派生面再上移——从构建期生成物
     // src/lib/generated/field-view.ts 的 RENDER_KEYS 派生（键域×标签生成器单点装配），前端禁直连标签单源，
     // 禁止字段名数组字面量回填（唯一允许的字段名字面量＝body 排除项，语义对应服务端 ARTICLE_CONTENT_FIELDS；
     // body 本就不在 RENDER 键域——原前端「并集后滤 body」过滤随派生面上移退役）
@@ -236,11 +236,11 @@ describe("field-policy predicate SSOT (WP-138 R2)", () => {
   });
 });
 
-// ── WP-186：字段视图派生面 ≡ field-policy 活算（生成物差分锁）──
+// ── WP-187：字段视图派生面 ≡ field-policy 活算（生成物差分锁）──
 // 前端消费的 src/lib/generated/field-view.ts 三组键集必须与 server/shared/field-policy.cjs 活算键集
 // 逐字段同值（生成器装配时的策略快照 vs 测试期活算）——漂移即红，与 gen:field-view --check
 // （check-derivation-sync 注册表纳管）构成测试期＋构建期双面锁。
-describe("field-view derived face ≡ field-policy live derivation (WP-186)", () => {
+describe("field-view derived face ≡ field-policy live derivation (WP-187)", () => {
   it("ENTITY_WRITE_KEYS ≡ ENTITY_WRITE_FIELDS（15 项逐字段）", () => {
     expect(ENTITY_WRITE_KEYS.length).toBe(15);
     expect([...ENTITY_WRITE_KEYS].sort()).toEqual([...fieldPolicy.ENTITY_WRITE_FIELDS].sort());
