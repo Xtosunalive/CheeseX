@@ -5,94 +5,31 @@
 
 ## 〇、Keys 小节
 
-- **entity**：primary＝`architecture-node-id`（系统铸造身份锚）／display＝`title`／incremental＝`updated`
-- **article**：primary＝`article_id`（系统铸造身份锚）／display＝`title`／incremental＝`—`
+- **entity**：primary＝`module`（系统铸造身份锚）／display＝`module`／incremental＝`module`
+- **article**：primary＝`module`（系统铸造身份锚）／display＝`module`／incremental＝`—`
 
 > **semantic 受控词表（轻量版）**：属性级 `semantic` 列是机器可判读的时间/状态语义标注（valid_from/valid_to/status/severity，类内每值至多一次）——自动分配器据此判断属性角色，勿凭绑定名猜语义。属性随类而变：同名键在实体类与文章类是两个独立属性，填前先查本表对应类小节。
 
 ## 一、实体类属性
 
-### 管理属性（生命周期控制——管理「这段知识是否有效」）
-
-| 属性 | 类型 | semantic | 必填 | 值域 | 绑定名 | 说明 |
-|------|------|----------|------|------|--------|------|
-| `status` | enum |  `status` | 是 | 自由文本：Obsidian 页面状态三值：有效/已归档/制定中（与文章侧文档生命周期 status 分立） | 生命周期状态——实体 Obsidian 页面状态（有效/已归档/制定中）。display 取 OpenBKN 类限定惯例（XX状态； Master 2026-11-19「冲突时取 OpenBKN」裁定，原 UI 名「状态」）；受影响消费点随批改引页面词。 |
-| `date` | date | — | 是 | 自由文本：YYYY-MM-DD | 创建日期——创建日期。 |
-| `updated` | date | — | 建议 | 自由文本：YYYY-MM-DD；SA 顶层 updatedAt 取所有组件最大值 | 最后更新日期——最后更新日期。 |
-| `review-cycle` | enum | — | 建议 | lifecycle（lifecycle.review_cycle）：30d/90d/180d/365d/never | 审查周期——审查调度周期（时效过滤消费）。 |
-
 ### 业务属性（架构图渲染＋拓扑生成——决定「在架构图哪里怎么展示」）
 
 | 属性 | 类型 | semantic | 必填 | 值域 | 绑定名 | 说明 |
 |------|------|----------|------|------|--------|------|
-| `architecture-node-id` | string | — | 是 | 自由文本：全 vault 不可重复；对应 SA id。不透明串——不限字符形状（校验只判有无值，不按形状裁决）；创建后不可修改 | 架构组件 ID（兼容写法兼召回参考：architecture_node_id）——全局唯一组件 ID（不透明串：任意字符、任意语言、任意大小写皆可写；ADR-016 §二／SPEC-046 I2 禁止消费方对身份做 split／正则解析）。必须有值——空白填充不算填写。创建后不可修改；下划线写法 architecture_node_id 工具链同源可读。 display 取 OpenBKN 标识惯例（类名＋ID；Master 2026-11-19「冲突时取 OpenBKN」裁定，原 UI 名「架构组件身份」）。 |
-| `arch_layer` | enum | — | 建议 | enums.layers：正式值=layers[].id 且 entity_layer!=false（plate 排除）；别名经 layer_aliases 归一 | 架构分层——组件所处架构层；文章 frontmatter 同名字段的使用计入词表画像。（Master 2026-10-29 裁定：文章侧非必填——架构归类值走继承式取值，不逐篇手写；实体侧执法暂维持现状，继承机制另案） |
-| `arch_category` | enum | — | 建议 | enums.arch_categories：派生视图——subdomain_policies 并集优先（ADR-006）；别名经 category_aliases 归一 | 实体类别——业务分类（终端/服务/存储/基础设施/安全等）。（Master 2026-10-29 裁定：文章侧非必填——架构归类值走继承式取值，不逐篇手写；实体侧执法暂维持现状，继承机制另案） |
-| `arch_subdomain` | enum | — | 建议 | enums.subdomains：子域词条 id（ADR-008 D1 对象形态）；别名经 subdomain_aliases 归一 | 子域——组件所属技术子域。 |
-| `arch_since` | string |  `valid_from` | 建议 | 自由文本：由人定义，不自动推断 | 组件有效期起点——此组件从哪个版本开始存在（如 7.0.0）。 |
-| `arch_until` | string |  `valid_to` | 建议 | 自由文本：默认空串=当前版本生效，由人更新 | 组件有效期终点——此组件在哪个版本后废弃。 |
-| `arch_version_overrides` | list | — | 否 | 自由文本 | 版本属性覆盖——版本间属性差异列表。 |
-| `module` | list | — | 建议 | enums.modules：正式值=modules 键；wikilink 引用剥离（[[主模块]]→主模块） | 产品模块——所属模块匹配名列表；文章侧必填、实体侧建议（v1 单值 required=是 按描述拆分落值）。 |
-| `arch_component` | bool | — | 是 | 自由文本 | 是否架构组件——true=此 entity 是架构组件。display 取名词性布尔命名（OpenBKN 无动作句式先例； Master 2026-11-19「冲突时取 OpenBKN」裁定，原 UI 名「激活为架构组件」）。 |
-| `arch_status` | string | — | 否 | 自由文本 | 架构状态——组件架构生命周期状态（业务属性表成员）。 |
-
-### 内容属性（搜索＋标签＋辅助——服务「怎么被找到」）
-
-| 属性 | 类型 | semantic | 必填 | 值域 | 绑定名 | 说明 |
-|------|------|----------|------|------|--------|------|
-| `title` | string | — | 是 | 自由文本：自由标题文本（PR-156 刀四：显式声明 free——字典页与门禁不再显示为空值域） | 实体名称——文档标题；实体侧对应语义架构 SA label。 |
-| `aliases` | list | — | 否 | 自由文本：自由别名列表；写通道资格由 field-rule-declarations F17 在场性背书（fail-closed） | 别名——实体别名（Obsidian frontmatter aliases）；修复写通道锚定 F17 声明（别名写通道， 诊断侧不含——三 view 语义差为历史裁决，见 field-policy）。v2 库存补录：v1 漏声明而 server 有通道。 |
-| `tags` | list | — | 否 | enums.tags：正式标签=各分组扁平并集-disabled_tags；别名经 tag_aliases 归一 | 标签——检索标签（行内数组/块列表/标量三种写法均可，解析口径同 G1'）。 |
-| `category-path` | string | — | 建议 | 自由文本：domain:subdomain:topic 三段式——domain/subdomain 为 enums 闭合枚举，topic 自由小写 ASCII slug；禁历史排错口径 troubleshoot | 知识域目录——标准文档分类路径（PR-046 契约，validate-article.py 单一语义）；文章侧必填、实体侧建议 （v1 单值 required=是 按描述拆分落值）。 |
-| `impact_level` | string |  `severity` | 否 | 自由文本 | 影响面等级——检索索引影响面权重辅助字段。 |
-| `is_core` | bool | — | 否 | 自由文本 | 核心标记——是否核心实体（影响面权重）。 |
+| `module` | list | — | 是 | 自由文本 | 产品模块——测试字典。 |
 
 ## 二、文章类属性
 
-### 管理属性（生命周期控制——管理「这段知识是否有效」）
-
-| 属性 | 类型 | semantic | 必填 | 值域 | 绑定名 | 说明 |
-|------|------|----------|------|------|--------|------|
-| `article_id` | string | — | 是 | 自由文本：全 vault 不可重复；系统铸造语义同实体类 architecture-node-id | 文章标识——文章唯一标识（修复写门接受键）。v2 库存补录：v1 漏声明而契约/写门有此键。 |
-| `validation_status` | enum | — | 否 | 自由文本：校验章机制自有值集（passed/failed 由 validation stamp 系统写，非人选——PR-156 刀四注记豁免） | 机器校验戳——最近一次机器校验结果的持久戳（SPEC-030 机③——三机中唯一落文件者，证据随文件走）。值域＝passed/warnings/failed 三值，由统一校验客户端 validate-article --stamp 整体重盖（article-validator-lib 单源）；值域属校验器语义不入 enums 词表（词表走写单门供页面管理，校验器固有三值不属该面）。 |
-| `validation_override` | bool | — | 否 | 自由文本 | 校验豁免标记——机器校验 failed 的人工显式豁免（SPEC-030 机③——独立布尔不合成枚举值，保住「豁免对应哪次失败」的对应关系）；true 时 promote/confirm 两道闸门放行，决策留痕 decisions.jsonl。 |
-| `status` | enum |  `status` | 否 | lifecycle（lifecycle.status）：默认值=lifecycle.default_status（缺省回落首项） | 文档生命周期状态——文章文档生命周期（灰度/在线/退役/已驳回）；新建缺省灰度。与实体类 status（生命周期状态）为同名独立属性。 |
-
 ### 业务属性（架构图渲染＋拓扑生成——决定「在架构图哪里怎么展示」）
 
 | 属性 | 类型 | semantic | 必填 | 值域 | 绑定名 | 说明 |
 |------|------|----------|------|------|--------|------|
-| `arch_layer` | enum | — | 建议 | enums.layers：正式值=layers[].id 且 entity_layer!=false（plate 排除）；别名经 layer_aliases 归一 | 架构分层——组件所处架构层（文章类属性）；文章 frontmatter 同名字段的使用计入词表画像。（Master 2026-10-29 裁定：文章侧非必填——架构归类值走继承式取值，不逐篇手写） |
-| `arch_category` | enum | — | 建议 | enums.arch_categories：派生视图——subdomain_policies 并集优先（ADR-006）；别名经 category_aliases 归一 | 业务分类——业务分类（终端/服务/存储/基础设施/安全等）（文章类属性——与实体类「实体类别」为同名独立属性）。 |
-| `arch_subdomain` | enum | — | 建议 | enums.subdomains：子域词条 id（ADR-008 D1 对象形态）；别名经 subdomain_aliases 归一 | 子域——组件所属技术子域。 |
-| `module` | list | — | 是 | enums.modules：正式值=modules 键；wikilink 引用剥离（[[主模块]]→主模块） | 产品模块——所属模块匹配名列表（文章类属性——与实体类同名独立属性）。 |
-| `product` | enum | — | 是 | enums.architecture_projection：A03 闭合集=architecture_projection.product+product_aliases 键；versions.yaml reserved_products 可引用 | 产品——文章所属产品。 |
-| `version` | enum | — | 是 | enums.versions：versions.yaml 产品版本注册表（G1+G5 唯一权威源） | 产品版本——文章针对的产品版本。 |
-
-### 内容属性（搜索＋标签＋辅助——服务「怎么被找到」）
-
-| 属性 | 类型 | semantic | 必填 | 值域 | 绑定名 | 说明 |
-|------|------|----------|------|------|--------|------|
-| `title` | string | — | 是 | 自由文本：自由标题文本（PR-156 刀四：显式声明 free——字典页与门禁不再显示为空值域） | 标题——文档标题（文章类属性——与实体类 title 为两个独立属性，恰共享英文键名）。 |
-| `tags` | list | — | 否 | enums.tags：正式标签=各分组扁平并集-disabled_tags；别名经 tag_aliases 归一 | 标签——检索标签（行内数组/块列表/标量三种写法均可，解析口径同 G1'）。 |
-| `category-path` | string | — | 是 | 自由文本：domain:subdomain:topic 三段式——domain/subdomain 为 enums 闭合枚举，topic 自由小写 ASCII slug；禁历史排错口径 troubleshoot | 知识域目录——标准文档分类路径（PR-046 契约，validate-article.py 单一语义）；文章侧必填。 |
-| `article_type` | enum | — | 是 | enums.article_types | 知识文章类型——标准文章类型（排错指南/常见问题/方案设计等 9 值）。 |
-| `doc-type` | enum | — | 是 | enums.doc_types | 文档类型（兼容写法兼召回参考：doc_type）——文档形态类型（用户手册/部署指南等 8 值）；下划线写法为兼容写法。 |
-| `body` | string | — | 否 | 自由文本：内容通道；ARTICLE_CONTENT_FIELDS 语义由 field-policy 承载（写门排除 body） | 正文——文章正文（内容属性，非 frontmatter 键——正文另有通道；v2 库存补录：UI 标签层有此键而 schema 未声明。声明于此仅为类属性清点完整，不参与 frontmatter 写门）。 |
+| `module` | list | — | 是 | 自由文本 | 产品模块——测试字典。 |
 
 ## 三、`arch_layer` 合法值（enums.yaml layers 派生）
 
 | 值 | 含义 | SA 颜色 |
 |----|------|---------|
-| `gateway` | 网关与安全边界 | slate |
-| `foundation` | 基础支撑层 | indigo |
-| `data-lake` | 内容数据湖 | amber |
-| `cloud-native` | 云原生基础设施 | slate |
-| `service` | 核心服务层 | cyan |
-| `open` | 开放接口层 | indigo |
-| `application` | 一体化应用层 | teal |
-| `external` | 外部系统与集成 | gray |
-| `crosscutting` | 横切能力与安全 | rose |
 
 ## 四、同名分立说明（类属主语义）
 
