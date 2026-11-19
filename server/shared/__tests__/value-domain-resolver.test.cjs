@@ -11,7 +11,7 @@ const { createRequire } = require("node:module");
 const ROOT = path.resolve(__dirname, "..", "..");
 const requireFromRoot = createRequire(path.join(ROOT, "package.json"));
 const YAML = requireFromRoot("yaml");
-const { resolveValueDomains } = require("../value-domain-resolver.cjs");
+const { resolveValueDomains, collectValueDomainReferences } = require("../value-domain-resolver.cjs");
 const { buildRuleSet } = require("../enums-loader.cjs");
 const { resolveTheSchemaDir } = require("../theschema-root.cjs");
 
@@ -279,4 +279,66 @@ test("红队A4/A5/A7：脏形态经 normalizeEnums 收口后与运行时同观",
   const rs = buildRuleSet(enums);
   assert.deepEqual([...r.byField[0].values].sort(), [...rs.archLayers].sort()); // 脏层降级后同观
   assert.deepEqual([...r.byField[1].values].sort(), [...new Set(rs.formalTags)].sort()); // 脏组降级后同观
+});
+
+// ══ WP-199 波3：collectValueDomainReferences——被引用 enums 顶层段集合（段删除保护引用面）══
+
+test("WP-199 collector：五类引用＋op 隐式段全捕获（两类属性平铺遍历）", () => {
+  const fieldsDoc = {
+    schema_version: 2,
+    keys: {},
+    classes: {
+      entity: {
+        properties: [
+          // ① source 首段
+          { name: "sub", value_domain: { source: "subdomains", resolve: { op: "ids" } } },
+          // ② segment 首段（点路径 lifecycle.status→lifecycle）＋⑤ default.from 首段（lifecycle.default_status→lifecycle）
+          { name: "status", value_domain: { source: "lifecycle", segment: "lifecycle.status", resolve: { op: "values" }, default: { from: "lifecycle.default_status", fallback: "first" } } },
+          // ③ normalize.aliases 段
+          { name: "tags", value_domain: { source: "tags", resolve: { op: "tags_union" }, normalize: { aliases: "tag_aliases" } } },
+          // ④ composite[].source
+          { name: "cp", value_domain: { source: "free", composite: [{ source: "domains", resolve: { op: "keys" } }, { source: "subdomains", resolve: { op: "ids" }, scoped_by: "previous" }, { resolve: { op: "free_slug" } }] } },
+          // ⑥ op 隐式段：matrix_union_fallback→arch_categories＋subdomain_constraints
+          { name: "cat", value_domain: { source: "arch_categories", resolve: { op: "matrix_union_fallback" } } },
+          // ⑥ op 隐式段：product_closure→architecture_projection
+          { name: "prod", value_domain: { source: "architecture_projection", resolve: { op: "product_closure" } } },
+        ],
+      },
+      article: {
+        properties: [
+          // free／versions 非 enums 被引用段，不入集
+          { name: "title", value_domain: { source: "free" } },
+          { name: "version", value_domain: { source: "versions", resolve: { op: "version_registry" } } },
+          // 无 value_domain 的属性跳过不炸
+          { name: "bare", display: "无配方" },
+        ],
+      },
+    },
+  };
+  const refs = collectValueDomainReferences(fieldsDoc);
+  assert.deepEqual(
+    [...refs].sort(),
+    ["arch_categories", "architecture_projection", "domains", "lifecycle", "subdomain_constraints", "subdomains", "tag_aliases", "tags"].sort(),
+    "五类显式引用＋两类 op 隐式段全捕获；free/versions 不入集：" + [...refs].sort().join("、"),
+  );
+  assert.ok(!refs.has("free") && !refs.has("versions"), "free/versions 非 enums 段不入集");
+});
+
+test("WP-199 collector：op 隐式段单独成立（source: free 不连坐，隐式段照收）＋tags_union→tags", () => {
+  const refs = collectValueDomainReferences({
+    schema_version: 2,
+    keys: {},
+    classes: {
+      entity: { properties: [{ name: "x", value_domain: { resolve: { op: "tags_union" } } }] },
+      article: { properties: [{ name: "y", value_domain: { source: "free", resolve: { op: "matrix_union_fallback" } } }] },
+    },
+  });
+  assert.deepEqual([...refs].sort(), ["arch_categories", "subdomain_constraints", "tags"].sort());
+  assert.ok(!refs.has("free"), "free 不因 op 声明连坐入集");
+});
+
+test("WP-199 collector：空 doc／空 properties／缺类→空集（不炸）", () => {
+  assert.deepEqual([...collectValueDomainReferences({})], []);
+  assert.deepEqual([...collectValueDomainReferences(null)], []);
+  assert.deepEqual([...collectValueDomainReferences({ schema_version: 2, keys: {}, classes: { entity: { properties: [] }, article: { properties: [] } } })], []);
 });

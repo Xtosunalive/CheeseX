@@ -258,4 +258,49 @@ function normalizeEnumsSafe(enums) {
   }
 }
 
-module.exports = { resolveValueDomains };
+/**
+ * WP-199 波3：收集 fields.yaml v2 全部值域引用的 enums 顶层段集合（BKN value_type 被引用面）。
+ * 五类引用全捕获：value_domain.source／segment 首段／composite[].source／normalize.aliases 段／
+ * default.from 首段＋op 隐式段（tags_union→tags、matrix_union_fallback→arch_categories/subdomain_constraints、
+ * product_closure→architecture_projection）。free/versions 非 enums 段不入集。
+ * @param {{classes?: object}} fieldsDoc fields.yaml v2 解析对象
+ * @returns {Set<string>} 被引用的 enums 顶层段名
+ */
+function collectValueDomainReferences(fieldsDoc) {
+  const refs = new Set();
+  const classes = fieldsDoc && isPlainObject(fieldsDoc.classes) ? fieldsDoc.classes : {};
+  const OP_IMPLICIT = { tags_union: ["tags"], matrix_union_fallback: ["arch_categories", "subdomain_constraints"], product_closure: ["architecture_projection"] };
+  const topOf = (addr) => (typeof addr === "string" && addr ? addr.split(".")[0] : null);
+  for (const cls of ["entity", "article"]) {
+    const props = (classes[cls] && Array.isArray(classes[cls].properties) ? classes[cls].properties : []);
+    for (const prop of props) {
+      const vd = prop && prop.value_domain;
+      if (!isPlainObject(vd)) continue;
+      const top = topOf(vd.source);
+      if (top && top !== "free" && top !== "versions") refs.add(top);
+      if (typeof vd.segment === "string" && vd.segment) {
+        const seg = topOf(vd.segment);
+        if (seg) refs.add(seg);
+      }
+      if (isPlainObject(vd.normalize) && typeof vd.normalize.aliases === "string" && vd.normalize.aliases) {
+        const seg = topOf(vd.normalize.aliases);
+        if (seg) refs.add(seg);
+      }
+      if (isPlainObject(vd.default) && typeof vd.default.from === "string" && vd.default.from) {
+        const seg = topOf(vd.default.from);
+        if (seg) refs.add(seg);
+      }
+      if (Array.isArray(vd.composite)) {
+        for (const part of vd.composite) {
+          if (isPlainObject(part) && typeof part.source === "string" && part.source && part.source !== "free") refs.add(part.source);
+        }
+      }
+      if (vd.resolve && isPlainObject(vd.resolve) && Array.isArray(OP_IMPLICIT[vd.resolve.op])) {
+        for (const seg of OP_IMPLICIT[vd.resolve.op]) refs.add(seg);
+      }
+    }
+  }
+  return refs;
+}
+
+module.exports = { resolveValueDomains, collectValueDomainReferences };

@@ -211,19 +211,39 @@ test("红队D1：enum-append 面——闭合枚举段追加（幂等）＋解析
   fs.rmSync(vault, { recursive: true, force: true });
 });
 
-test("红队D4：stdout 单 JSON 纯净（坏配方 fields 时 warn 不混入 stdout）＋解析物失败 exit 4", () => {
+test("红队D4：双车道——坏 fields 写前闸拒 exit 1（WP-199 波3 裁决① fail-closed）＋解析物失败 exit 4 保留", () => {
+  // WP-199 波3 裁决①：删除保护闸写前读 fields 引用清单，不可判定（坏 YAML）即拒写（fail-closed，
+  // 不允许「坏 fields 视同缺席」的隐式回落）——原「坏 fields → 本体写成功 → 重算失败 exit 4」
+  // 场景由写前拒车道替代：exit 1＋真实码 VOCAB_PARSE_FAILED 直达（不压泛化 WRITE_FAILED）。
+  // exit 4 车道仍可达（fields 好而解析物源坏——坏 versions 让重算挂），原 fail-visible 断言保留。
   const vault = buildVault();
-  fs.writeFileSync(path.join(vault, "知识库", "TheSchema", "fields.yaml"), "fields: [{broken", "utf8");
+  const schemaDir = path.join(vault, "知识库", "TheSchema");
+  const enumsAbs = path.join(schemaDir, "enums.yaml");
+  const goodFields = fs.readFileSync(path.join(schemaDir, "fields.yaml"), "utf8");
+  const enumsBefore = fs.readFileSync(enumsAbs, "utf8");
+  // 车道一（裁决①替代场景）：坏 fields → 写前闸拒 → exit 1＋stdout 单行错误信封＋零落盘
+  fs.writeFileSync(path.join(schemaDir, "fields.yaml"), "fields: [{broken", "utf8");
   const r = runClient(["modules-upsert", "--name", "x", "--system", "y", "--revision", readBaseline(vault)], vault);
-  if (r.code === 0) {
-    // 本体写成功但解析物重算失败 → exit 4 且 stdout 仅一行 JSON
-    assert.equal(r.code, 0);
-  } else {
-    assert.equal(r.code, 4);
-    const lines = r.stdout.trim().split("\n").filter(Boolean);
-    assert.equal(lines.length, 1, "stdout 必须单行 JSON");
-    JSON.parse(lines[0]);
-  }
+  assert.equal(r.code, 1, "坏 fields 必须写前拒（fail-closed，不走写后解析物车道）：" + JSON.stringify(r.payload));
+  const lines = r.stdout.trim().split("\n").filter(Boolean);
+  assert.equal(lines.length, 1, "stdout 必须单行 JSON（错误信封）：" + JSON.stringify(r.stdout));
+  const payload = JSON.parse(lines[0]);
+  assert.equal(payload.error_code, "VOCAB_PARSE_FAILED", "真实码直达（不得压成泛化 WRITE_FAILED）：" + JSON.stringify(payload));
+  assert.ok(payload.message, "错误信封须含 message：" + JSON.stringify(payload));
+  assert.equal(fs.readFileSync(enumsAbs, "utf8"), enumsBefore, "写前拒零落盘");
+  // 车道二（原 D4 契约保留）：fields 好而 versions 坏 → 本体写成功 → 解析物重算失败 → exit 4
+  // 且 stdout 仅一行成功 JSON（warn 走 stderr 不混入 stdout——原用例的纯净性断言在此承载）
+  fs.writeFileSync(path.join(schemaDir, "fields.yaml"), goodFields, "utf8");
+  fs.writeFileSync(path.join(schemaDir, "versions.yaml"), "versions: [{broken", "utf8");
+  const r2 = runClient(["modules-upsert", "--name", "x", "--system", "y", "--revision", readBaseline(vault)], vault);
+  assert.equal(r2.code, 4, "fields 好而重算挂必须仍走解析物 fail-visible 车道：" + JSON.stringify(r2.payload));
+  const lines2 = r2.stdout.trim().split("\n").filter(Boolean);
+  assert.equal(lines2.length, 1, "stdout 必须单行 JSON（成功信封，warn 不混入）：" + JSON.stringify(r2.stdout));
+  const payload2 = JSON.parse(lines2[0]);
+  assert.equal(payload2.ok, true, "车道二本体已写成功：" + JSON.stringify(payload2));
+  assert.equal(payload2.resolvedSynced, false, "解析物失败须 fail-visible 回标");
+  const enumsAfter = YAML.parse(fs.readFileSync(enumsAbs, "utf8"));
+  assert.deepEqual(enumsAfter.modules.x, { system: "y" }, "车道二本体落盘（写成功后才谈解析物）");
   fs.rmSync(vault, { recursive: true, force: true });
 });
 

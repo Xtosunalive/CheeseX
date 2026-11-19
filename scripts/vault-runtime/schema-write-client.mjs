@@ -37,6 +37,7 @@ function usage() {
     "                   探测模式：--detect-stale <dir> / --detect-untracked-wikilinks <dir> / --detect-author-placeholders <dir> / --quality-summary <dir>",
     "",
     "输出：成功 {ok:true, revision, resolvedSynced}（解析物失败＝exit 4 fail-visible）；冲突 exit 3；参数/校验/缺基线 exit 1；未知操作 exit 2",
+    "  错误＝stdout 单行 JSON {ok:false, error_code, message}（服务层真实码直达，WP-199 波3 裁决①——坏词表写前拒 fail-closed）",
     "写侧纪律（PR-200）：--revision 必填——「没传」不等于「不用比」。先跑 revision 取基线再原样回传；",
     "  fields 在空库态读到的基线是 null，写首建时传 --revision null 即该断言（文件已在而传 null 走 409 冲突）。",
   ].join("\n");
@@ -74,8 +75,13 @@ async function main() {
     console.error(JSON.stringify({ ok: false, code: "VAULT_UNRESOLVED", error: "vault 未解析（须显式 --vault 或 VAULT_PATH 环境变量——.env 回落已因两次误写真库事故移除）" }));
     process.exit(2);
   }
+  // WP-199 波3 裁决①：错误信封走 stdout 单行 JSON（fail-visible 形态不变——单行、机器可解析；
+  // 通道自 stderr 移至 stdout，与成功信封同面）。error_code/message 为裁决点名的对外键，
+  // 与 code/error 同值并存（存量消费者按 code/error 读，新面按 error_code/message 读，二选一）。
+  // VAULT_UNRESOLVED 早退信封仍在 stderr（D3 钉扎面，本裁决未触及，不动）。
   const fail = (code, error, status = 1) => {
-    console.error(JSON.stringify({ ok: false, code, error: String(error).split("\n")[0], ...(process.env.SWC_DEBUG ? { stack: String(error).split("\n").slice(1).join(" | ") } : {}) }));
+    const lines = String(error).split("\n");
+    console.log(JSON.stringify({ ok: false, code, error_code: code, message: lines[0], error: lines[0], ...(process.env.SWC_DEBUG && lines.length > 1 ? { stack: lines.slice(1).join(" | ") } : {}) }));
     process.exit(status);
   };
 
@@ -245,18 +251,24 @@ async function main() {
     }
     return fail("UNKNOWN_OP", `未知操作 '${op}'——${usage()}`, 2);
   } catch (e) {
-    // PR-184：错误码优先取服务层 e.code（已登记码），文案正则只作无 code 时的兜底——
-    // 此前一律按 message 推码，把咽喉抛的 VALIDATION_ERROR（code 正确、判据在文案前缀）压成泛化 WRITE_FAILED
+    // WP-199 波3 裁决①：服务层信封带码即透传真码——不再按文案正则猜测压码（此前
+    // /SHAPE_INVALID|VALIDATION_ERROR/ 正则把真实码压成 VALIDATION_ERROR，VOCAB_PARSE_FAILED
+    // 类被压成泛化 WRITE_FAILED）。保留两条已签收归一车道：REVISION_CONFLICT（exit 3，各文件
+    // 冲突码归一）与 SCHEMA_REVISION_REQUIRED（PR-200 直达）；信封无码（真未知错）才回落 WRITE_FAILED。
+    // 坏词表（YAML 解析失败）经 vocab-load-port 包裹抛出：.code 保留 yaml 包原始码（BAD_INDENT 族，
+    // 供 HTTP 状态派发），类身份在其稳定消息前缀「VOCAB_PARSE_FAILED:」——CLI 按前缀透传该类码
+    // （消息前缀约定，非 registry 生码），写前闸 fail-closed 拒写的码面直达。
     const rawCode = typeof e.code === "string" && e.code ? e.code : "";
-    const code = rawCode === "ENUMS_REVISION_CONFLICT" || rawCode === "FIELDS_REVISION_CONFLICT" || rawCode === "VERSIONS_REVISION_CONFLICT" || /REVISION_CONFLICT/.test(rawCode) || /REVISION_CONFLICT/.test(e.message || "")
+    const isConflict = /REVISION_CONFLICT/.test(rawCode) || /REVISION_CONFLICT/.test(e.message || "");
+    const isVocabParse = /^VOCAB_PARSE_FAILED:/.test(String(e.message || ""));
+    const code = isConflict
       ? "REVISION_CONFLICT"
-      // PR-200：缺基线由服务侧单点闸抛出，码须直达 CLI（PR-184 同款「不压成泛化码」），不得并入 VALIDATION_ERROR
       : rawCode === "SCHEMA_REVISION_REQUIRED"
         ? "SCHEMA_REVISION_REQUIRED"
-      : rawCode === "VALIDATION_ERROR" || rawCode === "SHAPE_INVALID" || /SHAPE_INVALID|VALIDATION_ERROR/.test(e.message || "")
-        ? "VALIDATION_ERROR"
-        : "WRITE_FAILED";
-    fail(code, process.env.SWC_DEBUG ? e.stack : e.message, code === "REVISION_CONFLICT" ? 3 : 1);
+        : isVocabParse
+          ? "VOCAB_PARSE_FAILED"
+          : rawCode || "WRITE_FAILED";
+    fail(code, process.env.SWC_DEBUG ? e.stack : e.message, isConflict ? 3 : 1);
   }
 }
 

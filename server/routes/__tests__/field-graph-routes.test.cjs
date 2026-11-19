@@ -110,6 +110,15 @@ test("齐全→200：图谱行含结构渲染的配方与值数", async () => {
   assert.equal(row.domainKind, "closed");
   assert.match(row.recipe, /各分组并集 − disabled_tags/);
   assert.match(row.recipe, /tag_aliases 归一/);
+  // WP-199 波3：配方带属主前缀——跨类同名属性（entity.tags／article.tags）recipe 同文问题收口，
+  // 每行以 `属主.属性名 ＝` 开头，脱离行上下文复制后仍可归属
+  assert.ok(row.recipe.startsWith("entity.tags ＝ "), "recipe 须以 entity.tags ＝ 开头：" + row.recipe);
+  const tagsArticle = body.data.byField.find((r) => r.name === "tags" && r.scope[0] === "article");
+  assert.ok(tagsArticle, "article.tags 行在册");
+  assert.ok(tagsArticle.recipe.startsWith("article.tags ＝ "), "recipe 须以 article.tags ＝ 开头：" + tagsArticle.recipe);
+  assert.notEqual(row.recipe, tagsArticle.recipe, "跨类同名属性 recipe 须带各自属主锚（不再同文）");
+  const stRecipe = body.data.byField.find((r) => r.name === "status" && r.scope[0] === "article");
+  assert.ok(stRecipe.recipe.startsWith("article.status ＝ "), "recipe 须以 article.status ＝ 开头：" + stRecipe.recipe);
   // WP-195 v2：label 取类属主 display（中文绑定名），scope 由属主类生成＝[cls]
   assert.equal(row.label, "标签");
   assert.deepEqual(row.scope, ["entity"]);

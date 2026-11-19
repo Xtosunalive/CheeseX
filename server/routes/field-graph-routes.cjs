@@ -94,7 +94,8 @@ function register(registerRoute, deps) {
             required: typeof decl.required === "string" ? decl.required : null,
             scope: Array.isArray(decl.scope) ? decl.scope : [decl.__class],
             layer: typeof decl.layer === "string" ? decl.layer : null,
-            recipe: describeRecipe(decl.value_domain),
+            // WP-199 波3：配方文本带属主锚——跨类同名属性 recipe 同文，脱离行上下文复制后无法归属
+            recipe: `${decl.__class}.${decl.name} ＝ ${describeRecipe(decl.value_domain)}`,
             domainKind,
             valueCount: hasValues ? rec.values.length : null,
             aliasCount: rec.aliasMap && typeof rec.aliasMap === "object" ? Object.keys(rec.aliasMap).length : 0,

@@ -17041,6 +17041,46 @@
           }
         ],
         "description": "VERSION_NOT_RELEASED 错误响应（按码 allOf 目录单元）：仅 released 产品版本可标记废弃（PR-319/WP-181）。"
+      },
+      "EnumsReferencedSegmentRemovedErrorResponse": {
+        "type": "object",
+        "required": [
+          "error_code",
+          "message"
+        ],
+        "properties": {
+          "error_code": {
+            "type": "string",
+            "enum": [
+              "ENUMS_REFERENCED_SEGMENT_REMOVED"
+            ],
+            "description": "写入将移除被字段值域引用的 enums 段（WP-199 波3；BKN value_type 被引用段不可删）"
+          },
+          "message": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "properties": {
+              "segments": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "被移除的被引用段名"
+              },
+              "referencedBy": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "引用方 (类,name) 清单"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "additionalProperties": false
       }
     }
   },
@@ -24302,6 +24342,9 @@
                     },
                     {
                       "$ref": "#/components/schemas/ActionConfirmRequiredErrorResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/EnumsReferencedSegmentRemovedErrorResponse"
                     }
                   ]
                 }

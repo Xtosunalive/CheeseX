@@ -25,6 +25,8 @@ const { listGitSnapshots, readGitSnapshot } = require("../../shared/repo-schema-
 const { replaceTheSchemaFile } = require("../../shared/theschema-write.cjs"); // WP-079 唯一门：TheSchema 写通道由咽喉按落点选，服务侧禁自判
 
 const { assertRevisionGiven } = require("../../shared/schema-write-guards.cjs");
+// WP-199 波3：值域引用段删除保护读 fields.yaml 经装载端口（state 三态——缺席静默跳过的判据来源）
+const { loadVocabBundle } = require("../../shared/vocab-load-port.cjs");
 const ROOT = require("node:path").resolve(__dirname, "..", "..", "..");
 const repoRel = (absPath) => require("node:path").relative(ROOT, absPath).split(require("node:path").sep).join("/");
 
@@ -132,6 +134,36 @@ function writeEnums(options) {
   const shapeErrors = validateEnumsStrict(data);
   if (shapeErrors.length) {
     throw serviceError("ENUMS_SHAPE_INVALID", "写入结果不符合 enums 形态契约，未落盘：" + shapeErrors.join("; "), 400, { errors: shapeErrors });
+  }
+  // WP-199 波3：值域引用段删除保护（BKN value_type 被引用段不可删——写侧执法半边，正向闭合归
+  // check:fields-dictionary）。段级判定（写后段消失∨空态而写前非空）；fields.yaml 缺席＝静默跳过
+  // （大量测试夹具不造 fields，缺库即红是假红）；rollback 快照恢复不拦（记档：旧快照本就合法，
+  // 悬空由 check:fields-registry 第四面＋boot 自检兜底）。
+  {
+    const fieldsVocab = loadVocabBundle(options.vaultPath, { files: ["fields"] });
+    if (fieldsVocab.files.fields.state === "present") {
+      const refs = require("../../shared/value-domain-resolver.cjs").collectValueDomainReferences(fieldsVocab.files.fields.data || {});
+      const { referencedSegmentRemovalViolations } = require("../../shared/schema-write-guards.cjs");
+      const removals = referencedSegmentRemovalViolations(current.data, data, refs);
+      if (removals.length) {
+        const fieldsData = fieldsVocab.files.fields.data || {};
+        const referencedBy = [];
+        for (const cls of ["entity", "article"]) {
+          for (const prop of ((fieldsData.classes?.[cls]?.properties) || [])) {
+            const uses = JSON.stringify(prop.value_domain || {});
+            for (const v of removals) {
+              if (uses.includes(v.segment)) referencedBy.push(`${cls}.${prop.name}`);
+            }
+          }
+        }
+        throw serviceError(
+          "ENUMS_REFERENCED_SEGMENT_REMOVED",
+          `写入将移除被字段值域引用的段 [${removals.map((r) => r.segment).join("、")}]——被引用段不可删除（先解除 fields.yaml 引用再删）`,
+          409,
+          { segments: removals.map((r) => r.segment), referencedBy: [...new Set(referencedBy)] },
+        );
+      }
+    }
   }
   // SPEC-023 波 4（写时吃扫描）：顶层键必须全部在册——新键未登记 theschema-roles 段即拒（CI 面⑥降为兜底）
   const { enumsSegmentViolations } = require("../../shared/schema-write-guards.cjs");

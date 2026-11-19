@@ -59,4 +59,33 @@ function assertRevisionGiven(value, target, options = {}) {
   );
 }
 
-module.exports = { enumsSegmentViolations, registeredSegments, assertRevisionGiven };
+/**
+ * WP-199 波3：值域引用段删除保护——段级差集判定（BKN value_type 被引用段不可删的写侧执法半边；
+ * 正向引用闭合由 check:fields-dictionary 把守，此处拦"写 enums 时移除被 fields.yaml 引用的段"）。
+ * 删除判定＝写后段不存在 ∨ 写后空态（对象零键/数组零项）而写前非空——两态同罪（引用不悬空但值域坍缩）。
+ * 粒度锁死＝**段级**：词条增删（删 layers 里单个词条）不归本闸——那是既有 subdomain 删词门禁与
+ * shape 校验的辖区，越界执法会大面积假红（writeArchitectureProjectionIdentity 整段重建也依赖本粒度放行）。
+ * @param {object} prevData 写前 enums 解析对象（plain）
+ * @param {object} nextData 写后 enums 解析对象（plain）
+ * @param {Set<string>} referencedSegments collectValueDomainReferences 的产出
+ * @returns {Array<{segment: string, referencedBy: Array<string>}>} 违规段＋引用方 (类,name) 清单
+ */
+function referencedSegmentRemovalViolations(prevData, nextData, referencedSegments) {
+  const violations = [];
+  const prev = prevData && typeof prevData === "object" ? prevData : {};
+  const next = nextData && typeof nextData === "object" ? nextData : {};
+  const isEmptyState = (v) =>
+    v === undefined || v === null ||
+    (Array.isArray(v) && v.length === 0) ||
+    (typeof v === "object" && !Array.isArray(v) && Object.keys(v).length === 0);
+  const wasPresent = (v) => !(v === undefined || v === null) && !isEmptyState(v);
+  for (const segment of referencedSegments || []) {
+    if (!wasPresent(prev[segment])) continue; // 写前就不存在/空——非本闸对象（正向闭合面把守）
+    if (isEmptyState(next[segment])) {
+      violations.push({ segment, referencedBy: [] });
+    }
+  }
+  return violations;
+}
+
+module.exports = { enumsSegmentViolations, registeredSegments, assertRevisionGiven, referencedSegmentRemovalViolations };
