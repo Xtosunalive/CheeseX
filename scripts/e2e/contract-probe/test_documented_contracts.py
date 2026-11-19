@@ -233,6 +233,33 @@ class RequestAssembly(unittest.TestCase):
         self.assertEqual(filled, {"q": "preset"}, "probe 显式值优先于 schema 造值")
         self.assertEqual(unfillable, [])
 
+    def test_required_query_consumes_seed_适配6a(self):
+        """适配⑥(a)：必填 query 先查种子（真实运行时值）再回落 schema 造值。"""
+        op = {"url": "/api/kg/architecture-version", "params": [
+            {"in": "query", "required": True, "name": "product", "schema": {"type": "string"}},
+            {"in": "query", "required": True, "name": "version", "schema": {"type": "string"}},
+            {"in": "query", "required": True, "name": "limit", "schema": {"type": "integer", "minimum": 3}},
+        ]}
+        found = [("/api/", "product", "E2eProduct"), ("/api/", "version", "1.0.0")]
+        filled, unfillable = probe.with_required_query(op, None, found)
+        self.assertEqual(filled.get("product"), "E2eProduct", "种子值优先于 schema 造值")
+        self.assertEqual(filled.get("version"), "1.0.0")
+        self.assertEqual(filled.get("limit"), "3", "种子没有的参数回落 schema 造值")
+        self.assertEqual(unfillable, [])
+        op2 = {"url": "/api/edges", "params": [{"in": "query", "required": True, "name": "node",
+                           "schema": {"type": "string"}}]}
+        filled2, unfillable2 = probe.with_required_query(op2, None, [])
+        self.assertEqual(unfillable2, ["node"], "无种子无 schema 值→如实 unfillable")
+
+    def test_url_encode_non_ascii_适配6b(self):
+        """适配⑥(b)：PROBE_SRC 对非 ASCII URL 百分号编码——中文实体 id 可发送。"""
+        import urllib.parse
+        raw = "/api/anomalies/entity-知识库/wiki/entities/e2e-incomplete-component.md-F11"
+        encoded = urllib.parse.quote(raw, safe=":/?&=#%@+;,~()$!*'")
+        self.assertTrue(encoded.isascii(), "编码后必须纯 ascii（urllib 发送前提）")
+        self.assertIn("%E7%9F%A5", encoded, "中文已转码")
+        self.assertTrue(encoded.startswith("/api/anomalies/"), "路由结构字符保留")
+
     def test_fill_path_scope_longest_match(self):
         found = [("/api/", "id", "global"), ("/api/kg/", "id", "kg-scope")]
         url, missing = probe.fill_path("/api/kg/nodes/{id}", found)

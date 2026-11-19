@@ -97,7 +97,7 @@ if (ONLY && selected.length === 0) {
 // host-map 按契约 /api/<顶层段>/ 逐段映射受控栈——上游 DISCOVERY 表为 OpenBKN 域数据，
 // 不命中本仓段即零伪请求；--ids 从列表端点运行时深搜真实 id，取不到的参数名不进种子，
 // 由 probe 报告如实记「缺少路径参数」（诚实优于硬凑）。
-async function buildProbeArgs(apiBase) {
+function buildProbeArgs(apiBase) {
   const repoRoot = path.join(__dirname, "..", "..");
   const contractPath = path.join(repoRoot, "contracts", "http-api.openapi.json");
   const spec = JSON.parse(fs.readFileSync(contractPath, "utf8"));
@@ -119,31 +119,47 @@ async function buildProbeArgs(apiBase) {
     "--exec-mode", "direct",
     "--face", "ex",
     "--host-map", JSON.stringify(hostMap),
-    "--ids", JSON.stringify(await seedIds(apiBase)),
+    // --ids 种子在 probe 流起跑时现取（seedIds）——旅程先改写夹具，数据态编号才取得到
     "--out", path.join(repoRoot, "scripts", "test-results", "contract-probe", "contract-probe-report.md"),
     "--json-out", path.join(repoRoot, "scripts", "test-results", "contract-probe", "contract-probe.json"),
   ];
 }
 
-// 运行时种子：只读 GET 列表端点，deepFind 深搜目标参数名首个非空值。进流前构建段
-// 串行发出（量级＝6 个列表请求）；端点不可达/非 200 时该参数名不进种子，probe 报告
-// 如实记「缺少路径参数」skip——诚实优于硬凑。
+// 运行时种子：只读 GET 列表端点深搜真实值。候选三元组＝（probe 参数名, 源端点, 响应内查找键名）
+// ——查找键名可与参数名不同（edgeId↔edge_id；articleIds 数组取首元素，WP-198 七参数全覆盖，
+// 源形态受控栈实测见设计稿§二）。进流前构建段串行发出；端点不可达/非 200/键不命中时该参数名
+// 不进种子，probe 报告如实记 skip——诚实优于硬凑。
 async function seedIds(apiBase) {
   const candidates = [
-    ["issueId", "/api/anomalies"],
-    ["id", "/api/articles/precleaned"],
-    ["documentId", "/api/documents/search"],
-    ["edge_id", "/api/kg/pending-review"],
-    ["articleId", "/api/articles/uploads"],
-    ["taskId", "/api/pipeline/status"],
+    ["issueId", "/api/anomalies", "issueId"],
+    ["id", "/api/articles/precleaned", "id"],
+    ["documentId", "/api/documents/search", "id"],
+    ["edge_id", "/api/kg/pending-review", "edgeId"],
+    ["articleId", "/api/articles/uploads", "articleIds"],
+    ["taskId", "/api/articles/uploads", "taskId"],
+    ["node", "/api/graph/master", "id"],
+    ["product", "/api/kg/product-versions", "product"],
+    ["version", "/api/kg/product-versions", "version"],
+    ["sourceKey", "/api/entity/check", "sourceKey"],
+    ["nodeId", "/api/graph/master", "id"],
   ];
+  // documentId 命名空间兜底：本仓文档 id＝"entity:"+entityId（历史种子命中两回实证的仓内约定，
+  // 非猜测格式——search 响应 id 为 null 态时的确定性重建；约定变更时该兜底自然 miss、probe 如实 skip）
+  try {
+    const res = await fetch(apiBase + "/api/entity/check", { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const eid = deepFind(await res.json(), "entityId", 0);
+      if (eid !== undefined && eid !== null && eid !== "") ids.documentId = "entity:" + String(eid);
+    }
+  } catch { /* miss 照旧如实 skip */ }
   const ids = {};
-  for (const [key, route] of candidates) {
+  for (const [param, route, findKey] of candidates) {
     try {
       const res = await fetch(apiBase + route, { signal: AbortSignal.timeout(8000) });
       if (!res.ok) continue;
-      const hit = deepFind(await res.json(), key, 0);
-      if (hit !== undefined) ids[key] = String(hit);
+      let hit = deepFind(await res.json(), findKey, 0);
+      if (Array.isArray(hit)) hit = hit.find((x) => x !== null && x !== undefined && x !== "");
+      if (hit !== undefined && hit !== null && hit !== "") ids[param] = String(hit);
     } catch { /* 结构性不可达时留空，probe 如实记 skip */ }
   }
   return ids;
@@ -182,12 +198,7 @@ function runTest(test, childEnv) {  return new Promise((resolve) => {
     // 守卫/断言/trace 由 playwright.config.mjs 托管；
     // runner: "probe"（WP-189）＝python3 直调契约巡检整搬件（参数经 env 预构建）；
     // 其余仍为直跑脚本形态。
-    const child = test.runner === "playwright"
-      ? spawn(process.execPath, [path.join(__dirname, "..", "..", "node_modules", "@playwright", "test", "cli.js"), "test", scriptPath, "--config", path.join(__dirname, "playwright.config.mjs")], { env: childEnv, stdio: "inherit" })
-      : test.runner === "probe"
-      ? spawn(resolvePythonPath(), [scriptPath, ...JSON.parse(childEnv.CONTRACT_PROBE_ARGS ?? "[]")], { env: childEnv, stdio: "inherit" })
-      : spawn(process.execPath, [scriptPath], { env: childEnv, stdio: "inherit" });
-
+    const wire = (child) => {
     child.on("close", (code) => {
       // 红队复核 P2-3 假绿护栏：probe 退出码 0 但完成比对数为 0（全 skip/全非 200）
       // ＝口径假绿（全绿≠全验），按失败计；结果文件不可读同罪（fail-closed）。
@@ -224,6 +235,28 @@ function runTest(test, childEnv) {  return new Promise((resolve) => {
         error: error.message,
       });
     });
+    };
+
+    if (test.runner === "probe") {
+      // WP-198：--ids 种子在 probe 流起跑时现取（此时旅程已改写夹具——上传/清单数据
+      // 就位，数据态编号 articleId/taskId/documentId… 才取得到）；净态空数据照旧如实 skip。
+      (async () => {
+        try {
+          const staticArgs = JSON.parse(childEnv.CONTRACT_PROBE_ARGS ?? "[]");
+          const seeds = await seedIds(childEnv.API_BASE ?? "http://127.0.0.1:18083");
+          wire(spawn(resolvePythonPath(), [scriptPath, ...staticArgs, "--ids", JSON.stringify(seeds)], { env: childEnv, stdio: "inherit" }));
+        } catch (e) {
+          console.error(`Error building probe seeds:`, e);
+          resolve({ name: test.name, exitCode: 1, passed: false, error: e?.message });
+        }
+      })();
+      return;
+    }
+
+    const child = test.runner === "playwright"
+      ? spawn(process.execPath, [path.join(__dirname, "..", "..", "node_modules", "@playwright", "test", "cli.js"), "test", scriptPath, "--config", path.join(__dirname, "playwright.config.mjs")], { env: childEnv, stdio: "inherit" })
+      : spawn(process.execPath, [scriptPath], { env: childEnv, stdio: "inherit" });
+    wire(child);
   });
 }
 
@@ -286,7 +319,7 @@ async function main() {
   // WP-189：probe 流参数在起栈后、进流前构建一次（host-map 需真实 API_BASE；--ids 种子
   // 需栈上列表端点可读），经 env 传入 runTest 的 python 直调。
   if (selected.some((t) => t.runner === "probe")) {
-    childEnv.CONTRACT_PROBE_ARGS = JSON.stringify(await buildProbeArgs(API_BASE));
+    childEnv.CONTRACT_PROBE_ARGS = JSON.stringify(buildProbeArgs(API_BASE));
   }
 
   const startTime = Date.now();

@@ -846,6 +846,13 @@
               "null"
             ],
             "description": "最近检出时间"
+          },
+          "verifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "核验时刻（核验动作后出现）"
           }
         }
       },
@@ -15090,7 +15097,9 @@
             "description": "approved|pending|rejected（对齐 ReviewStatus）"
           },
           "properties": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": true,
+            "description": "边属性开放映射（键随来源实体属性生长——实际观测 source/product/version/weight/reviewStatus 等）"
           },
           "confidenceSource": {
             "type": "string",
@@ -15177,7 +15186,9 @@
             }
           },
           "properties": {
-            "type": "object"
+            "type": "object",
+            "additionalProperties": true,
+            "description": "节点属性开放映射（实际观测 name/is_active/last_extract_time/source_vault_path/extraction_trace[] 等）"
           }
         }
       },
@@ -21128,7 +21139,18 @@
               }
             }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "nodeId",
+            "in": "query",
+            "required": true,
+            "description": "图节点 id（服务端实证必填：缺失即 400 INVALID_QUERY）",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ]
       }
     },
     "/api/kg/pending-review": {
@@ -26373,6 +26395,10 @@
                           "$ref": "#/components/schemas/EntityComplianceResult"
                         }
                       }
+                    },
+                    "trace_id": {
+                      "type": "string",
+                      "description": "响应追踪号（其余端点信封同名字段语义）"
                     }
                   }
                 }

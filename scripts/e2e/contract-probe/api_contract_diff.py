@@ -28,6 +28,10 @@
 #      作主类型（WP-169 批教训在册：裸 nullable/类型数组处理不当会假红）。
 #   ④ 自测试 test_documented_contracts.py 随迁改写为本仓引擎离线单测（上游原断言针对
 #      bkn-foundry 自身文档与实现，域不合；守护对象＝移植后的引擎纯函数）。
+#   ⑥ 请求参数覆盖补强（Master 2026-11-19 批「照准」WP-198 验收 7 条）：
+#      (a) with_required_query 增 found 种子参——必填 query 先查种子再回落 schema 造值；
+#      (b) PROBE_SRC 发送前 URL 百分号编码（非 ASCII 实体 id 不再 ascii 报错）；
+#      (c) fill_path 路径参数值全编码（%2F——与前端 encodeURIComponent 同约定）。
 #   ⑤ 引擎比对能力补强（Master 2026-11-19 批准，WP-196 同批；上游同有限制）：
 #      (a) 递归 $ref 限深展开（frozenset 硬停→tuple 计次，MAX_REF_DEPTH=3）——
 #          递归树形（taxonomyTree[].children[].…）子层字段进比对面；
@@ -86,6 +90,7 @@ api_contract_diff.py —— 对比"服务实际返回"与"OpenAPI 设计文档",
 
 import argparse
 import json
+import urllib.parse
 import os
 import re
 import subprocess
@@ -390,13 +395,15 @@ def type_ok(doc_t, act_t):
 # --------------------------------------------------------------------------
 
 PROBE_SRC = r'''
-import json, sys, urllib.request, urllib.error
+import json, sys, urllib.parse, urllib.request, urllib.error
 reqs = json.loads(sys.stdin.read())
 out = []
 for r in reqs:
     body = r.get("body")
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(r["url"], data=data, method=r["method"],
+    # 适配⑥-b（WP-198）：非 ASCII 字符百分号编码——urllib 纯 ascii 发送遇中文实体 id 直接报错
+    url = urllib.parse.quote(r["url"], safe=":/?&=#%@+;,~()$!*'")
+    req = urllib.request.Request(url, data=data, method=r["method"],
                                  headers=r.get("headers") or {})
     item = {"id": r["id"]}
     try:
@@ -483,12 +490,17 @@ def sample_value(param):
     return None
 
 
-def with_required_query(op, query=None):
+def with_required_query(op, query=None, found=None):
     """把必填 query 参数补进 query 表;返回 (query 表, 造不出取值的参数名)。
 
     已经在 query 里的不覆盖 —— probe 显式写的值优先于按 schema 造的值。
     普通 GET 路径与 probe 路径共用这一段,否则给 `/tool-box/market/tools`
     (tool_name 必填)这类端点加 probe 后会静默 400。
+
+    适配⑥-a（WP-198，Master 批「照准」）：found 种子表里的同名条目优先于
+    schema 造值（种子＝运行时从列表端点发现的真实值,如 product/version/
+    node/sourceKey——schema 里没有 example/default/enum,纯造值必然 400）。
+    种子条目作用域均为 /api/ 全局,按参数名精确匹配。
     """
     out = dict(query or {})
     unfillable = []
@@ -498,11 +510,11 @@ def with_required_query(op, query=None):
         name = p.get("name")
         if name in out:
             continue
-        val = sample_value(p)
+        val = lookup_id(found or [], op.get("url", ""), name) or sample_value(p)
         if val is None:
             unfillable.append(name)
         else:
-            out[name] = val
+            out[name] = str(val)
     return out, unfillable
 
 
@@ -699,7 +711,7 @@ def run_probes(execu, host_of, headers, ops, found, args):
                 continue
             # 必填 query 不带就是必然 400。probe 里显式写了的以 probe 为准,
             # 没写的按 schema 造一个合规取值 —— 与普通 GET 路径同一套规则。
-            query, unfillable = with_required_query(op, query)
+            query, unfillable = with_required_query(op, query, found)
             if unfillable:
                 op["skip"] = ("必填 query 参数无法自动取值 "
                               + ",".join(unfillable))
@@ -764,7 +776,9 @@ def fill_path(url, found, params=None):
             if val is None:
                 missing.append(name)
                 continue
-        url = url.replace("{" + name + "}", val)
+        # 适配⑥-c（WP-198）：路径参数值全编码（前端 encodeURIComponent 同约定——
+        # 含斜杠/中文的实体 id 以 %2F 形态匹配服务端单段路由）
+        url = url.replace("{" + name + "}", urllib.parse.quote(str(val), safe=""))
     return url, missing
 
 
@@ -863,7 +877,7 @@ def main():
             op["skip"] = "无服务地址映射"
             continue
         # 必填 query 参数不带就是必然 400，按 schema 造一个合规取值
-        filled, unfillable = with_required_query(op)
+        filled, unfillable = with_required_query(op, None, ids)
         if unfillable:
             op["skip"] = "必填 query 参数无法自动取值 " + ",".join(unfillable)
             continue

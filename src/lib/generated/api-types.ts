@@ -3032,7 +3032,10 @@ export interface paths {
         /** node-documents */
         get: {
             parameters: {
-                query?: never;
+                query: {
+                    /** @description 图节点 id（服务端实证必填：缺失即 400 INVALID_QUERY） */
+                    nodeId: string;
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -9093,6 +9096,8 @@ export interface components {
             lastDiagnosticJobId?: string | null;
             /** @description 最近检出时间 */
             lastDetectedAt?: string | null;
+            /** @description 核验时刻（核验动作后出现） */
+            verifiedAt?: string | null;
         };
         AnomalyListData: {
             /** Format: date-time */
@@ -13203,7 +13208,10 @@ export interface components {
             evidenceHash?: string | null;
             /** @description approved|pending|rejected（对齐 ReviewStatus） */
             reviewStatus?: string | null;
-            properties: Record<string, never>;
+            /** @description 边属性开放映射（键随来源实体属性生长——实际观测 source/product/version/weight/reviewStatus 等） */
+            properties: {
+                [key: string]: unknown;
+            };
             /**
              * @description 生效置信度来源（SPEC-027 C5 四槽）：band=人档覆盖（relations.yaml）／native=边原生显式值（wikilink 1.0 或导入值）／suggestion=现算建议／none=无值兜底 0.5
              * @enum {string}
@@ -13233,7 +13241,10 @@ export interface components {
             category: string;
             degree: number;
             labels: string[];
-            properties: Record<string, never>;
+            /** @description 节点属性开放映射（实际观测 name/is_active/last_extract_time/source_vault_path/extraction_trace[] 等） */
+            properties: {
+                [key: string]: unknown;
+            };
         };
         /** @description /api/edges 出链/反链列表（fresh 走锁版正式读——relation_search 消费方白名单过滤；stale 走工作态投影全量带 reviewStatus，ADR-012 决策二） */
         EdgeListData: {
@@ -13785,6 +13796,8 @@ export interface operations {
                             generatedAt: string;
                             result: components["schemas"]["EntityComplianceResult"];
                         };
+                        /** @description 响应追踪号（其余端点信封同名字段语义） */
+                        trace_id?: string;
                     };
                 };
             };
