@@ -133,6 +133,16 @@ function main() {
     process.exit(1);
   }
   const fieldsDoc = fieldsFile.raw || {};
+  // WP-197 红队 P1-1 加固：空输入 fail-closed——v2 doc 无 classes 属性行时拒绝产出投影
+  // （空壳副本静默存活于无 vault 环境 CI 的教训；红队复核 2026-11-19）
+  const totalProps = ["entity", "article"].reduce(
+    (n, cls) => n + ((fieldsDoc.classes?.[cls]?.properties) || []).length,
+    0,
+  );
+  if (totalProps === 0) {
+    console.error("project-frontmatter-schema: fields.yaml 无任何类属主属性（classes.entity/article.properties 皆空）——拒绝产出空壳投影（fail-closed）");
+    process.exit(1);
+  }
   const enumsFile = vocab.files.enums;
   const enums = enumsFile && enumsFile.state === "present" ? (enumsFile.raw || {}) : {};
   const output = buildProjection({ fields: fieldsDoc, enums });
