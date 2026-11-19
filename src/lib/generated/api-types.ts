@@ -9096,8 +9096,8 @@ export interface components {
             lastDiagnosticJobId?: string | null;
             /** @description 最近检出时间 */
             lastDetectedAt?: string | null;
-            /** @description 核验时刻（核验动作后出现） */
-            verifiedAt?: string | null;
+            /** @description 核验时刻（核验动作后出现；reopen 态键不存在——null 分支无生产者，红队 P2-5 收窄） */
+            verifiedAt?: string;
         };
         AnomalyListData: {
             /** Format: date-time */

@@ -510,7 +510,9 @@ def with_required_query(op, query=None, found=None):
         name = p.get("name")
         if name in out:
             continue
-        val = lookup_id(found or [], op.get("url", ""), name) or sample_value(p)
+        seed = lookup_id(found or [], op.get("url", ""), name)
+        # 适配⑥-a 红队 P2 修正：显式 None 判断——种子值 falsy（0/False）不得被 or 丢弃
+        val = seed if seed is not None else sample_value(p)
         if val is None:
             unfillable.append(name)
         else:

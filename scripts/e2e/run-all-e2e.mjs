@@ -143,8 +143,9 @@ async function seedIds(apiBase) {
     ["sourceKey", "/api/entity/check", "sourceKey"],
     ["nodeId", "/api/graph/master", "id"],
   ];
-  // documentId 命名空间兜底：本仓文档 id＝"entity:"+entityId（历史种子命中两回实证的仓内约定，
-  // 非猜测格式——search 响应 id 为 null 态时的确定性重建；约定变更时该兜底自然 miss、probe 如实 skip）
+  const ids = {};
+  // documentId 命名空间兜底：本仓文档 id＝"entity:"+entityId（历史种子命中两回实证的仓内约定；
+  // 红队 P1 修复——ids 声明必须先于本块，此前 TDZ 使兜底结构性坏死并被 catch 静默吞掉）
   try {
     const res = await fetch(apiBase + "/api/entity/check", { signal: AbortSignal.timeout(8000) });
     if (res.ok) {
@@ -152,7 +153,6 @@ async function seedIds(apiBase) {
       if (eid !== undefined && eid !== null && eid !== "") ids.documentId = "entity:" + String(eid);
     }
   } catch { /* miss 照旧如实 skip */ }
-  const ids = {};
   for (const [param, route, findKey] of candidates) {
     try {
       const res = await fetch(apiBase + route, { signal: AbortSignal.timeout(8000) });
