@@ -8,6 +8,7 @@
 // version-registry-service（spawnSync）、scripts/quality/check-data-chain.mjs（门禁）。
 // 调用方（2026-10-28，WP-031）：routes/__tests__/gap-exempt-http.test.cjs（预抽取 spawnSync——
 // 豁免闭环 L3 真进程夹具）。
+// 调用方（2026-11-19，WP-189）：scripts/e2e/run-all-e2e.mjs（probe runner——契约巡检 python 直调）。
 // 新增调用点必须在本文件头部注释与 .env.example 清单同步登记（防清单失真）。
 function resolvePythonPath() {
   return process.env.PYTHON_PATH || "python3";
