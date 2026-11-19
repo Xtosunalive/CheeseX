@@ -149,8 +149,10 @@ title: E2E Test Entity
         if (await gateEnabled()) { filled = true; break; }
         const rowBtn = expandableRows.nth(rowIdx);
         const rowLabel = (await rowBtn.getAttribute("aria-label")) || "";
-        // 身份字段跳过：连跑幂等要求本流不碰身份（已存在时再填=重命名，后端正确拒绝）
-        if (rowLabel.includes("架构组件身份") || rowLabel.includes("架构组件标识") || rowLabel.includes("代号")) continue;
+        // 身份字段跳过：连跑幂等要求本流不碰身份（已存在时再填=重命名，后端正确拒绝）。
+        // WP-195 红队 P2-1：改经 fieldLabel 单源断言（display 更名自动跟随——旧硬编码「架构组件身份」
+        // 在 v2 改名「架构组件 ID」后失配，身份行漏跳会误点布尔开关；PR-013 ②同款纪律）
+        if (rowLabel.includes(fieldLabel("architecture-node-id", "entity")) || rowLabel.includes("代号")) continue;
         // 枚举/生长类字段（select 行）整体跳过——自由文本会被 growth 门正确拒绝，盲填制造死路
         if (rowLabel.startsWith("架构分层") || rowLabel.startsWith("实体类别") || rowLabel.startsWith("子域")) continue;
         if ((await rowBtn.getAttribute("aria-expanded")) !== "true") {
