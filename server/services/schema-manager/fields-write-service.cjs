@@ -22,10 +22,10 @@ const { replaceTheSchemaFile } = require("../../shared/theschema-write.cjs"); //
 
 const { resolveTheSchemaDir } = require("../../shared/theschema-root.cjs");
 
-const FIELDS_HEADER = `# fields.yaml — frontmatter 字段数据字典（ADR-008 D2）
-# 唯一机器源：实体/文章 frontmatter 字段的名称/类型/必填/作用域/值域/别名收口。
-# entity-frontmatter-schema.md 为本文件派生投影（scripts/quality/project-frontmatter-schema.mjs 生成，禁手改）。
-# 对账门禁：npm run check:fields-registry（server 消费的字段名 ⊆ 本表声明集）。
+const FIELDS_HEADER = `# fields.yaml — frontmatter 字段数据字典 v2（ADR-008 D2；WP-195 类属主重构）
+# 采 OpenBKN 设计：属性归属于类——身份＝(类, name)，类内唯一；display＝该类下的中文绑定声明。
+# 派生面族（entity-frontmatter-schema.md、shared/field-labels.mjs、src/lib/generated/field-view.ts）禁手改。
+# 对账门禁：npm run check:fields-registry（server 消费键 ⊆ 类属性集）；npm run check:fields-dictionary。
 `;
 
 function revisionOf(raw) {
@@ -53,7 +53,11 @@ function createFieldsWriteService({ vaultPath, logger, onGraphInputWrite } = {})
     // WP-049 L2：读侧经装载入口（data＝同一 normalizeDocument 形态收口，语义不变）；
     // missing＝初始空字典（原 existsSync 缺省语义）；text 供 revision 哈希（一次装载两用，原两次读并一）
     const vocab = loadVocabBundle(vaultPath, { files: ["fields"] });
-    if (vocab.files.fields.state !== "present") return { data: { schema_version: 1, fields: [] }, revision: null };
+    if (vocab.files.fields.state !== "present")
+      return {
+        data: { schema_version: 2, keys: {}, classes: { entity: { properties: [] }, article: { properties: [] } } },
+        revision: null,
+      };
     return { data: vocab.files.fields.data, revision: revisionOf(vocab.files.fields.text) };
   }
 
@@ -80,7 +84,7 @@ function createFieldsWriteService({ vaultPath, logger, onGraphInputWrite } = {})
   return {
     readFields,
 
-    async writeFields({ fields, expectedRevision }) {
+    async writeFields({ classes, keys, expectedRevision }) {
       // PR-200：乐观锁基线必填——未给出（undefined/空串）即拒。null 是读侧对缺席 fields.yaml 给出的
       // 空库基线（见 readFields 的 missing 分支），原样回传即合法首建；文件已在而回 null 走 409 冲突。
       const current = this.readFields();
@@ -88,8 +92,19 @@ function createFieldsWriteService({ vaultPath, logger, onGraphInputWrite } = {})
       if (expectedRevision !== current.revision) {
         throw serviceError("FIELDS_REVISION_CONFLICT", "fields.yaml changed after it was loaded", 409);
       }
-      if (!Array.isArray(fields)) throw serviceError("VALIDATION_ERROR", "fields must be an array", 400);
-      const payload = { schema_version: 1, last_updated: new Date().toISOString().slice(0, 10), fields };
+      // WP-195 v2：整量写＝{schema_version:2, keys, classes}（类属主；payload 由路由层从编辑行装配）
+      if (!classes || typeof classes !== "object" || Array.isArray(classes))
+        throw serviceError("VALIDATION_ERROR", "classes must be an object keyed by class", 400);
+      const payload = {
+        schema_version: 2,
+        last_updated: new Date().toISOString().slice(0, 10),
+        keys: keys && typeof keys === "object" && !Array.isArray(keys) ? keys : current.data.keys || {},
+        classes,
+      };
+      const propCount = ["entity", "article"].reduce(
+        (n, cls) => n + (Array.isArray(payload.classes[cls]?.properties) ? payload.classes[cls].properties.length : 0),
+        0,
+      );
       // 写侧严格（对自己写出的要严格——PR-052 口径）
       const strictErrors = validateDocumentStrict("fields", payload);
       if (strictErrors.length) throw serviceError("VALIDATION_ERROR", "字段字典形态非法: " + strictErrors.join("; "), 400, { errors: strictErrors });
@@ -107,11 +122,11 @@ function createFieldsWriteService({ vaultPath, logger, onGraphInputWrite } = {})
       // 写前快照 + 原子写（temp+rename）
       snapshotFields();
       const body = FIELDS_HEADER + YAML.stringify(payload);
-      replaceTheSchemaFile(fieldsPath(vaultPath), body, { summary: `fields 写入（${payload.fields.length} 字段）` });
+      replaceTheSchemaFile(fieldsPath(vaultPath), body, { summary: `fields 写入（${propCount} 类属主属性）` });
       // 投影联动（失败不回滚字典本体——投影是派生物，可重生成；告警即可）
       let projectionSynced = true;
       try {
-        await regenerateProjection(payload.fields);
+        await regenerateProjection(payload);
       } catch (e) {
         projectionSynced = false;
         log.warn({ event: "fields-projection-sync-failed", error: e.message, reason: "投影重生成失败——字典本体已落盘，跑 npm run project:frontmatter-schema 补齐" });
@@ -121,7 +136,7 @@ function createFieldsWriteService({ vaultPath, logger, onGraphInputWrite } = {})
       const resolvedSynced = await regenerateResolvedDomainsBestEffort(vaultPath, log, "fields-written");
       // WP-049 L2：revision 复用装载入口 text（写后回读一次；原 readFileSync 直读收编）
       const revision = revisionOf(loadVocabBundle(vaultPath, { files: ["fields"] }).files.fields.text);
-      log.info({ event: "fields-written", revision, fields: payload.fields.length, projectionSynced, resolvedSynced });
+      log.info({ event: "fields-written", revision, fields: propCount, projectionSynced, resolvedSynced });
       notifyGraphInputWrite(); // WP-027
       return { revision, affectedFile: displayTheSchemaPath(vaultPath, "fields.yaml"), projectionSynced, resolvedSynced };
     },

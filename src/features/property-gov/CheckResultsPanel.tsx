@@ -141,7 +141,7 @@ export function CheckResultsPanel() {
     },
     {
       key: "layer",
-      title: <TableSortHeader label={TERM.LAYER} active={sortField === "layer"} direction={sortDirection} ascendingLabel={CHECK_RESULTS_COPY.COL_LAYER_ASC} descendingLabel={CHECK_RESULTS_COPY.COL_LAYER_DESC} onChange={(direction) => { setSortField("layer"); setSortDirection(direction); }} />,
+      title: <TableSortHeader label={CHECK_RESULTS_COPY.COL_LAYER} active={sortField === "layer"} direction={sortDirection} ascendingLabel={CHECK_RESULTS_COPY.COL_LAYER_ASC} descendingLabel={CHECK_RESULTS_COPY.COL_LAYER_DESC} onChange={(direction) => { setSortField("layer"); setSortDirection(direction); }} />,
       render: (item) => item.archLayer || "—",
       align: "right",
       ellipsis: true,

@@ -5,7 +5,7 @@ import { resolveFieldKind, fieldDefFor, REPAIR_FIELD_DEFS } from "@/components/e
 
 describe("entity repair field type routing", () => {
   it("routes boolean fields to a checkbox", () => {
-    render(<RepairFieldEditor field="arch_component" label="激活为架构组件" message="" value={false} kind="boolean" onChange={vi.fn()} />);
+    render(<RepairFieldEditor field="arch_component" label="是否架构组件" message="" value={false} kind="boolean" onChange={vi.fn()} />);
     expect(screen.getByRole("checkbox")).toBeInTheDocument();
   });
 
@@ -74,7 +74,7 @@ describe("entity repair field type routing", () => {
           label: "身份",
           fields: [
             { field: "title", label: "实体名称", required: true, kind: "text", value: "", onChange: vi.fn() },
-            { field: "architecture-node-id", label: "架构组件身份", required: true, kind: "text", value: "", error: "必填字段不能为空", onChange: vi.fn() },
+            { field: "architecture-node-id", label: "架构组件 ID", required: true, kind: "text", value: "", error: "必填字段不能为空", onChange: vi.fn() },
           ],
         }]}
       />,
@@ -86,6 +86,6 @@ describe("entity repair field type routing", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("必填字段不能为空");
     // 控件区：两个字段都渲染输入框
     expect(screen.getByRole("textbox", { name: "实体名称" })).toBeInTheDocument();
-    expect(screen.getByRole("textbox", { name: "架构组件身份" })).toBeInTheDocument();
+    expect(screen.getByRole("textbox", { name: "架构组件 ID" })).toBeInTheDocument();
   });
 });

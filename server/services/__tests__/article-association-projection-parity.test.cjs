@@ -94,16 +94,24 @@ products:
   // fields.yaml＋products 闭合段＋解析物投影（真库写路径必产；替身缺失＝假绿， ValidatorFatal 503 现形）
   fs.writeFileSync(enumsPath, patched.includes("\nproducts:") ? patched : patched + "\nproducts:\n  - FixtureProduct\n");
   fs.writeFileSync(path.join(vaultPath, "知识库", "TheSchema", "fields.yaml"), [
-    "schema_version: 1",
-    'last_updated: "2026-10-30"',
-    "fields:",
-    "  - {name: title, label: 标题, type: string, required: 是, scope: [article], layer: 内容属性, value_domain: {source: free}}",
-    "  - {name: product, label: 产品, type: string, required: 是, scope: [article], layer: 业务属性, value_domain: {source: products}}",
-    "  - {name: version, label: 适用版本, type: string, required: 是, scope: [article], layer: 业务属性, value_domain: {source: free}}",
-    "  - {name: module, label: 产品模块, type: string, required: 是, scope: [article], layer: 业务属性, value_domain: {source: modules}}",
-    "  - {name: article_type, label: 知识文章类型, type: enum, required: 是, scope: [article], layer: 业务属性, value_domain: {source: article_types}}",
-    "  - {name: doc-type, label: 文档类型, type: enum, required: 是, scope: [article], layer: 业务属性, value_domain: {source: doc_types}}",
-    "  - {name: category-path, label: 知识域目录, type: string, required: 是, scope: [article], layer: 业务属性, value_domain: {source: free}}",
+    "schema_version: 2",
+    'last_updated: "2026-11-19"',
+    "keys:",
+    "  entity: {primary: architecture-node-id, display: title}",
+    "  article: {primary: article_id, display: title}",
+    "classes:",
+    "  entity:",
+    "    properties:",
+    "      - {name: title, display: 实体名称, type: string, required: 是, layer: 内容属性, value_domain: {source: free}, description: 夹具实体标题。}",
+    "  article:",
+    "    properties:",
+    "      - {name: title, display: 标题, type: string, required: 是, layer: 内容属性, value_domain: {source: free}, description: 夹具文章标题。}",
+    "      - {name: product, display: 产品, type: string, required: 是, layer: 业务属性, value_domain: {source: products}, description: 夹具产品。}",
+    "      - {name: version, display: 产品版本, type: string, required: 是, layer: 业务属性, value_domain: {source: free}, description: 夹具版本。}",
+    "      - {name: module, display: 产品模块, type: string, required: 是, layer: 业务属性, value_domain: {source: modules}, description: 夹具模块。}",
+    "      - {name: article_type, display: 知识文章类型, type: enum, required: 是, layer: 内容属性, value_domain: {source: article_types}, description: 夹具文章类型。}",
+    "      - {name: doc-type, display: 文档类型, type: enum, required: 是, layer: 内容属性, value_domain: {source: doc_types}, description: 夹具文档类型。}",
+    "      - {name: category-path, display: 分类路径, type: string, required: 是, layer: 内容属性, value_domain: {source: free}, description: 夹具分类路径。}",
   ].join("\n") + "\n");
   const pinnedSchema = path.join(vaultPath, "知识库", "TheSchema");
   const prevPinned = process.env.THESCHEMA_DIR;

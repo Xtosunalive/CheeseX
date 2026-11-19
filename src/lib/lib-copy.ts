@@ -37,7 +37,7 @@ export function pipelineRequestFailed(status: number): string {
 // WP-113 M2 随迁：新建身份改由系统铸造——F02 说明不再引导人填号（人不填是现语义），
 // 保留「必填」字样覆盖存量空号实体的补填语义（describeBlocker 用例锁此词）。
 export const ENTITY_REPAIR_BLOCKER_MESSAGES: Record<string, string> = {
-  F02: "架构组件身份（architecture-node-id）是必填字段——新建时由系统铸造（人不填写、自带值即被拒），全库唯一，创建后不可修改。",
+  F02: "架构组件 ID（architecture-node-id）是必填字段——新建时由系统铸造（人不填写、自带值即被拒），全库唯一，创建后不可修改。",
   F16: "标签（tags）是必填字段，请至少填写一个标签（多个使用列表保存）。",
   F01: "实体名称（title）为必填字段。",
   F03: "该字段取值不在注册表允许范围内，请从下拉选项中选择。",

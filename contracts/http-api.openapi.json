@@ -14002,14 +14002,46 @@
       "FieldsDictionaryData": {
         "type": "object",
         "required": [
-          "fields"
+          "keys",
+          "classes"
         ],
         "properties": {
-          "fields": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FieldDefinition"
-            }
+          "keys": {
+            "type": "object",
+            "description": "Keys 小节（primary/display/incremental 按类）",
+            "additionalProperties": true
+          },
+          "classes": {
+            "type": "object",
+            "required": [
+              "entity",
+              "article"
+            ],
+            "properties": {
+              "entity": {
+                "type": "object",
+                "properties": {
+                  "properties": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FieldDefinition"
+                    }
+                  }
+                }
+              },
+              "article": {
+                "type": "object",
+                "properties": {
+                  "properties": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/FieldDefinition"
+                    }
+                  }
+                }
+              }
+            },
+            "additionalProperties": false
           },
           "revision": {
             "type": [
@@ -14022,30 +14054,45 @@
             "type": [
               "string",
               "null"
-            ],
-            "format": "date"
+            ]
           },
           "sourceFile": {
-            "type": "string"
+            "type": "string",
+            "description": "实际解析路径（诊断面）"
           }
-        }
+        },
+        "additionalProperties": false
       },
       "FieldDefinition": {
         "type": "object",
         "required": [
           "name",
-          "label",
+          "display",
           "type",
           "required",
-          "scope",
-          "layer"
+          "layer",
+          "description",
+          "value_domain"
         ],
         "properties": {
-          "name": {
-            "type": "string"
+          "cls": {
+            "type": "string",
+            "enum": [
+              "entity",
+              "article"
+            ],
+            "description": "属主类（WP-195 v2 类属主——身份=(类,name)；编辑行装配面）"
           },
-          "label": {
-            "type": "string"
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "description": "属性技术键（类内唯一）"
+          },
+          "display": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 40,
+            "description": "该类下中文绑定声明（schema 层显式承诺）"
           },
           "type": {
             "type": "string",
@@ -14066,18 +14113,8 @@
               "建议"
             ]
           },
-          "scope": {
-            "type": "array",
-            "items": {
-              "enum": [
-                "entity",
-                "article"
-              ]
-            },
-            "minItems": 1,
-            "uniqueItems": true
-          },
           "layer": {
+            "type": "string",
             "enum": [
               "管理属性",
               "业务属性",
@@ -14085,14 +14122,17 @@
             ]
           },
           "value_domain": {
-            "oneOf": [
-              {
-                "type": "null"
-              },
-              {
-                "$ref": "#/components/schemas/ValueDomain"
+            "type": "object",
+            "required": [
+              "source"
+            ],
+            "properties": {
+              "source": {
+                "type": "string",
+                "description": "值域引用：enums.yaml 段名/versions/free"
               }
-            ]
+            },
+            "additionalProperties": true
           },
           "aliases": {
             "type": "array",
@@ -14104,8 +14144,7 @@
             "type": "string"
           }
         },
-        "additionalProperties": false,
-        "description": "字段字典条目（ADR-008 D2——契约与 theschema.fields.schema.json 同源语义）"
+        "additionalProperties": true
       },
       "SubjectUnknownErrorResponse": {
         "allOf": [
@@ -27420,24 +27459,57 @@
               "schema": {
                 "type": "object",
                 "required": [
-                  "fields",
+                  "keys",
+                  "classes",
                   "revision"
                 ],
                 "properties": {
+                  "keys": {
+                    "type": "object",
+                    "description": "Keys 小节原样回传",
+                    "additionalProperties": true
+                  },
+                  "classes": {
+                    "type": "object",
+                    "required": [
+                      "entity",
+                      "article"
+                    ],
+                    "properties": {
+                      "entity": {
+                        "type": "object",
+                        "properties": {
+                          "properties": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/FieldDefinition"
+                            }
+                          }
+                        }
+                      },
+                      "article": {
+                        "type": "object",
+                        "properties": {
+                          "properties": {
+                            "type": "array",
+                            "items": {
+                              "$ref": "#/components/schemas/FieldDefinition"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "revision": {
                     "type": [
                       "string",
                       "null"
                     ],
-                    "description": "乐观锁基线（PR-200 必填）——GET /api/schema/fields 读到的 revision 原样回传；null＝读到的空库基线（fields.yaml 缺席），是合法首建断言，文件已在而回 null 走 409 冲突"
-                  },
-                  "fields": {
-                    "type": "array",
-                    "items": {
-                      "$ref": "#/components/schemas/FieldDefinition"
-                    }
+                    "description": "乐观锁基线（PR-200 必填）——GET /api/schema/fields 读到的 revision 原样回传；null＝读到的空库基线（fields.yaml 首建合法）"
                   }
-                }
+                },
+                "additionalProperties": false
               }
             }
           }
@@ -28716,8 +28788,8 @@
               }
             }
           },
-          "409": {
-            "description": "状态迁移非法或源已变化",
+          "403": {
+            "description": "确认缺失/角色不符",
             "content": {
               "application/json": {
                 "schema": {
@@ -28726,8 +28798,8 @@
               }
             }
           },
-          "403": {
-            "description": "确认缺失/角色不符",
+          "409": {
+            "description": "状态迁移非法或源已变化",
             "content": {
               "application/json": {
                 "schema": {
@@ -28804,8 +28876,8 @@
               }
             }
           },
-          "409": {
-            "description": "状态迁移非法或源已变化",
+          "403": {
+            "description": "确认缺失/角色不符",
             "content": {
               "application/json": {
                 "schema": {
@@ -28814,8 +28886,8 @@
               }
             }
           },
-          "403": {
-            "description": "确认缺失/角色不符",
+          "409": {
+            "description": "状态迁移非法或源已变化",
             "content": {
               "application/json": {
                 "schema": {
@@ -28892,8 +28964,8 @@
               }
             }
           },
-          "409": {
-            "description": "状态迁移非法或源已变化",
+          "403": {
+            "description": "确认缺失/角色不符",
             "content": {
               "application/json": {
                 "schema": {
@@ -28902,8 +28974,8 @@
               }
             }
           },
-          "403": {
-            "description": "确认缺失/角色不符",
+          "409": {
+            "description": "状态迁移非法或源已变化",
             "content": {
               "application/json": {
                 "schema": {
@@ -28980,8 +29052,8 @@
               }
             }
           },
-          "409": {
-            "description": "状态迁移非法或源已变化",
+          "403": {
+            "description": "确认缺失/角色不符",
             "content": {
               "application/json": {
                 "schema": {
@@ -28990,8 +29062,8 @@
               }
             }
           },
-          "403": {
-            "description": "确认缺失/角色不符",
+          "409": {
+            "description": "状态迁移非法或源已变化",
             "content": {
               "application/json": {
                 "schema": {

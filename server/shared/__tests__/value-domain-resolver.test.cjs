@@ -15,8 +15,14 @@ const { resolveValueDomains } = require("../value-domain-resolver.cjs");
 const { buildRuleSet } = require("../enums-loader.cjs");
 const { resolveTheSchemaDir } = require("../theschema-root.cjs");
 
+// WP-195 v2 类属主形态：fields＝{schema_version:2, keys, classes:{entity,article}}——无顶层 fields 数组，
+// 无 scope 字段（行 scope 由属主类锚回填＝[cls]）。
 function resolverOf(vd) {
-  return resolveValueDomains({ fields: { fields: [{ name: "x", scope: ["entity"], value_domain: vd }] }, enums: {}, versions: {} });
+  return resolveValueDomains({
+    fields: { schema_version: 2, keys: {}, classes: { entity: { properties: [{ name: "x", value_domain: vd }] }, article: { properties: [] } } },
+    enums: {},
+    versions: {},
+  });
 }
 
 const RICH_ENUMS = {
@@ -45,17 +51,27 @@ const RICH_VERSIONS = {
 function resolveRich() {
   return resolveValueDomains({
     fields: {
-      fields: [
-        { name: "arch_layer", scope: ["entity"], value_domain: { source: "layers", resolve: { op: "ids", filter: "entity_usable" } } },
-        { name: "arch_category", scope: ["entity"], value_domain: { source: "arch_categories", resolve: { op: "matrix_union_fallback" } } },
-        { name: "tags", scope: ["entity"], value_domain: { source: "tags", resolve: { op: "tags_union" } } },
-        { name: "arch_subdomain", scope: ["entity"], value_domain: { source: "subdomains", resolve: { op: "ids" } } },
-        { name: "module", scope: ["entity"], value_domain: { source: "modules", resolve: { op: "keys" } } },
-        { name: "status", scope: ["article"], value_domain: { source: "lifecycle", segment: "lifecycle.status", resolve: { op: "values" }, default: { from: "lifecycle.default_status", fallback: "first" } } },
-        { name: "product", scope: ["article"], value_domain: { source: "architecture_projection", resolve: { op: "product_closure" } } },
-        { name: "version", scope: ["article"], value_domain: { source: "versions", resolve: { op: "version_registry" } } },
-        { name: "cp", scope: ["entity"], value_domain: { source: "free", composite: [{ source: "domains", resolve: { op: "keys" } }, { source: "subdomains", resolve: { op: "ids" }, scoped_by: "previous" }, { resolve: { op: "free_slug" } }] } },
-      ],
+      schema_version: 2,
+      keys: {},
+      classes: {
+        entity: {
+          properties: [
+            { name: "arch_layer", value_domain: { source: "layers", resolve: { op: "ids", filter: "entity_usable" } } },
+            { name: "arch_category", value_domain: { source: "arch_categories", resolve: { op: "matrix_union_fallback" } } },
+            { name: "tags", value_domain: { source: "tags", resolve: { op: "tags_union" } } },
+            { name: "arch_subdomain", value_domain: { source: "subdomains", resolve: { op: "ids" } } },
+            { name: "module", value_domain: { source: "modules", resolve: { op: "keys" } } },
+            { name: "cp", value_domain: { source: "free", composite: [{ source: "domains", resolve: { op: "keys" } }, { source: "subdomains", resolve: { op: "ids" }, scoped_by: "previous" }, { resolve: { op: "free_slug" } }] } },
+          ],
+        },
+        article: {
+          properties: [
+            { name: "status", value_domain: { source: "lifecycle", segment: "lifecycle.status", resolve: { op: "values" }, default: { from: "lifecycle.default_status", fallback: "first" } } },
+            { name: "product", value_domain: { source: "architecture_projection", resolve: { op: "product_closure" } } },
+            { name: "version", value_domain: { source: "versions", resolve: { op: "version_registry" } } },
+          ],
+        },
+      },
     },
     enums: RICH_ENUMS,
     versions: RICH_VERSIONS,
@@ -80,7 +96,7 @@ test("ADR-006 两态：矩阵配置→并集；矩阵空→回落 arch_categorie
   assert.deepEqual([...cat.values].sort(), ["存储", "服务"]); // 矩阵配置态（优先）
   const noMatrix = structuredClone(RICH_ENUMS);
   delete noMatrix.subdomain_constraints;
-  const r2 = resolveValueDomains({ fields: { fields: [{ name: "arch_category", scope: ["entity"], value_domain: { source: "arch_categories", resolve: { op: "matrix_union_fallback" } } }] }, enums: noMatrix, versions: {} });
+  const r2 = resolveValueDomains({ fields: { schema_version: 2, keys: {}, classes: { entity: { properties: [{ name: "arch_category", value_domain: { source: "arch_categories", resolve: { op: "matrix_union_fallback" } } }] }, article: { properties: [] } } }, enums: noMatrix, versions: {} });
   assert.deepEqual(r2.byField[0].values, ["兜底类"]); // 回落态
 });
 
@@ -93,6 +109,9 @@ test("tags_union：分组并集减 disabled；缺省回落 first（default_statu
   const r = resolveRich();
   assert.deepEqual([...r.byField.find((f) => f.name === "tags").values].sort(), ["a", "b"]); // c 被减
   assert.equal(r.byField.find((f) => f.name === "status").default, "灰度"); // default_status 空→首项
+  // WP-195 v2：行 scope 由属主类锚生成＝[cls]（无 scope 声明字段）
+  assert.deepEqual(r.byField.find((f) => f.name === "tags").scope, ["entity"]);
+  assert.deepEqual(r.byField.find((f) => f.name === "status").scope, ["article"]);
 });
 
 test("product_closure＝非空 product ∪ product_aliases 键 ∪ reserved；version_registry＝id ∪ aliases", () => {
@@ -158,7 +177,7 @@ test("等价性（真实 vault 面）：vault 在场必跑，缺省明示 skip",
 
 test("红队A1+A2：legacy 标量子域与带空白 id——与 buildRuleSet 等价（ADR-008 D1 归一）", () => {
   const enums = { subdomains: { ref: [" overview ", { id: "api" }] } };
-  const fields = { fields: [{ name: "arch_subdomain", scope: ["entity"], value_domain: { source: "subdomains", resolve: { op: "ids" } } }] };
+  const fields = { schema_version: 2, keys: {}, classes: { entity: { properties: [{ name: "arch_subdomain", value_domain: { source: "subdomains", resolve: { op: "ids" } } }] }, article: { properties: [] } } };
   const r = resolveValueDomains({ fields, enums, versions: {} });
   assert.deepEqual(r.errors, []);
   assert.deepEqual([...r.byField[0].values].sort(), [...buildRuleSet(enums).subdomainIds].sort()); // 两侧均 ["api","overview"]
@@ -166,7 +185,7 @@ test("红队A1+A2：legacy 标量子域与带空白 id——与 buildRuleSet 等
 
 test("红队A3：default_status 纯空白 → 回落首项（不再当有效缺省）", () => {
   const enums = { lifecycle: { status: ["灰度", "在线"], default_status: " " } };
-  const fields = { fields: [{ name: "status", scope: ["article"], value_domain: { source: "lifecycle", segment: "lifecycle.status", resolve: { op: "values" }, default: { from: "lifecycle.default_status", fallback: "first" } } }] };
+  const fields = { schema_version: 2, keys: {}, classes: { entity: { properties: [] }, article: { properties: [{ name: "status", value_domain: { source: "lifecycle", segment: "lifecycle.status", resolve: { op: "values" }, default: { from: "lifecycle.default_status", fallback: "first" } } }] } } };
   const r = resolveValueDomains({ fields, enums, versions: {} });
   assert.equal(r.byField[0].default, "灰度");
   assert.equal(r.byField[0].default, buildRuleSet(enums).defaultStatus);
@@ -184,7 +203,7 @@ test("红队C1：filter 挂在非 ids op → 红（过滤意图不得静默丢�
 
 test("红队C2：composite 首段 scoped_by → 红", () => {
   const r = resolveValueDomains({
-    fields: { fields: [{ name: "cp", scope: ["entity"], value_domain: { source: "free", composite: [{ source: "domains", resolve: { op: "keys" }, scoped_by: "previous" }, { source: "subdomains", resolve: { op: "ids" }, scoped_by: "previous" }] } }] },
+    fields: { schema_version: 2, keys: {}, classes: { entity: { properties: [{ name: "cp", value_domain: { source: "free", composite: [{ source: "domains", resolve: { op: "keys" }, scoped_by: "previous" }, { source: "subdomains", resolve: { op: "ids" }, scoped_by: "previous" }] } }] }, article: { properties: [] } } },
     enums: { domains: { ref: "参考资料" }, subdomains: { ref: [{ id: "overview" }] } },
     versions: {},
   });
@@ -200,7 +219,7 @@ test("红队C5/C6：op 与段形态不符 → 红（不留静默空集空档）"
 
 test("红队A6：别名表标量值 → aliasMap 统一数组形态", () => {
   const r = resolveValueDomains({
-    fields: { fields: [{ name: "tags", scope: ["entity"], value_domain: { source: "tags", resolve: { op: "tags_union" }, normalize: { aliases: "tag_aliases" } } }] },
+    fields: { schema_version: 2, keys: {}, classes: { entity: { properties: [{ name: "tags", value_domain: { source: "tags", resolve: { op: "tags_union" }, normalize: { aliases: "tag_aliases" } } }] }, article: { properties: [] } } },
     enums: { tags: {}, tag_aliases: { 野生: "a", 组: ["x", "y"] } },
     versions: {},
   });
@@ -214,10 +233,17 @@ test("红队A4/A5/A7：脏形态经 normalizeEnums 收口后与运行时同观",
     lifecycle: { status: ["灰度", 7], default_status: 42 },
   };
   const fields = {
-    fields: [
-      { name: "arch_layer", scope: ["entity"], value_domain: { source: "layers", resolve: { op: "ids", filter: "entity_usable" } } },
-      { name: "tags", scope: ["entity"], value_domain: { source: "tags", resolve: { op: "tags_union" } } },
-    ],
+    schema_version: 2,
+    keys: {},
+    classes: {
+      entity: {
+        properties: [
+          { name: "arch_layer", value_domain: { source: "layers", resolve: { op: "ids", filter: "entity_usable" } } },
+          { name: "tags", value_domain: { source: "tags", resolve: { op: "tags_union" } } },
+        ],
+      },
+      article: { properties: [] },
+    },
   };
   const r = resolveValueDomains({ fields, enums, versions: {} });
   const rs = buildRuleSet(enums);

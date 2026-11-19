@@ -7918,9 +7918,20 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description 乐观锁基线（PR-200 必填）——GET /api/schema/fields 读到的 revision 原样回传；null＝读到的空库基线（fields.yaml 缺席），是合法首建断言，文件已在而回 null 走 409 冲突 */
+                        /** @description Keys 小节原样回传 */
+                        keys: {
+                            [key: string]: unknown;
+                        };
+                        classes: {
+                            entity: {
+                                properties?: components["schemas"]["FieldDefinition"][];
+                            };
+                            article: {
+                                properties?: components["schemas"]["FieldDefinition"][];
+                            };
+                        };
+                        /** @description 乐观锁基线（PR-200 必填）——GET /api/schema/fields 读到的 revision 原样回传；null＝读到的空库基线（fields.yaml 首建合法） */
                         revision: string | null;
-                        fields: components["schemas"]["FieldDefinition"][];
                     };
                 };
             };
@@ -12860,27 +12871,50 @@ export interface components {
             error_code?: "INVALID_DISCOVERY_LABEL";
         };
         FieldsDictionaryData: {
-            fields: components["schemas"]["FieldDefinition"][];
+            /** @description Keys 小节（primary/display/incremental 按类） */
+            keys: {
+                [key: string]: unknown;
+            };
+            classes: {
+                entity: {
+                    properties?: components["schemas"]["FieldDefinition"][];
+                };
+                article: {
+                    properties?: components["schemas"]["FieldDefinition"][];
+                };
+            };
             /** @description 内容哈希乐观锁（ADR-008 D3 复用裁决——不用表内 int） */
             revision?: string | null;
-            /** Format: date */
             last_updated?: string | null;
+            /** @description 实际解析路径（诊断面） */
             sourceFile?: string;
         };
-        /** @description 字段字典条目（ADR-008 D2——契约与 theschema.fields.schema.json 同源语义） */
         FieldDefinition: {
+            /**
+             * @description 属主类（WP-195 v2 类属主——身份=(类,name)；编辑行装配面）
+             * @enum {string}
+             */
+            cls?: "entity" | "article";
+            /** @description 属性技术键（类内唯一） */
             name: string;
-            label: string;
+            /** @description 该类下中文绑定声明（schema 层显式承诺） */
+            display: string;
             /** @enum {string} */
             type: "string" | "enum" | "list" | "bool" | "date" | "map";
             /** @enum {string} */
             required: "是" | "否" | "建议";
-            scope: ("entity" | "article")[];
-            /** @enum {unknown} */
+            /** @enum {string} */
             layer: "管理属性" | "业务属性" | "内容属性";
-            value_domain?: null | components["schemas"]["ValueDomain"];
+            value_domain: {
+                /** @description 值域引用：enums.yaml 段名/versions/free */
+                source: string;
+            } & {
+                [key: string]: unknown;
+            };
             aliases?: string[];
-            description?: string;
+            description: string;
+        } & {
+            [key: string]: unknown;
         };
         /** @description SUBJECT_UNKNOWN：合层读的 subject 未注册（ADR-009 D3——读侧合层 API 化时的 404 目录单元，throw 点 schema-config readEnumsForSubject） */
         SubjectUnknownErrorResponse: components["schemas"]["ApiError"] & {
