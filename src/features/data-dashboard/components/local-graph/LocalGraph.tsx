@@ -35,8 +35,14 @@ import {
   isFileBackedNode,
   matchesQuery,
   type TopoEdge,
+  type TopoNode,
 } from "@/lib/topology-types";
 import { LOCAL_GRAPH_COPY, localGraphInLinks, localGraphLinkSummary, localGraphOutLinks } from "@/features/data-dashboard/data-dashboard-copy";
+// Obsidian 式数据落图（2026-11-20「一大一小跳变」收口）：常驻实例＋增量同步——渲染物理
+// 早已是 Obsidian 同款 d3-force，跳变来自自建的「整图销毁重建」（每次数据变化/重挂载
+// 都从中心炸开＋fitView 重适配）。本批改为 Obsidian 实际形态：图谱实例常驻，数据变化
+// 只做最小增删改＋结构变化才轻推布局（d3-force 从现位起），节点位置跨重挂载连续。
+import { buildEdgePayload, buildNodePayload, computeGraphSyncPlan, type LiveGraphSnapshot } from "./graph-sync";
 
 // theme-tokens 门禁口径：G6 canvas 不解析 CSS var()——运行时从 :root 解析 token；
 // 兜底值收编 topology-types CANVAS_PALETTE（index.css 真值镜像，批16 尾笔清账——原散落字面量三处漂移）
@@ -58,7 +64,75 @@ type GraphApi = {
   fitView: () => void;
   zoomBy: (f: number) => void;
   setElementState: (id: string, states: string[]) => void;
+  // 增量同步面（G6 v5.1.1：数据 API 不自动绘制，draw=仅绘制不布局，layout=执行布局）
+  getNodeData: () => LiveGraphSnapshot["nodes"];
+  getEdgeData: () => LiveGraphSnapshot["edges"];
+  addData: (data: { nodes?: unknown[]; edges?: unknown[] }) => void;
+  updateData: (data: { nodes?: unknown[] }) => void;
+  removeData: (ids: { nodes?: unknown[]; edges?: unknown[] }) => void;
+  draw: () => Promise<void>;
+  layout: () => Promise<void>;
 };
+
+// 模块级位置缓存（Obsidian 体感：图谱视图关了再开，节点还在原地——重挂载不再从中心炸开）
+const positionCache = new Map<string, { x: number; y: number }>();
+function rememberPositions(api: GraphApi): void {
+  try {
+    for (const n of api.getNodeData()) {
+      const x = n.style?.x, y = n.style?.y;
+      if (typeof x === "number" && typeof y === "number") positionCache.set(String(n.id), { x, y });
+    }
+  } catch { /* 位置读取失败不阻断（缓存只是连续性优化） */ }
+}
+
+// 增量同步：把下一份图数据以最小操作落入常驻实例（Obsidian 式——节点原位、视口不动、
+// 结构变化才轻推布局）。同步失败降级：抛错由调用方 catch 落 RENDER_FAILED_WARN，不静默丢数据
+// （实例内数据与 store 分叉时，下次完整重建路径兜底——组件重挂载即完整重建）。
+async function syncGraphData(
+  api: GraphApi,
+  visibleNodes: LiveGraphSyncNodes,
+  visibleEdges: TopoEdge[],
+  degreeById: Map<string, number>,
+  catFillOf: (category: string) => string | undefined,
+): Promise<void> {
+  const nextNodePayloads = visibleNodes.map((n) =>
+    buildNodePayload(n, degreeById.get(n.id) ?? 0, catFillOf(n.category)),
+  );
+  const nextEdgePayloads = visibleEdges.map(buildEdgePayload);
+  const plan = computeGraphSyncPlan(
+    { nodes: api.getNodeData(), edges: api.getEdgeData() },
+    nextNodePayloads,
+    nextEdgePayloads,
+  );
+  if (!plan.structureChanged && plan.updateNodes.length === 0) return;
+  if (plan.removeEdgeIds.length || plan.removeNodeIds.length) {
+    api.removeData({ edges: plan.removeEdgeIds, nodes: plan.removeNodeIds });
+  }
+  if (plan.addNodes.length || plan.addEdges.length) {
+    // 新节点位置种子：优先位置缓存（Obsidian 口径——曾出现过的节点回到原位附近）；
+    // 无缓存的全新节点取现有点质心＋抖动（d3 无位节点落在世界原点＝画布左上角外，看不见）
+    const centroid = (() => {
+      const pts = [...positionCache.values()];
+      if (!pts.length) return undefined;
+      return {
+        x: pts.reduce((s, p) => s + p.x, 0) / pts.length,
+        y: pts.reduce((s, p) => s + p.y, 0) / pts.length,
+      };
+    })();
+    const nodesWithSeed = plan.addNodes.map((n) => {
+      const seed = n.style ?? positionCache.get(n.id) ?? (centroid
+        ? { x: centroid.x + (Math.random() - 0.5) * 220, y: centroid.y + (Math.random() - 0.5) * 220 }
+        : undefined);
+      return { ...n, style: seed };
+    });
+    api.addData({ nodes: nodesWithSeed, edges: plan.addEdges });
+  }
+  if (plan.updateNodes.length) api.updateData({ nodes: plan.updateNodes });
+  await api.draw();
+  if (plan.structureChanged) await api.layout(); // d3-force 从现位重入仿真，轻推即停
+  rememberPositions(api);
+}
+type LiveGraphSyncNodes = TopoNode[];
 
 export function LocalGraph() {
   const nodes = useKnowledgeNodes();
@@ -100,38 +174,70 @@ export function LocalGraph() {
     [visibleNodes],
   );
 
-  // 全量图渲染（声明式重建，仅随数据变化；选中态走独立 state 通道——点选不重建、拖拽位置不丢）
+  // 按分类着色开关（Obsidian groups 的分类版）：开着时基础填充走分类色表。
+  // 注意通道优先级：graph.node.style（默认样式）> 数据 style——着色必须经默认样式回调
+  // 读节点数据（数据 style 实测被默认灰覆盖），回调黑点是当年缓存损坏冤案。
+  // 首建与增量同步共用一个负载函数（禁两处抄写——graph-sync buildNodePayload 的 catFill 实参）。
+  const catFillOf = useCallback(
+    (category: string) =>
+      colorByCategory ? resolveCssColor(CATEGORY_COLORS[category] ?? DEFAULT_COLOR, token(CANVAS_PALETTE.dimNode)) : undefined,
+    [colorByCategory],
+  );
+
+  // 实例销毁仅随卸载（2026-11-20 Obsidian 式收口：数据变化不再销毁重建——跳变根源即此）。
+  // 空数据态也走同一销毁（空态覆盖层接管画面；下批数据到来时重新首建）。
+  const destroyInstance = useCallback(() => {
+    const g = graphRef.current;
+    graphRef.current = null;
+    if (g) {
+      g.destroy();
+      const c = containerRef.current;
+      // G6 destroy 不清挂载层——强制清空容器兜底
+      if (c) { try { c.innerHTML = ""; } catch { /* */ } }
+    }
+  }, []);
+  useEffect(() => destroyInstance, [destroyInstance]);
+
+  // 数据落图（常驻实例）：无实例→首建（fitView 仅此一次）；有实例→增量同步（节点原位、
+  // 视口不动、结构变化才轻推布局）；选中/搜索态走独立 state 通道不受影响。
   useEffect(() => {
     if (loading) return;
-    if (!visibleNodes.length) return;
+    const existing = graphRef.current;
+    if (!visibleNodes.length) {
+      if (existing) destroyInstance();
+      return;
+    }
+    if (existing) {
+      // 增量路径（同步；失败留痕同首建口径——静默会让数据分叉不可归因）
+      syncGraphData(existing, visibleNodes, visibleEdges, degreeById, catFillOf).catch(
+        (err) => console.warn(LOCAL_GRAPH_COPY.RENDER_FAILED_WARN, err),
+      );
+      return;
+    }
+    const container = containerRef.current;
+    if (!container) return;
     let disposed = false;
-    let cleanup: (() => void) | null = null;
+    // 首建在途的兜底销毁器（new Graph() 后立即就位——render 迭代秒级耗时，窗口内若卸载，
+    // 晚到的僵尸实例必须被清：旧图 canvas 层僵尸堆积 4→8→12 实录 2026-10-30）
+    let inflight: { destroy: () => void } | null = null;
     void (async () => {
       const { Graph } = await import("@antv/g6");
       if (disposed || !containerRef.current) return;
-      const container = containerRef.current;
+      const liveContainer = containerRef.current;
       try {
-      const nodeData = visibleNodes.map((n) => ({
-        id: n.id,
-        data: {
-          label: n.label,
-          degree: degreeById.get(n.id) ?? 0,
-          // 按分类着色开关（Obsidian groups 的分类版）：开着时基础填充走分类色表。
-          // 注意通道优先级：graph.node.style（默认样式）> 数据 style——着色必须经默认样式回调
-          // 读节点数据（数据 style 实测被默认灰覆盖），回调黑点是当年缓存损坏冤案
-          catFill: colorByCategory
-            ? resolveCssColor(CATEGORY_COLORS[n.category] ?? DEFAULT_COLOR, token(CANVAS_PALETTE.dimNode))
-            : undefined,
-        },
-      }));
-      const edgeData = visibleEdges.map((e) => ({
-        id: e.edgeId,
-        source: e.source,
-        target: e.target,
-      }));
+      // 节点负载（label/degree/catFill＋位置种子）：首建即读位置缓存——重挂载不再从中心炸开，
+      // 节点回到上次所在位置附近（Obsidian 打开图谱视图的体感）
+      const nodeData = visibleNodes.map((n) =>
+        buildNodePayload(n, degreeById.get(n.id) ?? 0, catFillOf(n.category), positionCache.get(n.id)),
+      );
+      const edgeData = visibleEdges.map(buildEdgePayload);
+      // 位置连续性：全部节点都有缓存位置时跳过布局（render 会把力仿真从 alpha=1 重热——
+      // 种子位置被冲掉＝重挂载图面漂移；Obsidian 打开图谱视图不重排，只沿用原位）。
+      // 无缓存（首次进图）才走完整布局。视口经 fitView 适配同一份世界坐标＝视口也不跳。
+      const positionsFullyCached = visibleNodes.every((n) => positionCache.has(n.id));
       const graph = new Graph({
-        container,
-        width: container.clientWidth || 640,
+        container: liveContainer,
+        width: liveContainer.clientWidth || 640,
         height: 460,
         // 淡化平滑过渡（Master 2026-10-30「obsidian的其他未选中是慢慢淡淡的变浅」）：透明度/颜色系
         // 样式默认不在 G6 状态动画插值面（实测瞬变），显式声明字段＋时长≈Obsidian 每帧 0.9 补间手感
@@ -158,6 +264,8 @@ export function LocalGraph() {
         // collide 键不存在），d3-force 方言的参数全部哑火：-50 实为引力、防重叠不生效——
         // 3 个孤儿文档点叠堆在中心（Master 2026-10-29「为什么叠在一起 obsidian怎么不这样」）。
         // 实测 1017x460 画布 3 孤点两两间距 430-459px（探针验证 2026-10-29）。
+        // 增量同步批：layout() 只在结构增删时调用（d3-force 从元素现位起步——轻推即停，
+        // 不再整图从中心重排）
         layout: {
           type: "d3-force",
           linkDistance: 110,
@@ -198,18 +306,26 @@ export function LocalGraph() {
         },
         data: { nodes: nodeData, edges: edgeData },
       } as never);
-      // 销毁器在 new Graph() 后立即就位（render 迭代秒级耗时——若等 render 完再赋值，窗口内的
-      // 重建触发会因 cleanup 仍为 null 跳过销毁，旧图 canvas 层僵尸堆积：4→8→12 实录 2026-10-30）
-      cleanup = () => {
-        try { void graph.destroy(); } catch { /* */ }
-        // G6 destroy 不清挂载层——强制清空容器兜底
-        try { container.innerHTML = ""; } catch { /* */ }
+      // 在途兜底销毁器立即就位：仅当实例尚未被 graphRef 收养（disposed/被替换）时才销毁——
+      // 已收养实例的生命周期归卸载 effect（数据变化不再销毁，见本 effect 顶部分支）
+      inflight = {
+        destroy: () => {
+          try { void graph.destroy(); } catch { /* */ }
+          try { liveContainer.innerHTML = ""; } catch { /* */ }
+        },
       };
-      await graph.render();
-      // render 迭代期间组件可能已重建（disposed）——晚到的僵尸实例不得再绑事件/覆盖 graphRef
-      if (disposed) return;
+      if (positionsFullyCached) {
+        // 布局跳过路径：数据进控制器后仅绘制（draw＝不执行布局，G6 v5.1.1 勘探 graph.d.ts）
+        graph.setData({ nodes: nodeData, edges: edgeData } as never);
+        await graph.draw();
+      } else {
+        await graph.render();
+      }
+      // render/draw 迭代期间组件可能已重建（disposed）——晚到的僵尸实例不得再绑事件/覆盖 graphRef
+      if (disposed) { inflight?.destroy(); return; }
       // 首次适配：无条件 fitView（节点围绕世界原点散布，不适配必出界）＋缩放上限 1（防稀疏图放大闪跳，
-      // Master 2026-10-29「点进关系查询突然变大」——放大被夹回后仅剩平移居中，无两段式猛放缩回）
+      // Master 2026-10-29「点进关系查询突然变大」——放大被夹回后仅剩平移居中，无两段式猛放缩回）。
+      // 有位置种子时 fitView 得到与上次相同的视口＝重挂载无缩放跳变；增量路径不做任何视口操作。
       try {
         // 首帧适配必须无条件执行：d3-force 围绕世界原点 (0,0) 散布、画布原点在左上角——
         // 不适配则节点大半散布在画布外/左上角（探针实测 3 孤点 c.y=-59 出界 2026-10-30）。
@@ -229,7 +345,15 @@ export function LocalGraph() {
         fitView: () => { try { void graph.fitView(); } catch { /* */ } },
         zoomBy: (factor: number) => { try { const z = graph.getZoom(); void graph.zoomTo(z * factor); } catch { /* */ } },
         setElementState: (id: string, states: string[]) => { try { void graph.setElementState(id, states); } catch { /* 状态失败不阻断 */ } },
+        getNodeData: () => (graph.getNodeData() as never) as LiveGraphSnapshot["nodes"],
+        getEdgeData: () => (graph.getEdgeData() as never) as LiveGraphSnapshot["edges"],
+        addData: (data) => { try { graph.addData(data as never); } catch { /* 同步失败由下次重建兜底 */ } },
+        updateData: (data) => { try { graph.updateData(data as never); } catch { /* 同上 */ } },
+        removeData: (ids) => { try { graph.removeData(ids as never); } catch { /* 同上 */ } },
+        draw: () => graph.draw(),
+        layout: () => graph.layout(),
       };
+      rememberPositions(graphRef.current);
 
       } catch (err) {
         // G6 画布初始化/渲染失败（无 canvas 环境如 jsdom、容器竞态卸载）——图区降级为空，
@@ -238,8 +362,12 @@ export function LocalGraph() {
         console.warn(LOCAL_GRAPH_COPY.RENDER_FAILED_WARN, err);
       }
     })();
-    return () => { disposed = true; if (cleanup) cleanup(); graphRef.current = null; };
-  }, [visibleNodes, visibleEdges, degreeById, loading, colorByCategory]);
+    return () => {
+      disposed = true;
+      // 仅清未被收养的在途实例；已收养实例归卸载 effect（数据变化不再销毁重建）
+      if (!graphRef.current) inflight?.destroy();
+    };
+  }, [visibleNodes, visibleEdges, degreeById, loading, catFillOf, destroyInstance]);
 
   // 选中＋图内搜索状态合成（G6 v5 状态通道——不重建图、不复位拖拽位置）：
   // 选中维度：选中=selected；邻居=related；其余=dimmed。搜索维度（Obsidian filters 口径）：
