@@ -11,6 +11,8 @@ import { fileURLToPath } from "node:url";
 // SPEC-011 WP1：e2e 物理隔离守卫——禁止写入真实 vault
 import { requireE2EVault, requireE2EServiceScope } from "./lib/e2e-env.mjs";
 import { startE2EStack } from "./lib/e2e-server.mjs";
+// WP-189 probe runner 的解释器解析走单点（ADR-002：调用点禁止裸 python3／自写回退）
+import { resolvePythonPath } from "../../server/shared/python-path.cjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -66,6 +68,16 @@ const tests = [
     requiresVault: true,
     runner: "playwright",
   },
+  {
+    // WP-189：契约巡检（OpenBKN api_contract_diff 整搬）——真打服务逐字段对账文档，
+    // 旅程测试抓不到的文档漂移在此层。只读保证＝GET-only（零写请求）；
+    // probe runner 参数见 buildProbeArgs()（动态 host-map＋运行时 id 种子）。
+    // 退出码语义：0 无缺口 / 1 有缺口（文档漂移即红）/ 2 执行错误。
+    name: "Contract Probe → API doc field-level reconciliation",
+    script: "contract-probe/api_contract_diff.py",
+    requiresVault: true,
+    runner: "probe",
+  },
 ];
 
 // 单跑形态（npm run test:e2e:<key>）：--only 子串过滤 tests[]——流名与脚本路径仍由本表单源，
@@ -81,6 +93,79 @@ if (ONLY && selected.length === 0) {
   process.exit(1);
 }
 
+// WP-189 probe runner 参数（在 main() 起栈后、进流前构建一次，经 env 传入 runTest）：
+// host-map 按契约 /api/<顶层段>/ 逐段映射受控栈——上游 DISCOVERY 表为 OpenBKN 域数据，
+// 不命中本仓段即零伪请求；--ids 从列表端点运行时深搜真实 id，取不到的参数名不进种子，
+// 由 probe 报告如实记「缺少路径参数」（诚实优于硬凑）。
+async function buildProbeArgs(apiBase) {
+  const repoRoot = path.join(__dirname, "..", "..");
+  const contractPath = path.join(repoRoot, "contracts", "http-api.openapi.json");
+  const spec = JSON.parse(fs.readFileSync(contractPath, "utf8"));
+  const segments = new Set();
+  for (const p of Object.keys(spec.paths ?? {})) {
+    const m = p.match(/^\/api\/([^/{]+)/);
+    if (m) segments.add(m[1]);
+  }
+  const hostMap = {};
+  // 引擎 host_of 为 startswith 前缀匹配——裸键覆盖根路径（如 /api/health），带斜杠键覆盖子路径
+  for (const s of segments) {
+    hostMap[`/api/${s}`] = apiBase;
+    hostMap[`/api/${s}/`] = apiBase;
+  }
+  // 报告落点目录按需创建——整搬件按原封形态直开文件（不建目录），目录缺失＝执行错误（退出 2）
+  fs.mkdirSync(path.join(repoRoot, "scripts", "test-results", "contract-probe"), { recursive: true });
+  return [
+    "--spec-dir", contractPath,
+    "--exec-mode", "direct",
+    "--face", "ex",
+    "--host-map", JSON.stringify(hostMap),
+    "--ids", JSON.stringify(await seedIds(apiBase)),
+    "--out", path.join(repoRoot, "scripts", "test-results", "contract-probe", "contract-probe-report.md"),
+    "--json-out", path.join(repoRoot, "scripts", "test-results", "contract-probe", "contract-probe.json"),
+  ];
+}
+
+// 运行时种子：只读 GET 列表端点，deepFind 深搜目标参数名首个非空值。进流前构建段
+// 串行发出（量级＝6 个列表请求）；端点不可达/非 200 时该参数名不进种子，probe 报告
+// 如实记「缺少路径参数」skip——诚实优于硬凑。
+async function seedIds(apiBase) {
+  const candidates = [
+    ["issueId", "/api/anomalies"],
+    ["id", "/api/articles/precleaned"],
+    ["documentId", "/api/documents/search"],
+    ["edge_id", "/api/kg/pending-review"],
+    ["articleId", "/api/articles/uploads"],
+    ["taskId", "/api/pipeline/status"],
+  ];
+  const ids = {};
+  for (const [key, route] of candidates) {
+    try {
+      const res = await fetch(apiBase + route, { signal: AbortSignal.timeout(8000) });
+      if (!res.ok) continue;
+      const hit = deepFind(await res.json(), key, 0);
+      if (hit !== undefined) ids[key] = String(hit);
+    } catch { /* 结构性不可达时留空，probe 如实记 skip */ }
+  }
+  return ids;
+}
+
+function deepFind(node, key, depth) {
+  if (depth > 6 || node === null || typeof node !== "object") return undefined;
+  if (Array.isArray(node)) {
+    for (const item of node) {
+      const hit = deepFind(item, key, depth + 1);
+      if (hit !== undefined) return hit;
+    }
+    return undefined;
+  }
+  if (node[key] !== undefined && node[key] !== null && node[key] !== "") return node[key];
+  for (const v of Object.values(node)) {
+    const hit = deepFind(v, key, depth + 1);
+    if (hit !== undefined) return hit;
+  }
+  return undefined;
+}
+
 function runTest(test, childEnv) {  return new Promise((resolve) => {
     console.log(`\n${"=".repeat(60)}`);
     console.log(`Running: ${test.name}`);
@@ -94,12 +179,35 @@ function runTest(test, childEnv) {  return new Promise((resolve) => {
 
     const scriptPath = path.join(__dirname, test.script);
     // runner: "playwright"＝@playwright/test 运行器平行件（WP-096）：经运行器 CLI 跑，
-    // 守卫/断言/trace 由 playwright.config.mjs 托管；其余仍为直跑脚本形态。
+    // 守卫/断言/trace 由 playwright.config.mjs 托管；
+    // runner: "probe"（WP-189）＝python3 直调契约巡检整搬件（参数经 env 预构建）；
+    // 其余仍为直跑脚本形态。
     const child = test.runner === "playwright"
       ? spawn(process.execPath, [path.join(__dirname, "..", "..", "node_modules", "@playwright", "test", "cli.js"), "test", scriptPath, "--config", path.join(__dirname, "playwright.config.mjs")], { env: childEnv, stdio: "inherit" })
+      : test.runner === "probe"
+      ? spawn(resolvePythonPath(), [scriptPath, ...JSON.parse(childEnv.CONTRACT_PROBE_ARGS ?? "[]")], { env: childEnv, stdio: "inherit" })
       : spawn(process.execPath, [scriptPath], { env: childEnv, stdio: "inherit" });
 
     child.on("close", (code) => {
+      // 红队复核 P2-3 假绿护栏：probe 退出码 0 但完成比对数为 0（全 skip/全非 200）
+      // ＝口径假绿（全绿≠全验），按失败计；结果文件不可读同罪（fail-closed）。
+      if (test.runner === "probe" && code === 0) {
+        try {
+          const args = JSON.parse(childEnv.CONTRACT_PROBE_ARGS ?? "[]");
+          const jsonOut = args[args.indexOf("--json-out") + 1];
+          const ops = JSON.parse(fs.readFileSync(jsonOut, "utf8"));
+          const compared = ops.filter((o) => "actual" in o).length;
+          if (compared === 0) {
+            console.error(`❌ probe 假绿护栏：退出码 0 但完成比对数为 0（全部跳过）——按失败计（红队 P2-3）`);
+            resolve({ name: test.name, exitCode: 1, passed: false });
+            return;
+          }
+        } catch (e) {
+          console.error(`❌ probe 假绿护栏：巡检结果文件不可读（${e?.message}）——按失败计`);
+          resolve({ name: test.name, exitCode: 1, passed: false });
+          return;
+        }
+      }
       resolve({
         name: test.name,
         exitCode: code,
@@ -174,6 +282,12 @@ async function main() {
   console.log(`API Base: ${API_BASE}${stack ? "（自起受控栈）" : "（外部服务，作用域已证明）"}`);
   console.log(`Vault Path: ${VAULT_PATH}\n`);
   if (ONLY) console.log(`⚠ 局部跑（--only "${ONLY}"）：${selected.length}/${tests.length} 条流——报告标 only，基线门禁不据此判定\n`);
+
+  // WP-189：probe 流参数在起栈后、进流前构建一次（host-map 需真实 API_BASE；--ids 种子
+  // 需栈上列表端点可读），经 env 传入 runTest 的 python 直调。
+  if (selected.some((t) => t.runner === "probe")) {
+    childEnv.CONTRACT_PROBE_ARGS = JSON.stringify(await buildProbeArgs(API_BASE));
+  }
 
   const startTime = Date.now();
   const results = [];
