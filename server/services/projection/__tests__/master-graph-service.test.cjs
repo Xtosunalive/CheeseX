@@ -433,5 +433,41 @@ var mgs = require("../master-graph-service.cjs");
   assertEq(all.returnedEdges, 1, "WP-116 topN: 两端均在 top 集 → 边保留（宿主化不误伤）");
 })();
 
+// ===== 运行时刻元数据不入投影（2026-11-19「obsidian图变大变小」复发修复） =====
+// 根因实录：extract_graph.py apply_minimal_lineage_props 每次运行对重建节点重打
+// last_extract_time——图谱零语义变化时投影负载仍逐次不同，前端 topology-store
+// 「数据未变不换引用」守卫（JSON 串比对）被击穿 → LocalGraph 整图重建＋力导向重排
+// ＝图面反复缩放。回归钉：仅时间戳不同的两次运行产出，投影必须逐字节相同。
+(function testVolatileRunMetadataNotProjected() {
+  var runA = {
+    _format_version: "1.0",
+    _vault_extract_applied_at: "2026-11-17T00:43:43",
+    nodes: [
+      { id: "doc-1", label: "文档一", category: "文档", labels: ["Document"], properties: { name: "文档一", is_active: true, last_extract_time: "2026-11-17T00:43:43.979819", source_vault_path: "wiki/articles/doc-1.md", extraction_trace: [{ stage: "origin", detail: "wiki/articles/doc-1.md" }] } },
+      { id: "comp-a", label: "组件A", category: "应用组件", labels: ["ArchitectureComponent"], properties: { arch_layer: "L1" } },
+    ],
+    connections: [
+      { from: "doc-1", to: "comp-a", relationType: "REFERENCES", sourceFile: "wiki/articles/doc-1.md", lineNumber: 3, evidenceHash: "h1", properties: { reviewStatus: "approved" } },
+    ],
+  };
+  var runB = JSON.parse(JSON.stringify(runA));
+  // 第二次运行：图谱零语义变化，仅管线重打运行时刻字段
+  runB._vault_extract_applied_at = "2026-11-19T17:19:56";
+  runB.nodes[0].properties.last_extract_time = "2026-11-19T17:19:56.944983";
+
+  var topoA = mgs.normalizeTopology(runA);
+  var topoB = mgs.normalizeTopology(runB);
+  assertDeepEq(topoB, topoA, "易变运行时刻字段不进投影：两次仅时间戳不同的运行→投影逐字节相同");
+
+  var doc1 = topoA.nodes.find(function (n) { return n.id === "doc-1"; });
+  assert(doc1 && !("last_extract_time" in doc1.properties), "投影节点 properties 不含 last_extract_time");
+  assertEq(doc1.properties.name, "文档一", "语义属性保留：name 不受剥离影响");
+  assertEq(doc1.properties.source_vault_path, "wiki/articles/doc-1.md", "语义属性保留：source_vault_path");
+  assertDeepEq(doc1.properties.extraction_trace, [{ stage: "origin", detail: "wiki/articles/doc-1.md" }], "确定性血统保留：extraction_trace（内容稳定，不击穿守卫）");
+  assertDeepEq(doc1.properties.is_active, true, "语义属性保留：is_active");
+  var noProps = mgs.normalizeTopology({ nodes: [{ id: "n1", label: "N1", category: "其他", labels: [] }], connections: [] });
+  assertDeepEq(noProps.nodes[0].properties, {}, "无 properties 节点回落空对象（形态不变）");
+})();
+
 console.log("master-graph-service tests: " + passed + " passed, " + failed + " failed");
 if (!process.env.VITEST) process.exit(failed > 0 ? 1 : 0);
