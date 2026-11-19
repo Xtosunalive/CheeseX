@@ -55,7 +55,7 @@ const LEGACY_VIEW_ORDER = [
 const MASTER_HINTS: Record<string, string> = {
   title: "实体名称（title）是必填字段",
   "architecture-node-id": "组件身份由系统在创建时铸造，全库唯一，创建后不可修改", // WP-113 M2：身份收权——人不填，新建由唯一取号点铸造（取代 PR-229 批A 的「必填不能留空」口径）
-  arch_component: "激活为架构组件必须显式设为 true",
+  arch_component: "是否架构组件必须显式设为 true",
   arch_layer: "建议填写架构分层（arch_layer）",
   arch_category: "建议填写实体类别（arch_category）",
   arch_subdomain: "建议填写子域（arch_subdomain）",

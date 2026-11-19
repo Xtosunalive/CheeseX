@@ -1,24 +1,51 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$id": "https://cheeseh.local/contracts/theschema.fields.schema.json",
-  "title": "TheSchema fields.yaml — frontmatter 字段数据字典（ADR-008 D2）",
-  "description": "实体/文章 frontmatter 字段的唯一机器源：字段名/标签/类型/必填/作用域/值域指向/别名收口/描述。entity-frontmatter-schema.md 为其只读派生投影（禁止手改投影）。对账门禁 check:fields-registry 执法「server 消费的字段名 ⊆ 本表声明集」。",
+  "title": "TheSchema fields.yaml v2 — 类属主字段数据字典（WP-195 采 OpenBKN 设计）",
+  "description": "实体/文章两类的前matter 字段唯一机器源：属性归属于类（身份=(类,name)，类内唯一），display 为该类下的中文绑定声明（schema 层显式承诺，非 UI 装饰）。派生面族（entity-frontmatter-schema.md、shared/field-labels.mjs、src/lib/generated/field-view.ts）全部从本文件再生。对账门禁 check:fields-registry（server 消费键 ⊆ 类属性集）、check:fields-dictionary（类内唯一/display≤40/引用闭合）。",
   "type": "object",
   "required": [
     "schema_version",
-    "fields"
+    "keys",
+    "classes"
   ],
   "properties": {
     "schema_version": {
       "type": "integer",
-      "const": 1
+      "const": 2
     },
-    "fields": {
-      "type": "array",
-      "minItems": 1,
-      "items": {
-        "$ref": "#/$defs/field"
-      }
+    "keys": {
+      "type": "object",
+      "description": "Keys 小节（BKN 对应物）：primary=系统铸造身份锚（创建后不可改）；display=显示名键；incremental=增量更新键。键须指向所属类内已声明属性（闭合由 check:fields-dictionary 执法）",
+      "required": [
+        "entity",
+        "article"
+      ],
+      "properties": {
+        "entity": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "article": {
+          "$ref": "#/$defs/classKeys"
+        }
+      },
+      "additionalProperties": false
+    },
+    "classes": {
+      "type": "object",
+      "required": [
+        "entity",
+        "article"
+      ],
+      "properties": {
+        "entity": {
+          "$ref": "#/$defs/classDecl"
+        },
+        "article": {
+          "$ref": "#/$defs/classDecl"
+        }
+      },
+      "additionalProperties": false
     },
     "last_updated": {
       "type": "string",
@@ -27,6 +54,47 @@
   },
   "additionalProperties": false,
   "$defs": {
+    "classKeys": {
+      "type": "object",
+      "required": [
+        "primary",
+        "display"
+      ],
+      "properties": {
+        "primary": {
+          "type": "string",
+          "minLength": 1,
+          "description": "主键属性名（系统铸造身份锚）"
+        },
+        "display": {
+          "type": "string",
+          "minLength": 1,
+          "description": "显示名键属性名"
+        },
+        "incremental": {
+          "type": "string",
+          "minLength": 1,
+          "description": "增量更新键属性名（可选——仅当该类确有增量更新时间戳属性时声明）"
+        }
+      },
+      "additionalProperties": false
+    },
+    "classDecl": {
+      "type": "object",
+      "required": [
+        "properties"
+      ],
+      "properties": {
+        "properties": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/property"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "valueDomainResolve": {
       "type": "object",
       "required": [
@@ -44,7 +112,7 @@
             "version_registry",
             "free_slug"
           ],
-          "description": "集合操作（SPEC-020 封闭集，从 12 个真实配方归纳）：values=列表段直取；keys=对象段取键；ids=词条表取 id 并集；tags_union=各分组并集−disabled_tags；matrix_union_fallback=ADR-006 派生视图（矩阵空回落）；product_closure=A03 闭合集；version_registry=G1+G5 注册表；free_slug=自由小写 ASCII slug（composite 末段用）"
+          "description": "集合操作（SPEC-020 封闭集）：values=列表段直取；keys=对象段取键；ids=词条表取 id 并集；tags_union=各分组并集−disabled_tags；matrix_union_fallback=ADR-006 派生视图（矩阵空回落）；product_closure=A03 闭合集；version_registry=G1+G5 注册表；free_slug=自由小写 ASCII slug（composite 末段用）"
         },
         "filter": {
           "enum": [
@@ -55,26 +123,28 @@
       },
       "additionalProperties": false
     },
-    "field": {
+    "property": {
       "type": "object",
       "required": [
         "name",
-        "label",
+        "display",
         "type",
         "required",
-        "scope",
-        "layer"
+        "layer",
+        "description",
+        "value_domain"
       ],
       "properties": {
         "name": {
           "type": "string",
-          "minLength": 1,
-          "description": "frontmatter 字段名（作者侧主写法；兼容别名在 aliases 收口）"
+          "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_-]*$",
+          "description": "属性技术键（类内唯一；ASCII 起——OpenBKN Name 形态）"
         },
-        "label": {
+        "display": {
           "type": "string",
           "minLength": 1,
-          "description": "人读名"
+          "maxLength": 40,
+          "description": "该类下此属性的中文绑定声明（≤40 字符，BKN DisplayName 惯例）——schema 层显式承诺，派生面族由此再生"
         },
         "type": {
           "type": "string",
@@ -86,7 +156,7 @@
             "date",
             "map"
           ],
-          "description": "字段类型（enum=值域受控；map=键值对象）"
+          "description": "属性类型（enum=值域受控；map=键值对象）"
         },
         "required": {
           "type": "string",
@@ -95,19 +165,7 @@
             "否",
             "建议"
           ],
-          "description": "必填强度（对齐 entity-frontmatter-schema.md 既有口径）"
-        },
-        "scope": {
-          "type": "array",
-          "minItems": 1,
-          "uniqueItems": true,
-          "items": {
-            "enum": [
-              "entity",
-              "article"
-            ]
-          },
-          "description": "作用域：实体 frontmatter / 文章 frontmatter"
+          "description": "必填强度（按类声明——同名属性在两类可不同强度）"
         },
         "layer": {
           "enum": [
@@ -115,7 +173,7 @@
             "业务属性",
             "内容属性"
           ],
-          "description": "三层分类（属性三层分类表口径：管理=生命周期控制/业务=架构图渲染与拓扑/内容=搜索标签辅助）"
+          "description": "三层分类（管理=生命周期控制/业务=架构图渲染与拓扑/内容=搜索标签辅助）"
         },
         "value_domain": {
           "type": "object",
@@ -125,7 +183,7 @@
           "properties": {
             "source": {
               "type": "string",
-              "description": "值域来源：enums 段名（如 layers/lifecycle.status）、versions（跨文件指向 versions.yaml）或 free（自由文本）"
+              "description": "值域引用（BKN value_type 对应物）：enums.yaml 命名段（如 layers/lifecycle.status）、versions（跨文件指向 versions.yaml）或 free（自由文本）；被引用段删除保护归门禁"
             },
             "segment": {
               "type": "string",
@@ -208,7 +266,8 @@
         },
         "description": {
           "type": "string",
-          "description": "字段语义说明"
+          "minLength": 1,
+          "description": "属性级业务规则唯一书写处（BKN 定位：声明用于理解与展示，校验另做——执法归合规引擎）"
         }
       },
       "additionalProperties": false

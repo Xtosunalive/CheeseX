@@ -178,13 +178,20 @@ function resolveClassChain(nodeTypes, classId) {
   return childToRoot.reverse();
 }
 
-function fieldDefinitionsOf(fields) {
+function fieldDefinitionsOf(fields, classId) {
   if (fields === undefined || fields === null) {
     return null;
   }
 
   let definitions;
-  if (Array.isArray(fields)) {
+  if (isRecord(fields) && isRecord(fields.classes)) {
+    // WP-195 v2 类属主：身份＝(类,name)——按调用方类上下文取属主类属性集；
+    // 无类上下文（全量校验面）＝两类并集（存在性语义，同名键后到者覆盖无害）。
+    // 类映射：本体文章类（KnowledgeArticle）→ article；其余（实体类族）→ entity。
+    const cls = classId === "KnowledgeArticle" ? "article" : classId === undefined ? undefined : "entity";
+    const pick = (c) => (isRecord(fields.classes[c]) && Array.isArray(fields.classes[c].properties) ? fields.classes[c].properties : []);
+    definitions = cls ? pick(cls) : [...pick("entity"), ...pick("article")];
+  } else if (Array.isArray(fields)) {
     definitions = fields;
   } else if (isRecord(fields) && Array.isArray(fields.fields)) {
     definitions = fields.fields;
@@ -207,8 +214,8 @@ function fieldDefinitionsOf(fields) {
   return result;
 }
 
-function composeDataProperties(chain, nodeTypes, fields) {
-  const fieldDefinitions = fieldDefinitionsOf(fields);
+function composeDataProperties(chain, nodeTypes, fields, classId) {
+  const fieldDefinitions = fieldDefinitionsOf(fields, classId);
   const states = new Map();
 
   for (const classId of chain) {
@@ -396,7 +403,7 @@ function resolveClassInheritance(ontology, classId, fields) {
     class_id: classId,
     lifecycle_status: APPROVED,
     inheritance_chain: chain.slice(),
-    data_properties: composeDataProperties(chain, nodeTypes, fields),
+    data_properties: composeDataProperties(chain, nodeTypes, fields, classId),
     allows_relations: composeRelations(chain, nodeTypes, relationTypesOf(ontology)),
     constraints: collectConstraints(ontology, chain),
     action_types: collectActions(ontology, chain),

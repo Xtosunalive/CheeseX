@@ -156,7 +156,7 @@ describe("entity repair required validation", () => {
     await waitFor(() => expect(repairApi.previewEntityRepair).toHaveBeenCalledTimes(1));
     expect((repairApi.previewEntityRepair.mock.calls[0][0] as { changes: Record<string, unknown> }).changes).toEqual({ title: "Fixture Component", arch_since: "7.0.0.0" });
     expect(onPreview).not.toHaveBeenCalled();
-    expect(screen.getByRole("checkbox", { name: "激活为架构组件" })).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "是否架构组件" })).toBeInTheDocument();
     vi.unstubAllGlobals();
   });
 

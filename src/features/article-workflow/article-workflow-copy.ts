@@ -8,7 +8,6 @@
 
 import { TERM } from "@/constants/term-const";
 // seq209：字段中文名从派生面 src/lib/generated/field-view 取（seq209 单源装配；status 字段名「状态」——禁手写第二份，WP-150 review-copy 同款）
-import { fieldLabel as sharedFieldLabel } from "@/lib/generated/field-view";
 
 // ── api／store 层请求兜底（env.error 缺省／非 Error 对象时的 fallback）──
 export const ARTICLE_REQUEST_COPY = {
@@ -263,8 +262,9 @@ export const UPLOAD_HISTORY_COPY = {
   COL_FILE: "文件",
   COL_SIZE: "大小",
   COL_CREATED_AT: "投稿时间",
-  // 「状态」＝派生面 src/lib/generated/field-view 的实体域 status 字段中文名（seq209 单源原则：字段中文名不手写第二份，经派生）
-  COL_STATUS: sharedFieldLabel("status"),
+  // WP-195 更正：本列渲染标准化状态（title 提示即标准化语义），非实体类 status 字段——按 C-11 判据
+  // 属页面语义词，改本块页面词，不再经 fieldLabel 派生（v2 派生值＝生命周期状态，语义错位）。
+  COL_STATUS: "状态",
   COLLAPSE_ARIA: "收起投稿记录",
   EXPAND_ARIA: "展开投稿记录",
   TABLE_ARIA: "投稿记录表",

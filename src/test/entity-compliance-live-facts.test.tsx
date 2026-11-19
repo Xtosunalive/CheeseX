@@ -119,7 +119,7 @@ describe("seq205 展示即事实", () => {
     const entity = makeEntity({
       sourceValues: { "architecture-node-id": "dup-id" },
       groups: [{ id: "fields", label: "受管属性", checks: [
-        { ruleId: "F02b", field: "architecture-node-id", label: "架构组件身份", severity: "error", passed: false, editable: false, value: null, message: "该身份已被他人占用" },
+        { ruleId: "F02b", field: "architecture-node-id", label: "架构组件 ID", severity: "error", passed: false, editable: false, value: null, message: "该身份已被他人占用" },
         { ruleId: "F17", field: "aliases", label: "别名", severity: "warn", passed: false, editable: false, value: null, message: "别名冲突" },
       ] as Check[] }],
     });
@@ -135,7 +135,7 @@ describe("seq205 展示即事实", () => {
     useEntityComplianceStore.setState({ selectedEntity: entity, repairOpen: true } as unknown as Parameters<typeof useEntityComplianceStore.setState>[0]);
     render(<EntityRepairDrawer />);
     // WP-113 M2 随迁：身份号已入托管家族——锁死文案短路为「系统托管，只读」（写入口由铸造口供给）
-    expect(screen.getByRole("button", { name: /架构组件身份，当前值 dup-id（系统托管，只读）/ })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /架构组件 ID，当前值 dup-id（系统托管，只读）/ })).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /别名，当前值/ })).toBeNull();
   });
 

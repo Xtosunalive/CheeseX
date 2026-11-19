@@ -82,7 +82,7 @@ const STATUS_LABELS: Record<AnomalyStatus, string> = {
 
 const RULE_LABELS: Record<string, string> = {
   F01: "标题完整性检查",
-  F02: "架构组件身份检查",
+  F02: "架构组件 ID 检查",
   F03: "架构组件标记检查",
   F04: "架构分层检查",
   F05: "实体类别检查",
@@ -498,8 +498,9 @@ export const ANOMALY_ISSUE_FORM_COPY = {
   COL_EXPECTED: "规则要求",
   COL_EXPECTED_ASC: "规则要求升序",
   COL_EXPECTED_DESC: "规则要求降序",
-  // 「状态」＝派生面 src/lib/generated/field-view 的实体域 status 字段中文名（seq209 L2 锁：禁手写字段名，经派生）
-  COL_STATUS: sharedFieldLabel("status"),
+  // WP-195 更正：本列渲染异常处置状态（blocked/pending/passed），非实体类 status 字段——按 C-11 判据
+  // 属页面语义词，改本块页面词，不再经 fieldLabel 派生（v2 派生值＝生命周期状态，语义错位）。
+  COL_STATUS: "状态",
   COL_STATUS_ASC: "状态升序",
   COL_STATUS_DESC: "状态降序",
   /** stale_source 行的来源列描述覆盖（仅历史审计，不能直接打开处理） */

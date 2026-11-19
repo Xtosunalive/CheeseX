@@ -499,6 +499,28 @@ test('每条失败路径保留原始 ID 与完整替代链，不改源定义', (
   }
 });
 
+// WP-195 v2 类属主：fields.yaml classes 形态按调用方类上下文取属主类属性集
+//（实体类族→entity 类；KnowledgeArticle→article 类；classes 分支为现役形态，v1 数组分支为存量兼容）
+test("v2 classes 形态：属性按类上下文解析（实体类取 entity、文章类取 article）", () => {
+  const fieldsV2 = {
+    schema_version: 2,
+    keys: {},
+    classes: {
+      entity: { properties: [{ name: 'title', type: 'string' }, { name: 'root_only', type: 'string' }, { name: 'mid_only', type: 'string' }] },
+      article: { properties: [{ name: 'body', type: 'string' }] },
+    },
+  };
+  const entityResolved = resolveClassInheritance(richOntology(), 'Leaf', fieldsV2);
+  assert.strictEqual(entityResolved.data_properties.title.type, 'string');
+  assert.strictEqual(entityResolved.data_properties.root_only.source_class, 'Root');
+  assert.strictEqual(hasOwn(entityResolved.data_properties, 'body'), false, 'article 专有属性不串入实体类');
+
+  const articleOntology = { node_types: { KnowledgeArticle: { data_properties: { body: { required: true } } } } };
+  const articleResolved = resolveClassInheritance(articleOntology, 'KnowledgeArticle', fieldsV2);
+  assert.strictEqual(articleResolved.data_properties.body.type, 'string');
+  assert.strictEqual(hasOwn(articleResolved.data_properties, 'root_only'), false, 'entity 专有属性不串入文章类');
+});
+
 test("仓内知识文章只继承自身现役写动作（Wave3 生命周期四动作绑入后＝13 条）", () => {
   const { parse } = require("yaml");
   const fs = require("node:fs");
