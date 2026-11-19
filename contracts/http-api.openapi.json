@@ -28019,7 +28019,16 @@
                       ],
                       "properties": {
                         "data": {
-                          "$ref": "#/components/schemas/ReadModelVersion"
+                          "type": "object",
+                          "required": [
+                            "readModelVersion"
+                          ],
+                          "properties": {
+                            "readModelVersion": {
+                              "$ref": "#/components/schemas/ReadModelVersion"
+                            }
+                          },
+                          "description": "信封 data 内保留 readModelVersion 包裹层（本端点实现形态——服务端 sendJSON(200,{readModelVersion}) 实证）"
                         }
                       }
                     }

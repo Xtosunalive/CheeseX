@@ -8426,7 +8426,10 @@ export interface paths {
                     };
                     content: {
                         "application/json": components["schemas"]["ApiEnvelope_Data"] & {
-                            data: components["schemas"]["ReadModelVersion"];
+                            /** @description 信封 data 内保留 readModelVersion 包裹层（本端点实现形态——服务端 sendJSON(200,{readModelVersion}) 实证） */
+                            data: {
+                                readModelVersion: components["schemas"]["ReadModelVersion"];
+                            };
                         };
                     };
                 };
