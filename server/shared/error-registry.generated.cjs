@@ -630,9 +630,11 @@ module.exports = {
       ]
     },
     "ENUMS_REFERENCED_SEGMENT_REMOVED": {
-      "statuses": [],
+      "statuses": [
+        409
+      ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:159"
+        "server/services/schema-manager/enums-write-service.cjs:164"
       ]
     },
     "ENUMS_REVISION_CONFLICT": {

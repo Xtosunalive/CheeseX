@@ -146,22 +146,22 @@ function writeEnums(options) {
       const { referencedSegmentRemovalViolations } = require("../../shared/schema-write-guards.cjs");
       const removals = referencedSegmentRemovalViolations(current.data, data, refs);
       if (removals.length) {
+        // WP-199 红队 P2-2：引用方判定用 per-property 精确引用集（与 collector 同一遍历）——
+        // 原 JSON.stringify 子串匹配把 "subdomains" 误报成 "domains" 引用方（真库即复现）。
+        const { propertyValueDomainReferences } = require("../../shared/value-domain-resolver.cjs");
         const fieldsData = fieldsVocab.files.fields.data || {};
+        const removedSet = new Set(removals.map((r) => r.segment));
         const referencedBy = [];
         for (const cls of ["entity", "article"]) {
           for (const prop of ((fieldsData.classes?.[cls]?.properties) || [])) {
-            const uses = JSON.stringify(prop.value_domain || {});
-            for (const v of removals) {
-              if (uses.includes(v.segment)) referencedBy.push(`${cls}.${prop.name}`);
-            }
+            const propRefs = propertyValueDomainReferences(prop);
+            if (removedSet.size && [...removedSet].some((seg) => propRefs.has(seg))) referencedBy.push(`${cls}.${prop.name}`);
           }
         }
-        throw serviceError(
-          "ENUMS_REFERENCED_SEGMENT_REMOVED",
-          `写入将移除被字段值域引用的段 [${removals.map((r) => r.segment).join("、")}]——被引用段不可删除（先解除 fields.yaml 引用再删）`,
-          409,
-          { segments: removals.map((r) => r.segment), referencedBy: [...new Set(referencedBy)] },
-        );
+        // 红队 P2-1：抛点保持单行形态（多行 throw 会击中 error-throw-scan 的逐行 STATUS 提取盲区，
+        // 注册物 statuses 缺 409——账本-契约 status 维度不闭合）
+        const msg = `写入将移除被字段值域引用的段 [${removals.map((r) => r.segment).join("、")}]——被引用段不可删除（先解除 fields.yaml 引用再删）`;
+        throw serviceError("ENUMS_REFERENCED_SEGMENT_REMOVED", msg, 409, { segments: removals.map((r) => r.segment), referencedBy: [...new Set(referencedBy)] });
       }
     }
   }

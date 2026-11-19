@@ -318,7 +318,7 @@ test("WP-199 collector：五类引用＋op 隐式段全捕获（两类属性平�
   const refs = collectValueDomainReferences(fieldsDoc);
   assert.deepEqual(
     [...refs].sort(),
-    ["arch_categories", "architecture_projection", "domains", "lifecycle", "subdomain_constraints", "subdomains", "tag_aliases", "tags"].sort(),
+    ["arch_categories", "architecture_projection", "disabled_tags", "domains", "lifecycle", "subdomain_constraints", "subdomains", "tag_aliases", "tags"].sort(),
     "五类显式引用＋两类 op 隐式段全捕获；free/versions 不入集：" + [...refs].sort().join("、"),
   );
   assert.ok(!refs.has("free") && !refs.has("versions"), "free/versions 非 enums 段不入集");
@@ -333,7 +333,7 @@ test("WP-199 collector：op 隐式段单独成立（source: free 不连坐，隐
       article: { properties: [{ name: "y", value_domain: { source: "free", resolve: { op: "matrix_union_fallback" } } }] },
     },
   });
-  assert.deepEqual([...refs].sort(), ["arch_categories", "subdomain_constraints", "tags"].sort());
+  assert.deepEqual([...refs].sort(), ["arch_categories", "disabled_tags", "subdomain_constraints", "tags"].sort()); // WP-199 红队 P2-3：tags_union 隐式读 disabled_tags（SET_OPS 同源）
   assert.ok(!refs.has("free"), "free 不因 op 声明连坐入集");
 });
 

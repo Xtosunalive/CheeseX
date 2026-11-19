@@ -359,7 +359,7 @@ def cmd_entity_module_add(args):
     # PR-200：写侧乐观锁基线必填——基线经同一客户端读出后原样回传（Python 侧不另起哈希配方）
     proc = subprocess.run(["node", client, "modules-upsert", "--vault", VAULT_ROOT, "--name", name, "--system", system, "--subdomain", subdomain, "--revision", enums_revision], capture_output=True, text=True)
     if proc.returncode != 0:
-        print(f"❌ module 写入失败（统一写客户端）: {proc.stderr.strip()}", file=sys.stderr)
+        print(f"❌ module 写入失败（统一写客户端）: {(proc.stdout or proc.stderr).strip()}", file=sys.stderr)  # WP-199 红队 P2-4：错误信封通道已迁 stdout，双通道兜底
         sys.exit(1)
     print(f"✅ 已添加 module: {name} (system={system}, subdomain={subdomain}，经统一写客户端)")
 
