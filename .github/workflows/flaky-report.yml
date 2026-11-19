@@ -1,0 +1,59 @@
+name: Flaky CI Report
+
+# WP-190 整搬件：原封取自 OpenMAIC（github.com/THU-MAIC/OpenMAIC，MIT License，
+# Copyright (c) 2026 THU-MAIC），适配三件（合同 docs/work-packages/WP-190.json）：
+#   ① repository 守卫改本仓（Xtosunalive/CheeseX）；
+#   ② 参数面（label/cron 沿用上游默认；tracking issue 标记随脚本 MARKER 同步改名）；
+#   ③ vitest 解析面零修改（两仓同为 vitest，输出形状一致）。
+# 原件逻辑与测试住 .github/scripts/flaky-report.mjs（其自测试 flaky-report.test.mjs
+# 未随本批移植——合同 in_scope_paths 之外，扩面走 change_request 另裁）。
+#
+# 每周列近 7 天「同 commit 先红后绿」的 workflow attempt（重跑洗白信号），
+# 报告进 job summary 与单张 `flaky-report` 标签 issue（原地更新）。
+# 手动触发默认 dry-run（只出报告不动 issue）。
+
+on:
+  schedule:
+    - cron: '23 2 * * 1'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Only write the job summary; do not update the tracking issue'
+        type: boolean
+        default: true
+
+permissions: {}
+
+concurrency:
+  group: flaky-report
+  cancel-in-progress: false
+
+jobs:
+  report:
+    if: github.repository == 'Xtosunalive/CheeseX'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      actions: read
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Build the flaky CI report
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+        with:
+          script: |
+            const { pathToFileURL } = require('node:url');
+            const flaky = await import(pathToFileURL(`${process.cwd()}/.github/scripts/flaky-report.mjs`));
+            const dryRun = flaky.isDryRun(context.eventName, process.env.DRY_RUN_INPUT);
+            const result = await flaky.run({ client: github, repo: context.repo, dryRun, log: core.info });
+            const issue = result.issue
+              ? `Tracking issue ${result.issue.action}: ${result.issue.url}`
+              : 'Dry run: the tracking issue was not changed.';
+            await core.summary.addRaw(`${issue}\n\n`).addRaw(result.body).write();
