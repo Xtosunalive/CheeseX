@@ -124,6 +124,37 @@ class FieldFlattening(unittest.TestCase):
         out = self.loader.field_paths(schema, doc, "x")  # 环引用必须终止不炸
         self.assertIn("child", out)
 
+    def test_recursive_ref_bounded_expansion_适配5a(self):
+        """适配⑤(a)：递归 $ref 限深展开——子层字段进比对面（原硬停即假红源头）。"""
+        node = {"type": "object",
+                "properties": {"id": {"type": "string"},
+                               "child": {"$ref": "#/components/schemas/Node"}}}
+        doc = {"components": {"schemas": {"Node": node}}}
+        out = self.loader.field_paths(
+            {"type": "array", "items": {"$ref": "#/components/schemas/Node"}}, doc, "x")
+        self.assertIn("[].child.id", out, "第二层（同引用第 2 次）应展开")
+        self.assertIn("[].child.child", out, "第三层标记应出现（限深内）")
+
+    def test_render_wildcard_fold_keeps_array_marker_适配5b(self):
+        """适配⑤(b)：数组内开映射折叠保 [] 标记——map 域→数组元素字段不再误报。"""
+        doc = self.loader.field_paths(
+            {"type": "object", "properties": {"subdomains": {
+                "type": "object",
+                "additionalProperties": {"type": "array", "items": {
+                    "anyOf": [{"type": "string"},
+                              {"type": "object", "required": ["id"],
+                               "properties": {"id": {"type": "string"}}}]}}}}},
+            {}, "x")
+        self.assertIn("subdomains.*[].id", doc)
+        op = {"method": "GET", "module": "m", "spec_file": "s",
+              "url": "/x", "req_url": "/x", "doc_fields": doc,
+              "actual": probe.actual_paths({"subdomains": {"ops": [{"id": "a"}]}})}
+        args = type("A", (), {"face": "ex", "exec_mode": "direct", "ssh": None,
+                              "spec_dir": ".", "include_query_post": False,
+                              "include_probe_post": False})()
+        report, stats = probe.render([op], [], args)
+        self.assertEqual(stats["gap_ops"], 0, "map 域→数组元素字段经折叠应清零")
+
 
 class ActualVsDoc(unittest.TestCase):
     def test_actual_paths_types(self):
