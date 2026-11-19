@@ -114,6 +114,8 @@ export const CHECK_RESULTS_COPY = {
   COL_MODULE: TERM.MODULE,
   COL_MODULE_ASC: "模块 A-Z",
   COL_MODULE_DESC: "模块 Z-A",
+  /** WP-188 波4 同值收编：layer 列头与实体域 arch_layer 字段中文名同值同义（WP-151 判据）——经派生面取，不手写第二份 */
+  COL_LAYER: sharedFieldLabel("arch_layer", "entity"),
   COL_LAYER_ASC: "分层 A-Z",
   COL_LAYER_DESC: "分层 Z-A",
   COL_STATUS: "检查结论",

@@ -40,8 +40,8 @@ const OP_LABELS: Record<FilterOp, string> = {
 const SEARCHABLE_COLUMNS: { key: string; label: string }[] = [
   { key: "__all__", label: ENTITY_REGISTRY_COPY.ALL_FIELDS },
   { key: "componentName", label: ENTITY_REGISTRY_COPY.COMPONENT_NAME },
-  { key: "layer", label: TERM.LAYER },
-  { key: "category", label: TERM.CATEGORY },
+  { key: "layer", label: ENTITY_REGISTRY_COPY.COL_LAYER },
+  { key: "category", label: ENTITY_REGISTRY_COPY.COL_CATEGORY },
   { key: "articlePath", label: TERM.GRAPH_SOURCE_DOCUMENT },
   { key: "admissionStatus", label: ADMISSION_COPY.ADMISSION_STATUS },
 ];
@@ -177,12 +177,12 @@ export function EntityRegistryTable() {
     },
     {
       key: "layer",
-      title: <TableSortHeader label={TERM.LAYER} active={sortField === "layer"} direction={sortDirection} ascendingLabel={ENTITY_REGISTRY_COPY.LAYER_ASC} descendingLabel={ENTITY_REGISTRY_COPY.LAYER_DESC} onChange={(direction) => { setSortField("layer"); setSortDirection(direction); }} />,
+      title: <TableSortHeader label={ENTITY_REGISTRY_COPY.COL_LAYER} active={sortField === "layer"} direction={sortDirection} ascendingLabel={ENTITY_REGISTRY_COPY.LAYER_ASC} descendingLabel={ENTITY_REGISTRY_COPY.LAYER_DESC} onChange={(direction) => { setSortField("layer"); setSortDirection(direction); }} />,
       render: (item) => <Tag tone="neutral" className="font-mono">{item.layer}</Tag>,
     },
     {
       key: "category",
-      title: <TableSortHeader label={TERM.CATEGORY} active={sortField === "category"} direction={sortDirection} ascendingLabel={ENTITY_REGISTRY_COPY.CATEGORY_ASC} descendingLabel={ENTITY_REGISTRY_COPY.CATEGORY_DESC} onChange={(direction) => { setSortField("category"); setSortDirection(direction); }} />,
+      title: <TableSortHeader label={ENTITY_REGISTRY_COPY.COL_CATEGORY} active={sortField === "category"} direction={sortDirection} ascendingLabel={ENTITY_REGISTRY_COPY.CATEGORY_ASC} descendingLabel={ENTITY_REGISTRY_COPY.CATEGORY_DESC} onChange={(direction) => { setSortField("category"); setSortDirection(direction); }} />,
       render: (item) => <Tag className={`font-medium ${CATEGORY_COLOR[item.category] || "bg-slate-2 text-text-sub ring-slate-6"}`}>{item.category}</Tag>,
     },
     {

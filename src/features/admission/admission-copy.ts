@@ -8,6 +8,7 @@
 // 投影＋SPEC-091 §2.1（ADR-019 §三.4 闭集仪式）。
 
 import { TERM } from "@/constants/term-const";
+import { fieldLabel } from "@/lib/generated/field-view";
 
 // ── 多组件共用（同一事实只一份）──
 export const ADMISSION_COPY = {
@@ -33,6 +34,10 @@ export const ENTITY_REGISTRY_COPY = {
   OP_NOT_CONTAINS: "不包含",
   ALL_FIELDS: "全部字段",
   COMPONENT_NAME: `${TERM.ARCH_COMPONENT}名称`,
+  /** WP-188 波4 同值收编：layer/category 列头与搜索字段标签同实体域 arch_layer/arch_category 字段中文名
+   *  同值同义（WP-151 判据）——经派生面取，不手写第二份（同批 L8 锁钉） */
+  COL_LAYER: fieldLabel("arch_layer", "entity"),
+  COL_CATEGORY: fieldLabel("arch_category", "entity"),
   /** 列头排序句柄 */
   NAME_ASC: "名称 A-Z",
   NAME_DESC: "名称 Z-A",
