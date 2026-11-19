@@ -74,14 +74,38 @@ type GraphApi = {
   layout: () => Promise<void>;
 };
 
-// 模块级位置缓存（Obsidian 体感：图谱视图关了再开，节点还在原地——重挂载不再从中心炸开）
-const positionCache = new Map<string, { x: number; y: number }>();
+// 位置缓存（Obsidian 体感：图谱视图关了再开、甚至关浏览器重开，节点还在原地——重挂载与
+// 页面刷新都不再从中心炸开）。2026-11-20 补持久化：内存 Map 每次刷新清零＝刷新后必播一次
+// 冷启动爆发动画（Master「还是一样！」的残留场景）；localStorage 落盘后刷新即原地恢复，
+// 与 Obsidian「图谱状态随 vault 走」同构。键版本化（v1——位置语义变更时换键弃旧）；
+// 写入整键覆盖＝只存当前图可见节点，有界不累积僵尸条目；存储不可用（隐私模式/配额）降级
+// 为会话内存缓存，功能不损。
+const POSITION_STORAGE_KEY = "local-graph:positions:v1";
+const positionCache: Map<string, { x: number; y: number }> = (() => {
+  try {
+    const raw = typeof window !== "undefined" ? window.localStorage?.getItem(POSITION_STORAGE_KEY) : null;
+    if (!raw) return new Map();
+    const parsed: unknown = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Map();
+    const m = new Map<string, { x: number; y: number }>();
+    for (const entry of parsed) {
+      if (Array.isArray(entry) && typeof entry[0] === "string" && entry[1] && typeof entry[1].x === "number" && typeof entry[1].y === "number") {
+        m.set(entry[0], { x: entry[1].x, y: entry[1].y });
+      }
+    }
+    return m;
+  } catch { return new Map(); }
+})();
 function rememberPositions(api: GraphApi): void {
   try {
+    const next: Array<[string, { x: number; y: number }]> = [];
     for (const n of api.getNodeData()) {
       const x = n.style?.x, y = n.style?.y;
-      if (typeof x === "number" && typeof y === "number") positionCache.set(String(n.id), { x, y });
+      if (typeof x === "number" && typeof y === "number") next.push([String(n.id), { x, y }]);
     }
+    positionCache.clear();
+    for (const [k, v] of next) positionCache.set(k, v);
+    try { window.localStorage?.setItem(POSITION_STORAGE_KEY, JSON.stringify(next)); } catch { /* 存储不可用降级内存 */ }
   } catch { /* 位置读取失败不阻断（缓存只是连续性优化） */ }
 }
 
