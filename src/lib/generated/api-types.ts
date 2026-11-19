@@ -1968,6 +1968,7 @@ export interface paths {
                             /** @constant */
                             success: true;
                             data?: components["schemas"]["EntityCheckData"];
+                            trace_id?: string;
                         };
                     };
                 };
@@ -2035,6 +2036,7 @@ export interface paths {
                             /** @constant */
                             success: true;
                             data?: components["schemas"]["EntityReadinessData"];
+                            trace_id?: string;
                         };
                     };
                 };
@@ -2487,6 +2489,7 @@ export interface paths {
                             /** @constant */
                             success: true;
                             data: components["schemas"]["MasterGraphData"];
+                            trace_id?: string;
                         };
                     };
                 };
@@ -2551,6 +2554,15 @@ export interface paths {
                                 lastReconcileAt?: string | null;
                                 /** @description 对账心跳超 2×周期（10 分钟）未更新（setInterval 静默失效的可见化，SPEC-012 WP-B） */
                                 reconcileStale?: boolean;
+                                /** @description Schema 自检摘要（数据面违规计数与样本） */
+                                schemaSelfcheck?: {
+                                    /** @description 自检结论 */
+                                    outcome?: string;
+                                    /** @description 数据面违规条数 */
+                                    dataViolationCount?: number;
+                                    /** @description 违规样本（路径片段） */
+                                    dataViolationSample?: string[];
+                                };
                             };
                         };
                     };
@@ -2780,6 +2792,7 @@ export interface paths {
                             /** @constant */
                             success: true;
                             data: components["schemas"]["CanvasAdmissionData"];
+                            trace_id?: string;
                         };
                     };
                 };
@@ -3641,6 +3654,7 @@ export interface paths {
                             /** @constant */
                             success: true;
                             data: components["schemas"]["SearchDocumentsResponse"];
+                            trace_id?: string;
                         };
                     };
                 };
@@ -4091,6 +4105,7 @@ export interface paths {
                                 offset: number;
                                 items: components["schemas"]["CheckResultItem"][];
                             };
+                            trace_id?: string;
                         };
                     };
                 };
@@ -5134,6 +5149,7 @@ export interface paths {
                             /** @constant */
                             success: true;
                             data: components["schemas"]["SchemaDiscoveryData"];
+                            trace_id?: string;
                         };
                     };
                 };
@@ -5878,6 +5894,7 @@ export interface paths {
                             /** @constant */
                             success: true;
                             data?: components["schemas"]["SchemaOntologyData"];
+                            trace_id?: string;
                         };
                     };
                 };
@@ -7449,6 +7466,7 @@ export interface paths {
                             /** @constant */
                             success: true;
                             data: components["schemas"]["RulesLifecycleData"];
+                            trace_id?: string;
                         };
                     };
                 };
@@ -8418,17 +8436,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            readModelVersion: {
-                                /** @description rm1 前缀聚合身份 */
-                                version: string;
-                                components: {
-                                    graph?: string | null;
-                                    derived?: string | null;
-                                    vocab?: string;
-                                };
-                                /** Format: date-time */
-                                computedAt: string;
+                        "application/json": components["schemas"]["ApiEnvelope_Data"] & {
+                            /** @description 信封 data 内保留 readModelVersion 包裹层（本端点实现形态——服务端 sendJSON(200,{readModelVersion}) 实证） */
+                            data: {
+                                readModelVersion: components["schemas"]["ReadModelVersion"];
                             };
                         };
                     };
@@ -8475,21 +8486,23 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": {
-                            scope: string;
-                            total: number;
-                            healthy: number;
-                            unhealthyCount: number;
-                            generatedAt: string;
-                            files: {
-                                file: string;
-                                ok: boolean;
-                                violations: {
-                                    ruleId: string;
-                                    field: string;
-                                    error: string;
+                        "application/json": components["schemas"]["ApiEnvelope_Data"] & {
+                            data: {
+                                scope: string;
+                                total: number;
+                                healthy: number;
+                                unhealthyCount: number;
+                                generatedAt: string;
+                                files: {
+                                    file: string;
+                                    ok: boolean;
+                                    violations: {
+                                        ruleId: string;
+                                        field: string;
+                                        error: string;
+                                    }[];
                                 }[];
-                            }[];
+                            };
                         };
                     };
                 };
@@ -9072,6 +9085,14 @@ export interface components {
             createdAt?: string | null;
             /** @description 展示用自动序号（整改5，ANOM-N）：检出时由账本分配、单调递增不复用；行/peek 头部显示 ANOM-{displaySeq}，issueId 降级为内部键（title 悬浮+peek 属性）。存量补号=按 createdAt 升序首次 load 时分配 */
             displaySeq?: number | null;
+            /** @description 该问题是否已进入全局诊断追踪（diagnostic run 登记态；读侧只呈现） */
+            diagnosticTracked?: boolean;
+            /** @description 诊断进行中标记（诊断执行后出现） */
+            diagnosticActive?: boolean;
+            /** @description 最近诊断任务 id */
+            lastDiagnosticJobId?: string | null;
+            /** @description 最近检出时间 */
+            lastDetectedAt?: string | null;
         };
         AnomalyListData: {
             /** Format: date-time */
@@ -9348,6 +9369,8 @@ export interface components {
             since?: string;
             until?: string;
             products?: string[];
+            /** @description 模块说明（enums.yaml modules.<name>.description） */
+            description?: string;
         };
         SchemaEnumsData: {
             domains: {
@@ -9547,8 +9570,42 @@ export interface components {
             scope?: "architecture";
         }));
         MasterGraphData: components["schemas"]["FormalReleaseIdentity"] & {
-            nodes: Record<string, never>[];
+            nodes: {
+                id?: string;
+                label?: string;
+                /** @description 节点类别 */
+                category?: string;
+                /** @description 节点类型标记列表 */
+                labels?: string[];
+                /** @description 节点属性开放映射（键=属性名，如 file_path/module/source_path/title，随节点类型而异） */
+                properties?: {
+                    [key: string]: unknown;
+                };
+                /** @description 节点副标签 */
+                sublabel?: string | null;
+            }[];
             connections: Record<string, never>[];
+            /** @description 主图版本号 */
+            version?: string;
+            /** @description 图产物格式版本 */
+            _format_version?: string;
+            /** @description vault 抽取应用时刻 */
+            _vault_extract_applied_at?: string;
+            /** @description 待审边集合（元素未观测） */
+            pendingReview?: unknown[];
+            /** @description 未解析 wikilink（元素未观测） */
+            unresolvedWikilinks?: unknown[];
+            /** @description 产物内嵌本体（与 /api/schema/ontology data 同构） */
+            ontology?: {
+                node_types?: {
+                    [key: string]: components["schemas"]["SchemaOntologyNodeType"];
+                };
+                relation_types?: {
+                    [key: string]: components["schemas"]["SchemaOntologyRelationType"];
+                };
+            } & {
+                [key: string]: unknown;
+            };
         };
         KGQueryData: (components["schemas"]["FormalReleaseIdentity"] | components["schemas"]["WorktreeIdentity"]) & {
             version?: string;
@@ -9565,6 +9622,38 @@ export interface components {
             /** @description 实际读取字节的 SHA-256 修订（E3 约束：data-flow-contract-zh.md:91）。用于识别可变输入与乐观并发，不持久化、不参与批准/发布资格。 */
             workingRevision?: string;
             freshness?: components["schemas"]["ReleaseFreshness"];
+            /** @description 跨界依赖（元素结构未观测到样本，宁宽登记） */
+            crosscutting?: unknown[];
+            /** @description 架构缺口清单（release 投影产物） */
+            gaps?: {
+                id?: string;
+                componentId?: string;
+                title?: string;
+                label?: string;
+                detail?: string;
+                severity?: string;
+                missing?: unknown[];
+                hasGraphNode?: boolean;
+                hasWikiPage?: boolean;
+                hasContent?: boolean;
+                relationCount?: number;
+                wikiPath?: string;
+                layer?: string;
+            }[];
+            /** @description 候选条目（元素结构未观测到样本，宁宽登记） */
+            candidates?: unknown[];
+            /** @description 覆盖面对账（投影产物；无数据为 null，结构随投影未固化） */
+            coverage?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description 审计摘要（投影产物；无数据为 null，结构随投影未固化） */
+            audit?: {
+                [key: string]: unknown;
+            } | null;
+            /** @description 布局数据（投影产物；无数据为 null，结构随投影未固化） */
+            layout?: {
+                [key: string]: unknown;
+            } | null;
         };
         CanvasAdmissionData: (components["schemas"]["FormalReleaseIdentity"] | components["schemas"]["WorktreeIdentity"]) & {
             /** @description 画布准入扫描的组件总数（与 components 同集合的全量计数，components 为逐条明细） */
@@ -9781,6 +9870,8 @@ export interface components {
             product: string;
             version: string;
             componentIds: string[];
+            /** @description 该文章的关联清单（元素形状本次未观测，宁宽不猜） */
+            associations?: unknown[];
         };
         ArticleAssociationDecision: {
             decisionId: string;
@@ -9853,6 +9944,8 @@ export interface components {
             componentOptions: {
                 id: string;
                 label: string;
+                /** @description 组件分组名 */
+                group?: string;
             }[];
             versionOptions: components["schemas"]["ArticleAssociationVersionOption"][];
             currentAssociations: components["schemas"]["ArticleArchitectureAssociation"][];
@@ -9949,6 +10042,8 @@ export interface components {
                 observedAt?: string;
                 sourceRevision?: ((string | null) | null) | null;
             };
+            /** @description 文章阶段标记（article_graph 管道产物的 stage） */
+            article_stage?: string;
         };
         ReviewEdgeBlocker: {
             /** @description 被缺实体问题挂住的 Document 节点 id（missing_entity 时非空） */
@@ -9969,6 +10064,11 @@ export interface components {
             approved: number;
             /** @description 仅包含归一化 reviewStatus=pending 的待审核关系 */
             edges: components["schemas"]["PendingReviewEdge"][];
+            /**
+             * @description 数据来源标识：worktree=工作树投影（E3 例外分支）；release=正式 Release 投影；precleaned-worktree=候选文章 precleaned 工作区。与 releaseId/sourceCommit 互斥。
+             * @enum {string}
+             */
+            dataSource?: "worktree" | "precleaned-worktree";
         };
         PendingReviewResponse: {
             /** @constant */
@@ -10001,12 +10101,24 @@ export interface components {
             decidedAt: string;
             /** @description 本次审核写回更新的 master_graph 边数量 */
             updated?: number;
+            /** @description 裁决记录者 */
+            assertedBy?: {
+                actorId?: string;
+                actorType?: string;
+            };
         };
         ReviewHistoryData: {
             total: number;
             records: components["schemas"]["ReviewHistoryRecord"][];
             /** @description 候选级裁决（与 records 边级分列，total=两者之和） */
             candidateRecords?: components["schemas"]["ReviewCandidateHistoryRecord"][];
+            /**
+             * @description 数据来源标识：worktree=工作树投影（E3 例外分支）；release=正式 Release 投影；precleaned-worktree=候选文章 precleaned 工作区。与 releaseId/sourceCommit 互斥。
+             * @enum {string}
+             */
+            dataSource?: "worktree" | "precleaned-worktree";
+            /** @description 实际读取字节的 SHA-256 修订（E3 约束：data-flow-contract-zh.md:91）。用于识别可变输入与乐观并发，不持久化、不参与批准/发布资格。 */
+            workingRevision?: string;
         };
         ReviewDecisionStatus: components["schemas"]["ReviewStatus"];
         ReviewDecisionRequest: {
@@ -10109,6 +10221,19 @@ export interface components {
                     requiresManualConfirm?: boolean;
                 }[];
             };
+        } & {
+            [key: string]: {
+                passed?: boolean;
+                /** @description 该检查是否适用于本组件（不适用时其余字段为空形态） */
+                applicable?: boolean;
+                moduleName?: string;
+                /** @description 不通过原因文案 */
+                reason?: string;
+                /** @description 检查涉及的文档路径 */
+                docFilePath?: string;
+            } & {
+                [key: string]: unknown;
+            };
         };
         ComplianceFinding: {
             ruleId?: string;
@@ -10142,6 +10267,8 @@ export interface components {
                 reason?: string;
                 confidence?: number;
             }[];
+            /** @description 所属检查组 id 冗余（后端打平写入，前端免反查分组） */
+            _group?: string;
         };
         ComplianceGroup: {
             /** @enum {string} */
@@ -10224,6 +10351,20 @@ export interface components {
                 hint: string;
             }[];
             blockingSourceKeys: string[];
+            /** @description 错误级明细（元素结构未观测到样本，宁宽登记） */
+            errors?: unknown[];
+            /** @description 警告级明细（与 warningDetails 同构） */
+            warnings?: {
+                entityId?: string;
+                title?: string;
+                sourceKey?: string;
+                ruleId?: string;
+                field?: string;
+                message?: string;
+                hint?: string;
+            }[];
+            /** @description 参考级明细（元素结构未观测到样本，宁宽登记） */
+            infos?: unknown[];
         };
         EntitySourceRevision: {
             mtimeMs: number;
@@ -10653,6 +10794,18 @@ export interface components {
             issueIds: string[];
             message: string;
         };
+        /** @description 读模型版本指纹（/api/read-model/version 与 /api/pipeline/status 共用同构） */
+        ReadModelVersion: {
+            /** @description rm1 前缀聚合身份 */
+            version: string;
+            components: {
+                graph?: string | null;
+                derived?: string | null;
+                vocab?: string;
+            };
+            /** Format: date-time */
+            computedAt: string;
+        };
         PipelineJob: {
             /** @enum {string} */
             state: "idle" | "running" | "cancelling" | "cancelled" | "succeeded" | "failed";
@@ -10670,7 +10823,13 @@ export interface components {
             /** @description Vault 中最近一次持久化的管道运行摘要 */
             lastRun?: components["schemas"]["PipelineRunSummary"] | null;
             /** @description 全局管道诊断完成后的统一待处理问题对账摘要 */
-            diagnostics?: components["schemas"]["PipelineDiagnosticSummary"] | null;
+            diagnostics?: {
+                /** @description 源已删除计数 */
+                sourceDeletedCount?: number;
+            } & (components["schemas"]["PipelineDiagnosticSummary"] | null);
+            /** @description 最近停留的管道阶段（尚无运行为 null） */
+            lastStage?: string | null;
+            readModelVersion?: components["schemas"]["ReadModelVersion"];
         };
         PipelineRunSummary: {
             runTs: string;
@@ -10770,6 +10929,8 @@ export interface components {
                 /** @description 是否已解决 */
                 resolved?: boolean;
             }[];
+            /** @description 受管字段来源快照（WP-169 面；上传列表实返回） */
+            fieldProvenance?: components["schemas"]["FieldProvenanceMap"];
         };
         ArticleUploadList: {
             items: components["schemas"]["ArticleWorkflowTask"][];
@@ -10821,6 +10982,8 @@ export interface components {
                 previewHash?: string;
                 releaseId?: string;
                 sourceCommit?: string;
+                /** @description 当前标准版标题 */
+                title?: string;
             };
             /**
              * Format: date-time
@@ -11152,6 +11315,28 @@ export interface components {
             arch_subdomain: string;
             tags: string[];
             relations: components["schemas"]["DocumentRelationEntry"][];
+            /** @description 正文全文（markdown 源文内容） */
+            body?: string;
+            /** @description 分类路径串 */
+            categoryPath?: string;
+            /** @description 创建时间（ISO 8601） */
+            created?: string;
+            /** @description 是否携带正文 */
+            hasBody?: boolean;
+            /** @description 父文档 id（根文档为 null） */
+            parentId?: string | null;
+            /** @description 检索分词结果 */
+            tokens?: string[];
+            /** @description 人读路径（分类层级显示名） */
+            readablePath?: string;
+            /** @description 文档关联清单（元素形状未观测） */
+            associations?: unknown[];
+            /** @description 所属组件 id 集合（元素未观测） */
+            componentIds?: unknown[];
+            /** @description 归属源哈希 */
+            ownerSourceHash?: string;
+            /** @description 归属源路径 */
+            ownerSourcePath?: string;
         };
         CanonicalDocumentSummary: {
             /** @description 本次检索命中总数（PR-269：与 documents 数组同次响应，documents 为其分页切片） */
@@ -12194,6 +12379,7 @@ export interface components {
                 layers: number;
                 categories: number;
                 subdomains: number;
+                tags?: number;
             };
             /** @description P0A gate：别名应用锁定标志 */
             aliasEnabled: boolean;
@@ -12248,14 +12434,80 @@ export interface components {
             /** @description 实体总目（按 module 分组的全部实体派生目录） */
             entityCatalog?: components["schemas"]["EntityCatalogGroup"][];
         };
+        /** @description 节点类型定义（键=类型名，开放集合，随 ontology.yaml 生长） */
+        SchemaOntologyNodeType: {
+            /** @description 类型说明 */
+            description?: string;
+            /** @description 节点大类归类 */
+            category?: string;
+            /** @description 父类型名（类型继承） */
+            subClassOf?: string;
+            /** @description 自有数据属性表（键=属性名，开放集合） */
+            data_properties?: {
+                [key: string]: {
+                    /** @description 该属性是否必填 */
+                    required?: boolean;
+                } & {
+                    [key: string]: unknown;
+                };
+            };
+        } & {
+            [key: string]: unknown;
+        };
+        /** @description 关系类型定义（键=关系名，开放集合，随 ontology.yaml 生长） */
+        SchemaOntologyRelationType: {
+            /** @description 方向语义 */
+            direction?: string;
+            /** @description 默认权重（0..1 浮点——optionalNumber 语义，服务端 relation-capability-selector 实证；旧声明 integer 在关系类型带小数权重时触发 enforce 假拦） */
+            weight_default?: number;
+            /** @description 关系说明 */
+            description?: string;
+            /** @description 中文名 */
+            label_cn?: string;
+            /** @description 允许的源端节点类型 */
+            source_types?: string[];
+            /** @description 允许的目标端节点类型 */
+            target_types?: string[];
+            /** @description 语义角色 */
+            semantic_role?: string;
+            /** @description 是否进入候选推荐 */
+            candidate_enabled?: boolean;
+            /** @description 事实编码方式 */
+            fact_encoding?: string;
+            /** @description 是否投影进读模型 */
+            projected?: boolean;
+            /** @description 是否随版本化 */
+            versionable?: boolean;
+            /** @description 影响传播策略 */
+            impact_propagation?: string;
+            /** @description 存量数据策略 */
+            legacy_policy?: string;
+            /** @description 断言策略（按来源通道分档） */
+            assertion_policies?: ({
+                /** @description 证据来源类型 */
+                source_kind?: string;
+                /** @description 产生方 */
+                producer?: string;
+                /** @description 裁决方式 */
+                decision_mode?: string;
+                /** @description 必备证据清单 */
+                required_evidence?: string[];
+                /** @description 正式消费方清单 */
+                formal_consumers?: string[];
+            } & {
+                [key: string]: unknown;
+            })[];
+        } & {
+            [key: string]: unknown;
+        };
         SchemaOntologyData: {
             /** @description 实体类型定义表（值结构见 Vault TheSchema/ontology.yaml node_types） */
             node_types: {
-                [key: string]: Record<string, never>;
+                [key: string]: components["schemas"]["SchemaOntologyNodeType"];
             };
             /** @description 关系类型定义表（含 assertion_policies 等） */
             relation_types: {
-                [key: string]: Record<string, never>;
+                [key: string]: components["schemas"]["SchemaOntologyRelationType"];
             };
             inference_rules: Record<string, never>[];
             constraints: Record<string, never>[];
@@ -12294,6 +12546,8 @@ export interface components {
             /** @description 全部文章提及次数 */
             mentionCount: number;
             samples: components["schemas"]["EntityGrowthSample"][];
+            /** @description 提及该候选的来源文件（相对 vault） */
+            sources?: string[];
         };
         /** @description 候选来源坐标（H2 可回溯） */
         EntityGrowthSample: {
@@ -12388,6 +12642,8 @@ export interface components {
             retired?: boolean;
             indexed?: boolean;
             sealed: boolean;
+            /** @description 违规人话文案（校验未通过时透出；无值为 null） */
+            message?: string | null;
         };
         RulesLifecycleData: {
             rules: components["schemas"]["RulesLedgerEntry"][];
@@ -12512,6 +12768,8 @@ export interface components {
             grown?: number;
             /** @description 缺 label 词条数（生长观察面——仅 subdomain 维度非零，语义债可视化） */
             unlabeled?: number;
+            /** @description 死词计数（零使用正式词，分维度口径） */
+            dead?: number;
         };
         /** @description PR-042 路线A：候选级裁决记录（kind=relation_candidate）。候选本无确定的边两端，仅含候选标识与证据哈希；不与边级 ReviewHistoryRecord 混型（事件溯源按类型分流投影）。 */
         ReviewCandidateHistoryRecord: {
@@ -12683,10 +12941,51 @@ export interface components {
                 projectionSynced?: boolean;
             };
         };
+        /** @description 数据角色卡（一数据文件一行：唯一写者/派生来源/分段读写面/消费方） */
+        DataRolesEntry: {
+            /** @description 数据文件路径（相对 vault） */
+            file?: string;
+            /** @description 数据角色名 */
+            role?: string;
+            /** @description 唯一合法写者 */
+            writer?: string;
+            /** @description 派生来源文件列表 */
+            derives?: string[];
+            /** @description 文件分段（tab 编辑面与只读段的划分） */
+            segments?: ({
+                /** @description 段名 */
+                segment?: string;
+                /** @description 可编辑该段的页面 tab（null=只读段） */
+                edited_by_tab?: string | null;
+                /** @description 引用方（元素结构未观测到样本） */
+                referenced_by?: unknown[];
+            } & {
+                [key: string]: unknown;
+            })[];
+            /** @description 引用该数据的页面/服务 */
+            referenced_by?: string[];
+            /** @description 持久化方式 */
+            persistence?: string;
+            /** @description 留存策略 */
+            retention?: string;
+            /** @description 消费方清单 */
+            consumers?: ({
+                /** @description 消费方名 */
+                name?: string;
+                /** @description 消费方类别 */
+                kind?: string;
+                /** @description 消费方位置（文件/模块） */
+                location?: string;
+            } & {
+                [key: string]: unknown;
+            })[];
+        } & {
+            [key: string]: unknown;
+        };
         DataRolesReadEnvelope: components["schemas"]["ApiEnvelope_Data"] & {
             data: {
                 schema_version?: number;
-                entries?: Record<string, never>[];
+                entries?: components["schemas"]["DataRolesEntry"][];
             };
         };
         /** @description DATA_ROLES_UNAVAILABLE：角色注册表不可读（contracts/theschema-roles.json 缺失或畸形） */
@@ -14208,15 +14507,18 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        actions?: {
-                            gapId?: string;
-                            action?: string;
-                            note?: string;
-                            resolvedAt?: string;
-                        }[];
-                        resolvedGapIds?: string[];
-                        total?: number;
+                    "application/json": components["schemas"]["ApiEnvelope_Data"] & {
+                        /** @description 已处置治理动作清单（信封 data 层——顶层幽灵声明 actions/resolvedGapIds/total 系历史误登记，实际线上只有信封形；红队 P2 实证 kg-routes.cjs sendJSON 包裹） */
+                        data: {
+                            actions: {
+                                gapId?: string;
+                                action?: string;
+                                note?: string;
+                                resolvedAt?: string;
+                            }[];
+                            resolvedGapIds?: string[];
+                            total?: number;
+                        };
                     };
                 };
             };

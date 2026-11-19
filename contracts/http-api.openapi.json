@@ -824,6 +824,28 @@
               "null"
             ],
             "description": "展示用自动序号（整改5，ANOM-N）：检出时由账本分配、单调递增不复用；行/peek 头部显示 ANOM-{displaySeq}，issueId 降级为内部键（title 悬浮+peek 属性）。存量补号=按 createdAt 升序首次 load 时分配"
+          },
+          "diagnosticTracked": {
+            "type": "boolean",
+            "description": "该问题是否已进入全局诊断追踪（diagnostic run 登记态；读侧只呈现）"
+          },
+          "diagnosticActive": {
+            "type": "boolean",
+            "description": "诊断进行中标记（诊断执行后出现）"
+          },
+          "lastDiagnosticJobId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "最近诊断任务 id"
+          },
+          "lastDetectedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "最近检出时间"
           }
         }
       },
@@ -1956,6 +1978,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "description": {
+            "type": "string",
+            "description": "模块说明（enums.yaml modules.<name>.description）"
           }
         }
       },
@@ -2768,7 +2794,38 @@
               "nodes": {
                 "type": "array",
                 "items": {
-                  "type": "object"
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "type": "string",
+                      "description": "节点类别"
+                    },
+                    "labels": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      },
+                      "description": "节点类型标记列表"
+                    },
+                    "properties": {
+                      "type": "object",
+                      "additionalProperties": true,
+                      "description": "节点属性开放映射（键=属性名，如 file_path/module/source_path/title，随节点类型而异）"
+                    },
+                    "sublabel": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "节点副标签"
+                    }
+                  }
                 }
               },
               "connections": {
@@ -2776,6 +2833,45 @@
                 "items": {
                   "type": "object"
                 }
+              },
+              "version": {
+                "type": "string",
+                "description": "主图版本号"
+              },
+              "_format_version": {
+                "type": "string",
+                "description": "图产物格式版本"
+              },
+              "_vault_extract_applied_at": {
+                "type": "string",
+                "description": "vault 抽取应用时刻"
+              },
+              "pendingReview": {
+                "type": "array",
+                "description": "待审边集合（元素未观测）"
+              },
+              "unresolvedWikilinks": {
+                "type": "array",
+                "description": "未解析 wikilink（元素未观测）"
+              },
+              "ontology": {
+                "type": "object",
+                "description": "产物内嵌本体（与 /api/schema/ontology data 同构）",
+                "properties": {
+                  "node_types": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/SchemaOntologyNodeType"
+                    }
+                  },
+                  "relation_types": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/SchemaOntologyRelationType"
+                    }
+                  }
+                },
+                "additionalProperties": true
               }
             }
           }
@@ -2843,6 +2939,89 @@
               },
               "freshness": {
                 "$ref": "#/components/schemas/ReleaseFreshness"
+              },
+              "crosscutting": {
+                "type": "array",
+                "items": {},
+                "description": "跨界依赖（元素结构未观测到样本，宁宽登记）"
+              },
+              "gaps": {
+                "type": "array",
+                "description": "架构缺口清单（release 投影产物）",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "componentId": {
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "label": {
+                      "type": "string"
+                    },
+                    "detail": {
+                      "type": "string"
+                    },
+                    "severity": {
+                      "type": "string"
+                    },
+                    "missing": {
+                      "type": "array",
+                      "items": {}
+                    },
+                    "hasGraphNode": {
+                      "type": "boolean"
+                    },
+                    "hasWikiPage": {
+                      "type": "boolean"
+                    },
+                    "hasContent": {
+                      "type": "boolean"
+                    },
+                    "relationCount": {
+                      "type": "integer"
+                    },
+                    "wikiPath": {
+                      "type": "string"
+                    },
+                    "layer": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "candidates": {
+                "type": "array",
+                "items": {},
+                "description": "候选条目（元素结构未观测到样本，宁宽登记）"
+              },
+              "coverage": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true,
+                "description": "覆盖面对账（投影产物；无数据为 null，结构随投影未固化）"
+              },
+              "audit": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true,
+                "description": "审计摘要（投影产物；无数据为 null，结构随投影未固化）"
+              },
+              "layout": {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "additionalProperties": true,
+                "description": "布局数据（投影产物；无数据为 null，结构随投影未固化）"
               }
             }
           }
@@ -3703,6 +3882,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "associations": {
+            "type": "array",
+            "description": "该文章的关联清单（元素形状本次未观测，宁宽不猜）"
           }
         }
       },
@@ -4007,6 +4190,10 @@
                 },
                 "label": {
                   "type": "string"
+                },
+                "group": {
+                  "type": "string",
+                  "description": "组件分组名"
                 }
               }
             }
@@ -4347,6 +4534,10 @@
               }
             },
             "description": "证据记录随行（TALOS provenance 模式）——建议永不替代裁决"
+          },
+          "article_stage": {
+            "type": "string",
+            "description": "文章阶段标记（article_graph 管道产物的 stage）"
           }
         }
       },
@@ -4412,6 +4603,14 @@
             "items": {
               "$ref": "#/components/schemas/PendingReviewEdge"
             }
+          },
+          "dataSource": {
+            "type": "string",
+            "enum": [
+              "worktree",
+              "precleaned-worktree"
+            ],
+            "description": "数据来源标识：worktree=工作树投影（E3 例外分支）；release=正式 Release 投影；precleaned-worktree=候选文章 precleaned 工作区。与 releaseId/sourceCommit 互斥。"
           }
         }
       },
@@ -4508,6 +4707,18 @@
           "updated": {
             "type": "integer",
             "description": "本次审核写回更新的 master_graph 边数量"
+          },
+          "assertedBy": {
+            "type": "object",
+            "description": "裁决记录者",
+            "properties": {
+              "actorId": {
+                "type": "string"
+              },
+              "actorType": {
+                "type": "string"
+              }
+            }
           }
         }
       },
@@ -4533,6 +4744,19 @@
               "$ref": "#/components/schemas/ReviewCandidateHistoryRecord"
             },
             "description": "候选级裁决（与 records 边级分列，total=两者之和）"
+          },
+          "dataSource": {
+            "type": "string",
+            "enum": [
+              "worktree",
+              "precleaned-worktree"
+            ],
+            "description": "数据来源标识：worktree=工作树投影（E3 例外分支）；release=正式 Release 投影；precleaned-worktree=候选文章 precleaned 工作区。与 releaseId/sourceCommit 互斥。"
+          },
+          "workingRevision": {
+            "type": "string",
+            "pattern": "^sha256:[0-9a-f]{64}$",
+            "description": "实际读取字节的 SHA-256 修订（E3 约束：data-flow-contract-zh.md:91）。用于识别可变输入与乐观并发，不持久化、不参与批准/发布资格。"
           }
         }
       },
@@ -4827,6 +5051,31 @@
               }
             }
           }
+        },
+        "additionalProperties": {
+          "type": "object",
+          "description": "检查名开放映射（键=检查名，如 document_module_entity）；已固定声明的检查见 properties",
+          "properties": {
+            "passed": {
+              "type": "boolean"
+            },
+            "applicable": {
+              "type": "boolean",
+              "description": "该检查是否适用于本组件（不适用时其余字段为空形态）"
+            },
+            "moduleName": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string",
+              "description": "不通过原因文案"
+            },
+            "docFilePath": {
+              "type": "string",
+              "description": "检查涉及的文档路径"
+            }
+          },
+          "additionalProperties": true
         }
       },
       "ComplianceFinding": {
@@ -4910,6 +5159,10 @@
                 }
               }
             }
+          },
+          "_group": {
+            "type": "string",
+            "description": "所属检查组 id 冗余（后端打平写入，前端免反查分组）"
           }
         }
       },
@@ -5212,6 +5465,46 @@
             "items": {
               "type": "string"
             }
+          },
+          "errors": {
+            "type": "array",
+            "items": {},
+            "description": "错误级明细（元素结构未观测到样本，宁宽登记）"
+          },
+          "warnings": {
+            "type": "array",
+            "description": "警告级明细（与 warningDetails 同构）",
+            "items": {
+              "type": "object",
+              "properties": {
+                "entityId": {
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                },
+                "sourceKey": {
+                  "type": "string"
+                },
+                "ruleId": {
+                  "type": "string"
+                },
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "hint": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "infos": {
+            "type": "array",
+            "items": {},
+            "description": "参考级明细（元素结构未观测到样本，宁宽登记）"
           }
         }
       },
@@ -6620,6 +6913,45 @@
           }
         }
       },
+      "ReadModelVersion": {
+        "type": "object",
+        "description": "读模型版本指纹（/api/read-model/version 与 /api/pipeline/status 共用同构）",
+        "required": [
+          "version",
+          "components",
+          "computedAt"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "description": "rm1 前缀聚合身份"
+          },
+          "components": {
+            "type": "object",
+            "properties": {
+              "graph": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "derived": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "vocab": {
+                "type": "string"
+              }
+            }
+          },
+          "computedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "PipelineJob": {
         "type": "object",
         "required": [
@@ -6722,7 +7054,23 @@
                 "type": "null"
               }
             ],
-            "description": "全局管道诊断完成后的统一待处理问题对账摘要"
+            "description": "全局管道诊断完成后的统一待处理问题对账摘要",
+            "properties": {
+              "sourceDeletedCount": {
+                "type": "integer",
+                "description": "源已删除计数"
+              }
+            }
+          },
+          "lastStage": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "最近停留的管道阶段（尚无运行为 null）"
+          },
+          "readModelVersion": {
+            "$ref": "#/components/schemas/ReadModelVersion"
           }
         }
       },
@@ -7082,6 +7430,10 @@
               }
             },
             "description": "promote 上报通道（#862）：validate 分级的可上报字段问题，随任务落盘供 anomaly collector 消费"
+          },
+          "fieldProvenance": {
+            "$ref": "#/components/schemas/FieldProvenanceMap",
+            "description": "受管字段来源快照（WP-169 面；上传列表实返回）"
           }
         }
       },
@@ -7271,6 +7623,10 @@
                   "sourceCommit": {
                     "type": "string",
                     "pattern": "^[0-9a-f]{40}$"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "当前标准版标题"
                   }
                 }
               }
@@ -8542,6 +8898,56 @@
             "items": {
               "$ref": "#/components/schemas/DocumentRelationEntry"
             }
+          },
+          "body": {
+            "type": "string",
+            "description": "正文全文（markdown 源文内容）"
+          },
+          "categoryPath": {
+            "type": "string",
+            "description": "分类路径串"
+          },
+          "created": {
+            "type": "string",
+            "description": "创建时间（ISO 8601）"
+          },
+          "hasBody": {
+            "type": "boolean",
+            "description": "是否携带正文"
+          },
+          "parentId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "父文档 id（根文档为 null）"
+          },
+          "tokens": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "检索分词结果"
+          },
+          "readablePath": {
+            "type": "string",
+            "description": "人读路径（分类层级显示名）"
+          },
+          "associations": {
+            "type": "array",
+            "description": "文档关联清单（元素形状未观测）"
+          },
+          "componentIds": {
+            "type": "array",
+            "description": "所属组件 id 集合（元素未观测）"
+          },
+          "ownerSourceHash": {
+            "type": "string",
+            "description": "归属源哈希"
+          },
+          "ownerSourcePath": {
+            "type": "string",
+            "description": "归属源路径"
           }
         }
       },
@@ -12041,6 +12447,9 @@
               },
               "subdomains": {
                 "type": "integer"
+              },
+              "tags": {
+                "type": "integer"
               }
             },
             "required": [
@@ -12209,20 +12618,154 @@
           "orphanEntities"
         ]
       },
+      "SchemaOntologyNodeType": {
+        "type": "object",
+        "description": "节点类型定义（键=类型名，开放集合，随 ontology.yaml 生长）",
+        "properties": {
+          "description": {
+            "type": "string",
+            "description": "类型说明"
+          },
+          "category": {
+            "type": "string",
+            "description": "节点大类归类"
+          },
+          "subClassOf": {
+            "type": "string",
+            "description": "父类型名（类型继承）"
+          },
+          "data_properties": {
+            "type": "object",
+            "description": "自有数据属性表（键=属性名，开放集合）",
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "required": {
+                  "type": "boolean",
+                  "description": "该属性是否必填"
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      },
+      "SchemaOntologyRelationType": {
+        "type": "object",
+        "description": "关系类型定义（键=关系名，开放集合，随 ontology.yaml 生长）",
+        "properties": {
+          "direction": {
+            "type": "string",
+            "description": "方向语义"
+          },
+          "weight_default": {
+            "type": "number",
+            "description": "默认权重（0..1 浮点——optionalNumber 语义，服务端 relation-capability-selector 实证；旧声明 integer 在关系类型带小数权重时触发 enforce 假拦）"
+          },
+          "description": {
+            "type": "string",
+            "description": "关系说明"
+          },
+          "label_cn": {
+            "type": "string",
+            "description": "中文名"
+          },
+          "source_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "允许的源端节点类型"
+          },
+          "target_types": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "允许的目标端节点类型"
+          },
+          "semantic_role": {
+            "type": "string",
+            "description": "语义角色"
+          },
+          "candidate_enabled": {
+            "type": "boolean",
+            "description": "是否进入候选推荐"
+          },
+          "fact_encoding": {
+            "type": "string",
+            "description": "事实编码方式"
+          },
+          "projected": {
+            "type": "boolean",
+            "description": "是否投影进读模型"
+          },
+          "versionable": {
+            "type": "boolean",
+            "description": "是否随版本化"
+          },
+          "impact_propagation": {
+            "type": "string",
+            "description": "影响传播策略"
+          },
+          "legacy_policy": {
+            "type": "string",
+            "description": "存量数据策略"
+          },
+          "assertion_policies": {
+            "type": "array",
+            "description": "断言策略（按来源通道分档）",
+            "items": {
+              "type": "object",
+              "properties": {
+                "source_kind": {
+                  "type": "string",
+                  "description": "证据来源类型"
+                },
+                "producer": {
+                  "type": "string",
+                  "description": "产生方"
+                },
+                "decision_mode": {
+                  "type": "string",
+                  "description": "裁决方式"
+                },
+                "required_evidence": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "必备证据清单"
+                },
+                "formal_consumers": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "正式消费方清单"
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      },
       "SchemaOntologyData": {
         "type": "object",
         "properties": {
           "node_types": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
+              "$ref": "#/components/schemas/SchemaOntologyNodeType"
             },
             "description": "实体类型定义表（值结构见 Vault TheSchema/ontology.yaml node_types）"
           },
           "relation_types": {
             "type": "object",
             "additionalProperties": {
-              "type": "object"
+              "$ref": "#/components/schemas/SchemaOntologyRelationType"
             },
             "description": "关系类型定义表（含 assertion_policies 等）"
           },
@@ -12346,6 +12889,13 @@
             "items": {
               "$ref": "#/components/schemas/EntityGrowthSample"
             }
+          },
+          "sources": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "提及该候选的来源文件（相对 vault）"
           }
         }
       },
@@ -12641,6 +13191,13 @@
           },
           "sealed": {
             "type": "boolean"
+          },
+          "message": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "违规人话文案（校验未通过时透出；无值为 null）"
           }
         }
       },
@@ -13088,6 +13645,10 @@
           "unlabeled": {
             "type": "integer",
             "description": "缺 label 词条数（生长观察面——仅 subdomain 维度非零，语义债可视化）"
+          },
+          "dead": {
+            "type": "integer",
+            "description": "死词计数（零使用正式词，分维度口径）"
           }
         }
       },
@@ -13689,6 +14250,95 @@
           }
         ]
       },
+      "DataRolesEntry": {
+        "type": "object",
+        "description": "数据角色卡（一数据文件一行：唯一写者/派生来源/分段读写面/消费方）",
+        "properties": {
+          "file": {
+            "type": "string",
+            "description": "数据文件路径（相对 vault）"
+          },
+          "role": {
+            "type": "string",
+            "description": "数据角色名"
+          },
+          "writer": {
+            "type": "string",
+            "description": "唯一合法写者"
+          },
+          "derives": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "派生来源文件列表"
+          },
+          "segments": {
+            "type": "array",
+            "description": "文件分段（tab 编辑面与只读段的划分）",
+            "items": {
+              "type": "object",
+              "properties": {
+                "segment": {
+                  "type": "string",
+                  "description": "段名"
+                },
+                "edited_by_tab": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "可编辑该段的页面 tab（null=只读段）"
+                },
+                "referenced_by": {
+                  "type": "array",
+                  "items": {},
+                  "description": "引用方（元素结构未观测到样本）"
+                }
+              },
+              "additionalProperties": true
+            }
+          },
+          "referenced_by": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "引用该数据的页面/服务"
+          },
+          "persistence": {
+            "type": "string",
+            "description": "持久化方式"
+          },
+          "retention": {
+            "type": "string",
+            "description": "留存策略"
+          },
+          "consumers": {
+            "type": "array",
+            "description": "消费方清单",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "消费方名"
+                },
+                "kind": {
+                  "type": "string",
+                  "description": "消费方类别"
+                },
+                "location": {
+                  "type": "string",
+                  "description": "消费方位置（文件/模块）"
+                }
+              },
+              "additionalProperties": true
+            }
+          }
+        },
+        "additionalProperties": true
+      },
       "DataRolesReadEnvelope": {
         "allOf": [
           {
@@ -13709,7 +14359,7 @@
                   "entries": {
                     "type": "array",
                     "items": {
-                      "type": "object"
+                      "$ref": "#/components/schemas/DataRolesEntry"
                     }
                   }
                 }
@@ -19087,6 +19737,9 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/EntityCheckData"
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -19149,6 +19802,9 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/EntityReadinessData"
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -19778,6 +20434,9 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/MasterGraphData"
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -19870,6 +20529,27 @@
                             "reconcileStale": {
                               "type": "boolean",
                               "description": "对账心跳超 2×周期（10 分钟）未更新（setInterval 静默失效的可见化，SPEC-012 WP-B）"
+                            },
+                            "schemaSelfcheck": {
+                              "type": "object",
+                              "description": "Schema 自检摘要（数据面违规计数与样本）",
+                              "properties": {
+                                "outcome": {
+                                  "type": "string",
+                                  "description": "自检结论"
+                                },
+                                "dataViolationCount": {
+                                  "type": "integer",
+                                  "description": "数据面违规条数"
+                                },
+                                "dataViolationSample": {
+                                  "type": "array",
+                                  "items": {
+                                    "type": "string"
+                                  },
+                                  "description": "违规样本（路径片段）"
+                                }
+                              }
                             }
                           }
                         }
@@ -20167,6 +20847,9 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/CanvasAdmissionData"
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -21122,6 +21805,9 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/SearchDocumentsResponse"
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -21715,6 +22401,9 @@
                           }
                         }
                       }
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -22989,6 +23678,9 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/SchemaDiscoveryData"
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -24024,6 +24716,9 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/SchemaOntologyData"
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -26117,6 +26812,9 @@
                     },
                     "data": {
                       "$ref": "#/components/schemas/RulesLifecycleData"
+                    },
+                    "trace_id": {
+                      "type": "string"
                     }
                   }
                 }
@@ -27495,50 +28193,31 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "readModelVersion"
-                  ],
-                  "properties": {
-                    "readModelVersion": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope_Data"
+                    },
+                    {
                       "type": "object",
                       "required": [
-                        "version",
-                        "components",
-                        "computedAt"
+                        "data"
                       ],
                       "properties": {
-                        "version": {
-                          "type": "string",
-                          "description": "rm1 前缀聚合身份"
-                        },
-                        "components": {
+                        "data": {
                           "type": "object",
+                          "required": [
+                            "readModelVersion"
+                          ],
                           "properties": {
-                            "graph": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "derived": {
-                              "type": [
-                                "string",
-                                "null"
-                              ]
-                            },
-                            "vocab": {
-                              "type": "string"
+                            "readModelVersion": {
+                              "$ref": "#/components/schemas/ReadModelVersion"
                             }
-                          }
-                        },
-                        "computedAt": {
-                          "type": "string",
-                          "format": "date-time"
+                          },
+                          "description": "信封 data 内保留 readModelVersion 包裹层（本端点实现形态——服务端 sendJSON(200,{readModelVersion}) 实证）"
                         }
                       }
                     }
-                  }
+                  ]
                 }
               }
             }
@@ -27586,65 +28265,79 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "required": [
-                    "scope",
-                    "total",
-                    "healthy",
-                    "unhealthyCount",
-                    "files",
-                    "generatedAt"
-                  ],
-                  "properties": {
-                    "scope": {
-                      "type": "string"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope_Data"
                     },
-                    "total": {
-                      "type": "integer"
-                    },
-                    "healthy": {
-                      "type": "integer"
-                    },
-                    "unhealthyCount": {
-                      "type": "integer"
-                    },
-                    "generatedAt": {
-                      "type": "string"
-                    },
-                    "files": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "required": [
-                          "file",
-                          "ok",
-                          "violations"
-                        ],
-                        "properties": {
-                          "file": {
-                            "type": "string"
-                          },
-                          "ok": {
-                            "type": "boolean"
-                          },
-                          "violations": {
-                            "type": "array",
-                            "items": {
-                              "type": "object",
-                              "required": [
-                                "ruleId",
-                                "field",
-                                "error"
-                              ],
-                              "properties": {
-                                "ruleId": {
-                                  "type": "string"
-                                },
-                                "field": {
-                                  "type": "string"
-                                },
-                                "error": {
-                                  "type": "string"
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "required": [
+                            "scope",
+                            "total",
+                            "healthy",
+                            "unhealthyCount",
+                            "files",
+                            "generatedAt"
+                          ],
+                          "properties": {
+                            "scope": {
+                              "type": "string"
+                            },
+                            "total": {
+                              "type": "integer"
+                            },
+                            "healthy": {
+                              "type": "integer"
+                            },
+                            "unhealthyCount": {
+                              "type": "integer"
+                            },
+                            "generatedAt": {
+                              "type": "string"
+                            },
+                            "files": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "required": [
+                                  "file",
+                                  "ok",
+                                  "violations"
+                                ],
+                                "properties": {
+                                  "file": {
+                                    "type": "string"
+                                  },
+                                  "ok": {
+                                    "type": "boolean"
+                                  },
+                                  "violations": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object",
+                                      "required": [
+                                        "ruleId",
+                                        "field",
+                                        "error"
+                                      ],
+                                      "properties": {
+                                        "ruleId": {
+                                          "type": "string"
+                                        },
+                                        "field": {
+                                          "type": "string"
+                                        },
+                                        "error": {
+                                          "type": "string"
+                                        }
+                                      }
+                                    }
+                                  }
                                 }
                               }
                             }
@@ -27652,7 +28345,7 @@
                         }
                       }
                     }
-                  }
+                  ]
                 }
               }
             }
@@ -28589,38 +29282,58 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "actions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "gapId": {
-                            "type": "string"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope_Data"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "actions"
+                          ],
+                          "properties": {
+                            "actions": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "gapId": {
+                                    "type": "string"
+                                  },
+                                  "action": {
+                                    "type": "string"
+                                  },
+                                  "note": {
+                                    "type": "string"
+                                  },
+                                  "resolvedAt": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "resolvedGapIds": {
+                              "type": "array",
+                              "items": {
+                                "type": "string"
+                              }
+                            },
+                            "total": {
+                              "type": "integer"
+                            }
                           },
-                          "action": {
-                            "type": "string"
-                          },
-                          "note": {
-                            "type": "string"
-                          },
-                          "resolvedAt": {
-                            "type": "string"
-                          }
+                          "description": "已处置治理动作清单（信封 data 层——顶层幽灵声明 actions/resolvedGapIds/total 系历史误登记，实际线上只有信封形；红队 P2 实证 kg-routes.cjs sendJSON 包裹）"
                         }
                       }
-                    },
-                    "resolvedGapIds": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "total": {
-                      "type": "integer"
                     }
-                  }
+                  ],
+                  "description": "已处置治理动作清单（标准信封形）"
                 }
               }
             }

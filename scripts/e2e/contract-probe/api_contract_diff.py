@@ -1,0 +1,1090 @@
+#!/usr/bin/env python3
+# WP-189 整搬件：原封取自 OpenBKN bkn-foundry（github.com/openbkn-ai/bkn-foundry，
+# docs/api/tools/api_contract_diff.py，Apache License 2.0）。许可与 NOTICE 登记：
+# THIRD-PARTY-NOTICES.md「整搬件」节；本文件保留 Apache-2.0 声明如下。
+#
+#   Copyright 2026 OpenBKN contributors
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+#
+# 适配四处（合同 docs/work-packages/WP-189.json，设计稿§三；其余逻辑逐行保持上游）：
+#   ① spec 入参支持单一 JSON 文件（本仓契约 contracts/http-api.openapi.json 为单文件；
+#      仍兼容上游 spec 目录形态）；.json 走 stdlib json，yaml 改为惰性导入——本仓用法零
+#      新依赖（上游依赖 PyYAML 仅为读 yaml spec，D1 据此裁定无需安装）。
+#      调用面默认值随本仓形态：--face 默认 ex、--exec-mode 默认 direct（上游默认
+#      in/kubectl 系其集群部署形态；本仓为单机直连）。
+#   ② 报告落点经 --out/--json-out 调用于 scripts/test-results/contract-probe/（调用面，无代码改动）。
+#   ③ OpenAPI 3.1 nullable/type 数组调校：type 可为 ["string","null"] 数组——取首个非 null
+#      作主类型（WP-169 批教训在册：裸 nullable/类型数组处理不当会假红）。
+#   ④ 自测试 test_documented_contracts.py 随迁改写为本仓引擎离线单测（上游原断言针对
+#      bkn-foundry 自身文档与实现，域不合；守护对象＝移植后的引擎纯函数）。
+#   ⑤ 引擎比对能力补强（Master 2026-11-19 批准，WP-196 同批；上游同有限制）：
+#      (a) 递归 $ref 限深展开（frozenset 硬停→tuple 计次，MAX_REF_DEPTH=3）——
+#          递归树形（taxonomyTree[].children[].…）子层字段进比对面；
+#      (b) 通配折叠保留首段数组标记（.*[] 落字面键折叠不错位）——
+#          数组内开映射（subdomains.<域>[].id）进比对面。
+#
+# 域数据适配说明：DISCOVERY/SUB_DISCOVERY 表为上游 OpenBKN 服务拓扑数据，本仓不改其内容
+#（保持逐行原样）；经调用面 --host-map 按本仓 API 顶层段映射服务地址后，上游发现路径天然
+# 不命中（host_of=None 静默跳过，零伪请求）；本仓 7 个带路径参数的 GET 经 --ids 种子覆盖。
+#
+# 与上游原文一致的部分（未改动）：probe 机制（x-contract-probe 标注即授权）、只读保证
+#（默认仅 GET，POST 需显式标注或 override 头）、防自欺报告（空响应样本不计入已验证、
+# known-limitations）、退出码 0/1/2。
+"""
+api_contract_diff.py —— 对比"服务实际返回"与"OpenAPI 设计文档",输出字段级缺口报告。
+
+与静态代码比对不同:本脚本真实调用运行中的服务,把实际响应 JSON 的字段结构
+与文档声明的 200 响应 schema 逐字段比对,因此能覆盖静态分析看不到的部分
+(handler 返回结构体、跨层组装、序列化 omitempty 等)。
+
+用法（本仓）
+----
+  # 直连本机服务(外部面)
+  ./api_contract_diff.py --spec-dir contracts/http-api.openapi.json \
+      --exec-mode direct --face ex \
+      --host-map '{"/api/":"http://127.0.0.1:18083"}' --out report.md
+
+  # 带路径参数种子的完整形态（见 scripts/e2e/run-all-e2e.mjs probe runner）
+  ./api_contract_diff.py --spec-dir contracts/http-api.openapi.json \
+      --exec-mode direct --face ex --host-map '<json>' --ids '<json>' \
+      --out scripts/test-results/contract-probe/contract-probe-report.md
+
+只读保证
+--------
+默认仅发送 GET。另有两条按需开启的只读 POST 通道,任何情况下都不发送 PUT/DELETE,
+也不发送未被显式标注为只读的 POST:
+
+  --include-query-post   带 x-http-method-override:GET 语义的只读 POST
+  --include-probe-post   文档里用 x-contract-probe 显式标注 readonly:true 的 POST
+
+本仓首批两通道均不开启（GET-only；x-contract-probe 标注立法走 D2 另批）。
+标注写在 OpenAPI 操作上,与端点同源、随 PR 一起评审:
+
+  post:
+    x-contract-probe:
+      readonly: true            # 显式承诺无副作用;不写就永远不会被请求
+      order: 1                  # 批次,低的先跑,同批并发
+      body: {limit: 3}          # 请求体模板,值里可用 {kn_id} 引用已发现的参数
+      query: {kn_id: "{kn_id}"} # 可选,额外 query 参数
+      provides: {kn_id: entries[0].id}   # 从本次响应里取值,供后续批次使用
+
+有副作用的端点(execute_action 之类)不写这段标注即可,工具不会碰它们。
+
+退出码:0 无缺口;1 有缺口;2 执行错误。
+"""
+
+import argparse
+import json
+import os
+import re
+import subprocess
+import sys
+from collections import OrderedDict
+
+try:
+    import yaml
+except ImportError:  # 适配①：yaml 惰性可用——仅加载 .yaml spec 时才需要（本仓契约为 JSON）
+    yaml = None
+
+
+# --------------------------------------------------------------------------
+# OpenAPI 解析
+# --------------------------------------------------------------------------
+
+class SpecLoader:
+    """加载 spec（目录下全部 yaml 或单一 json/yaml 文件）,解析 $ref(含跨文件)/oneOf/anyOf/allOf。"""
+
+    def __init__(self, spec_dir, skip_files=()):
+        self.spec_dir = spec_dir
+        self.skip = tuple(skip_files)
+        self._cache = {}
+
+    def _load(self, path):
+        if path not in self._cache:
+            with open(path) as fh:
+                if path.endswith(".json"):
+                    # 适配①：单一 JSON 契约走 stdlib json，零第三方依赖
+                    self._cache[path] = json.load(fh) or {}
+                else:
+                    if yaml is None:
+                        raise RuntimeError(
+                            f"加载 {path} 需要 PyYAML（pip install pyyaml）；"
+                            "JSON spec 无此依赖")
+                    self._cache[path] = yaml.safe_load(fh) or {}
+        return self._cache[path]
+
+    def files(self):
+        # 适配①：--spec-dir 传单一文件时直接以该文件为唯一 spec
+        if os.path.isfile(self.spec_dir):
+            return [self.spec_dir]
+        out = []
+        for root, _, names in os.walk(self.spec_dir):
+            if any(part in root for part in ("_shared", "_templates", "_generated")):
+                continue
+            for n in sorted(names):
+                if not n.endswith((".yaml", ".yml", ".json")):
+                    continue
+                p = os.path.join(root, n)
+                if any(s in p for s in self.skip):
+                    continue
+                out.append(p)
+        return out
+
+    def resolve(self, node, doc, path, depth=0):
+        """展开 $ref,返回实际 schema 节点。"""
+        if not isinstance(node, dict) or depth > 20:
+            return node if isinstance(node, dict) else {}
+        if "$ref" not in node:
+            return node
+        ref = node["$ref"]
+        if ref.startswith("#/"):
+            cur = doc
+            for seg in ref[2:].split("/"):
+                cur = cur.get(seg, {}) if isinstance(cur, dict) else {}
+            return self.resolve(cur, doc, path, depth + 1)
+        file_part, _, frag = ref.partition("#")
+        target = os.path.normpath(os.path.join(os.path.dirname(path), file_part))
+        if not os.path.exists(target):
+            return {}
+        doc2 = self._load(target)
+        cur = doc2
+        # frag 形如 "/components/schemas/X",只需去掉开头的一个 "/"
+        for seg in (frag.lstrip("/").split("/") if frag else []):
+            cur = cur.get(seg, {}) if isinstance(cur, dict) else {}
+        return self.resolve(cur, doc2, target, depth + 1)
+
+    MAX_DEPTH = 7
+    # 适配⑤：同一 $ref 允许展开的最大次数（1＝仅首层；3＝根＋两层嵌套——
+    # 覆盖递归树形（如 taxonomyTree[].children[].…）的常规深度；更深的实际层
+    # 若返回会被如实报为「文档未声明」，契约侧递归声明仍在（诚实优于假绿）。
+    MAX_REF_DEPTH = 3
+
+    def field_paths(self, schema, doc, path, prefix="", depth=0, seen=None,
+                    required=True, out=None):
+        """把 schema 摊平成 {字段路径: (类型, 是否 required 链)}。
+
+        seen 记录已展开的 $ref,避免递归 schema(如 condition.sub_conditions)
+        无限自引用炸出成百上千条无意义路径。
+        required 表示从根到此字段是否整条链都在 required 列表里 —— 只有整条
+        链必填的字段"未返回"才算硬缺口,其余归入可选未观测。
+        """
+        if out is None:
+            out = OrderedDict()
+        if seen is None:
+            seen = ()                 # 适配⑤：frozenset→tuple——同引用按次数限深（递归 $ref 子树进比对面）
+        if depth > self.MAX_DEPTH:
+            return out
+
+        ref_key = schema.get("$ref") if isinstance(schema, dict) else None
+        if ref_key:
+            if seen.count(ref_key) >= self.MAX_REF_DEPTH:
+                return out           # 环:同引用限深停止（MAX_REF_DEPTH 层内仍展开，防无限自引用）
+            seen = seen + (ref_key,)
+        schema = self.resolve(schema, doc, path)
+        if not isinstance(schema, dict):
+            return out
+
+        for key in ("oneOf", "anyOf", "allOf"):
+            for sub in schema.get(key) or []:
+                # oneOf / anyOf 只需满足其中一个分支,分支内的 required 不能
+                # 当成全局必填(否则 action_source 的 Tool 形态与 MCP 形态会
+                # 互相报对方的字段缺失)。allOf 是合取,保留 required。
+                sub_req = required if key == "allOf" else False
+                self.field_paths(sub, doc, path, prefix, depth + 1, seen, sub_req, out)
+
+        if _is_array_schema(schema):
+            # 记下数组形态本身。oneOf 分支里的数组(如 mapping_rules 的 direct
+            # 形态)否则只会留下父级的 object 记录,和实际的 `key[]` 对不上。
+            # prefix 为空 = 响应根就是数组(如 GET /category),此时
+            # actual_paths 会产出一条裸 "[]",文档侧不记就会误报「文档未声明」,
+            # 所以根节点也要记,不能只在 prefix 非空时记。
+            out.setdefault(prefix + "[]",
+                           (_primary_type((schema.get("items") or {}).get("type", "object")),
+                            required))
+            self.field_paths(schema.get("items", {}), doc, path, prefix + "[]",
+                             depth + 1, seen, required, out)
+            return out
+
+        # additionalProperties 表示该节点的 key 是开放的:
+        #   true      —— 完全 opaque(如工具执行结果)
+        #   {schema}  —— key 任意、值符合该 schema(如 map[string]FieldConfig)
+        # 两种都用 "<prefix>.*" 这个通配路径表示,实际返回的 key 会被归一化到它。
+        ap = schema.get("additionalProperties")
+        if prefix and ap is True:
+            out.setdefault(prefix + ".*", ("any", False))
+        elif prefix and isinstance(ap, dict) and ap:
+            out.setdefault(prefix + ".*", ("object", False))
+            self.field_paths(ap, doc, path, prefix + ".*",
+                             depth + 1, seen, False, out)
+
+        req_names = set(schema.get("required") or [])
+        for name, sub in (schema.get("properties") or {}).items():
+            sub_ref = sub.get("$ref") if isinstance(sub, dict) else None
+            sub_r = self.resolve(sub, doc, path)
+            key = f"{prefix}.{name}" if prefix else name
+            child_req = required and (name in req_names)
+            # 适配③：type 数组（nullable 惯例）取主类型
+            t = _primary_type(sub_r.get("type"))
+            if t == "array":
+                out[key + "[]"] = (_primary_type((sub_r.get("items") or {}).get("type", "object")),
+                                   child_req)
+                if not (sub_ref and seen.count(sub_ref) >= self.MAX_REF_DEPTH):
+                    self.field_paths(sub_r.get("items", {}), doc, path, key + "[]",
+                                     depth + 1, seen + ((sub_ref,) if sub_ref else ()),
+                                     child_req, out)
+            else:
+                out[key] = (t or "object", child_req)
+                # 属性值可能是 oneOf/anyOf/allOf 组合(如 mapping_rules 按
+                # 关系类型分三种形态),这类节点既无 type 也无 properties,
+                # 漏掉就等于整条分支从未展开。
+                combi = any(k in sub_r for k in ("oneOf", "anyOf", "allOf"))
+                if (t == "object" or "properties" in sub_r or combi) \
+                        and not (sub_ref and seen.count(sub_ref) >= self.MAX_REF_DEPTH):
+                    self.field_paths(sub_r, doc, path, key, depth + 1,
+                                     seen + ((sub_ref,) if sub_ref else ()),
+                                     child_req, out)
+        return out
+
+    def operations(self, face="ex"):
+        """产出所有操作:(module, method, url, doc_schema_fields, op_meta)"""
+        ops = []
+        for p in self.files():
+            doc = self._load(p)
+            server = ""
+            for s in doc.get("servers") or []:
+                server = s.get("url", "")
+                break
+            server = re.sub(r"^https?://[^/]+", "", server).rstrip("/")
+            module = os.path.basename(os.path.dirname(p))
+            if module == os.path.basename(self.spec_dir):
+                module = os.path.splitext(os.path.basename(p))[0]
+            for raw_path, item in (doc.get("paths") or {}).items():
+                if not isinstance(item, dict):
+                    continue
+                shared_params = item.get("parameters") or []
+                for method, op in item.items():
+                    if method not in ("get", "post", "put", "patch", "delete"):
+                        continue
+                    if not isinstance(op, dict):
+                        continue
+                    url = server + raw_path
+                    if face == "in":
+                        url = re.sub(r"(/api/[^/]+)/v1", r"\1/in/v1", url)
+                    resp = (op.get("responses") or {}).get(200) \
+                        or (op.get("responses") or {}).get("200") or {}
+                    resp = self.resolve(resp, doc, p)
+                    schema = None
+                    for ctype, media in (resp.get("content") or {}).items():
+                        if "json" in ctype:
+                            schema = media.get("schema", {})
+                            break
+                    params = list(shared_params) + list(op.get("parameters") or [])
+                    ops.append({
+                        "module": module,
+                        "method": method.upper(),
+                        "url": url,
+                        "spec_file": p,
+                        "doc_fields": self.field_paths(schema, doc, p) if schema is not None else None,
+                        "params": [self.resolve(x, doc, p) for x in params],
+                        "has_body": bool(op.get("requestBody")),
+                        "override": self._override_header(op, doc, p),
+                        "probe": op.get("x-contract-probe"),
+                    })
+        return ops
+
+    def _override_header(self, op, doc, path):
+        for prm in (op.get("parameters") or []):
+            prm = self.resolve(prm, doc, path)
+            if prm.get("in") == "header" and prm.get("name", "").lower() == "x-http-method-override":
+                return True
+        return False
+
+
+# 适配③：OpenAPI 3.1 nullable 惯例——type 可为数组（如 ["string","null"]）。
+# 取首个非 null 类型作主类型；实际返回 null 由 type_ok 的 act_t in ("null",...) 放行。
+def _primary_type(t):
+    if isinstance(t, list):
+        return next((x for x in t if x != "null"), t[0] if t else None)
+    return t
+
+
+def _is_array_schema(schema):
+    # 适配③：type 数组形态的 array（如 ["array","null"]）也要识别为数组
+    t = schema.get("type")
+    return (t == "array"
+            or (isinstance(t, list) and "array" in t)
+            or "items" in schema)
+
+
+# --------------------------------------------------------------------------
+# 实际响应结构
+# --------------------------------------------------------------------------
+
+def actual_paths(value, prefix="", depth=0, out=None):
+    """把实际响应 JSON 摊平成 {字段路径: 类型},与 field_paths 同构。"""
+    if out is None:
+        out = OrderedDict()
+    if depth > 8:
+        return out
+    if isinstance(value, dict):
+        for k, v in value.items():
+            key = f"{prefix}.{k}" if prefix else k
+            if isinstance(v, list):
+                out[key + "[]"] = _jtype(v[0]) if v else "unknown"
+                if v:
+                    actual_paths(v[0], key + "[]", depth + 1, out)
+            else:
+                out[key] = _jtype(v)
+                if isinstance(v, dict):
+                    actual_paths(v, key, depth + 1, out)
+    elif isinstance(value, list):
+        out[prefix + "[]"] = _jtype(value[0]) if value else "unknown"
+        if value:
+            actual_paths(value[0], prefix + "[]", depth + 1, out)
+    return out
+
+
+def _jtype(v):
+    if v is None:
+        return "null"
+    if isinstance(v, bool):
+        return "boolean"
+    if isinstance(v, int):
+        return "integer"
+    if isinstance(v, float):
+        return "number"
+    if isinstance(v, str):
+        return "string"
+    if isinstance(v, list):
+        return "array"
+    return "object"
+
+
+TYPE_EQUIV = {
+    ("integer", "number"), ("number", "integer"),
+    ("integer", "string"), ("string", "integer"),  # id 常以字符串下发
+}
+
+
+def type_ok(doc_t, act_t):
+    if act_t in ("null", "unknown") or doc_t in (None, "object", ""):
+        return True
+    if doc_t == act_t:
+        return True
+    return (doc_t, act_t) in TYPE_EQUIV
+
+
+# --------------------------------------------------------------------------
+# 请求执行
+# --------------------------------------------------------------------------
+
+PROBE_SRC = r'''
+import json, sys, urllib.request, urllib.error
+reqs = json.loads(sys.stdin.read())
+out = []
+for r in reqs:
+    body = r.get("body")
+    data = json.dumps(body).encode() if body is not None else None
+    req = urllib.request.Request(r["url"], data=data, method=r["method"],
+                                 headers=r.get("headers") or {})
+    item = {"id": r["id"]}
+    try:
+        resp = urllib.request.urlopen(req, timeout=r.get("timeout", 20))
+        item["status"] = resp.status
+        raw = resp.read()
+        try:
+            item["json"] = json.loads(raw.decode() or "null")
+        except Exception:
+            item["text"] = raw[:400].decode("utf-8", "replace")
+    except urllib.error.HTTPError as e:
+        item["status"] = e.code
+        item["text"] = e.read()[:400].decode("utf-8", "replace")
+    except Exception as e:
+        item["status"] = 0
+        item["error"] = str(e)[:200]
+    out.append(item)
+print(json.dumps(out))
+'''
+
+
+class Executor:
+    # probe 内部每个请求 20s 超时且串行，外层按请求数给出上界，
+    # 再留 60s 覆盖 ssh 握手与 kubectl exec 建流。
+    PER_REQUEST_TIMEOUT = 20
+    SETUP_TIMEOUT = 60
+
+    def __init__(self, args):
+        self.args = args
+
+    def run(self, requests):
+        if not requests:
+            return {}
+        payload = json.dumps(requests)
+        timeout = self.SETUP_TIMEOUT + self.PER_REQUEST_TIMEOUT * len(requests)
+        if self.args.exec_mode == "direct":
+            cmd = [sys.executable, "-c", PROBE_SRC]
+        else:
+            remote = ["kubectl", "exec", "-n", self.args.namespace, "-i",
+                      self.args.exec_pod, "--", "python3", "-c", PROBE_SRC]
+            # BatchMode 让缺密钥时立即失败而非等交互输入，ConnectTimeout 兜住网络不通
+            cmd = ["ssh", "-o", "BatchMode=yes", "-o", "ConnectTimeout=10",
+                   self.args.ssh, " ".join(_q(c) for c in remote)] \
+                if self.args.ssh else remote
+        try:
+            proc = subprocess.run(cmd, input=payload, capture_output=True,
+                                  text=True, timeout=timeout)
+        except subprocess.TimeoutExpired:
+            raise RuntimeError(
+                f"probe 执行超时({timeout}s，{len(requests)} 个请求)："
+                "ssh 或目标 pod 无响应") from None
+        if proc.returncode != 0:
+            raise RuntimeError(f"probe 执行失败: {proc.stderr[:400]}")
+        line = proc.stdout.strip().splitlines()[-1] if proc.stdout.strip() else "[]"
+        return {r["id"]: r for r in json.loads(line)}
+
+
+def _q(s):
+    return "'" + s.replace("'", "'\\''") + "'" if re.search(r"[\s\"'$]", s) else s
+
+
+def sample_value(param):
+    """给必填 query 参数造一个合规取值。
+
+    不猜业务语义，只按 schema 声明来：example > default > enum 首项 >
+    按 type/format 生成。造不出来就返回 None，让调用方把该接口标为
+    「需要人工提供参数」而不是发一个必然 400 的请求。
+    """
+    sch = param.get("schema") or {}
+    for src in (param.get("example"), sch.get("example"), sch.get("default")):
+        if src is not None:
+            return str(src)
+    if sch.get("enum"):
+        return str(sch["enum"][0])
+    fmt, typ = sch.get("format"), sch.get("type")
+    if fmt == "date":
+        return "2000-01-01"
+    if fmt == "date-time":
+        return "2000-01-01T00:00:00Z"
+    if typ in ("integer", "number"):
+        return str(sch.get("minimum", 0))
+    if typ == "boolean":
+        return "false"
+    return None
+
+
+def with_required_query(op, query=None):
+    """把必填 query 参数补进 query 表;返回 (query 表, 造不出取值的参数名)。
+
+    已经在 query 里的不覆盖 —— probe 显式写的值优先于按 schema 造的值。
+    普通 GET 路径与 probe 路径共用这一段,否则给 `/tool-box/market/tools`
+    (tool_name 必填)这类端点加 probe 后会静默 400。
+    """
+    out = dict(query or {})
+    unfillable = []
+    for p in op["params"]:
+        if p.get("in") != "query" or not p.get("required"):
+            continue
+        name = p.get("name")
+        if name in out:
+            continue
+        val = sample_value(p)
+        if val is None:
+            unfillable.append(name)
+        else:
+            out[name] = val
+    return out, unfillable
+
+
+# --------------------------------------------------------------------------
+# 路径参数发现
+# --------------------------------------------------------------------------
+
+# (列表接口, 参数名, 作用域前缀)
+# 作用域:发现到的值只用于填充该前缀下的 URL。像 `id` 这种通用参数名在
+# catalogs / resources / build-tasks 上都出现,不区分作用域就会拿 catalog 的
+# id 去查 resource,必然 404。
+# 域数据说明（见文件头适配说明）：下表为上游 OpenBKN 服务拓扑数据，本仓保持
+# 逐行原样；经 --host-map 按本仓 API 顶层段映射后，这些路径 host_of=None
+# 静默跳过（零伪请求）；本仓路径参数经 --ids 种子覆盖（run-all-e2e probe
+# runner 运行时从列表端点取真实 id）。
+DISCOVERY = [
+    # kn_id 是跨服务通用的(bkn-backend 与 ontology-query 都用),作用域放到 /api/
+    ("/api/bkn-backend/{v}/knowledge-networks", ["kn_id"], "/api/"),
+    ("/api/vega-backend/{v}/catalogs", ["id"], "/api/vega-backend/{v}/catalogs"),
+    ("/api/vega-backend/{v}/resources", ["id"], "/api/vega-backend/{v}/resources"),
+    ("/api/vega-backend/{v}/build-tasks", ["id", "ids"], "/api/vega-backend/{v}/build-tasks"),
+    ("/api/vega-backend/{v}/discover-tasks", ["id", "ids"], "/api/vega-backend/{v}/discover-tasks"),
+    ("/api/vega-backend/{v}/discover-schedules", ["id"], "/api/vega-backend/{v}/discover-schedules"),
+    ("/api/vega-backend/{v}/semantic-understanding-tasks", ["id", "ids"],
+     "/api/vega-backend/{v}/semantic-understanding-tasks"),
+    ("/api/vega-backend/{v}/connector-types", ["type"], "/api/vega-backend/{v}/connector-types"),
+]
+# 依赖 kn_id 的二级资源
+_KN = "/api/bkn-backend/{v}/knowledge-networks/{kn}"
+SUB_DISCOVERY = [
+    # 每个二级资源的 id 只在自己的路径下有效。relation-types 与 risk-types
+    # 在文档里都用 rt_id/rt_ids,不隔离就会拿关系类 id 去查风险类。
+    (_KN + "/object-types", ["ot_id", "ot_ids", "ob_id", "ob_ids"], _KN + "/object-types"),
+    (_KN + "/relation-types", ["rt_id", "rt_ids"], _KN + "/relation-types"),
+    (_KN + "/action-types", ["at_id", "at_ids"], _KN + "/action-types"),
+    (_KN + "/concept-groups", ["group_id", "cg_id"], _KN + "/concept-groups"),
+    (_KN + "/object-metrics", ["metric_id", "metric_ids"], _KN + "/object-metrics"),
+    (_KN + "/action-schedules", ["schedule_id", "schedule_ids"], _KN + "/action-schedules"),
+    (_KN + "/risk-types", ["rt_id", "rt_ids"], _KN + "/risk-types"),
+    # ontology-query 的执行/日志 id 只能从 action-logs 列表里取
+    ("/api/ontology-query/{v}/knowledge-networks/{kn}/action-logs",
+     ["log_id", "execution_id"], "/api/ontology-query/"),
+]
+
+
+ID_KEYS = ("id", "type", "log_id", "execution_id", "name")
+
+
+def _pick_id(entry):
+    for k in ID_KEYS:
+        if entry.get(k) not in (None, ""):
+            return str(entry[k])
+    return None
+
+
+def discover_ids(execu, host_of, face, headers, seed):
+    """真实调用列表接口,收集路径参数值。
+
+    返回 [(scope_prefix, param_name, value)];填充时按 scope 最长匹配,
+    避免通用参数名(id/ids)跨资源串用。
+    """
+    v = "in/v1" if face == "in" else "v1"
+    found = [("/api/", k, str(val)) for k, val in (seed or {}).items()]
+
+    def sweep(specs, fmt):
+        reqs, plan = [], []
+        for tmpl, names, scope in specs:
+            path = tmpl.format(**fmt)
+            host = host_of(path)
+            if not host:
+                continue
+            rid = f"disc:{path}"
+            reqs.append({"id": rid, "method": "GET",
+                         "url": host + path + "?limit=5", "headers": headers})
+            plan.append((rid, names, scope.format(**fmt)))
+        if not reqs:
+            return
+        res = execu.run(reqs)
+        for rid, names, scope in plan:
+            body = res.get(rid, {}).get("json") or {}
+            entries = body.get("entries") if isinstance(body, dict) else None
+            if not entries:
+                continue
+            val = _pick_id(entries[0])
+            if val is None:
+                continue
+            for n in names:
+                found.append((scope, n, val))
+
+    sweep(DISCOVERY, {"v": v})
+    kn = next((val for _, n, val in found if n == "kn_id"), None)
+    if kn:
+        sweep(SUB_DISCOVERY, {"v": v, "kn": kn})
+    return found
+
+
+_PLACEHOLDER = re.compile(r"^\{([A-Za-z_][A-Za-z0-9_]*)\}$")
+
+
+def lookup_id(found, url, name):
+    """按作用域最长匹配取一个已发现的参数值;取不到返回 None。"""
+    cands = [(len(scope), val) for scope, n, val in found
+             if n == name and url.startswith(scope)]
+    return max(cands)[1] if cands else None
+
+
+def fill_tpl(node, found, url, missing):
+    """递归替换模板里的 {param}。整串就是一个占位符时替换为原值(保留类型),
+    嵌在字符串里时按字符串拼接。解析不到的参数名记进 missing。"""
+    if isinstance(node, dict):
+        return {k: fill_tpl(v, found, url, missing) for k, v in node.items()}
+    if isinstance(node, list):
+        return [fill_tpl(v, found, url, missing) for v in node]
+    if isinstance(node, str):
+        m = _PLACEHOLDER.match(node)
+        if m:
+            val = lookup_id(found, url, m.group(1))
+            if val is None:
+                missing.append(m.group(1))
+            return val
+        def sub(mo):
+            val = lookup_id(found, url, mo.group(1))
+            if val is None:
+                missing.append(mo.group(1))
+                return mo.group(0)
+            return str(val)
+        return re.sub(r"\{([A-Za-z_][A-Za-z0-9_]*)\}", sub, node)
+    return node
+
+
+def dig(body, path):
+    """按 `entries[0].id` 这样的路径从响应里取值;取不到返回 None。"""
+    cur = body
+    for seg in path.split("."):
+        m = re.match(r"^([^\[\]]*)((?:\[\d+\])*)$", seg)
+        if not m:
+            return None
+        key, idx = m.group(1), m.group(2)
+        if key:
+            if not isinstance(cur, dict) or key not in cur:
+                return None
+            cur = cur[key]
+        for i in re.findall(r"\[(\d+)\]", idx):
+            if not isinstance(cur, list) or len(cur) <= int(i):
+                return None
+            cur = cur[int(i)]
+    return cur
+
+
+def run_probes(execu, host_of, headers, ops, found, args):
+    """按 order 分批发送标注了 x-contract-probe 的只读端点。
+
+    每批的响应既参与字段比对,也按 provides 抽出 id 喂给后续批次
+    (list_knowledge_networks 给出 kn_id,get_kn_detail 再给出 ot_id …)。
+    结果直接写回 op:成功写 actual,失败写 skip,与普通 GET 路径一致。
+
+    GET 也走这里:provides 需要「先跑完前一批、再拼下一批」的分批语义,而普通
+    GET 路径是一次性并发,拿不到上一条的产出。因此凡标了 probe 的都归这条路径,
+    GET 无条件放行(本来就允许发),POST 仍需 --include-probe-post。
+    """
+    cand = [o for o in ops
+            if isinstance(o.get("probe"), dict)
+            and o["probe"].get("readonly") is True
+            and o["doc_fields"] is not None
+            and o["method"] in ("GET", "POST")]
+    if not cand:
+        return found
+    if not args.include_probe_post:
+        blocked = [o for o in cand if o["method"] == "POST"]
+        for o in blocked:
+            o["skip"] = "未开启 --include-probe-post(该端点已标注 readonly probe)"
+        cand = [o for o in cand if o["method"] == "GET"]
+        if not cand:
+            return found
+
+    for order in sorted({int(o["probe"].get("order", 1)) for o in cand}):
+        batch = [o for o in cand if int(o["probe"].get("order", 1)) == order]
+        reqs, index = [], {}
+        for i, op in enumerate(batch):
+            spec = op["probe"]
+            host = host_of(op["url"])
+            if not host:
+                op["skip"] = "无服务地址映射"
+                continue
+            miss = []
+            body = fill_tpl(spec.get("body") or {}, found, op["url"], miss)
+            query = fill_tpl(spec.get("query") or {}, found, op["url"], miss)
+            if miss:
+                op["skip"] = "缺少探测参数 " + ",".join(sorted(set(miss)))
+                continue
+            url, unresolved = fill_path(op["url"], found, op.get("params"))
+            if unresolved:
+                op["skip"] = "缺少路径参数 " + ",".join(unresolved)
+                continue
+            # 必填 query 不带就是必然 400。probe 里显式写了的以 probe 为准,
+            # 没写的按 schema 造一个合规取值 —— 与普通 GET 路径同一套规则。
+            query, unfillable = with_required_query(op, query)
+            if unfillable:
+                op["skip"] = ("必填 query 参数无法自动取值 "
+                              + ",".join(unfillable))
+                continue
+            if query:
+                url += ("&" if "?" in url else "?") + "&".join(
+                    f"{k}={v}" for k, v in query.items())
+            rid = f"probe{order}:{i}"
+            reqs.append({"id": rid, "method": op["method"], "url": host + url,
+                         "headers": dict(headers),
+                         "body": body if op["method"] == "POST" else None})
+            index[rid] = op
+            op["req_url"] = url
+        if not reqs:
+            continue
+        res = execu.run(reqs)
+        for rid, op in index.items():
+            r = res.get(rid) or {}
+            op["status"] = r.get("status")
+            if r.get("status") != 200:
+                op["skip"] = (f"HTTP {r.get('status')} "
+                              f"{r.get('error') or (r.get('text') or '')[:120]}")
+                continue
+            if "json" not in r:
+                op["skip"] = "响应非 JSON"
+                continue
+            op["actual"] = actual_paths(r["json"])
+            for name, path in (op["probe"].get("provides") or {}).items():
+                val = dig(r["json"], path)
+                if val is not None:
+                    found.append((service_scope(op["url"]), name, val))
+    return found
+
+
+def service_scope(url):
+    """取 URL 的服务前缀作为参数作用域,如 /api/agent-retrieval/。
+
+    probe 的 provides 曾统一挂在全局 /api/ 下,只靠 `cl_` 之类的命名前缀规避
+    跨模块串味——约定没有强制力,哪个模块写了 provides: {kn_id: ...} 就会串进
+    bkn 的同名路径参数。改成按服务前缀隔离,命名前缀退化为额外保险。"""
+    parts = url.split("/")
+    return "/".join(parts[:3]) + "/" if len(parts) > 3 else "/api/"
+
+
+def fill_path(url, found, params=None):
+    """用作用域最长匹配的值填充 URL 中的 {param};返回 (url, 未解析参数)。
+
+    发现不到时退回该路径参数自身声明的 example / default / enum —— 像
+    template_type(枚举只有 python)、package_name(example: requests)这类
+    取值不依赖环境数据的参数,没必要因为「列表里没有」而整条跳过。
+    """
+    by_name = {p.get("name"): p for p in (params or [])
+               if p.get("in") == "path"}
+    missing = []
+    for name in re.findall(r"\{([^}]+)\}", url):
+        cands = [(len(scope), val) for scope, n, val in found
+                 if n == name and url.startswith(scope)]
+        if cands:
+            val = str(max(cands)[1])
+        else:
+            val = sample_value(by_name.get(name, {}))
+            if val is None:
+                missing.append(name)
+                continue
+        url = url.replace("{" + name + "}", val)
+    return url, missing
+
+
+# --------------------------------------------------------------------------
+# 主流程
+# --------------------------------------------------------------------------
+
+DEFAULT_HOSTS = {
+    "/api/bkn-backend/": "http://bkn-backend-svc:13014",
+    "/api/ontology-query/": "http://ontology-query-svc:13018",
+    "/api/vega-backend/": "http://vega-backend-svc:13014",
+    "/api/mf-model-manager/": "http://mf-model-manager:9898",
+    "/api/bkn-agent/": "http://bkn-agent:30800",
+    # context-loader。注意：该服务对外端点全是 POST 且不带 x-http-method-override，
+    # 本工具只发 GET，因此实际会全部跳过；这条映射是为 GET /mcp/info 及后续可能新增的
+    # GET 端点预留，不代表 context-loader 已被覆盖。
+    "/api/agent-retrieval/": "http://agent-retrieval:30779",
+    "/api/agent-operator-integration/": "http://agent-operator-integration:9000",
+}
+
+
+def main():
+    ap = argparse.ArgumentParser(description="对比服务实际返回与 OpenAPI 文档")
+    ap.add_argument("--spec-dir", required=True,
+                    help="spec 目录（yaml 集）或单一 spec 文件（本仓：contracts/http-api.openapi.json）")
+    ap.add_argument("--face", choices=["ex", "in"], default="ex",
+                    help="ex=外部面(需 token 时给 --token);in=内部面(账号头)")
+    ap.add_argument("--exec-mode", choices=["kubectl", "direct"], default="direct")
+    ap.add_argument("--ssh", default=None, help="如 parallels@10.211.55.4")
+    ap.add_argument("--namespace", default="openbkn")
+    ap.add_argument("--exec-pod", default="deploy/bkn-agent")
+    ap.add_argument("--token", default=None)
+    ap.add_argument("--account-id", default="admin",
+                    help="内部面 x-account-id。必须是真实账号 UUID,否则会被授权过滤成空集")
+    ap.add_argument("--account-type", default="user")
+    ap.add_argument("--host-map", default=None,
+                    help='JSON,覆盖默认服务地址,如 \'{"/api/articles/":"http://127.0.0.1:18083"}\'')
+    ap.add_argument("--ids", default=None,
+                    help='JSON,手工指定路径参数,如 \'{"id":"abc"}\'')
+    ap.add_argument("--include-query-post", action="store_true",
+                    help="额外请求带 x-http-method-override:GET 的只读 POST")
+    ap.add_argument("--include-probe-post", action="store_true",
+                    help="额外请求文档中 x-contract-probe.readonly=true 的只读 POST")
+    # bkn-agent 尚无稳定巡检入口；agent-observability 当前发布 Swagger 2.0
+    # 且只提供外部路径，没有本工具默认 face=in 所需的 /in/v1 路由。两者的
+    # 静态合同分别由自身 CI 校验，待巡检器支持对应调用面后再移出默认跳过项。
+    ap.add_argument("--skip-file", action="append",
+                    default=["bkn-agent.yaml", "agent-observability.yaml"])
+    ap.add_argument("--out", default="api_contract_report.md")
+    ap.add_argument("--json-out", default=None)
+    args = ap.parse_args()
+
+    hosts = dict(DEFAULT_HOSTS)
+    if args.host_map:
+        hosts.update(json.loads(args.host_map))
+
+    def host_of(url):
+        for pref, h in hosts.items():
+            if url.startswith(pref):
+                return h
+        return None
+
+    headers = {"Content-Type": "application/json"}
+    if args.face == "in":
+        headers.update({"x-account-id": args.account_id,
+                        "x-account-type": args.account_type})
+    if args.token:
+        headers["Authorization"] = "Bearer " + args.token
+
+    loader = SpecLoader(args.spec_dir, skip_files=args.skip_file)
+    ops = loader.operations(face=args.face)
+    execu = Executor(args)
+
+    seed = json.loads(args.ids) if args.ids else {}
+    ids = discover_ids(execu, host_of, args.face, headers, seed)
+    # 标注了 readonly probe 的 POST 先跑：它们自己要比对，也顺带产出
+    # 后续 GET 需要的路径参数。
+    ids = run_probes(execu, host_of, headers, ops, ids, args)
+
+    # 组装请求:只读
+    reqs, index = [], {}
+    for i, op in enumerate(ops):
+        if op["doc_fields"] is None:
+            continue
+        if "actual" in op or op.get("skip"):   # probe 已处理
+            continue
+        readonly_post = op["method"] == "POST" and op["override"] and args.include_query_post
+        if op["method"] != "GET" and not readonly_post:
+            continue
+        url, missing = fill_path(op["url"], ids, op.get("params"))
+        if missing:
+            op["skip"] = "缺少路径参数 " + ",".join(missing)
+            continue
+        host = host_of(url)
+        if not host:
+            op["skip"] = "无服务地址映射"
+            continue
+        # 必填 query 参数不带就是必然 400，按 schema 造一个合规取值
+        filled, unfillable = with_required_query(op)
+        if unfillable:
+            op["skip"] = "必填 query 参数无法自动取值 " + ",".join(unfillable)
+            continue
+        qs = [f"{k}={v}" for k, v in filled.items()]
+        if qs:
+            url = url + ("&" if "?" in url else "?") + "&".join(qs)
+            op["filled_query"] = qs
+
+        rid = f"op{i}"
+        h = dict(headers)
+        body = None
+        if readonly_post:
+            h["x-http-method-override"] = "GET"
+            body = {}
+        reqs.append({"id": rid, "method": "POST" if readonly_post else "GET",
+                     "url": host + url, "headers": h, "body": body})
+        index[rid] = op
+        op["req_url"] = url
+
+    results = execu.run(reqs)
+
+    for rid, op in index.items():
+        r = results.get(rid) or {}
+        op["status"] = r.get("status")
+        if r.get("status") != 200:
+            op["skip"] = f"HTTP {r.get('status')} {r.get('error') or (r.get('text') or '')[:120]}"
+            continue
+        if "json" not in r:
+            op["skip"] = "响应非 JSON"
+            continue
+        op["actual"] = actual_paths(r["json"])
+
+    report, stats = render(ops, ids, args)
+    with open(args.out, "w") as fh:
+        fh.write(report)
+    if args.json_out:
+        with open(args.json_out, "w") as fh:
+            json.dump([{k: v for k, v in o.items() if k != "params"} for o in ops],
+                      fh, ensure_ascii=False, indent=1, default=str)
+    print(report)
+    return 1 if stats["gap_ops"] else 0
+
+
+def render(ops, ids, args):
+    checked, gaps, skipped, thin = [], [], [], []
+    for op in ops:
+        if op.get("doc_fields") is None:
+            continue
+        if "actual" not in op:
+            if op.get("skip"):
+                skipped.append(op)
+            continue
+        doc, act = op["doc_fields"], op["actual"]
+        # 实际返回了、文档没写
+        # 开放 key 的节点(additionalProperties):把实际路径里紧跟其后的那一
+        # 段折成 "*",再和文档比。例:field_config.username.name 在文档里对应
+        # field_config.*.name。
+        # additionalProperties: true  -> 整棵子树放行(内容完全 opaque)
+        # additionalProperties: {..}  -> key 折成 "*" 后继续逐字段比对
+        free = tuple(k[:-2] + "." for k in doc
+                     if k.endswith(".*") and doc[k][0] == "any")
+        typed = sorted((k[:-2] for k in doc
+                        if k.endswith(".*") and doc[k][0] != "any"),
+                       key=len, reverse=True)
+
+        def canon(k):
+            for base in typed:
+                if k.startswith(base + "."):
+                    rest = k[len(base) + 1:].split(".", 1)
+                    # 适配⑤：折叠保留首段数组标记——actual 把 `.*[]` 通配落成字面键时
+                    # （如 subdomains.<域>[]），[]. 归属跟首段走，否则与文档 .*[].id 错位。
+                    head = rest[0]
+                    marker = "[]" if head.endswith("[]") else ""
+                    tail = rest[1] if len(rest) > 1 else ""
+                    return base + ".*" + marker + ("." + tail if tail else "")
+            return k
+
+        def known(k):
+            # free 前缀要拿折叠后的路径再比一次：opaque 的 map 可能嵌在一个
+            # typed 的 additionalProperties 下面（子图的
+            # entries[].objects.<对象ID>.properties.<属性名> 就是这样），
+            # 此时只比原始路径永远匹配不到 entries[].objects.*.properties.。
+            for cand in (k, canon(k)):
+                if free and cand.startswith(free):
+                    return True
+                if cand in doc:
+                    return True
+                alt = cand[:-2] if cand.endswith("[]") else cand + "[]"
+                if alt in doc:
+                    return True
+            return False
+
+        missing = [k for k in act if not known(k)]
+        # 类型不符
+        badtype = [(k, doc[k][0], act[k]) for k in doc
+                   if k in act and not type_ok(doc[k][0], act[k])]
+        # 文档写了、实际没返回。空数组的子字段无法观测,先剔除
+        empties = {k[:-2] for k, t in act.items() if k.endswith("[]") and t == "unknown"}
+        # `k` 与 `k[]` 是同一字段的两种记法(schema 用 oneOf 描述"可能是数组"
+        # 时两者都会出现)。任一形态被实际返回,就不算缺失。
+        def satisfied(k):
+            alt = k[:-2] if k.endswith("[]") else k + "[]"
+            return k in act or alt in act
+
+        def under_empty(k):
+            # `data[]` 为空时,`data[].name` 这些子路径本次无从观测。
+            # 用 `e + "[]"` 而不是裸 `e` 比,免得 `data` 顺带盖住 `database`。
+            return any(k.startswith(e + "[]") for e in empties)
+
+        absent_all = [k for k in doc if ".*" not in k and not satisfied(k)
+                      and not under_empty(k)]
+        # 被空数组挡住、这一轮压根没验到的字段。它们既不算缺口也不算验过,
+        # 单独记一笔 —— 否则一个 `{"data": []}` 会报成「已比对、0 缺口」。
+        unobserved = [k for k in doc if ".*" not in k and not satisfied(k)
+                      and under_empty(k)]
+        # 父级本身就没返回时,其子路径是连带的,不重复报
+        absent_roots = []
+        for k in sorted(absent_all, key=len):
+            if not any(k.startswith(r) and k != r for r in absent_roots):
+                absent_roots.append(k)
+        required_absent = [k for k in absent_roots if doc[k][1]]
+        optional_absent = [k for k in absent_roots if not doc[k][1]]
+
+        op["_unobserved"] = unobserved
+        if missing or required_absent or badtype:
+            op["_missing"] = missing
+            op["_absent"] = required_absent
+            op["_optional"] = optional_absent
+            op["_badtype"] = badtype
+            gaps.append(op)
+        if unobserved:
+            thin.append(op)
+        checked.append(op)
+
+    with_schema = [o for o in ops if o.get("doc_fields") is not None]
+
+    def is_probeable(o):
+        if o["method"] == "GET":
+            return True
+        if o["override"] and args.include_query_post:
+            return True
+        spec = o.get("probe")
+        return bool(args.include_probe_post and isinstance(spec, dict)
+                    and spec.get("readonly") is True)
+
+    probeable = [o for o in with_schema if is_probeable(o)]
+    L = []
+    L.append("# API 实际返回 vs 设计文档 —— 缺口报告\n")
+    L.append(f"- 面:`{args.face}`  执行方式:`{args.exec_mode}`"
+             + (f"  经 `{args.ssh}`" if args.ssh else ""))
+    L.append(f"- 文档中带 200 响应 schema 的操作:{len(with_schema)}"
+             f",其中只读可探测:{len(probeable)}"
+             f"(其余为写操作或未标注只读的 POST/PUT/DELETE,本工具不发送)")
+    unprobed = [o for o in with_schema if o not in probeable]
+    if unprobed:
+        by_mod = {}
+        for o in unprobed:
+            by_mod[o["module"]] = by_mod.get(o["module"], 0) + 1
+        L.append("- 不在探测范围(按模块):`"
+                 + json.dumps(by_mod, ensure_ascii=False) + "`"
+                 + " —— 这些接口的响应结构本次**未经验证**")
+    L.append(f"- 实际请求成功并完成比对:**{len(checked)} / {len(probeable)}**")
+    L.append(f"- 存在缺口:**{len(gaps)}**   未能比对:{len(skipped)}")
+    if thin:
+        L.append(f"- 其中**响应样本为空**:{len(thin)} 条,共 "
+                 f"{sum(len(o['_unobserved']) for o in thin)} 个字段落在空数组"
+                 f"下、本次未观测 —— 这些接口的「0 缺口」不等于验过,见下节")
+    uniq = sorted({(n, v) for _, n, v in ids})
+    L.append("- 自动发现的路径参数:`"
+             + json.dumps(dict(uniq), ensure_ascii=False) + "`\n")
+
+    if gaps:
+        L.append("## 缺口明细\n")
+        for op in sorted(gaps, key=lambda o: (o["module"], o["req_url"])):
+            L.append(f"### `{op['method']} {op['req_url']}`")
+            L.append(f"模块 `{op['module']}` · 文档 `{os.path.relpath(op['spec_file'], args.spec_dir)}`\n")
+            for k, dt, at in op["_badtype"]:
+                L.append(f"- **类型不符** `{k}`:文档声明 `{dt}`,实际返回 `{at}`")
+            if op["_absent"]:
+                L.append("- **文档标为必填但实际未返回**:`" + "`, `".join(op["_absent"][:25]) + "`"
+                         + (f" …另 {len(op['_absent'])-25} 项" if len(op["_absent"]) > 25 else ""))
+            if op["_missing"]:
+                L.append("- **实际返回但文档未声明**:`" + "`, `".join(op["_missing"][:25]) + "`"
+                         + (f" …另 {len(op['_missing'])-25} 项" if len(op["_missing"]) > 25 else ""))
+            if op["_optional"]:
+                L.append(f"- 可选字段本次未观测到 {len(op['_optional'])} 项"
+                         f"(如 `{'`, `'.join(op['_optional'][:5])}`)—— 可能是 omitempty"
+                         f"或该视图不返回,非必然缺陷")
+            L.append("")
+    else:
+        L.append("## 缺口明细\n\n比对成功的接口全部一致。\n")
+
+    if thin:
+        L.append("## 响应样本为空(0 缺口 ≠ 已验证)\n")
+        L.append("列表返回空数组时,数组元素的字段无从观测,报告里既不会算缺口"
+                 "也不该算验过。环境里补上对应数据后重跑才有结论。\n")
+        for op in sorted(thin, key=lambda o: (o["module"], o["req_url"])):
+            u = op["_unobserved"]
+            L.append(f"- `{op['method']} {op['req_url']}` —— {len(u)} 个字段"
+                     f"未观测(如 `{'`, `'.join(u[:5])}`)")
+        L.append("")
+
+    if skipped:
+        L.append("## 未能比对(需人工跟进)\n")
+        by = {}
+        for op in skipped:
+            by.setdefault(op["skip"].split()[0], []).append(op)
+        for reason, group in sorted(by.items()):
+            L.append(f"**{reason}** —— {len(group)} 个")
+            for op in group[:40]:
+                L.append(f"- `{op['method']} {op.get('req_url') or op['url']}` — {op['skip']}")
+            if len(group) > 40:
+                L.append(f"- …另 {len(group)-40} 个")
+            L.append("")
+    return "\n".join(L), {"gap_ops": len(gaps), "checked": len(checked),
+                          "empty_sample": len(thin)}
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except Exception as exc:  # noqa: BLE001
+        print(f"执行错误: {exc}", file=sys.stderr)
+        sys.exit(2)
