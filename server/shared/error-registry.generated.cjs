@@ -629,14 +629,22 @@ module.exports = {
         "server/services/pipeline/version-registry-service.cjs:157"
       ]
     },
+    "ENUMS_REFERENCED_SEGMENT_REMOVED": {
+      "statuses": [
+        409
+      ],
+      "sites": [
+        "server/services/schema-manager/enums-write-service.cjs:164"
+      ]
+    },
     "ENUMS_REVISION_CONFLICT": {
       "statuses": [
         409
       ],
       "sites": [
         "server/services/schema-manager/enums-change-preview-service.cjs:80",
-        "server/services/schema-manager/enums-write-service.cjs:79",
-        "server/services/schema-manager/enums-write-service.cjs:100"
+        "server/services/schema-manager/enums-write-service.cjs:81",
+        "server/services/schema-manager/enums-write-service.cjs:102"
       ]
     },
     "ENUMS_SEGMENT_UNREGISTERED": {
@@ -644,7 +652,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:140"
+        "server/services/schema-manager/enums-write-service.cjs:172"
       ]
     },
     "ENUMS_SHAPE_INVALID": {
@@ -652,7 +660,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:134"
+        "server/services/schema-manager/enums-write-service.cjs:136"
       ]
     },
     "EXPECTATIONS_CORRUPT": {
@@ -1059,8 +1067,8 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:75",
-        "server/services/schema-manager/enums-write-service.cjs:85",
+        "server/services/schema-manager/enums-write-service.cjs:77",
+        "server/services/schema-manager/enums-write-service.cjs:87",
         "server/services/schema-manager/relations-write-service.cjs:142",
         "server/services/schema-manager/schema-history-service.cjs:48",
         "server/services/schema-manager/schema-history-service.cjs:64"
@@ -1921,7 +1929,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:89",
+        "server/services/schema-manager/enums-write-service.cjs:91",
         "server/services/schema-manager/relations-write-service.cjs:146",
         "server/services/schema-manager/schema-history-service.cjs:68"
       ]
@@ -1931,7 +1939,7 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:86",
+        "server/services/schema-manager/enums-write-service.cjs:88",
         "server/services/schema-manager/relations-write-service.cjs:143",
         "server/services/schema-manager/schema-history-service.cjs:65"
       ]
@@ -2198,7 +2206,7 @@ module.exports = {
         "server/services/release-governance/release-publisher-service.cjs:221",
         "server/services/schema-manager/dependencies-write-service.cjs:254",
         "server/services/schema-manager/dependency-impact-preview-service.cjs:51",
-        "server/services/schema-manager/enums-write-service.cjs:128",
+        "server/services/schema-manager/enums-write-service.cjs:130",
         "server/services/schema-manager/fields-write-service.cjs:97",
         "server/services/schema-manager/fields-write-service.cjs:110",
         "server/services/schema-manager/schema-history-service.cjs:77",
@@ -2450,7 +2458,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/schema-manager/dependencies-write-service.cjs:68",
-        "server/services/schema-manager/enums-write-service.cjs:48",
+        "server/services/schema-manager/enums-write-service.cjs:50",
         "server/services/schema-manager/ontology-write-service.cjs:29",
         "server/services/schema-manager/relations-write-service.cjs:35",
         "server/shared/version-registry-reader.cjs:39"
@@ -2461,7 +2469,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:149",
+        "server/services/schema-manager/enums-write-service.cjs:181",
         "server/services/schema-manager/relations-write-service.cjs:122"
       ]
     }

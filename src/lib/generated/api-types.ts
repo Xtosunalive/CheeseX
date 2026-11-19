@@ -5551,7 +5551,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["EnumsRevisionConflictErrorResponse"] | components["schemas"]["ActionConfirmRequiredErrorResponse"];
+                        "application/json": components["schemas"]["EnumsRevisionConflictErrorResponse"] | components["schemas"]["ActionConfirmRequiredErrorResponse"] | components["schemas"]["EnumsReferencedSegmentRemovedErrorResponse"];
                     };
                 };
                 /** @description 请求体超过传输层统一上限（REQUEST_BODY_TOO_LARGE）——PR-085 第 1 步起 */
@@ -13763,6 +13763,22 @@ export interface components {
             /** @enum {string} */
             error_code?: "VERSION_NOT_RELEASED";
             details?: components["schemas"]["VersionNotReleasedDetails"];
+        };
+        EnumsReferencedSegmentRemovedErrorResponse: {
+            /**
+             * @description 写入将移除被字段值域引用的 enums 段（WP-199 波3；BKN value_type 被引用段不可删）
+             * @enum {string}
+             */
+            error_code: "ENUMS_REFERENCED_SEGMENT_REMOVED";
+            message: string;
+            details?: {
+                /** @description 被移除的被引用段名 */
+                segments?: string[];
+                /** @description 引用方 (类,name) 清单 */
+                referencedBy?: string[];
+            } & {
+                [key: string]: unknown;
+            };
         };
     };
     responses: never;

@@ -232,3 +232,59 @@ test("PR-200 归一：页面写入口（enums patch）与本体／依赖同闸�
   } finally { delete process.env.THESCHEMA_DIR; fs.rmSync(env.dir, { recursive: true, force: true }); }
 });
 
+// ══ WP-199 波3：referencedSegmentRemovalViolations——值域引用段删除保护（段级差集判定，纯函数面）══
+// 删除判定＝写后段不存在 ∨ 空态（对象零键/数组零项）而写前非空；粒度锁死段级（词条增删不归本闸）。
+
+test("WP-199 红：引用段删除／清空即红（整段消失与空态同罪）", () => {
+  const { referencedSegmentRemovalViolations } = require("../../../shared/schema-write-guards.cjs");
+  const refs = new Set(["lifecycle", "tags"]);
+  // 整段删除：写后 lifecycle 不存在
+  const removed = referencedSegmentRemovalViolations(
+    { lifecycle: { status: ["灰度", "在线"], default_status: "灰度" }, tags: { g1: ["a"] } },
+    { tags: { g1: ["a"] } },
+    refs,
+  );
+  assert.deepEqual(removed, [{ segment: "lifecycle", referencedBy: [] }], "整段删除必须红：" + JSON.stringify(removed));
+  // 清空成空对象（写后段在但零键＝值域坍缩，同罪）
+  const clearedObj = referencedSegmentRemovalViolations({ tags: { g1: ["a"] } }, { tags: {} }, new Set(["tags"]));
+  assert.deepEqual(clearedObj, [{ segment: "tags", referencedBy: [] }], "清空成 {} 必须红：" + JSON.stringify(clearedObj));
+  // 清空成空数组（数组段同口径）
+  const clearedArr = referencedSegmentRemovalViolations({ layers: [{ id: "gw" }] }, { layers: [] }, new Set(["layers"]));
+  assert.deepEqual(clearedArr, [{ segment: "layers", referencedBy: [] }], "清空成 [] 必须红：" + JSON.stringify(clearedArr));
+  // 写成 null／undefined 也算空态
+  const nulled = referencedSegmentRemovalViolations({ lifecycle: { status: ["灰度"] } }, { lifecycle: null }, new Set(["lifecycle"]));
+  assert.deepEqual(nulled, [{ segment: "lifecycle", referencedBy: [] }], "写成 null 必须红：" + JSON.stringify(nulled));
+  // 多段同时删除逐段回报
+  const multi = referencedSegmentRemovalViolations(
+    { lifecycle: { status: ["灰度"] }, tags: { g1: ["a"] } },
+    {},
+    new Set(["lifecycle", "tags"]),
+  );
+  assert.deepEqual(multi.map((v) => v.segment).sort(), ["lifecycle", "tags"], "多段同删逐段回报：" + JSON.stringify(multi));
+});
+
+test("WP-199 绿：写前就空／无关段／词条级增删一律不红（粒度锁段级）", () => {
+  const { referencedSegmentRemovalViolations } = require("../../../shared/schema-write-guards.cjs");
+  // 写前就不存在或就空——非本闸对象（正向闭合面把守）
+  assert.deepEqual(referencedSegmentRemovalViolations({}, { tags: { g1: [] } }, new Set(["tags"])), [], "写前缺席不红");
+  assert.deepEqual(referencedSegmentRemovalViolations({ tags: {} }, {}, new Set(["tags"])), [], "写前已空不红");
+  // 写不相关段（被引用段原样保留）
+  const untouched = referencedSegmentRemovalViolations(
+    { lifecycle: { status: ["灰度"] }, modules: {} },
+    { lifecycle: { status: ["灰度"] }, modules: { 新模块: { system: "a" } } },
+    new Set(["lifecycle"]),
+  );
+  assert.deepEqual(untouched, [], "无关段写入不红：" + JSON.stringify(untouched));
+  // 词条级增删＝段仍在且非空——粒度段级，不归本闸（删 layers 单词条放行）
+  const entryLevel = referencedSegmentRemovalViolations(
+    { layers: [{ id: "gateway" }, { id: "plate" }] },
+    { layers: [{ id: "gateway" }] },
+    new Set(["layers"]),
+  );
+  assert.deepEqual(entryLevel, [], "词条级删除不红（段级粒度锁）：" + JSON.stringify(entryLevel));
+  // 空引用集／缺 prev／缺 next 形态输入不炸
+  assert.deepEqual(referencedSegmentRemovalViolations({ tags: { g1: ["a"] } }, { tags: { g1: ["a"] } }, new Set()), [], "空引用集不红");
+  assert.deepEqual(referencedSegmentRemovalViolations(null, { tags: { g1: ["a"] } }, new Set(["tags"])), [], "prev 形态异常不炸");
+  assert.deepEqual(referencedSegmentRemovalViolations({ tags: { g1: ["a"] } }, undefined, new Set(["tags"])), [{ segment: "tags", referencedBy: [] }], "next 缺失＝全段删除照判");
+});
+

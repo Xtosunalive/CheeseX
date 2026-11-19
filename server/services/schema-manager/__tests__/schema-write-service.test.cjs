@@ -514,6 +514,47 @@ async function run() { // PR-056：freezeVersion 异步化随迁
     const kept = fs.readFileSync(path.join(env.repo, "知识库", "wiki", "entities", "复核 网关.md"), "utf8");
     assert.match(kept, /architecture-node-id: grown-复核-网关/, "被拒不影响首笔落盘");
   } finally { makeWritable(env.root); fs.rmSync(env.root, { recursive: true, force: true }); }
+  // WP-199 波3：值域引用段删除保护端到端（writeEnumsPatch 页面入口）——
+  // 夹具 vault 造 fields.yaml（article.status 引用 lifecycle 段）→ patch 清空 lifecycle → 409 拒写并点名引用方；
+  // fields.yaml 缺席＝静默跳过是设计态（本文件其余夹具均不造 fields.yaml，其全绿即缺席跳过的活证）。
+  env = createFixture();
+  try {
+    const svc = createSchemaWriteService({ vaultPath: env.repo });
+    const schemaDir = path.join(env.repo, "知识库", "TheSchema");
+    fs.writeFileSync(path.join(schemaDir, "fields.yaml"), [
+      "schema_version: 2",
+      "keys:",
+      "  entity: {primary: architecture-node-id, display: title}",
+      "  article: {primary: article_id, display: title}",
+      "classes:",
+      "  entity:",
+      "    properties:",
+      "      - {name: title, display: 实体名称, type: string, required: 是, layer: 内容属性, value_domain: {source: free}, description: WP-199 夹具。}",
+      "  article:",
+      "    properties:",
+      "      - {name: title, display: 标题, type: string, required: 是, layer: 内容属性, value_domain: {source: free}, description: WP-199 夹具。}",
+      "      - {name: status, display: 文档生命周期状态, type: enum, required: 否, layer: 管理属性, semantic: status, value_domain: {source: lifecycle, segment: lifecycle.status, resolve: {op: values}}, description: WP-199 夹具。}",
+      "",
+    ].join("\n"), "utf8");
+    const enumsAbs = path.join(schemaDir, "enums.yaml");
+    const rev = () => sha256(fs.readFileSync(enumsAbs));
+    const beforeRed = fs.readFileSync(enumsAbs);
+    // 红：patch 清空 lifecycle（写后空态而写前非空＝删除判定）→ 409 ENUMS_REFERENCED_SEGMENT_REMOVED
+    let removed = null;
+    try { svc.writeEnums({ revision: rev(), patch: { lifecycle: {} } }); } catch (e) { removed = e; }
+    assert.ok(removed, "清空被 fields.yaml 引用的段必须拒写：" + JSON.stringify(removed && removed.code));
+    assert.equal(removed.code, "ENUMS_REFERENCED_SEGMENT_REMOVED");
+    assert.equal(removed.status, 409);
+    assert.match(removed.message, /lifecycle/, "报错必须点名被删段：" + removed.message);
+    assert.ok(Array.isArray(removed.details.segments) && removed.details.segments.includes("lifecycle"), "details.segments 必须含 lifecycle：" + JSON.stringify(removed.details));
+    assert.ok(Array.isArray(removed.details.referencedBy) && removed.details.referencedBy.includes("article.status"), "details.referencedBy 必须含 article.status：" + JSON.stringify(removed.details));
+    assert.deepEqual(fs.readFileSync(enumsAbs), beforeRed, "409 拒写零落盘");
+    // 绿对照：写不相关段（modules，fields 未引用）放行——证明拒的是删引用段，不是恒拒
+    const ok = svc.writeEnums({ revision: rev(), patch: { modules: { ...(require("yaml").parse(fs.readFileSync(enumsAbs, "utf8")).modules || {}), 写回探针: { system: "a" } } } });
+    assert.ok(ok.revision, "写不相关段必须放行");
+    assert.match(fs.readFileSync(enumsAbs, "utf8"), /写回探针/, "对照写真实落盘");
+  } finally { makeWritable(env.root); fs.rmSync(env.root, { recursive: true, force: true }); }
+
   console.log("Schema write service tests passed");
 }
 

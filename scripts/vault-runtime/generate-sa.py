@@ -465,7 +465,7 @@ def main():
                 _client = os.path.join(os.path.dirname(os.path.abspath(__file__)), "schema-write-client.mjs")
                 _proc = _sp.run(["node", _client, "enums-set-modules", "--vault", VAULT_ROOT, "--revision", _enums_revision, "--file", _modules_file], capture_output=True, text=True)
                 if _proc.returncode != 0:
-                    print(f"❌ enums 同步失败（统一写客户端）: {_proc.stderr.strip()}", flush=True)
+                    print(f"❌ enums 同步失败（统一写客户端）: {(_proc.stdout or _proc.stderr).strip()}", flush=True)  # WP-199 红队 P2-4：错误信封通道已迁 stdout，双通道兜底
                     return 1
                 print(f"✅ 已同步词表 enums modules 段 ({len(new_enums.get('modules', {}))} 个 module，经统一写客户端：原子+快照+解析物联动)")
             finally:

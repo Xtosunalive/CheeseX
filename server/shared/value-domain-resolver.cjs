@@ -258,4 +258,63 @@ function normalizeEnumsSafe(enums) {
   }
 }
 
-module.exports = { resolveValueDomains };
+/**
+ * WP-199 波3：收集 fields.yaml v2 全部值域引用的 enums 顶层段集合（BKN value_type 被引用面）。
+ * 五类引用全捕获：value_domain.source／segment 首段／composite[].source／normalize.aliases 段／
+ * default.from 首段＋op 隐式段（tags_union→tags、matrix_union_fallback→arch_categories/subdomain_constraints、
+ * product_closure→architecture_projection）。free/versions 非 enums 段不入集。
+ * @param {{classes?: object}} fieldsDoc fields.yaml v2 解析对象
+ * @returns {Set<string>} 被引用的 enums 顶层段名
+ */
+// WP-199 红队 P2-3 补口径：tags_union 隐式读 disabled_tags（resolver SET_OPS :71 同源）；composite
+// part 自带 resolve.op 时亦隐式读段（resolver :187 同源）。
+const OP_IMPLICIT_SEGMENTS = { tags_union: ["tags", "disabled_tags"], matrix_union_fallback: ["arch_categories", "subdomain_constraints"], product_closure: ["architecture_projection"] };
+const topSegmentOf = (addr) => (typeof addr === "string" && addr ? addr.split(".")[0] : null);
+
+/** 单属性引用集（挂点 referencedBy 精确判定与 collector 共用同一遍历——口径恒一致）。 */
+function propertyValueDomainReferences(prop) {
+  const refs = new Set();
+  const vd = prop && prop.value_domain;
+  if (!isPlainObject(vd)) return refs;
+  const top = topSegmentOf(vd.source);
+  if (top && top !== "free" && top !== "versions") refs.add(top);
+  if (typeof vd.segment === "string" && vd.segment) {
+    const seg = topSegmentOf(vd.segment);
+    if (seg) refs.add(seg);
+  }
+  if (isPlainObject(vd.normalize) && typeof vd.normalize.aliases === "string" && vd.normalize.aliases) {
+    const seg = topSegmentOf(vd.normalize.aliases);
+    if (seg) refs.add(seg);
+  }
+  if (isPlainObject(vd.default) && typeof vd.default.from === "string" && vd.default.from) {
+    const seg = topSegmentOf(vd.default.from);
+    if (seg) refs.add(seg);
+  }
+  if (Array.isArray(vd.composite)) {
+    for (const part of vd.composite) {
+      if (!isPlainObject(part)) continue;
+      if (typeof part.source === "string" && part.source && part.source !== "free") refs.add(part.source);
+      if (part.resolve && isPlainObject(part.resolve) && Array.isArray(OP_IMPLICIT_SEGMENTS[part.resolve.op])) {
+        for (const seg of OP_IMPLICIT_SEGMENTS[part.resolve.op]) refs.add(seg);
+      }
+    }
+  }
+  if (vd.resolve && isPlainObject(vd.resolve) && Array.isArray(OP_IMPLICIT_SEGMENTS[vd.resolve.op])) {
+    for (const seg of OP_IMPLICIT_SEGMENTS[vd.resolve.op]) refs.add(seg);
+  }
+  return refs;
+}
+
+function collectValueDomainReferences(fieldsDoc) {
+  const refs = new Set();
+  const classes = fieldsDoc && isPlainObject(fieldsDoc.classes) ? fieldsDoc.classes : {};
+  for (const cls of ["entity", "article"]) {
+    const props = (classes[cls] && Array.isArray(classes[cls].properties) ? classes[cls].properties : []);
+    for (const prop of props) {
+      for (const seg of propertyValueDomainReferences(prop)) refs.add(seg);
+    }
+  }
+  return refs;
+}
+
+module.exports = { resolveValueDomains, collectValueDomainReferences, propertyValueDomainReferences };
