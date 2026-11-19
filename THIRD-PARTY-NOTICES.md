@@ -16,7 +16,7 @@ OFL 允许随软件 bundled/分发字体，但要求保留上述版权声明与�
 ## 整搬件（第三方项目成件收录）
 
 - **OpenMAIC**（github.com/THU-MAIC/OpenMAIC）— MIT License，Copyright (c) 2026 THU-MAIC。
-  已收录：`.github/workflows/flaky-report.yml`＋`.github/scripts/flaky-report.mjs`（WP-190 整搬，适配三件见文件头与合同；上游自测试 flaky-report.test.mjs 未随本批）。
+  已收录：`.github/workflows/flaky-report.yml`＋`.github/scripts/flaky-report.mjs`（WP-190 整搬，适配四处见文件头与合同；上游自测试 flaky-report.test.mjs 未随本批）。
 
 ## npm 依赖
 
