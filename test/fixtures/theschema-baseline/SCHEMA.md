@@ -36,10 +36,10 @@
 
 ### 2.1 category-path
 
-格式：`{domain}.{subdomain}`，全小写 ASCII（点分两段式）。
+格式：`{domain}:{subdomain}`，全小写 ASCII（冒号两段式——权威＝contracts/validation-rules.json A08＋server/shared/enums-loader.cjs validateCategoryPath）。
 
-> **注意**：冒号三段式 `{domain}:{subdomain}:{topic}` 已废弃（`validate-article.py` 强制点分两段式）。`topic` 段不再写入 category-path，主题区分由文件名 + 检索标签承担。
-> `ops:troubleshoot:*` 与 `troubleshoot:*` 属于历史排错口径，不得写入新文章。
+> **注意**：冒号三段式 `{domain}:{subdomain}:{topic}` 已废弃（WP-040 topic 段退役）。`topic` 段不再写入 category-path，主题区分由文件名 + 检索标签承担。
+> 历史迭代口径备查：PR-046 曾为冒号三段式，某代文档曾误记"点分两段式"——均非现行法。`troubleshoot` 禁写入新文章（bannedValues）。
 
 各级值均为闭合枚举，定义在 `enums.yaml` 中。
 
@@ -123,7 +123,7 @@
 
 #### 规则
 
-- 点分两段式 `{domain}.{subdomain}`，全小写 ASCII
+- 冒号两段式 `{domain}:{subdomain}`，全小写 ASCII
 - domain 和 subdomain 必须使用 enums.yaml 中的法定值
 - 主题区分由文件名 + 检索标签承担
 - `raw/imported/` 和 `raw/archive/` 可省略 category-path
@@ -179,7 +179,7 @@
 
 **module ↔ subdomain 映射规则**：
 - 当 category-path domain 为 `ops` 时，subdomain 表示运维活动类型；`module` 表示产品/架构模块，两者是正交维度
-- 校验脚本（validate-article.py / validate_classification.py）检查 category-path 的点分两段式格式与 domain/subdomain 闭合枚举，不把 `modules[*].subdomain` 强行等同于 `category-path` subdomain
+- 校验器（schema-write-client.mjs validate-article 子命令——原 validate-article.py / validate_classification.py 均已退役）检查 category-path 的冒号两段式格式与 domain/subdomain 闭合枚举，不把 `modules[*].subdomain` 强行等同于 `category-path` subdomain
 
 ### 3.3 version — 产品版本
 
@@ -210,7 +210,7 @@
 | `最佳实践` | 可复用约定、推荐配置、明确禁忌与取舍 |
 | `产品简介` | 产品功能概览 |
 
-> **标准场景与推荐 `category-path` / `doc-type` 组合**见 **[KNOWLEDGE_SCENARIOS.md](./KNOWLEDGE_SCENARIOS.md)**。
+> ~~标准场景与推荐 `category-path` / `doc-type` 组合~~ 见 KNOWLEDGE_SCENARIOS.md——已退役删除（Master 2026-11-19 裁：初版遗留、格式已被本文件 §2.1 废弃口径取代，git 历史即归档柜）；板块轴/体裁轴/载体轴现行口径见本文件 §2.1、§3.4、§3.5、§4.2。
 
 ### 3.5 doc-type — 文档载体类型
 
@@ -230,7 +230,7 @@
 
 ### 3.6 quality — 质量评分
 
-> 可选字段，0-10 整数评分，用于知识资产质量管控。**规划中：当前校验脚本（validate_article.py / validate_classification.py）尚未强制检查此字段。**
+> 可选字段，0-10 整数评分，用于知识资产质量管控。**规划中：现行校验器（schema-write-client.mjs validate-article）尚未强制检查此字段。**
 
 | 值 | 说明 |
 |----|------|
@@ -338,7 +338,7 @@ date: YYYY-MM-DD
 status: 有效
 
 # 第一层：架构治理
-category-path: domain.subdomain          # 点分两段式
+category-path: domain:subdomain          # 冒号两段式
 
 # 第二层：业务元数据
 product: AnyShare                  # 闭合枚举
@@ -471,7 +471,7 @@ expires: YYYY-MM-DD
 
 - **用户**：提供原始资料，定义领域范围，审查矛盾内容
 - **AI**：总结、交叉引用、归档、维护一致性，遵守本 Schema
-- **校验脚本**：`.claude/scripts/validate_classification.py`，在新文档写入和定期 lint 时校验四层分类合规性
+- **校验器**：`schema-write-client.mjs validate-article`（原 .claude/scripts/validate_classification.py 已退役），在新文档写入和定期 lint 时校验四层分类合规性
 
 ---
 

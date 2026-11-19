@@ -890,7 +890,7 @@ export const GROWTH_CARDS_COPY = {
 // ── DocumentTaxonomyEditor（文章字段值域页签）──
 export const DOC_TAX_COPY = {
   SECTION_ARTICLE_TYPES: "知识文章类型",
-  ARTICLE_TYPES_HINT: "体裁（article_type）——读者拿这篇干什么：排错、升级复盘、可复制做法…（与板块轴 category-path、载体轴 doc-type 三轴分工，KNOWLEDGE_SCENARIOS §三轴）",
+  ARTICLE_TYPES_HINT: "体裁（article_type）——读者拿这篇干什么：排错、升级复盘、可复制做法…（与板块轴 category-path、载体轴 doc-type 三轴分工，见 SCHEMA.md §2.1/§3.4/§3.5）",
   SECTION_DOC_TYPES: "文档类型",
   DOC_TYPES_HINT: "载体（doc-type）——这篇在哪套出版物里出现：运维手册、技术文档…",
   PRIMARY_NAME_FALLBACK: "文章字段值域",

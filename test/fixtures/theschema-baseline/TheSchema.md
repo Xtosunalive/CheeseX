@@ -15,7 +15,7 @@ updated: 2026-08-17
 > 本文件是 wiki/ 页面体系的唯一权威规则定义。所有 SKILL 必须以此为基准，冲突时以此为准。
 > 枚举值定义在 `enums.yaml`、`ontology.yaml`，本文件只引用不重复。
 >
-> **注意**：`category-path` 现为**点分两段式** `domain.subdomain`（`validate-article.py` 强制）。冒号三段式 `domain:subdomain:topic` 已废弃。
+> **注意**：`category-path` 现为**冒号两段式** `domain:subdomain`（权威＝contracts/validation-rules.json A08，server/shared/enums-loader.cjs validateCategoryPath 强制）。冒号三段式 `domain:subdomain:topic` 已废弃（WP-040）。
 
 ## 一、目录与用途
 
@@ -49,14 +49,14 @@ updated: 2026-08-17
     entity-frontmatter-schema.md  # Entity 页面架构字段规范
     AI_CONCEPT.md            #   组件/依赖/版本生命周期核心概念（AI 必读）
     dependencies.yaml        #   集中式版本依赖矩阵
-    component-index.json     #   组件索引（规则 10：查组件先走索引，禁全项目扫描）
+    （component-index.json 已随 PR-245 组件投影退役删除——原规则 10 作废，2026-11-04）
     versions.yaml            #   版本注册表
     DATA-DICTIONARY.md       #   数据字典
-    KNOWLEDGE_SCENARIOS.md   #   标准场景与 category-path/doc-type 组合
+    # KNOWLEDGE_SCENARIOS.md 已随初版格式退役删除——原「标准场景规格」作废，2026-11-19
     article_associations.yaml #  文章关联定义
     entity-disambiguation.md / entity-disambiguation-design.md  # 实体消歧
     interaction-contracts.md #   交互契约
-    system-components.md     #   系统组件说明
+    （system-components.md 已随 PR-245 组件投影退役删除，2026-11-04）
     history/                 #   历史快照
   architecture/              # 架构图生成物 + 版本管理（节点由 wiki/entities/ 决定，规则 11-13）
   data/                      # 数据文件（如 customer-names.md 脱敏参考表）
@@ -68,7 +68,7 @@ updated: 2026-08-17
 
 ### 前端读写路径全景（7 组）
 
-Vault 根 = `VAULT_PATH`（`/Users/example/Obsidian Vault Bare Test`）。以下为前端/系统实际读写的全部路径（已排除测试残留；`anybackup.md`、根级 `master_graph.json` 仅测试引用）。
+Vault 根 = `VAULT_PATH`（由使用者在本机配置，勿硬编码机器路径）。以下为前端/系统实际读写的全部路径（已排除测试残留；`anybackup.md`、根级 `master_graph.json` 仅测试引用）。
 
 #### A. `.ledger/` — 系统状态目录（**全部系统写入，非用户维护**）
 
@@ -108,13 +108,13 @@ Vault 根 = `VAULT_PATH`（`/Users/example/Obsidian Vault Bare Test`）。以下
 
 #### F. `知识库/.claude/scripts/` — 管道脚本
 
-`pipeline-runner.py`、`promote-article.py`、`validate-article.py`（执行）
+`pipeline-runner.py`、`promote-article.py`、`schema-write-client.mjs validate-article`（执行）
 
 #### G. Vault 根 — **无生产读写**（仅测试残留）
 
 ## 二、Wiki 页面类型与 Frontmatter Schema
 
-> 所有页面必填字段随页面类型而定；`article_id` 为文章类必填（准入系统生成）。`category-path` 一律点分两段式 `domain.subdomain`，合法值来自 `enums.yaml` subdomains 段。
+> 所有页面必填字段随页面类型而定；`article_id` 为文章类必填（准入系统生成）。`category-path` 一律冒号两段式 `domain:subdomain`，合法值来自 `enums.yaml` subdomains 段。
 
 ### 2.1 Entity 页面（`wiki/entities/*.md`）
 
@@ -127,12 +127,12 @@ date: YYYY-MM-DD                     # 必填
 tags:                                # 必填，至少1个，来自 enums.yaml tags 白名单
   - 分类标签
 status: 有效                          # 必填：制定中 | 有效 | 已归档
-category-path: ref.component         # L1 架构治理（entity 用 ref: 域；点分两段式）
+category-path: ref:component         # L1 架构治理（entity 用 ref: 域；冒号两段式）
 review-cycle: 365d                   # 必填：30d | 90d | 180d | 365d | never
 updated: YYYY-MM-DD                  # 必填
 
 # ── 仅架构组件（arch_component: true）需以下字段 ──
-architecture-node-id: mysql          # 全局唯一组件 ID（kebab-case）
+architecture-node-id: mysql          # 全局唯一组件 ID（不透明串，不限字符形状；只判有无值）
 architecture_node_id: mysql          # 兼容写法，工具链同时识别
 arch_component: true                 # 标记为架构组件
 arch_layer: data-lake                # 架构层级（合法值见 enums.yaml 别名/归一化）
@@ -146,7 +146,7 @@ module:                              # 文章 module 匹配名
 ---
 ```
 
-> 说明：`architecture-node-id` 是作者侧主写法，`architecture_node_id` 是工具链兼容写法。字段定义以 `entity-frontmatter-schema.md` 为权威，`arch_layer`/`arch_category` 合法值由 `enums.yaml` 集中声明并归一化。
+> 说明：`architecture-node-id` 是作者侧主写法，`architecture_node_id` 是工具链兼容写法。字段定义以 `entity-frontmatter-schema.md` 为权威（类属主 v2——属性归属类，身份＝(类,name)，semantic 机器标注随表），`arch_layer`/`arch_category` 合法值由 `enums.yaml` 集中声明并归一化。
 
 Body 结构：
 ```markdown
@@ -246,7 +246,7 @@ updated: YYYY-MM-DD
 
 ### 2.5 标准知识文章（`raw/precleaned/` 与 `wiki/articles/`）
 
-由 `standardize-article` 输出，`validate-article.py` 校验闸门。
+由 `articles.standardize` 动作输出（server/routes/article-workflow-routes.cjs），`schema-write-client.mjs validate-article` 校验闸门。
 
 ```yaml
 ---
@@ -256,7 +256,7 @@ date: YYYY-MM-DD
 tags:
   - 标签
 status: 有效
-category-path: ops.deploy            # 点分两段式，合法值见 enums.yaml
+category-path: ops:deploy            # 冒号两段式，合法值见 enums.yaml
 review-cycle: 90d
 updated: YYYY-MM-DD
 product: AnyShare                    # 4 值枚举
@@ -342,7 +342,7 @@ quality: 8                           # 可选，0-10
 完整定义见 `SCHEMA.md` 和 `enums.yaml`。
 
 ```
-L1 category-path: domain.subdomain  (架构治理；点分两段式)
+L1 category-path: domain:subdomain  (架构治理；冒号两段式)
 L2 业务字段:     product + module + version + article_type + doc-type
 L3 tags:         标签白名单 (enums.yaml tags/)
 L4 生命周期:     status + review-cycle + updated + expires
@@ -408,7 +408,7 @@ L4 生命周期:     status + review-cycle + updated + expires
 | "整理成知识文章" | standardize-article |
 | "标准化输出" | standardize-article |
 | "检查知识库健康度" | manage-knowledge-base §9 |
-| "扫描 frontmatter" | validate_classification.py |
+| "扫描 frontmatter" | schema-write-client.mjs validate-article |
 | "生成 Mermaid 依赖图" | manage-knowledge-base §3.9 |
 | "以 X 为中心生成架构图" | obsidian-graph-architecture-integration（路由 G1/G2） |
 | "同步图谱 / 跑管道" | graph-pipeline（路由 G3，pipeline-runner.py） |
@@ -417,8 +417,8 @@ L4 生命周期:     status + review-cycle + updated + expires
 
 ```
 修改 entity / dependencies.yaml → validate-entity.py --changed → ERROR=0 方可提交
-修改 precleaned 标准文章         → validate-article.py          → 合规方可提交
-修改 wiki/ 页面                → validate_classification.py    → 0 问题方可提交
+修改 precleaned 标准文章         → schema-write-client.mjs validate-article → 合规方可提交
+修改 wiki/ 页面                → schema-write-client.mjs validate-article → 0 问题方可提交
 ```
 
 标准库健康度 = **0 ERROR + 0 WARNING**（详见 `AI_CONCEPT.md` §10）。
