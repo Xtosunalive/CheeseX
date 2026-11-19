@@ -7,7 +7,7 @@
 //                                          不读工作树 diff：diff 触发的义务归属只能由暂存集与合同范围的
 //                                          交集决定（③），全局 diff 会跨包串红。
 //   ③ wp-derive.mjs --pre-commit            增量：Git 暂存区 → 相关合同 → 派生对账；
-//                                          observe 默认（只报 would-deny 退出 0），WP_ENFORCE=1 转 deny
+//                                          enforce 默认（WP_ENFORCE!==0——T4 2026-11-06 激活），WP_ENFORCE=0 临时降 observe 排查
 //   ④ wp-derive.mjs <package_id> --plan     预览：把合同声明的 in_scope_paths 当伪暂存喂入同一套
 //                                          规则引擎，开工即得全量义务预览（考前划重点）——预览不写账
 //                                          （声明范围≠必触；R5 路由退役需 diff，预览模式标注 N/A）。

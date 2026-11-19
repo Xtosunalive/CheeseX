@@ -860,7 +860,9 @@ def _frontmatter_tags(fm):
 
 
 def _normalize_category_path(cp_raw):
-    """标准化 category-path：兼容新旧格式，只保留前两段 domain:subdomain"""
+    """标准化 category-path：WP-040 冒号两段式为唯一法（contracts/validation-rules.json A08）——
+    WP-201 收紧：点分/三段旧格式不再原样放行（冒号两段截断保留；非冒号形态原样交下游
+    校验器红，提取层不再静默兼容旧口径）。探针实测 2026-11-19：现存 vault 数据零点分形态。"""
     cp = str(cp_raw).strip("\"'")
     parts = cp.split(":")
     if len(parts) >= 2:
