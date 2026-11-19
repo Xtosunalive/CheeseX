@@ -28,6 +28,11 @@
 #      作主类型（WP-169 批教训在册：裸 nullable/类型数组处理不当会假红）。
 #   ④ 自测试 test_documented_contracts.py 随迁改写为本仓引擎离线单测（上游原断言针对
 #      bkn-foundry 自身文档与实现，域不合；守护对象＝移植后的引擎纯函数）。
+#   ⑤ 引擎比对能力补强（Master 2026-11-19 批准，WP-196 同批；上游同有限制）：
+#      (a) 递归 $ref 限深展开（frozenset 硬停→tuple 计次，MAX_REF_DEPTH=3）——
+#          递归树形（taxonomyTree[].children[].…）子层字段进比对面；
+#      (b) 通配折叠保留首段数组标记（.*[] 落字面键折叠不错位）——
+#          数组内开映射（subdomains.<域>[].id）进比对面。
 #
 # 域数据适配说明：DISCOVERY/SUB_DISCOVERY 表为上游 OpenBKN 服务拓扑数据，本仓不改其内容
 #（保持逐行原样）；经调用面 --host-map 按本仓 API 顶层段映射服务地址后，上游发现路径天然
@@ -160,6 +165,10 @@ class SpecLoader:
         return self.resolve(cur, doc2, target, depth + 1)
 
     MAX_DEPTH = 7
+    # 适配⑤：同一 $ref 允许展开的最大次数（1＝仅首层；3＝根＋两层嵌套——
+    # 覆盖递归树形（如 taxonomyTree[].children[].…）的常规深度；更深的实际层
+    # 若返回会被如实报为「文档未声明」，契约侧递归声明仍在（诚实优于假绿）。
+    MAX_REF_DEPTH = 3
 
     def field_paths(self, schema, doc, path, prefix="", depth=0, seen=None,
                     required=True, out=None):
@@ -173,15 +182,15 @@ class SpecLoader:
         if out is None:
             out = OrderedDict()
         if seen is None:
-            seen = frozenset()
+            seen = ()                 # 适配⑤：frozenset→tuple——同引用按次数限深（递归 $ref 子树进比对面）
         if depth > self.MAX_DEPTH:
             return out
 
         ref_key = schema.get("$ref") if isinstance(schema, dict) else None
         if ref_key:
-            if ref_key in seen:
-                return out           # 环:停止展开
-            seen = seen | {ref_key}
+            if seen.count(ref_key) >= self.MAX_REF_DEPTH:
+                return out           # 环:同引用限深停止（MAX_REF_DEPTH 层内仍展开，防无限自引用）
+            seen = seen + (ref_key,)
         schema = self.resolve(schema, doc, path)
         if not isinstance(schema, dict):
             return out
@@ -230,9 +239,9 @@ class SpecLoader:
             if t == "array":
                 out[key + "[]"] = (_primary_type((sub_r.get("items") or {}).get("type", "object")),
                                    child_req)
-                if not (sub_ref and sub_ref in seen):
+                if not (sub_ref and seen.count(sub_ref) >= self.MAX_REF_DEPTH):
                     self.field_paths(sub_r.get("items", {}), doc, path, key + "[]",
-                                     depth + 1, seen | ({sub_ref} if sub_ref else set()),
+                                     depth + 1, seen + ((sub_ref,) if sub_ref else ()),
                                      child_req, out)
             else:
                 out[key] = (t or "object", child_req)
@@ -241,9 +250,9 @@ class SpecLoader:
                 # 漏掉就等于整条分支从未展开。
                 combi = any(k in sub_r for k in ("oneOf", "anyOf", "allOf"))
                 if (t == "object" or "properties" in sub_r or combi) \
-                        and not (sub_ref and sub_ref in seen):
+                        and not (sub_ref and seen.count(sub_ref) >= self.MAX_REF_DEPTH):
                     self.field_paths(sub_r, doc, path, key, depth + 1,
-                                     seen | ({sub_ref} if sub_ref else set()),
+                                     seen + ((sub_ref,) if sub_ref else ()),
                                      child_req, out)
         return out
 
@@ -924,7 +933,12 @@ def render(ops, ids, args):
             for base in typed:
                 if k.startswith(base + "."):
                     rest = k[len(base) + 1:].split(".", 1)
-                    return base + ".*" + ("." + rest[1] if len(rest) > 1 else "")
+                    # 适配⑤：折叠保留首段数组标记——actual 把 `.*[]` 通配落成字面键时
+                    # （如 subdomains.<域>[]），[]. 归属跟首段走，否则与文档 .*[].id 错位。
+                    head = rest[0]
+                    marker = "[]" if head.endswith("[]") else ""
+                    tail = rest[1] if len(rest) > 1 else ""
+                    return base + ".*" + marker + ("." + tail if tail else "")
             return k
 
         def known(k):
