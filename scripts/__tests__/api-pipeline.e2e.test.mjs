@@ -11,9 +11,27 @@ import { gitFixtureEnv } from "../quality/shared/git-fixture-env.mjs";
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const fixtureVaultPath = path.join(rootDir, "test", "fixtures", "minimal-vault");
 
+// PR-333：进程树有序回收——组级 SIGTERM（服务端有 SIGTERM 有序排水，vault-io registerShutdownHandlers）
+// ＋exit 等待＋组排空轮询。夹具已 detached 独立进程组：boot due 自动抽取经 python-bridge 裸 spawn 的
+// python 孙进程随组收编，组级信号可达而不伤测试 runner 自身。组不存在（ESRCH）即已净；10s 上限只兜
+// 真僵死，超时仍走 rmSync 重试背锅，不悬挂测试。
+async function terminateProcessTree(child) {
+  if (!child.pid) return;
+  try { process.kill(-child.pid, "SIGTERM"); } catch { /* 组已空＝净 */ }
+  if (child.exitCode === null && child.signalCode === null) {
+    await new Promise((resolve) => child.once("exit", resolve));
+  }
+  for (let deadline = Date.now() + 10_000; Date.now() < deadline; ) {
+    try { process.kill(-child.pid, 0); await new Promise((r) => setTimeout(r, 100)); } catch { return; }
+  }
+}
+
 function startApi(vaultPath, dataPath) {
   const child = spawn(process.execPath, [path.join(rootDir, "server", "main.cjs")], {
     cwd: rootDir,
+    // PR-333：detached＝独立进程组——服务端 boot due 自动抽取（pipeline_due.py 首跑即 due）经
+    // python-bridge 裸 spawn 的 python 孙进程随服务端入组而非测试进程组，清理时组级回收才安全可行
+    detached: true,
     // KB_DATA_DIR＝SPEC-012 持久层测试缝（data-dir.cjs 注释明示「e2e 临时目录」用途）：
     // 不注入则 spawn 服务端打开所在树共享 data/（dev 服务真实运行态）——夹具检查被树间差异污染
     //（2026-10-16 实证：任务树绿/main 红，property total 1→2）。密闭化后两树判定一致。
@@ -116,10 +134,11 @@ test("minimal Vault keeps maintenance APIs available and dashboard live-reads wi
     );
     assert.equal(property.data.items[0].sourcePathExists, true);
   } finally {
-    if (child.exitCode === null) {
-      child.kill("SIGTERM");
-      await new Promise((resolve) => child.once("exit", resolve));
-    }
+    // PR-333：SIGTERM 只达服务端自身——python 孙进程（extract_graph.py --apply，PPID=1 孤儿实录）
+    // 被收养后仍向 KB_DATA_DIR 写文件，rmSync 与之竞速，CI 慢盘下重试预算耗尽即 ENOTEMPTY
+    // （三代红 44452629802/44456803522/44463063076，失败集不同同族签名；同族修复见
+    // server/routes/__tests__/document-inventory-empty-http.test.cjs）。排空后再落清理。
+    await terminateProcessTree(child);
     // PR-140：exit 事件≠句柄全释放（SQLite WAL 边车/孙进程收尾中）——rmSync 对 ENOTEMPTY/
     // EBUSY 内建重试（5×100ms）吸收瞬时竞态，消除全量批并发下的清理随机红（隔离恒绿实录在案）
     rmSync(vaultPath, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });

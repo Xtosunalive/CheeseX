@@ -27,6 +27,10 @@ test("空 Vault 真进程：正式文档清单返回空态指引，不被响应�
     socket.listen(0, "127.0.0.1", () => { const value = socket.address().port; socket.close(() => resolve(value)); });
   });
   const child = spawn(process.execPath, [path.join(repo, "server/main.cjs")], {
+    // PR-333：独立进程组——boot due 自动抽取的 python 孙进程（extract_graph.py）随服务端入组，
+    // 清理时组级 SIGTERM＋排空轮询才能安全回收（不伤测试 runner；同族修复见
+    // scripts/__tests__/api-pipeline.e2e.test.mjs 的 terminateProcessTree）
+    detached: true,
     env: { ...process.env, VAULT_PATH: vault, KB_DATA_DIR: data, THESCHEMA_DIR: schema, API_PORT: String(port), VAULT_GIT_LEDGER_DISABLE: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   });
@@ -56,8 +60,18 @@ test("空 Vault 真进程：正式文档清单返回空态指引，不被响应�
     assert.equal(body.data.dataSource, "worktree");
     assert.deepEqual(body.data.availability.kinds, ["no-formal-release"]);
   } finally {
-    child.kill("SIGTERM");
-    await new Promise((resolve) => child.once("exit", resolve));
+    // PR-333：SIGTERM 只达服务端自身——python 孙进程被收养（PPID=1 孤儿实录）后仍向 KB_DATA_DIR
+    // 写文件，与 rmSync 竞速，CI 慢盘下重试预算耗尽即 ENOTEMPTY（三代红实录在案）。
+    // 组级 SIGTERM＋排空轮询（kill(-pid,0) 至 ESRCH，10s 上限兜真僵死）排空后再落清理。
+    if (child.pid) {
+      try { process.kill(-child.pid, "SIGTERM"); } catch { /* 组已空＝净 */ }
+      if (child.exitCode === null && child.signalCode === null) {
+        await new Promise((resolve) => child.once("exit", resolve));
+      }
+      for (let deadline = Date.now() + 10_000; Date.now() < deadline; ) {
+        try { process.kill(-child.pid, 0); await new Promise((r) => setTimeout(r, 100)); } catch { break; }
+      }
+    }
     fs.rmSync(root, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
   }
 });
