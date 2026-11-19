@@ -32,7 +32,7 @@ function usage() {
     "  modules-upsert   --name <模块名> [--system/--subdomain/--since/--until] --revision <读到的基线> --vault <路径>（revision 必填，绝对或相对均可）",
     "  enum-append       --segment <段名> --value <值>（闭合枚举段追加——kb-enum 用，幂等跳过已存在） --revision <读到的基线> --vault <路径>",
     "  enums-set-modules --file <modules.json>（整表替换 modules 段——管线 sync-enums 用） --revision <读到的基线> --vault <路径>",
-    "  fields-write      --file <fields.json>（字段字典整写——AI 会话迁移通道） --revision <读到的基线|null> --vault <路径>",
+    "  fields-write      --file <fields.json>（字段字典整写 {schema_version:2, keys, classes}——AI 会话迁移通道） --revision <读到的基线|null> --vault <路径>",
     "  validate-article  --file <文章.md> [--stamp]（文章校验闸门——SPEC-022 唯一语义；stdout=校验报告 JSON，exit 0/1/2） [--vault <路径>]",
     "                   探测模式：--detect-stale <dir> / --detect-untracked-wikilinks <dir> / --detect-author-placeholders <dir> / --quality-summary <dir>",
     "",
@@ -175,15 +175,18 @@ async function main() {
       return finish(vault, op, result);
     }
     if (op === "fields-write") {
-      if (!args.file || !fs.existsSync(args.file)) return fail("VALIDATION_ERROR", "fields-write 需要 --file（存在的 JSON：{fields:[...]}）");
+      // WP-195 v2 类属主：整量写 payload＝{schema_version:2, keys, classes}（服务签名 writeFields({classes, keys})）
+      if (!args.file || !fs.existsSync(args.file)) return fail("VALIDATION_ERROR", "fields-write 需要 --file（存在的 JSON：{schema_version:2, keys, classes}）");
       const payload = JSON.parse(fs.readFileSync(args.file, "utf8"));
-      if (!Array.isArray(payload && payload.fields)) return fail("VALIDATION_ERROR", "--file 须为 {fields:[...]}");
+      if (!payload || typeof payload !== "object" || Array.isArray(payload) || !payload.classes || typeof payload.classes !== "object" || Array.isArray(payload.classes)) {
+        return fail("VALIDATION_ERROR", "--file 须为 {schema_version:2, keys, classes} 类属主形态");
+      }
       const { createFieldsWriteService } = require("../../server/services/schema-manager/fields-write-service.cjs");
       const expectedRevision = revisionArg();
       // stdout 只留结果 JSON（机器消费单源）——服务日志全导 stderr
       const fieldsLogger = { info: (...a) => console.error(...a), warn: (...a) => console.error(...a), error: (...a) => console.error(...a) };
       const service = createFieldsWriteService({ vaultPath: vault, logger: fieldsLogger });
-      const result = await service.writeFields({ fields: payload.fields, expectedRevision });
+      const result = await service.writeFields({ classes: payload.classes, keys: payload.keys, expectedRevision });
       console.log(JSON.stringify({ ok: true, op, revision: result.revision, projectionSynced: result.projectionSynced, resolvedSynced: result.resolvedSynced }));
       return;
     }

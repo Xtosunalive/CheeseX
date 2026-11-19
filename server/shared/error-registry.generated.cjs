@@ -668,7 +668,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/fields-write-service.cjs:105"
+        "server/services/schema-manager/fields-write-service.cjs:120"
       ]
     },
     "FIELDS_REVISION_CONFLICT": {
@@ -676,7 +676,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/schema-manager/fields-write-service.cjs:89"
+        "server/services/schema-manager/fields-write-service.cjs:93"
       ]
     },
     "FIELD_NOT_ALLOWED": {
@@ -2199,8 +2199,8 @@ module.exports = {
         "server/services/schema-manager/dependencies-write-service.cjs:254",
         "server/services/schema-manager/dependency-impact-preview-service.cjs:51",
         "server/services/schema-manager/enums-write-service.cjs:128",
-        "server/services/schema-manager/fields-write-service.cjs:91",
-        "server/services/schema-manager/fields-write-service.cjs:95",
+        "server/services/schema-manager/fields-write-service.cjs:97",
+        "server/services/schema-manager/fields-write-service.cjs:110",
         "server/services/schema-manager/schema-history-service.cjs:77",
         "server/services/schema-manager/schema-history-service.cjs:81",
         "server/services/schema-manager/schema-write-service.cjs:142",

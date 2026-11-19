@@ -66,7 +66,7 @@ describe("AnomalyEntityRepairDrawer · 文章源分支", () => {
     // 回归守卫①：文章源必须触发服务端单源清单加载（死胡同 bug 的接线证明——修复前此调用永不发生）
     await waitFor(() => expect(api.fetchArticleRepairOptions).toHaveBeenCalled());
     // 回归守卫②：实体模板字段不再出现在文章卡抽屉
-    expect(screen.queryByText("架构组件身份")).not.toBeInTheDocument();
+    expect(screen.queryByText("架构组件 ID")).not.toBeInTheDocument();
     // 回归守卫③：切片3修复提示在场（P4 重新标准化 + 正文 Obsidian 边界）
     expect(screen.getByText(/正文请在 Obsidian 修改/)).toBeInTheDocument();
   });

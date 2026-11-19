@@ -40,7 +40,7 @@ function makeSchemaFixture() {
   fs.writeFileSync(path.join(schemaDir, "ontology.yaml"), ONTOLOGY_SEED, "utf8");
   fs.writeFileSync(path.join(schemaDir, "enums.yaml"), ENUMS_SEED, "utf8");
   fs.writeFileSync(path.join(schemaDir, "versions.yaml"), "schema_version: 1\nproducts: {}\n", "utf8");
-  fs.writeFileSync(path.join(schemaDir, "fields.yaml"), "schema_version: 1\nfields: []\n", "utf8");
+  fs.writeFileSync(path.join(schemaDir, "fields.yaml"), "schema_version: 2\nkeys:\n  entity: {primary: architecture-node-id, display: title}\n  article: {primary: article_id, display: title}\nclasses:\n  entity: {properties: []}\n  article: {properties: []}\n", "utf8");
   return { dir, schemaDir };
 }
 
@@ -107,8 +107,12 @@ test("fields 写成功 → 通知 category=fields；回调抛错 fail-open 写�
     logger: { info() {}, warn() {} },
     onGraphInputWrite: (input) => { seen.push(input); throw new Error("bridge boom"); },
   });
-  const fields = [{ name: "title", label: "显示名", type: "string", required: "是", scope: ["entity", "article"], layer: "内容属性", description: "标题" }];
-  await assert.doesNotReject(() => svc.writeFields({ fields, expectedRevision: svc.readFields().revision }), "回调抛错不得阻断 fields 写");
+  // WP-195 v2：整量写 payload＝{keys, classes}（类属主）
+  const classes = {
+    entity: { properties: [{ name: "title", display: "实体名称", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题" }] },
+    article: { properties: [{ name: "title", display: "标题", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题" }] },
+  };
+  await assert.doesNotReject(() => svc.writeFields({ keys: { entity: { primary: "architecture-node-id", display: "title" }, article: { primary: "article_id", display: "title" } }, classes, expectedRevision: svc.readFields().revision }), "回调抛错不得阻断 fields 写");
   assert.deepEqual(seen.map((s) => s.category), ["fields"]);
   fs.rmSync(fx.dir, { recursive: true, force: true });
 });

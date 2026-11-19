@@ -334,8 +334,9 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     });
     const fieldsPath = path.join(serverEnv.THESCHEMA_DIR, "fields.yaml");
     const fields = yaml.parse(fs.readFileSync(fieldsPath, "utf8"));
-    fields.fields.push({ name: "review_note", label: "测试校对说明", type: "string", required: "否", scope: ["article"], layer: "内容属性", value_domain: { source: "free" } });
-    fields.fields.push({ ...fields.fields.at(-1), name: "preview_note" });
+    // WP-195 v2 类属主：新增属性挂文章类 properties（无 scope/label 字段——属主类即作用域，display 即绑定名）
+    fields.classes.article.properties.push({ name: "review_note", display: "测试校对说明", type: "string", required: "否", layer: "内容属性", value_domain: { source: "free" }, description: "测试注入属性。" });
+    fields.classes.article.properties.push({ name: "preview_note", display: "测试校对说明", type: "string", required: "否", layer: "内容属性", value_domain: { source: "free" }, description: "测试注入属性。" });
     write(vaultPath, "知识库/TheSchema/fields.yaml", yaml.stringify(fields));
     const ontologyPath = path.join(serverEnv.THESCHEMA_DIR, "ontology.yaml");
     const definitions = yaml.parse(fs.readFileSync(ontologyPath, "utf8"));

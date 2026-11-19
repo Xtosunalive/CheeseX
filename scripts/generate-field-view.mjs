@@ -1,71 +1,87 @@
 #!/usr/bin/env node
-// generate-field-view.mjs — 字段视图装配生成器（WP-187）
+// generate-field-view.mjs — 字段视图装配生成器（WP-187 立件；WP-195 v2 改源）
 //
-// @responsible: 把字段中文名（shared/field-labels.mjs，seq209 单源）与字段白名单键域
-//   （server/shared/field-policy.cjs——活算自 contracts/entity-readiness-rules.json＋field-rule-declarations.cjs）
-//   在服务端单点装配成前端派生面 src/lib/generated/field-view.ts。前端一律消费派生面，
-//   禁直连标签单源（eslint no-restricted-imports 执法，WP-187 消接缝）。
-// @inputs: shared/field-labels.mjs（ESM import）＋ server/shared/field-policy.cjs（createRequire）
-// @outputs: src/lib/generated/field-view.ts；--check 模式只比对不落盘，与源漂移即退出 1
+// @responsible: 把字段中文绑定名（data/theschema/fields.yaml v2 classes.*.properties[].display
+//   ——类属主立法面，WP-195 采 OpenBKN 设计）与字段白名单键域（server/shared/field-policy.cjs
+//   ——活算自 contracts/entity-readiness-rules.json＋field-rule-declarations.cjs）在服务端单点装配：
+//   ① 前端派生面 src/lib/generated/field-view.ts（禁直连标签源，eslint no-restricted-imports 执法）
+//   ② 服务端面 shared/field-labels.mjs（生成物——服务端消费面 import 指示符不变）
+// @inputs: data/theschema/fields.yaml（v2，直读仓内副本——vault 侧缺席时仓内即主源；零 vault 依赖，CI 可跑）
+//          ＋ server/shared/field-policy.cjs（createRequire）
+// @outputs: src/lib/generated/field-view.ts＋shared/field-labels.mjs；--check 模式只比对不落盘，与源漂移即退出 1
 // @context: 生成器即校验器（dictionary-of-ai-coding 三件套）；check-derivation-sync 经
-//   contracts/reuse-domains.json 域行（id=field-view，generator=gen:field-view）自动纳管（WP-133 注册表派生，
-//   机制同 generate-ontology-registry）。装配校验 fail-closed：策略键域的键缺中文名即拒绝生成。
+//   contracts/reuse-domains.json 域行（id=field-view，generator=gen:field-view）自动纳管（WP-133 注册表派生）。
+//   装配校验 fail-closed：策略键域的键缺类属主声明（或 display 缺失）即拒绝生成。
 "use strict";
 
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
-import { FIELD_LABELS } from "../shared/field-labels.mjs";
+import YAML from "yaml";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const OUT_PATH = path.join(ROOT, "src/lib/generated/field-view.ts");
+const OUT_TS = path.join(ROOT, "src/lib/generated/field-view.ts");
+const OUT_MJS = path.join(ROOT, "shared/field-labels.mjs");
+const SOURCE_REL = "data/theschema/fields.yaml";
 const require_ = createRequire(import.meta.url);
 const fieldPolicy = require_(path.join(ROOT, "server/shared/field-policy.cjs"));
 
-// ── 装配（join 校验，fail-closed）：策略键域每个键必须有中文名，缺即拒绝生成 ──
-// 这是「装配器」的实体工作：键域来自策略活算、标签来自单源，两者在此单点会合；
-// 前端派生面一旦产出即保证「每个可写键都有中文名」。
+// ── 读源（fields.yaml v2，类属主）──
+const fieldsDoc = YAML.parse(fs.readFileSync(path.join(ROOT, SOURCE_REL), "utf8"));
+if (fieldsDoc.schema_version !== 2 || !fieldsDoc.classes) {
+  console.error("[field-view] fields.yaml 非 v2 类属主形态（schema_version!==2 或缺 classes）——拒绝生成");
+  process.exit(1);
+}
+const classProperties = (cls) =>
+  (fieldsDoc.classes[cls] && Array.isArray(fieldsDoc.classes[cls].properties) ? fieldsDoc.classes[cls].properties : []);
+
+const labels = {
+  entity: Object.fromEntries(classProperties("entity").map((p) => [p.name, p.display])),
+  article: Object.fromEntries(classProperties("article").map((p) => [p.name, p.display])),
+};
+
+// ── 装配（join 校验，fail-closed）：策略键域的每个键必须在对应类有属主声明且 display 齐备 ──
+// 这是「装配器」的实体工作：键域来自策略活算、display 来自立法面，两者在此单点会合。
 const missing = [];
 for (const key of fieldPolicy.ENTITY_WRITE_FIELDS) {
-  if (!(key in FIELD_LABELS.entity)) missing.push(`entity:${key}`);
+  if (!(key in labels.entity) || !labels.entity[key]) missing.push(`entity:${key}`);
 }
 for (const key of fieldPolicy.ARTICLE_WRITE_FIELDS) {
-  if (!(key in FIELD_LABELS.article)) missing.push(`article:${key}`);
+  if (!(key in labels.article) || !labels.article[key]) missing.push(`article:${key}`);
 }
 if (missing.length > 0) {
   console.error(
-    `[field-view] 策略键域缺中文名，装配拒绝（fail-closed）：\n  ${missing.join("\n  ")}\n` +
-      "  修复路径：键域改 contracts/entity-readiness-rules.json／field-rule-declarations.cjs，标签改 shared/field-labels.mjs，两边必须同步。"
+    `[field-view] 策略键域缺类属主 display，装配拒绝（fail-closed）：\n  ${missing.join("\n  ")}\n` +
+      "  修复路径：键域改 contracts/entity-readiness-rules.json／field-rule-declarations.cjs，display 改 data/theschema/fields.yaml，两边必须同步。"
   );
   process.exit(1);
 }
 
 // ── 键序＝策略派生序（确定性生成，--check 才能逐字节比对）──
-// ENTITY_WRITE_FIELDS＝契约 fields 段键序＋aliases 追加；ARTICLE_WRITE_FIELDS＝契约 article.fields 键序；
-// RENDER_FIELDS＝实体域在前、文章独有键随后的并集（Set 首现序）。
 const entityWriteKeys = [...fieldPolicy.ENTITY_WRITE_FIELDS];
 const articleWriteKeys = [...fieldPolicy.ARTICLE_WRITE_FIELDS];
 const renderKeys = [...fieldPolicy.RENDER_FIELDS];
 
-// 标签表按源文件字面序原样烘焙（含文章域 body——标签面比写门宽一项是既有语义，不是漏配）
-const entityLabels = { ...FIELD_LABELS.entity };
-const articleLabels = { ...FIELD_LABELS.article };
-
-const renderLines = (entries, indent) =>
+const labelLines = (entries, indent) =>
+  Object.entries(entries)
+    .map(([key, value]) => `${indent}${JSON.stringify(key)}: ${JSON.stringify(value)},`)
+    .join("\n");
+const keysBlock = (keys, indent) => keys.map((key) => `${indent}${JSON.stringify(key)},`).join("\n");
+const mjsLines = (entries, indent) =>
   Object.entries(entries)
     .map(([key, value]) => `${indent}${JSON.stringify(key)}: ${JSON.stringify(value)},`)
     .join("\n");
 
-const keysBlock = (keys, indent) => keys.map((key) => `${indent}${JSON.stringify(key)},`).join("\n");
+const SOURCE_NOTE =
+  `// Generated by scripts/generate-field-view.mjs. Do not edit by hand.\n` +
+  `// Source: data/theschema/fields.yaml v2（类属主立法面——display 即中文绑定声明）＋ server/shared/field-policy.cjs（键域活算）。\n` +
+  `// WP-195 采 OpenBKN 设计：属性归属类，display 随类——entity.status「生命周期状态」与 article.title「标题」是不同属性的绑定。\n` +
+  `// 再生：npm run gen:field-view（--check 校验漂移）；登记 contracts/reuse-domains.json 域行 field-view。\n\n`;
 
-const ts = `// Generated by scripts/generate-field-view.mjs. Do not edit by hand.
-// Source: shared/field-labels.mjs（seq209 字段中文名单源）＋ server/shared/field-policy.cjs（键域活算，
-//   派生自 contracts/entity-readiness-rules.json＋field-rule-declarations.cjs）。
-// 前端一律消费本派生面，禁直连标签单源（WP-187；eslint no-restricted-imports 执法）。
-// 再生：npm run gen:field-view（--check 校验漂移）；登记 contracts/reuse-domains.json 域行 field-view。
-
-/** 写门·实体域键集（15 项＝契约 fields 段 14 键＋aliases 别名写通道；序＝策略派生序） */
+const ts =
+  SOURCE_NOTE +
+  `/** 写门·实体域键集（15 项＝契约 fields 段 14 键＋aliases 别名写通道；序＝策略派生序） */
 export const ENTITY_WRITE_KEYS = [
 ${keysBlock(entityWriteKeys, "  ")}
 ] as const;
@@ -85,26 +101,26 @@ export type ArticleFieldKey = (typeof ARTICLE_WRITE_KEYS)[number];
 export type RenderFieldKey = (typeof RENDER_KEYS)[number];
 
 /**
- * 字段中文名（seq209 单源的派生面；表内容与 shared/field-labels.mjs 逐键同值，生成器钉死）。
- * Record<string, string> 形态是刻意的：保持与原单源模块相同的字符串索引兼容（消费方按键取值）。
+ * 字段中文绑定名（fields.yaml v2 display 的派生面；表内容与立法面逐键同值，生成器钉死）。
+ * Record<string, string> 形态是刻意的：保持字符串索引兼容（消费方按键取值）。
  */
 export const FIELD_LABELS: {
   entity: Record<string, string>;
   article: Record<string, string>;
 } = {
   entity: {
-${renderLines(entityLabels, "    ")}
+${labelLines(labels.entity, "    ")}
   },
   article: {
-${renderLines(articleLabels, "    ")}
+${labelLines(labels.article, "    ")}
   },
 };
 
 /**
- * 字段中文名唯一读取入口（与 shared/field-labels.mjs 同签名同语义）。
+ * 字段中文绑定名唯一读取入口（与 shared/field-labels.mjs 同签名同语义）。
  * @param field 字段名（技术键）；空/非法输入回 ""
  * @param domain 显式域；省略时按 entity → article 兜底序（混域展示链路）
- * @returns 中文名；未登记字段回字段名本身（不吞信息，由调用方兜底）
+ * @returns 绑定名；未登记字段回字段名本身（不吞信息，由调用方兜底）
  */
 export function fieldLabel(field: unknown, domain?: "entity" | "article"): string {
   if (typeof field !== "string" || !field.trim()) return "";
@@ -115,29 +131,75 @@ export function fieldLabel(field: unknown, domain?: "entity" | "article"): strin
 }
 `;
 
+const mjs =
+  SOURCE_NOTE +
+  `// 服务端面（原 seq209 手写单源载体退役为生成物——消费面 import 指示符不变）。
+//
+// 【为什么必须按域分段】title 在实体类叫「实体名称」、在文章类叫「标题」——属性归属类（WP-195），
+// 两个绑定名都是立法面 display，不是命名偏好。消费方一律按自己所处的域取（显式传 domain）；
+// 无法确定域的兜底链路走 entity → article 序。
+
+/** 实体类属性绑定名（fields.yaml v2 entity.properties display 全量） */
+const ENTITY = {
+${mjsLines(labels.entity, "  ")}
+};
+
+/** 文章类属性绑定名（fields.yaml v2 article.properties display 全量） */
+const ARTICLE = {
+${mjsLines(labels.article, "  ")}
+};
+
+export const FIELD_LABELS = { entity: ENTITY, article: ARTICLE };
+
+/**
+ * 字段中文绑定名唯一读取入口。
+ * @param {unknown} field 字段名（技术键）
+ * @param {"entity" | "article" | undefined} domain 显式域；省略时按 entity → article 兜底序（混域展示链路）
+ * @returns {string} 绑定名；空/非法输入回 ""，未登记字段回字段名本身（不吞信息，由调用方兜底）
+ */
+export function fieldLabel(field, domain) {
+  if (typeof field !== "string" || !field.trim()) return "";
+  if (domain) {
+    const table = FIELD_LABELS[domain];
+    return (table && table[field]) || field;
+  }
+  return ENTITY[field] || ARTICLE[field] || field;
+}
+`;
+
 function main() {
   const checkOnly = process.argv.includes("--check");
+  const outputs = [
+    [OUT_TS, ts, "field-view.ts"],
+    [OUT_MJS, mjs, "field-labels.mjs"],
+  ];
   if (!checkOnly) {
-    fs.mkdirSync(path.dirname(OUT_PATH), { recursive: true });
-    fs.writeFileSync(OUT_PATH, ts, "utf8");
+    for (const [outPath, content, name] of outputs) {
+      fs.mkdirSync(path.dirname(outPath), { recursive: true });
+      fs.writeFileSync(outPath, content, "utf8");
+    }
     console.log(
-      `field-view=generated entity=${entityWriteKeys.length} article=${articleWriteKeys.length} render=${renderKeys.length} → src/lib/generated/field-view.ts`
+      `field-view=generated entity=${entityWriteKeys.length}/${Object.keys(labels.entity).length} article=${articleWriteKeys.length}/${Object.keys(labels.article).length} render=${renderKeys.length} → field-view.ts＋field-labels.mjs`
     );
     return;
   }
-  const current = fs.existsSync(OUT_PATH) ? fs.readFileSync(OUT_PATH, "utf8") : null;
-  if (current === null) {
-    console.error(`[field-view] --check 失败：生成物不存在（${path.relative(ROOT, OUT_PATH)}）——先跑 npm run gen:field-view`);
-    process.exit(1);
+  for (const [outPath, content, name] of outputs) {
+    const current = fs.existsSync(outPath) ? fs.readFileSync(outPath, "utf8") : null;
+    if (current === null) {
+      console.error(`[field-view] --check 失败：生成物不存在（${path.relative(ROOT, outPath)}）——先跑 npm run gen:field-view`);
+      process.exit(1);
+    }
+    if (current !== content) {
+      console.error(
+        `[field-view] --check 失败：${name} 与源漂移（手改生成物或 fields.yaml 已变更未再生）。` +
+          "修复：npm run gen:field-view 再生；若 display/键域语义变了，同步检查消费方与差分锁测试。"
+      );
+      process.exit(1);
+    }
   }
-  if (current !== ts) {
-    console.error(
-      "[field-view] --check 失败：生成物与源漂移（手改生成物或源已变更未再生）。" +
-        "修复：npm run gen:field-view 再生；若源语义变了，同步检查消费方与差分锁测试。"
-    );
-    process.exit(1);
-  }
-  console.log(`field-view=ok（生成物与源同步） entity=${entityWriteKeys.length} article=${articleWriteKeys.length} render=${renderKeys.length}`);
+  console.log(
+    `field-view=ok（生成物与源同步） entity=${entityWriteKeys.length}/${Object.keys(labels.entity).length} article=${articleWriteKeys.length}/${Object.keys(labels.article).length} render=${renderKeys.length}`
+  );
 }
 
 main();

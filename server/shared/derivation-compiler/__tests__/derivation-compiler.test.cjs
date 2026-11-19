@@ -49,6 +49,19 @@ test("编译产物不包含手写逻辑，全部来自本体单源", () => {
   }
 });
 
+// WP-195 v2 类属主：真实 fields.yaml 已是 classes 形态——编译面按类上下文取属性
+//（KnowledgeArticle→article 类；entity 专有属性不串类）
+test("v2 类属主：storageFields 按类上下文取属性（article 类键可绑定、entity 专有键不串类）", () => {
+  const changed = structuredClone(ontology);
+  changed.node_types.KnowledgeArticle.data_properties.article_id = { required: true };
+  const compiled = compileClassDerivation(changed, fields, "KnowledgeArticle", {
+    deterministic: true,
+  });
+  const names = new Set(compiled.storageFields.map((f) => f.fieldName));
+  assert.ok(names.has("article_id"), "article 类专有身份属性可绑定（v2 classes 分支供型）");
+  assert.ok(!names.has("architecture-node-id"), "entity 专有属性不串入文章类");
+});
+
 test("真实 Fastify 注册使用路径参数并拒绝接管异主入口", async () => {
   const app = require("fastify")();
   try {

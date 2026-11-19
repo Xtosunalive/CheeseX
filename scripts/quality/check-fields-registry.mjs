@@ -39,11 +39,12 @@ const ANCHORS = [
     id: "vocabulary-profiling DIMENSIONS",
     file: "server/services/schema-profiling/profile-dimensions.cjs",
     // DIMENSIONS 单一定义（SPEC-020 波 2 随迁）里的 entityField/articleFields 字符串字面量
+    // WP-195 v2 (类,name) 对账：提取带类归属——entityField→entity 类、articleFields→article 类
     extract: (content) => {
-      const out = new Set();
-      for (const m of content.matchAll(/entityField:\s*"([a-z_-]+)"/g)) out.add(m[1]);
+      const out = { entity: new Set(), article: new Set() };
+      for (const m of content.matchAll(/entityField:\s*"([a-z_-]+)"/g)) out.entity.add(m[1]);
       for (const m of content.matchAll(/articleFields:\s*\[([^\]]*)\]/g)) {
-        for (const f of m[1].matchAll(/"([a-z_-]+)"/g)) out.add(f[1]);
+        for (const f of m[1].matchAll(/"([a-z_-]+)"/g)) out.article.add(f[1]);
       }
       return out;
     },
@@ -61,9 +62,10 @@ const ANCHORS = [
 // ArticleFieldOptions（选项包 required 集＋optionsKey 枚举）。中文名一环由 field-labels-ssot 测试锁。
 export function checkCompletionParity({ fieldsDoc, rulesArticle, articleFieldOptions }) {
   const errors = [];
+  // WP-195 v2：字典必填＝文章类 required==="是" 属性键集（类属主——不再经 scope 数组间接）
   const dictRequired = new Set(
-    (fieldsDoc.fields || [])
-      .filter((f) => f && typeof f.name === "string" && f.required === "是" && Array.isArray(f.scope) && f.scope.includes("article"))
+    ((fieldsDoc.classes?.article?.properties) || [])
+      .filter((f) => f && typeof f.name === "string" && f.required === "是")
       .map((f) => f.name),
   );
   const contractRequired = new Set(rulesArticle.required || []);
@@ -72,7 +74,8 @@ export function checkCompletionParity({ fieldsDoc, rulesArticle, articleFieldOpt
   for (const name of dictRequired) {
     const meta = contractFields[name];
     if (!meta) errors.push(`[补齐缺口] 字典必填 '${name}' 未登记契约 article.fields——补齐表单无入口；登记 contracts/entity-readiness-rules.json article 段（control/required/optionsKey）＋shared/field-labels.mjs 文章域字典（键集由 field-labels-ssot 测试锁）＋选项包入 ArticleFieldOptions`);
-    else if (!meta.control) errors.push(`[补齐缺口] 字典必填 '${name}' 契约未声明 control——无 Web 补齐控件（无 control 占位仅限 article_id 身份键）`);
+    else if (!meta.control && !identityExempt.has(name))
+      errors.push(`[补齐缺口] 字典必填 '${name}' 契约未声明 control——无 Web 补齐控件（身份豁免键 article_id 除外：WP-195 v2 起字典必填报名键，控件的身份豁免走 IDENTITY_EXEMPT 单源）`);
     if (!contractRequired.has(name)) errors.push(`[必填漂移] 字典必填 '${name}' 不在契约 article.required——写路径必填执法面漏一字段`);
   }
   for (const name of contractRequired) {
@@ -136,12 +139,23 @@ function main() {
     console.error("check-fields-registry: fields.yaml 不存在——字段字典未落档（ADR-008 D2）");
     process.exit(1);
   }
+  // WP-195 v2：声明集＝类属主属性（(类,name) 身份；aliases 挂在所属类的键下）
+  const fieldsDoc2 = fieldsFile.raw || {};
+  const classProps = {};
   const declared = new Set();
   const declaredPrimary = new Set();
-  for (const field of (fieldsFile.raw || {}).fields || []) {
-    declared.add(field.name);
-    declaredPrimary.add(field.name);
-    for (const alias of field.aliases || []) declared.add(alias);
+  for (const cls of ["entity", "article"]) {
+    classProps[cls] = { names: new Set(), withAliases: new Set() };
+    for (const prop of (fieldsDoc2.classes?.[cls]?.properties) || []) {
+      classProps[cls].names.add(prop.name);
+      classProps[cls].withAliases.add(prop.name);
+      declared.add(prop.name);
+      declaredPrimary.add(prop.name);
+      for (const alias of prop.aliases || []) {
+        classProps[cls].withAliases.add(alias);
+        declared.add(alias);
+      }
+    }
   }
 
   let consumedTotal = 0;
@@ -152,14 +166,19 @@ function main() {
       continue;
     }
     const consumed = anchor.extract(fs.readFileSync(file, "utf8"));
-    // 红队复核改进项（2026-10-17）：锚点文件存在但内部重构（常量改名等）使正则失配时，
-    // 若无下限断言则静默漏检（fail-open）。棘轮式 minCount——提取面缩水即红，扩展时随锚点声明升。
-    if (consumed.size < (anchor.minCount || 1)) {
-      errors.push(`[锚点失配] ${anchor.id} 提取 ${consumed.size} 个字段 < 基线 ${anchor.minCount}——锚点正则与代码漂移（常量改名/重构），须同步锚点`);
+    const consumedCount = (consumed.entity?.size || 0) + (consumed.article?.size || 0);
+    // 红队复核改进项（2026-10-17）：棘轮式 minCount——提取面缩水即红，扩展时随锚点声明升。
+    if (consumedCount < (anchor.minCount || 1)) {
+      errors.push(`[锚点失配] ${anchor.id} 提取 ${consumedCount} 个字段 < 基线 ${anchor.minCount}——锚点正则与代码漂移（常量改名/重构），须同步锚点`);
     }
-    consumedTotal += consumed.size;
-    for (const field of consumed) {
-      if (!declared.has(field)) errors.push(`[未登记消费] ${anchor.id} 消费字段 '${field}' 不在 fields.yaml 声明集（name ∪ aliases）`);
+    consumedTotal += consumedCount;
+    for (const [cls, names] of [["entity", consumed.entity], ["article", consumed.article]]) {
+      for (const field of names || []) {
+        // (类,name) 对账：消费方的类归属必须与属主类一致（ articleFields 的键不再容于实体类账上）
+        if (!classProps[cls].withAliases.has(field)) {
+          errors.push(`[未登记消费] ${anchor.id} 消费字段 '${cls}.${field}' 不在 fields.yaml ${cls} 类属性集（name ∪ aliases）——类属主对账`);
+        }
+      }
     }
   }
 
@@ -174,12 +193,15 @@ function main() {
     const enums = enumsFile && enumsFile.state === "present" ? (enumsFile.raw || {}) : {};
     const versions = versionsFile && versionsFile.state === "present" ? (versionsFile.raw || {}) : {};
     const fieldsDoc = fieldsFile.raw || {};
-    for (const field of fieldsDoc.fields || []) {
+    const allProps = ["entity", "article"].flatMap((cls) =>
+      ((fieldsDoc.classes?.[cls]?.properties) || []).map((p) => ({ ...p, __class: cls })),
+    );
+    for (const field of allProps) {
       if (field && field.value_domain !== undefined && !field.value_domain) {
-        errors.push(`[值域形态] 字段 '${field.name}' value_domain 非对象（null/标量）——须按契约结构声明`);
+        errors.push(`[值域形态] 属性 '${field.__class}.${field.name}' value_domain 非对象（null/标量）——须按契约结构声明`);
       }
     }
-    const needsVersions = (fieldsDoc.fields || []).some(
+    const needsVersions = allProps.some(
       (f) => f && typeof f.value_domain === "object" && f.value_domain !== null && (f.value_domain.source === "versions" || (f.value_domain.resolve && ["product_closure", "version_registry"].includes(f.value_domain.resolve.op))),
     );
     if (needsVersions && (!versionsFile || versionsFile.state !== "present")) {
@@ -200,7 +222,10 @@ function main() {
   for (const anchor of ANCHORS) {
     const file = path.join(ROOT, anchor.file);
     if (!fs.existsSync(file)) continue;
-    for (const f of anchor.extract(fs.readFileSync(file, "utf8"))) touched.add(f);
+    const extracted = anchor.extract(fs.readFileSync(file, "utf8"));
+    for (const cls of ["entity", "article"]) {
+      for (const f of extracted[cls] || []) touched.add(f);
+    }
   }
   for (const name of declaredPrimary) {
     if (!touched.has(name)) advisories.push(name);

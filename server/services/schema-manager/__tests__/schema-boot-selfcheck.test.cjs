@@ -57,15 +57,32 @@ relation_types:
     target_types: [Document]
 `;
 
+// WP-195 v2 类属主形态（boot 自检对 fields.yaml 走严格契约校验——schema_version 必为 2、
+// keys/classes 必在、属性必备 name/display/type/required/layer/description/value_domain）
 const CLEAN_FIELDS = `
-schema_version: 1
-fields:
-  - name: title
-    label: 标题
-    type: string
-    required: 否
-    scope: [entity, article]
-    layer: 内容属性
+schema_version: 2
+keys:
+  entity: {primary: title, display: title}
+  article: {primary: title, display: title}
+classes:
+  entity:
+    properties:
+      - name: title
+        display: 实体名称
+        type: string
+        required: 否
+        layer: 内容属性
+        description: 自检夹具属性。
+        value_domain: {source: free}
+  article:
+    properties:
+      - name: title
+        display: 标题
+        type: string
+        required: 否
+        layer: 内容属性
+        description: 自检夹具属性。
+        value_domain: {source: free}
 `;
 
 function ontologyWithBinding(field = "title") {
