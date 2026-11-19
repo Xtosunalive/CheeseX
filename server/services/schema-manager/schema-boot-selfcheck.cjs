@@ -117,7 +117,7 @@ function runSchemaBootSelfCheck({ vaultPath, schemaDir, logger, telemetry }) {
     return summary;
   }
 
-  const documents = { enums: {}, ontology: {}, fields: { fields: [] } };
+  const documents = { enums: {}, ontology: {}, fields: { schema_version: 2, keys: {}, classes: { entity: { properties: [] }, article: { properties: [] } } } };
   for (const name of ["enums", "ontology", "fields"]) {
     if (name === "fields" && !present(name)) continue;
     const outcome = results[name];

@@ -31,18 +31,33 @@ function buildVault() {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "resolved-domains-gate-"));
   const schema = path.join(dir, "知识库", "TheSchema");
   fs.mkdirSync(schema, { recursive: true });
+  // WP-195 v2 类属主形态：module 归两类各自属主（required 分域 entity=建议／article=是——真实字典语义），
+  // resolved 行 scope 由属主类生成＝[cls]。
   fs.writeFileSync(
     path.join(schema, "fields.yaml"),
-    `schema_version: 1
-fields:
-  - name: module
-    label: 模块
-    type: list
-    required: 是
-    scope: [entity, article]
-    layer: 业务属性
-    value_domain: { source: modules, resolve: { op: keys }, normalize: { wikilink_strip: true } }
-    description: 测试字典。
+    `schema_version: 2
+keys:
+  entity: {primary: architecture-node-id, display: title}
+  article: {primary: article_id, display: title}
+classes:
+  entity:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 建议
+        layer: 业务属性
+        value_domain: { source: modules, resolve: { op: keys }, normalize: { wikilink_strip: true } }
+        description: 测试字典。
+  article:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 是
+        layer: 业务属性
+        value_domain: { source: modules, resolve: { op: keys }, normalize: { wikilink_strip: true } }
+        description: 测试字典。
 `,
     "utf8",
   );
@@ -63,10 +78,14 @@ test("确定性＋--check 一致：连续两遍生成 diff 为空，check 绿", 
   const check = runNode(["--check"], vault);
   assert.match(check.stdout, /--check: ok/);
   const doc = JSON.parse(first);
-  const moduleRow = doc.byField.find((r) => r.name === "module");
-  assert.equal(moduleRow.required, "是");
-  assert.deepEqual(moduleRow.values, ["主模块"]);
-  assert.equal(moduleRow.wikilinkStrip, true);
+  // WP-195 v2：同名属性跨类两行——scope 由属主类生成＝[cls]，required 分域落值
+  const entityRow = doc.byField.find((r) => r.name === "module" && r.scope[0] === "entity");
+  const articleRow = doc.byField.find((r) => r.name === "module" && r.scope[0] === "article");
+  assert.ok(entityRow && articleRow, "两类属主行各一行");
+  assert.equal(entityRow.required, "建议");
+  assert.equal(articleRow.required, "是");
+  assert.deepEqual(articleRow.values, ["主模块"]);
+  assert.equal(articleRow.wikilinkStrip, true);
   fs.rmSync(vault, { recursive: true, force: true });
 });
 

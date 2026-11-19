@@ -4,11 +4,12 @@
 //   同名跨域重载（status 实体/文章两义）合法但同域重复必须拦；空值域（title 此前无 value_domain）
 //   让字典页显示空白、补齐表单无选项；enum 类型指 free 属于声明矛盾。
 // 检查面：
-//   ① (name, scope) 组合唯一——同名跨域允许（domain-overload 有据：status 两义），同域重复红
-//   ② 每字段必有 value_domain.source（free 合法且须显式——空值域即红）
+//   ① 类内 name 唯一（WP-195 v2 类属主——身份＝(类,name)；跨类同名合法且是两个独立属性，同类重复红）
+//   ② 每属性必有 value_domain.source（free 合法且须显式——空值域即红）
 //   ③ type=enum 必须非 free source（enum 却无闭合来源=声明矛盾）
 //   ④ required ∈ {是, 否, 建议}
-//   ⑤ scope 非空数组且取值 ⊆ {entity, article}
+//   ⑤ display 绑定声明：非空且 ≤40 字符（BKN DisplayName 惯例）；keys 段三键闭合于类属性集；
+//      value_domain.source 引用闭合（free/versions 或 enums.yaml 顶层段名——被引用段删除保护）
 //   ⑥ 白名单字面量表禁入 server/src 面（WP-138 R2／PR-250）——EDITABLE 命名＋new Set([字段名字面量…])
 //      形状即红；唯一持有方＝server/shared/field-policy.cjs（谓词派生，登记在下方豁免位）。
 //      判据双保险：形状要求「数组字面量元素」，派生式（Object.keys/spread 展开入 Set）天然不命中。
@@ -46,32 +47,46 @@ if (!fs.existsSync(FIELDS_PATH)) {
 }
 // WP-053 V-A：fields 经装载端口（raw 同旧裸 parse；缺件 fail-closed 面——上方 existsSync 已先拒）
 const doc = createRequire(import.meta.url)("../../server/shared/vocab-load-port.cjs").readVocabDoc(path.dirname(FIELDS_PATH), "fields", null) || {};
-const fields = Array.isArray(doc?.fields) ? doc.fields : null;
-if (!fields) {
+const classes = (doc && typeof doc.classes === "object" && doc.classes) || null;
+if (!classes || !Array.isArray(classes.entity?.properties) || !Array.isArray(classes.article?.properties)) {
   console.log("fields_dictionary=FAIL violations=1");
-  console.log("  [结构] fields.yaml 无 fields 数组");
+  console.log("  [结构] fields.yaml 非 v2 类属主形态（缺 classes.entity/article.properties）");
   process.exit(1);
 }
 
-const seen = new Map(); // "name|scope" → label
-for (const f of fields) {
-  const name = f?.name || "(无名)";
-  const scope = Array.isArray(f?.scope) ? f.scope : null;
-  if (!scope || scope.length === 0) violations.push(`[作用域] ${name} scope 缺失或为空`);
-  else {
-    for (const bad of scope.filter((s) => !["entity", "article"].includes(s))) violations.push(`[作用域] ${name} 含非法取值 '${bad}'`);
-    for (const s of scope) {
-      const key = `${name}|${s}`;
-      if (seen.has(key)) violations.push(`[同域重复] ${name}@${s} 出现两次（此前：${seen.get(key)}）——同名跨域重载合法，同域重复必红`);
-      else seen.set(key, f.label || "");
+// value_domain.source 引用闭合的合法来源集（free/versions＋enums.yaml 顶层段名——被引用段删除保护由此挂账）
+const enumsTop = createRequire(import.meta.url)("../../server/shared/vocab-load-port.cjs").readVocabDoc(path.dirname(FIELDS_PATH), "enums", null) || {};
+const legalSources = new Set(["free", "versions", ...Object.keys(enumsTop && typeof enumsTop === "object" ? enumsTop : {})]);
+
+const propCount = { entity: 0, article: 0 };
+for (const cls of ["entity", "article"]) {
+  const seen = new Map(); // name → display（类内唯一）
+  for (const f of classes[cls].properties) {
+    const name = f?.name || "(无名)";
+    propCount[cls] += 1;
+    if (seen.has(name)) violations.push(`[同类重复] ${cls}.${name} 出现两次（此前 display：${seen.get(name)}）——类内唯一（OpenBKN Name 形态）；跨类同名合法`);
+    else seen.set(name, f?.display || "");
+    const display = f?.display;
+    if (typeof display !== "string" || !display.trim()) violations.push(`[缺绑定] ${cls}.${name} display 缺失——中文绑定声明是 schema 层显式承诺（WP-195），非 UI 装饰`);
+    else if (display.length > 40) violations.push(`[超长绑定] ${cls}.${name} display ${display.length} 字符 >40（BKN DisplayName 惯例）`);
+    const src = f?.value_domain?.source;
+    if (!src) violations.push(`[空值域] ${cls}.${name} 无 value_domain.source（free 合法但须显式——字典页空白/补齐表单无选项的根）`);
+    else {
+      if (!legalSources.has(src)) violations.push(`[引用悬空] ${cls}.${name} value_domain.source='${src}' 不在 enums.yaml 顶层段/free/versions（引用闭合）`);
+      if (f?.type === "enum" && src === "free" && !f?.value_domain?.note) {
+        violations.push(`[声明矛盾] ${cls}.${name} type=enum 却 source=free 且无注记（enum 须闭合来源；确属外部机制自有值集时以 note 记据豁免）`);
+      }
     }
+    if (!["是", "否", "建议"].includes(f?.required)) violations.push(`[必填枚举] ${cls}.${name} required='${f?.required}' 不在 {{是,否,建议}}`);
   }
-  const src = f?.value_domain?.source;
-  if (!src) violations.push(`[空值域] ${name} 无 value_domain.source（free 合法但须显式——字典页空白/补齐表单无选项的根）`);
-  else if (f?.type === "enum" && src === "free" && !f?.value_domain?.note) {
-    violations.push(`[声明矛盾] ${name} type=enum 却 source=free 且无注记（enum 须闭合来源；确属外部机制自有值集时以 note 记据豁免）`);
+  // keys 段闭合（三键 ∈ 类属性集）
+  const names = new Set(seen.keys());
+  const k = (doc.keys && doc.keys[cls]) || {};
+  for (const slot of ["primary", "display"]) {
+    if (!k[slot]) violations.push(`[keys 缺槽] ${cls}.${slot} 未声明（BKN Keys 小节——primary/display 必备）`);
+    else if (!names.has(k[slot])) violations.push(`[keys 悬空] ${cls}.${slot}='${k[slot]}' 不在 ${cls} 类属性集`);
   }
-  if (!["是", "否", "建议"].includes(f?.required)) violations.push(`[必填枚举] ${name} required='${f?.required}' 不在 {{是,否,建议}}`);
+  if (k.incremental && !names.has(k.incremental)) violations.push(`[keys 悬空] ${cls}.incremental='${k.incremental}' 不在 ${cls} 类属性集`);
 }
 
 // ── 面⑥：白名单字面量表禁入 server/src 面（WP-138 R2／PR-250）──
@@ -125,5 +140,5 @@ for (const file of sourceFiles) {
 }
 
 if (violations.length === 0) {
-  console.log(`fields_dictionary=ok fields=${fields.length}（(name,scope) 唯一＋值域显式＋enum 闭合＋必填枚举合法＋白名单字面量表禁入 server/src）`);
+  console.log(`fields_dictionary=ok entity=${propCount.entity} article=${propCount.article}（类内唯一＋display 绑定≤40＋值域引用闭合＋enum 闭合＋必填枚举合法＋keys 闭合＋白名单字面量表禁入 server/src）`);
 } else fail();

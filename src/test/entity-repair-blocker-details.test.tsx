@@ -11,7 +11,7 @@ import { extractRepairBlockers } from "@/lib/domain/entity-repair-api";
 // 规则 28 全环境层）。
 
 const BLOCKERS = [
-  { ruleId: "F02", field: "architecture-node-id", message: "架构组件身份是必填字段，不能留空" },
+  { ruleId: "F02", field: "architecture-node-id", message: "架构组件 ID是必填字段，不能留空" },
   { ruleId: "F16", field: "tags", message: "标签不能为空" },
 ];
 
@@ -97,7 +97,7 @@ describe("entity repair blocker details (seq178)", () => {
       expect(screen.getByTestId("repair-blocker-details")).toBeInTheDocument();
     });
     expect(screen.queryByText(/F\d{2}/)).not.toBeInTheDocument();
-    expect(screen.getByText(/架构组件身份是必填字段，不能留空/)).toBeInTheDocument();
+    expect(screen.getByText(/架构组件 ID是必填字段，不能留空/)).toBeInTheDocument();
     expect(screen.getByText(/标签不能为空/)).toBeInTheDocument();
   });
 });
@@ -108,7 +108,7 @@ describe("entity repair blocker details (seq178)", () => {
 // 字段为什么被阻断。实现前本组用例为红灯，实现后转绿。
 describe("entity repair preview-stage blockers (seq179)", () => {
   const FINDINGS = [
-    { ruleId: "F02", field: "architecture-node-id", editable: true, message: "架构组件身份缺失", value: "", allowedValues: [] },
+    { ruleId: "F02", field: "architecture-node-id", editable: true, message: "架构组件 ID缺失", value: "", allowedValues: [] },
     { ruleId: "F16", field: "tags", editable: true, message: "标签不能为空", value: "", allowedValues: [] },
   ];
   const ENTITY = {
@@ -160,12 +160,12 @@ describe("entity repair preview-stage blockers (seq179)", () => {
     const { applyEntityRepair } = await loadDrawerWithPreview();
     const { useEntityComplianceStore: useStore } = await import("@/features/entity-compliance/entity-compliance-store");
     // PR-026 池行式：行内回显在展开区——先展开首个可展开的阻断字段行（标签）。
-    // WP-113 M2 随迁：架构组件身份行已入托管家族（不展开、无行内编辑器）——其 F02 阻断仍在底部明细区块回显，
+    // WP-113 M2 随迁：架构组件 ID行已入托管家族（不展开、无行内编辑器）——其 F02 阻断仍在底部明细区块回显，
     // 行内 errorText 通道的样本随之移交 tags。
     fireEvent.click(await screen.findByRole("button", { name: /标签.*当前值/ }));
     expect(await screen.findByText(/阻断原因：/)).toBeInTheDocument();
     // 同一 message 同时出现在底部明细区块（含不再可展开的托管字段行）→ getAllByText
-    expect(screen.getAllByText(/架构组件身份是必填字段，不能留空/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/架构组件 ID是必填字段，不能留空/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText(/标签不能为空/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByTestId("repair-blocker-details")).toBeInTheDocument();
     expect(useStore.getState().repairBlockers).toHaveLength(2);
@@ -199,12 +199,12 @@ describe("entity repair preview-stage blockers (seq179)", () => {
       selectedEntity: {
         sourceKey: "知识库/wiki/entities/bool.md", sourceType: "entity", sourceRevision: "rev-b",
         title: "布尔样本", fileName: "bool.md",
-        groups: [{ name: "g", checks: [{ ruleId: "F13", field: "arch_component", label: "架构组件", severity: "error", passed: false, editable: true, value: false, message: "激活为架构组件必须显式设为 true" }] }],
+        groups: [{ name: "g", checks: [{ ruleId: "F13", field: "arch_component", label: "架构组件", severity: "error", passed: false, editable: true, value: false, message: "是否架构组件必须显式设为 true" }] }],
         sourceValues: { arch_component: false },
       } as never,
       repairOpen: true, creatingEntity: false, repairStatus: "preview_ready", repairError: null,
       repairChanges: {}, relationPatch: null, preview: null, applyResult: null,
-      repairBlockers: [{ ruleId: "F13", field: "arch_component", message: "激活为架构组件必须显式设为 true" }],
+      repairBlockers: [{ ruleId: "F13", field: "arch_component", message: "是否架构组件必须显式设为 true" }],
     });
     render(<Drawer />);
     fireEvent.click(await screen.findByRole("button", { name: /当前值/ }));
@@ -389,7 +389,7 @@ describe("seq181: boilerplate state echo never renders in form (direct negative)
     expect(screen.queryByText(/尚未填写/)).not.toBeInTheDocument();
     expect(screen.queryByText(/建议填写架构分类/)).not.toBeInTheDocument();
     expect(screen.getByText("架构分层")).toBeInTheDocument();
-    expect(screen.getByText("状态")).toBeInTheDocument();
+    expect(screen.getByText("生命周期状态")).toBeInTheDocument(); // WP-195：entity.status display 按「冲突时取 OpenBKN」裁定更名
     // PR-026 池行式：非 missing 的说明行在展开区——展开子域行验证渲染（missing 行展开后也不渲染说明）
     fireEvent.click(screen.getByRole("button", { name: /子域.*当前值/ }));
     expect(screen.getByText(/建议填写子域/)).toBeInTheDocument();

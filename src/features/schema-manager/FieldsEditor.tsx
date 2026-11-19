@@ -30,12 +30,14 @@ const VALUE_DOMAIN_TAB: Record<string, TabId> = {
 type FieldRequired = (typeof FIELDS_COPY.REQUIRED_OPTIONS)[number];
 type FieldLayer = (typeof FIELDS_COPY.LAYER_OPTIONS)[number];
 
+// WP-195 v2 类属主：行＝(类,name) 属性；display＝该类下的中文绑定声明（schema 层承诺，非 UI 装饰）
+type FieldClass = "entity" | "article";
 interface FieldRow {
+  cls: FieldClass;
   name: string;
-  label: string;
+  display: string;
   type: "string" | "enum" | "list" | "bool" | "date" | "map";
   required: FieldRequired;
-  scope: Array<"entity" | "article">;
   layer: FieldLayer;
   value_domain?: { source: string; segment?: string; note?: string };
   aliases?: string[];
@@ -79,11 +81,18 @@ export function FieldsEditor({ disabled }: { disabled?: boolean }) {
   };
   const [status, setStatus] = useState<{ kind: "ok" | "error"; text: string } | null>(null);
 
+  const [keys, setKeys] = useState<Record<string, { primary: string; display: string; incremental?: string }> | null>(null);
   const load = useCallback(async () => {
-    const env = await apiFetchEnvelope<{ fields: FieldRow[]; revision: string | null }>("/api/schema/fields");
+    // WP-195 v2：GET 返回 {keys, classes}——行按 (类,name) 平铺装配
+    const env = await apiFetchEnvelope<{ keys: Record<string, { primary: string; display: string; incremental?: string }>; classes: Record<FieldClass, { properties: Array<Omit<FieldRow, "cls">> }>; revision: string | null }>("/api/schema/fields");
     if (!env.ok || !env.data) { setStatus({ kind: "error", text: env.error ?? FIELDS_COPY.READ_FAILED }); return; }
-    setRows(env.data.fields);
-    setRevision(env.data.revision);
+    const data = env.data;
+    const flat: FieldRow[] = (["entity", "article"] as FieldClass[]).flatMap((cls) =>
+      (data.classes?.[cls]?.properties ?? []).map((prop) => ({ ...prop, cls })),
+    );
+    setRows(flat);
+    setKeys(data.keys ?? {});
+    setRevision(data.revision);
   }, []);
 
   useEffect(() => { void load(); }, [load]);
@@ -96,10 +105,18 @@ export function FieldsEditor({ disabled }: { disabled?: boolean }) {
     if (!rows) return;
     setSaving(true); setStatus(null);
     try {
+      // WP-195 v2：行按类重组（properties 序＝平铺序在各自类内保持）；keys 原样回传（编辑器不编 keys）
+      const classes = (["entity", "article"] as FieldClass[]).reduce<Record<FieldClass, { properties: Array<Omit<FieldRow, "cls">> }>>(
+        (acc, cls) => {
+          acc[cls] = { properties: rows.filter((r) => r.cls === cls).map(({ cls: _c, ...prop }) => prop) };
+          return acc;
+        },
+        { entity: { properties: [] }, article: { properties: [] } },
+      );
       const env = await apiFetchEnvelope<{ revision: string; projectionSynced: boolean }>("/api/schema/fields", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ revision, fields: rows }),
+        body: JSON.stringify({ revision, keys: keys ?? {}, classes }),
       });
       if (!env.ok || !env.data) throw new Error(env.error ?? TERM.SAVE_FAILED);
       setRevision(env.data.revision);
@@ -116,8 +133,13 @@ export function FieldsEditor({ disabled }: { disabled?: boolean }) {
   const columns: Array<Column<FieldRow & { __index: number }>> = [
     { key: "name", title: FIELDS_COPY.COL_NAME, width: 140, render: (row) => (
       <EditableCell.Text aria-label={smLabelIndexAria(FIELDS_COPY.COL_NAME, row.__index)} value={row.name} onChange={(e) => update(row.__index, { name: e.target.value })} placeholder={FIELDS_COPY.PLACEHOLDER_NAME} disabled={disabled} />) },
-    { key: "label", title: FIELDS_COPY.COL_LABEL, width: 140, render: (row) => (
-      <EditableCell.Text aria-label={smLabelIndexAria(FIELDS_COPY.ARIA_LABEL_TAG, row.__index)} value={row.label} onChange={(e) => update(row.__index, { label: e.target.value })} placeholder={FIELDS_COPY.COL_LABEL} disabled={disabled} />) },
+    { key: "cls", title: FIELDS_COPY.COL_SCOPE, width: 96, render: (row) => (
+      <EditableCell.Select aria-label={smLabelIndexAria(FIELDS_COPY.COL_SCOPE, row.__index)} value={row.cls} onChange={(e) => update(row.__index, { cls: e.target.value as FieldClass })} disabled={disabled}>
+        <option value="entity">{FIELDS_COPY.SCOPE_ENTITY}</option>
+        <option value="article">{FIELDS_COPY.SCOPE_ARTICLE}</option>
+      </EditableCell.Select>) },
+    { key: "display", title: FIELDS_COPY.COL_LABEL, width: 140, render: (row) => (
+      <EditableCell.Text aria-label={smLabelIndexAria(FIELDS_COPY.ARIA_LABEL_TAG, row.__index)} value={row.display} onChange={(e) => update(row.__index, { display: e.target.value })} placeholder={FIELDS_COPY.COL_LABEL} disabled={disabled} />) },
     { key: "type", title: FIELDS_COPY.COL_TYPE, width: 96, render: (row) => (
       <EditableCell.Select aria-label={smLabelIndexAria(FIELDS_COPY.COL_TYPE, row.__index)} value={row.type} onChange={(e) => update(row.__index, { type: e.target.value as FieldRow["type"] })} disabled={disabled}>
         {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -130,11 +152,6 @@ export function FieldsEditor({ disabled }: { disabled?: boolean }) {
       <EditableCell.Select aria-label={smLabelIndexAria(FIELDS_COPY.COL_LAYER, row.__index)} value={row.layer} onChange={(e) => update(row.__index, { layer: e.target.value as FieldRow["layer"] })} disabled={disabled}>
         {LAYERS.map((l) => <option key={l} value={l}>{l}</option>)}
       </EditableCell.Select>) },
-    { key: "scope", title: FIELDS_COPY.COL_SCOPE, width: 110, render: (row) => (
-      <span className="flex gap-2 text-xs">
-        <label className="flex items-center gap-1"><input type="checkbox" checked={row.scope.includes("entity")} onChange={(e) => update(row.__index, { scope: e.target.checked ? Array.from(new Set([...row.scope, "entity" as const])) : row.scope.filter((s) => s !== "entity") })} disabled={disabled} />{FIELDS_COPY.SCOPE_ENTITY}</label>
-        <label className="flex items-center gap-1"><input type="checkbox" checked={row.scope.includes("article")} onChange={(e) => update(row.__index, { scope: e.target.checked ? Array.from(new Set([...row.scope, "article" as const])) : row.scope.filter((s) => s !== "article") })} disabled={disabled} />{FIELDS_COPY.SCOPE_ARTICLE}</label>
-      </span>) },
     { key: "value_domain", title: FIELDS_COPY.COL_VALUE_DOMAIN, width: 130, render: (row) => {
       const tab = VALUE_DOMAIN_TAB[row.value_domain?.source ?? ""];
       return (
@@ -160,7 +177,7 @@ export function FieldsEditor({ disabled }: { disabled?: boolean }) {
       <button onClick={() => void save()} disabled={disabled || saving} className="ml-auto rounded-md bg-accent-base px-3 py-1.5 text-xs text-accent-contrast hover:bg-accent-base/90 disabled:opacity-40">{saving ? FIELDS_COPY.SAVING : FIELDS_COPY.SAVE_ACTION}</button>
       <button onClick={() => void rebuildDerived()} disabled={rebuilding} title={FIELDS_COPY.REBUILD_TITLE} className="rounded-md bg-surface-card px-3 py-1.5 text-xs text-text-sub ring-1 ring-border-thin hover:bg-surface-hover disabled:opacity-40">{rebuilding ? FIELDS_COPY.REBUILDING : FIELDS_COPY.REBUILD_ACTION}</button>
       {rebuildNote && <span className="text-xs text-text-hint">{rebuildNote}</span>}
-      <button onClick={() => setRows([...rows, { name: "", label: "", type: "string", required: FIELDS_COPY.REQUIRED_OPTIONS[1], scope: ["entity"], layer: FIELDS_COPY.LAYER_OPTIONS[2], description: "" }])} disabled={disabled} className="flex items-center gap-1 rounded-md bg-surface-hover px-3 py-1.5 text-xs text-text-main/80 hover:bg-surface-root disabled:opacity-40"><Plus className="h-4 w-4" />{FIELDS_COPY.ADD_FIELD}</button>
+      <button onClick={() => setRows([...rows, { cls: "entity", name: "", display: "", type: "string", required: FIELDS_COPY.REQUIRED_OPTIONS[1], layer: FIELDS_COPY.LAYER_OPTIONS[2], description: "", value_domain: { source: "free" } }])} disabled={disabled} className="flex items-center gap-1 rounded-md bg-surface-hover px-3 py-1.5 text-xs text-text-main/80 hover:bg-surface-root disabled:opacity-40"><Plus className="h-4 w-4" />{FIELDS_COPY.ADD_FIELD}</button>
     </div>
     {status && <p className={`text-xs ${status.kind === "ok" ? "text-status-fact" : "text-status-error"}`}>{status.text}</p>}
     <DataTable

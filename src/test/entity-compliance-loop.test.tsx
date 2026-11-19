@@ -68,7 +68,7 @@ describe("entity check to repair loop", () => {
       ...entity,
       groups: [{ id: "identity", label: "身份", checks: [
         { ruleId: "F01", field: "title", label: "标题", severity: "error", passed: false, value: null, message: "title 是必填字段", editable: true },
-        { ruleId: "F02", field: "architecture-node-id", label: "架构组件身份", severity: "error", passed: false, value: null, message: "architecture-node-id 是必填字段", editable: true },
+        { ruleId: "F02", field: "architecture-node-id", label: "架构组件 ID", severity: "error", passed: false, value: null, message: "architecture-node-id 是必填字段", editable: true },
         { ruleId: "F03", field: "arch_component", label: "架构组件标记", severity: "error", passed: false, value: null, message: "arch_component 必须为 true", editable: true },
       ] }, { id: "spatial", label: "空间", checks: [
         { ruleId: "F04", field: "arch_layer", label: "分层", severity: "error", passed: false, value: null, message: "arch_layer 是必填字段", editable: true, allowedValues: ["service"] },
@@ -146,7 +146,7 @@ describe("entity check to repair loop", () => {
       groups: [{ id: "identity", label: "身份", checks: [
         { ruleId: "F01", field: "title", label: "标题", severity: "error", passed: false, value: null, message: "title 尚未填写", reason: "missing", editable: true },
         // WP-113 M2：草稿承载字段从身份号改为 title——身份号已入托管家族（readonly-system），抽屉不再给写入口
-        { ruleId: "F02", field: "architecture-node-id", label: "架构组件身份", severity: "error", passed: false, value: null, message: "architecture-node-id 尚未填写", reason: "missing", editable: true, hint: "组件身份由系统在创建时铸造，全库唯一，创建后不可修改" },
+        { ruleId: "F02", field: "architecture-node-id", label: "架构组件 ID", severity: "error", passed: false, value: null, message: "architecture-node-id 尚未填写", reason: "missing", editable: true, hint: "组件身份由系统在创建时铸造，全库唯一，创建后不可修改" },
       ] }],
     };
     useEntityComplianceStore.getState().openCreate(entity);
@@ -246,7 +246,7 @@ describe("entity check to repair loop", () => {
       architectureIntent: "active", score: 100, totalChecks: 2, blockerCount: 0, warningCount: 0, infoCount: 0,
       sourceValues: { "architecture-node-id": "mysql-primary", title: "Service" },
       groups: [{ id: "identity", label: "身份", checks: [
-        { ruleId: "F02", field: "architecture-node-id", label: "架构组件身份", severity: "error", passed: true, value: null, message: "通过", editable: false },
+        { ruleId: "F02", field: "architecture-node-id", label: "架构组件 ID", severity: "error", passed: true, value: null, message: "通过", editable: false },
         { ruleId: "F01", field: "title", label: "实体名称", severity: "error", passed: true, value: null, message: "通过", editable: true },
       ] as never }],
     };
@@ -255,13 +255,13 @@ describe("entity check to repair loop", () => {
 
     // WP-113 M2 随迁：实体侧身份号加入托管家族——同一条「行不展开、无写入口」的锁定语义，
     // 文案短路为「系统托管」（托管短路先于 immutable 文案，与 article_id 的 D-1b 同形异词）。
-    const lockedRow = screen.getByRole("button", { name: /架构组件身份，当前值 mysql-primary（系统托管，只读）/ });
+    const lockedRow = screen.getByRole("button", { name: /架构组件 ID，当前值 mysql-primary（系统托管，只读）/ });
     expect(lockedRow).toHaveAttribute("aria-expanded", "false");
     expect(screen.getByText("系统托管")).toBeInTheDocument();
     // 点行不得展开：不出现该字段的输入框，也不出现「采用系统建议」
     fireEvent.click(lockedRow);
     expect(lockedRow).toHaveAttribute("aria-expanded", "false");
-    expect(screen.queryByRole("textbox", { name: /架构组件身份/ })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: /架构组件 ID/ })).toBeNull();
     expect(screen.queryByTestId("adopt-suggestion")).toBeNull();
 
     // 正对照：同卡片可编辑字段点行即出控件（证明不是整抽屉被禁）
@@ -299,16 +299,16 @@ describe("entity check to repair loop", () => {
       architectureIntent: "active", score: 0, totalChecks: 2, blockerCount: 2, warningCount: 0, infoCount: 0,
       groups: [{ id: "identity", label: "身份", checks: [
         { ruleId: "F01", field: "title", label: "实体名称", severity: "error", passed: false, value: null, message: "title 尚未填写", reason: "missing", editable: true },
-        { ruleId: "F02", field: "architecture-node-id", label: "架构组件身份", severity: "error", passed: false, value: null, message: "architecture-node-id 尚未填写", reason: "missing", editable: true, hint: "组件身份由系统在创建时铸造，全库唯一，创建后不可修改" },
+        { ruleId: "F02", field: "architecture-node-id", label: "架构组件 ID", severity: "error", passed: false, value: null, message: "architecture-node-id 尚未填写", reason: "missing", editable: true, hint: "组件身份由系统在创建时铸造，全库唯一，创建后不可修改" },
       ] as never }],
     };
     useEntityComplianceStore.getState().openCreate(entity);
     render(<EntityRepairDrawer />);
 
-    const idRow = screen.getByRole("button", { name: /架构组件身份.*（系统托管，只读）/ });
+    const idRow = screen.getByRole("button", { name: /架构组件 ID.*（系统托管，只读）/ });
     fireEvent.click(idRow);
     expect(idRow).toHaveAttribute("aria-expanded", "false"); // 点行不展开：系统铸造字段不给用户写入口
-    expect(screen.queryByRole("textbox", { name: /架构组件身份/ })).toBeNull();
+    expect(screen.queryByRole("textbox", { name: /架构组件 ID/ })).toBeNull();
     expect(screen.getByText("由系统生成，创建后不可修改")).toBeInTheDocument(); // 文案随母版 placeholder 派生，不留第二份
     // 「生成空字段」骨架提交面不得夹带自带身份（带了即被写门 system-minted 400 拒——后端 T1 同批）
     fireEvent.click(screen.getByRole("button", { name: "生成空字段" }));

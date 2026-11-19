@@ -101,7 +101,7 @@ describe("entity repair shared components", () => {
     const issue = {
       issueId: "missing-architecture-node-id",
       issueKind: "missing_field",
-      title: "架构组件身份缺失",
+      title: "架构组件 ID缺失",
       status: "open",
       evidence: [],
       proposedAction: { type: "entity-repair", sourceKey: "知识库/wiki/entities/demo.md", field: "architecture-node-id" },

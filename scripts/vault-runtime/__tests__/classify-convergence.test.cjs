@@ -42,16 +42,29 @@ function buildEnv() {
   for (const name of ["enums.yaml", "versions.yaml"]) fs.copyFileSync(path.join(FIXTURE_SCHEMA, name), path.join(schemaDir, name));
   fs.writeFileSync(
     path.join(schemaDir, "fields.yaml"),
-    `schema_version: 1
-fields:
-  - name: module
-    label: 模块
-    type: list
-    required: 是
-    scope: [entity, article]
-    layer: 业务属性
-    value_domain: { source: modules, resolve: { op: keys } }
-    description: 测试。
+    `schema_version: 2
+keys:
+  entity: {primary: architecture-node-id, display: title}
+  article: {primary: article_id, display: title}
+classes:
+  entity:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 建议
+        layer: 业务属性
+        value_domain: { source: modules, resolve: { op: keys } }
+        description: 测试。
+  article:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 是
+        layer: 业务属性
+        value_domain: { source: modules, resolve: { op: keys } }
+        description: 测试。
 `,
     "utf8",
   );
