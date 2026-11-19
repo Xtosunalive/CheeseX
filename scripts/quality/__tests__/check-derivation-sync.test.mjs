@@ -34,15 +34,31 @@ function buildVault() {
   fs.mkdirSync(path.join(dir, "知识库", "TheSchema"), { recursive: true });
   fs.writeFileSync(
     path.join(dir, "知识库", "TheSchema", "fields.yaml"),
-    `schema_version: 1
-fields:
-  - name: module
-    label: 模块
-    type: list
-    required: 是
-    scope: [entity, article]
-    layer: 业务属性
-    description: 测试字典。
+    // WP-197：夹具升 v2 类属主——v1 形态在生成器空输入 fail-closed（红队 P1-1 加固）下拒绝产出，
+    // 绿路径必须喂真实 v2 形态（否则空壳投影自洽＝假绿，本测试在波2 前正处于该状态）
+    `schema_version: 2
+keys:
+  entity: { primary: module, display: module, incremental: module }
+  article: { primary: module, display: module }
+classes:
+  entity:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 是
+        layer: 业务属性
+        description: 测试字典。
+        value_domain: { source: free }
+  article:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 是
+        layer: 业务属性
+        description: 测试字典。
+        value_domain: { source: free }
 `,
     "utf8",
   );

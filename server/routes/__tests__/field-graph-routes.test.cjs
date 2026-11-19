@@ -68,10 +68,18 @@ classes:
             - { source: subdomains, resolve: { op: ids }, scoped_by: previous }
             - { resolve: { op: free_slug } }
         description: 测试。
+      - name: status
+        display: 文档生命周期状态
+        type: enum
+        required: 否
+        layer: 管理属性
+        semantic: status
+        value_domain: { source: lifecycle, segment: lifecycle.status, resolve: { op: values } }
+        description: 测试。
 `,
     "utf8",
   );
-  fs.writeFileSync(path.join(schema, "enums.yaml"), "tags:\n  g1: [a, b]\ntag_aliases: {}\ndomains: {ref: 参考资料}\nsubdomains:\n  ref:\n    - id: overview\n", "utf8");
+  fs.writeFileSync(path.join(schema, "enums.yaml"), "tags:\n  g1: [a, b]\ntag_aliases: {}\ndomains: {ref: 参考资料}\nsubdomains:\n  ref:\n    - id: overview\nlifecycle:\n  status: [灰度, 在线]\n  default_status: \"\"\n", "utf8");
   fs.writeFileSync(path.join(schema, "versions.yaml"), "schema_version: 1\nproducts: {}\n", "utf8");
   if (withArtifact) {
     execFileSync("node", [path.join(ROOT, "scripts", "quality", "project-resolved-domains.mjs")], {
@@ -112,6 +120,13 @@ test("齐全→200：图谱行含结构渲染的配方与值数", async () => {
   assert.equal(cp.label, "分类路径");
   assert.deepEqual(cp.scope, ["article"]);
   assert.equal(cp.required, "是"); // 文章类 category-path 必填（分域语义）
+  // WP-197：semantic 透传——声明 semantic 的行落值；无声明键的行落 null（行形状恒定）
+  const st = body.data.byField.find((r) => r.name === "status" && r.scope[0] === "article");
+  assert.ok(st, "article.status 行在册");
+  assert.equal(st.semantic, "status");
+  assert.equal(st.domainKind, "closed");
+  assert.equal(st.valueCount, 2);
+  assert.equal(row.semantic, null); // tags（无 semantic 声明）→ null
   fs.rmSync(vault, { recursive: true, force: true });
 });
 

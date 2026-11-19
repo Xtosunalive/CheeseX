@@ -54,6 +54,7 @@ export function buildResolvedArtifacts({ fields, enums, versions }) {
     return {
       name: decl.name,
       scope: Array.isArray(decl.scope) ? decl.scope : [decl.__class],
+      semantic: typeof decl.semantic === "string" ? decl.semantic : null,
       required: typeof decl.required === "string" ? decl.required : null,
       values: rec.values !== undefined ? rec.values : null,
       aliasMap: rec.aliasMap || null,

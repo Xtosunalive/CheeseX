@@ -10,6 +10,9 @@
 //   ④ required ∈ {是, 否, 建议}
 //   ⑤ display 绑定声明：非空且 ≤40 字符（BKN DisplayName 惯例）；keys 段三键闭合于类属性集；
 //      value_domain.source 引用闭合（free/versions 或 enums.yaml 顶层段名——被引用段删除保护）
+//   ⑦ semantic 受控词表面（WP-197）：类内每值至多一次；值域受控（valid_from/valid_to/status/severity）；
+//      类型联动 status→enum／severity→enum|string（impact_level 权重辅助放宽，SPEC-097 波2 记档）／
+//      valid_from/valid_to→string（版本串偏差记档）；aliases ≤10（召回上限，BKN Aliases 惯例）
 //   ⑥ 白名单字面量表禁入 server/src 面（WP-138 R2／PR-250）——EDITABLE 命名＋new Set([字段名字面量…])
 //      形状即红；唯一持有方＝server/shared/field-policy.cjs（谓词派生，登记在下方豁免位）。
 //      判据双保险：形状要求「数组字面量元素」，派生式（Object.keys/spread 展开入 Set）天然不命中。
@@ -61,6 +64,7 @@ const legalSources = new Set(["free", "versions", ...Object.keys(enumsTop && typ
 const propCount = { entity: 0, article: 0 };
 for (const cls of ["entity", "article"]) {
   const seen = new Map(); // name → display（类内唯一）
+  const seenSemantic = new Map(); // semantic 值 → 首占属性（类内唯一）
   for (const f of classes[cls].properties) {
     const name = f?.name || "(无名)";
     propCount[cls] += 1;
@@ -78,6 +82,16 @@ for (const cls of ["entity", "article"]) {
       }
     }
     if (!["是", "否", "建议"].includes(f?.required)) violations.push(`[必填枚举] ${cls}.${name} required='${f?.required}' 不在 {{是,否,建议}}`);
+    // ⑦ semantic 受控词表面（WP-197）
+    if (f?.semantic !== undefined) {
+      if (!seenSemantic.has(f.semantic)) seenSemantic.set(f.semantic, name);
+      else violations.push(`[semantic 同类重复] ${cls}.${name} semantic='${f.semantic}' 与 ${seenSemantic.get(f.semantic)} 冲突——类内每值至多一次（OpenBKN §6.8）`);
+      const linkage = { status: ["enum"], severity: ["enum", "string"], valid_from: ["string"], valid_to: ["string"] };
+      const allowed = linkage[f.semantic];
+      if (!allowed) violations.push(`[semantic 越界] ${cls}.${name} semantic='${f.semantic}' 不在受控四值 {{valid_from,valid_to,status,severity}}`);
+      else if (!allowed.includes(f?.type)) violations.push(`[semantic 联动] ${cls}.${name} semantic='${f.semantic}' 要求 type ∈ {{${allowed.join(",")}}}，现 type='${f?.type}'`);
+    }
+    if (Array.isArray(f?.aliases) && f.aliases.length > 10) violations.push(`[召回超限] ${cls}.${name} aliases ${f.aliases.length} 个 >10（BKN Aliases 惯例）`);
   }
   // keys 段闭合（三键 ∈ 类属性集）
   const names = new Set(seen.keys());
@@ -140,5 +154,5 @@ for (const file of sourceFiles) {
 }
 
 if (violations.length === 0) {
-  console.log(`fields_dictionary=ok entity=${propCount.entity} article=${propCount.article}（类内唯一＋display 绑定≤40＋值域引用闭合＋enum 闭合＋必填枚举合法＋keys 闭合＋白名单字面量表禁入 server/src）`);
+  console.log(`fields_dictionary=ok entity=${propCount.entity} article=${propCount.article}（类内唯一＋display 绑定≤40＋值域引用闭合＋enum 闭合＋必填枚举合法＋keys 闭合＋semantic 受控联动＋aliases≤10＋白名单字面量表禁入 server/src）`);
 } else fail();

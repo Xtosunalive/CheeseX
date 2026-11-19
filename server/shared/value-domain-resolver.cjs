@@ -141,7 +141,8 @@ function resolveValueDomains({ fields, enums, versions } = {}) {
     const vd = field.value_domain;
     if (!isPlainObject(vd)) continue;
     // WP-195 v2：v2 行无 scope——由属主类锚回填（resolved-domains 行形状不变，下游零感知）
-    const record = { name: field.name, scope: Array.isArray(field.scope) ? field.scope : (field.__class ? [field.__class] : []), values: null, aliasMap: null, default: null, wikilinkStrip: false, composite: null };
+    // WP-197：semantic 机器标注透传（受控四值，LLM/工具据此判读属性角色）
+    const record = { name: field.name, scope: Array.isArray(field.scope) ? field.scope : (field.__class ? [field.__class] : []), semantic: field.semantic || null, values: null, aliasMap: null, default: null, wikilinkStrip: false, composite: null };
 
     if (Array.isArray(vd.composite)) {
       // 混合域（category-path）：闭合段逐段解析；scoped_by: previous 段产出按前段键收窄的映射。

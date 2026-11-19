@@ -1,5 +1,11 @@
 # AnyShare 组件与依赖概念定义（AI 必读）
 
+## 0. 字段消费契约（类属主，WP-197 波2——AI/LLM 填字段前必读）
+
+- **属性随类而变**：同名字段在实体类与文章类是两个独立属性（`title` 实体类＝实体名称、文章类＝标题）。填字段前先查 `entity-frontmatter-schema.md` 对应类小节，不要跨类搬语义。
+- **先查再填，勿凭语义猜**：字段的类型／必填强度／值域／受控语义以 schema 为准；绑定名（中文）只是显示声明，不是判断依据。需要判断"这个字段是时间起点还是状态"时，看 `semantic` 机器标注列（受控词表：`valid_from`/`valid_to`/`status`/`severity`，类内每值至多一次），不要从中文名推断。
+- **别名仅作召回参考**：属性级兼容写法（如 `architecture_node_id`）与实体 `aliases` 字段用于检索召回；写入一律用主写法（schema `name`），值域受控字段只允许填 enums.yaml 闭合集内的值。
+
 ## 1. 组件（Component）
 
 每个 `wiki/entities/*.md` 文件代表一个组件，其 frontmatter 包含：

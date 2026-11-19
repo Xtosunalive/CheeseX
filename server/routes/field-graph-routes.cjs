@@ -90,6 +90,7 @@ function register(registerRoute, deps) {
           return {
             name: decl.name,
             label: typeof decl.display === "string" ? decl.display : decl.name,
+            semantic: typeof decl.semantic === "string" ? decl.semantic : null,
             required: typeof decl.required === "string" ? decl.required : null,
             scope: Array.isArray(decl.scope) ? decl.scope : [decl.__class],
             layer: typeof decl.layer === "string" ? decl.layer : null,
