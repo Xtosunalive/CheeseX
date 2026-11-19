@@ -16,7 +16,7 @@ OFL 允许随软件 bundled/分发字体，但要求保留上述版权声明与�
 ## 整搬件（第三方项目成件收录）
 
 - **OpenBKN**（bkn-foundry，github.com/openbkn-ai）— Apache License 2.0，Copyright 2026 OpenBKN contributors。
-  已收录：`scripts/e2e/contract-probe/api_contract_diff.py` 及其离线自测试（WP-189 整搬；原文件 Apache-2.0 声明随文件头保留，适配四处见文件头注记）。Apache-2.0 要求保留许可声明与 NOTICE——本节即本仓登记载体。
+  已收录：`scripts/e2e/contract-probe/api_contract_diff.py` 及其离线自测试（WP-189 整搬，适配四处见文件头注记）。归属判定（红队复核 P2-5 触发的核实，2026-11-19）：上游为 kweaver-core fork 且多许可——OpenBKN License（附加条件版）仅适用于"源码头显式引用该文件"的模块，kweaver 派生清单（BKN Engine/Context Loader/VEGA/Dataflow/Exec Factory）不含 docs/api/tools；本件无任何许可头，按上游仓根默认 LICENSE（Apache-2.0）补记归属，本文件头内 Apache-2.0 声明系本批新增而非上游原文保留；NOTICE 义务以本节登记为载体。
 
 ## npm 依赖
 
