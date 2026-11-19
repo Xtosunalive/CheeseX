@@ -249,7 +249,9 @@ write("知识库/TheSchema/dependencies.yaml", "rules: []\n");
 }
 
 // ── 2. 架构投影产物（vault-paths 按 enums.yaml architecture_projection 解析路径）──
-write("知识库/architecture/E2eProduct/1.0.0/semantic_architecture.json", JSON.stringify({ generatedAt: "2026-01-01T00:00:00.000Z", nodes: [], connections: [] }, null, 2) + "\n");
+// WP-198：SA 形态对齐架构版本服务（product/components/dependencies——generate-sa.py 同构；
+// 旧 dashboard 桩形态 {nodes,connections} 会被正式消费通道读入后触发"版本投影结构不合法"500）
+write("知识库/architecture/E2eProduct/1.0.0/semantic_architecture.json", JSON.stringify({ product: "E2eProduct", version: "1.0.0", generated_at: "2026-01-01T00:00:00.000Z", components: [], dependencies: [], documents: [] }, null, 2) + "\n");
 write("知识库/architecture/E2eProduct/1.0.0/architecture_layout.json", JSON.stringify({ generatedAt: "2026-01-01T00:00:00.000Z", positions: {} }, null, 2) + "\n");
 
 // ── 3. 实体源文档 ──
