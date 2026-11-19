@@ -1,8 +1,11 @@
 // WP-190 整搬件：原封取自 OpenMAIC（github.com/THU-MAIC/OpenMAIC，MIT License，
-// Copyright (c) 2026 THU-MAIC）。适配三件（合同 docs/work-packages/WP-190.json）：
+// Copyright (c) 2026 THU-MAIC）。适配（合同 docs/work-packages/WP-190.json）：
 //   ① 本地直跑默认仓 slug 改本仓（Xtosunalive/CheeseX）；
 //   ② MARKER 标记 openmaic→cheeseh（tracking issue 正文识别标记，随本仓改名）；
-//   ③ vitest 解析面零修改（两仓同为 vitest，输出形状一致）。
+//   ③ vitest 解析面零修改（两仓同为 vitest，输出形状一致）；
+//   ④ Playwright 解析面扩展（CR-1/D1，Master 2026-11-19 批「批准」）——新增解析分支
+//      抓 Playwright 失败清单行（"N) [project] › file.spec.mjs:L:C › title"），
+//      上游 vitest 分支保持零修改。
 // 其余逻辑逐行保持上游原样；其自测试 flaky-report.test.mjs 未随本批移植
 //（合同 in_scope_paths 之外，扩面走 change_request 另裁）。
 //
@@ -90,14 +93,19 @@ const ANSI = /\x1b\[[0-9;]*[A-Za-z]/g;
 const TIMESTAMP = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z ?/;
 const VITEST_FAIL =
   /^\s*FAIL\s+(?:\|[^|]+\|\s+)?(\S+?\.(?:test|spec)\.[cm]?[jt]sx?)(?:\s+\[[^\]]*\])?(?:\s+>\s+(.+?))?\s*$/;
+// 适配④（CR-1/D1 批准）：Playwright 失败清单行——"N) [project] › file.spec.mjs:L:C › title"
+const PLAYWRIGHT_FAIL =
+  /^\s*\d+\)\s+(?:\[[^\]]*\]\s+)?(?:›\s*)?(\S+?\.(?:spec|test)\.[cm]?[jt]sx?):\d+:\d+\s+›\s*(.+?)\s*$/;
 
 // Vitest prints one `FAIL <file> > <suite> > <test>` line per failed test (or
 // per failed file, without a test name) in its failure summary.
+// Playwright (适配④) prints one `N) [project] › file:L:C › title` line per
+// failed test in its failure list.
 export function extractTestFailures(log) {
   const seen = new Map();
   for (const raw of String(log ?? '').split('\n')) {
     const line = raw.replace(TIMESTAMP, '').replace(ANSI, '');
-    const match = VITEST_FAIL.exec(line);
+    const match = VITEST_FAIL.exec(line) ?? PLAYWRIGHT_FAIL.exec(line);
     if (!match) continue;
     const file = match[1];
     const name = match[2]?.replace(/\s+/g, ' ') ?? null;

@@ -4,7 +4,8 @@ name: Flaky CI Report
 # Copyright (c) 2026 THU-MAIC），适配三件（合同 docs/work-packages/WP-190.json）：
 #   ① repository 守卫改本仓（Xtosunalive/CheeseX）；
 #   ② 参数面（label/cron 沿用上游默认；tracking issue 标记随脚本 MARKER 同步改名）；
-#   ③ vitest 解析面零修改（两仓同为 vitest，输出形状一致）。
+#   ③ vitest 解析面零修改（两仓同为 vitest，输出形状一致）；
+#   ④ Playwright 解析面扩展（CR-1/D1，2026-11-19 批准）——新增分支抓本仓 e2e 旅程失败。
 # 原件逻辑与测试住 .github/scripts/flaky-report.mjs（其自测试 flaky-report.test.mjs
 # 未随本批移植——合同 in_scope_paths 之外，扩面走 change_request 另裁）。
 #
