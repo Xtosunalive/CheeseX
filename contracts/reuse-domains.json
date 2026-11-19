@@ -513,10 +513,10 @@
     {
       "id": "field-view",
       "name": "字段视图派生面（字段中文名×白名单键域装配生成物）",
-      "status": "candidate",
+      "status": "gating",
       "authority": null,
-      "contract": "docs/spec/SPEC-087-单源收口-词表信封与键名生成物驱动.md（WP-187 节）",
-      "gate": null,
+      "contract": "docs/spec/SPEC-097-字段schema类属主重构-采OpenBKN设计.md（字段体系四波权威立法：§六波1 派生面／§二 C-9/C-10 边界／C-16 semantic／C-20 引用保护）",
+      "gate": "npm run gen:field-view -- --check＋src/test/field-labels-ssot.test.ts＋src/test/entity-fields-ssot.test.ts（WP-200：既有执法面显式登记——生成器漂移检查挂 check-derivation-sync、差分锁挂 test:frontend，零新增脚本）",
       "tests": [
         "src/test/entity-fields-ssot.test.ts",
         "src/test/field-labels-ssot.test.ts"
@@ -526,7 +526,7 @@
       "guide": null,
       "register_entry": "docs/work-packages/WP-187.json",
       "note": "；WP-187（2026-11-19）：借镜 OpenMAIC lib/model-settings 管线——键域（server/shared/field-policy.cjs 活算）×标签（shared/field-labels.mjs seq209 单源）在生成器单点装配（join 校验 fail-closed：策略键缺标签即拒绝生成），产 src/lib/generated/field-view.ts；前端禁直连标签单源（eslint no-restricted-imports 执法）。candidate 裸登记合法，推进走 playbook 生命周期。；WP-195（2026-11-19）净新增事实：生成器源改 fields.yaml v2 类属主立法面（display 即中文绑定声明），双出口扩为 field-view.ts＋shared/field-labels.mjs（seq209 手写载体退役为生成物）；键域仍由 field-policy 活算 join（fail-closed 不变）。",
-      "verification_evidence": "gen:field-view --check 绿＋entity-fields-ssot/field-labels-ssot 差分锁绿（L1-L8）；波4 试点（WP-188）：同值列头 3 处（准入登记表 layer/category＋搜索字段标签、检查结果表 layer）收编派生面取值，显示零变化",
+      "verification_evidence": "四波汇总（2026-11-19）：波1（WP-195）前端 15 文件消费面全站化＋EDITABLE 改 RENDER_KEYS 派生＋直连归零（eslint）；波4（WP-188）列头同值收编 3 处跨域试点（准入登记表/检查结果表，L8 锁）；波2（WP-197）semantic 生态入 fields.yaml（field-view 面零变化——改源不改果实证）；波3（WP-199）引用保护 409（field-view 面零变化）。红队四批次（WP-187/195/197/199）均含本域行核验；gen:field-view --check 挂 check-derivation-sync（repoRows 含 field-view）持续执法",
       "metrics": null,
       "last_updated": "2026-11-19",
       "generator": "gen:field-view"
