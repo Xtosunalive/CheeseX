@@ -301,7 +301,7 @@ standardize-article                     dependency system
 - SA 组件: 36 个，依赖: 36 条（DEPENDS_ON: 10, CONNECTS_TO: 22, STORES_IN: 1）
 - 健康度: ✅ 0 ERROR 0 WARNING
 
-## 11. 文章提交前校验闸门（validate-article.py + promote-article.py）
+## 11. 文章提交前校验闸门（schema-write-client.mjs validate-article + promote-article.py）
 
 ### 11.1 设计理念
 
@@ -316,7 +316,7 @@ AI 产出 → drafts/ (+ validate stamp) → 人 review → promote → preclean
 ### 11.2 流程
 
 1. **AI 产出** → 写入 `raw/drafts/{文件名}.md`
-2. **校验标记** → `python3 validate-article.py --stamp <drafts/xxx.md>`
+2. **校验标记** → `node scripts/vault-runtime/schema-write-client.mjs validate-article --vault <vault>（stamp 随标准化动作落） <drafts/xxx.md>`
    - 执行 10 项机械规则检查
    - 将 `validation_status`、`validation_errors`、`validation_warnings`、`validation_summary` 写入 frontmatter
 3. **人工 review** → 在 Obsidian 中打开文章，查看校验标记
@@ -359,7 +359,7 @@ AI 产出 → drafts/ (+ validate stamp) → 人 review → promote → preclean
 
 ### 11.6 与 validate-entity.py 的关系
 
-| | validate-entity.py | validate-article.py | promote-article.py |
+| | validate-entity.py | schema-write-client.mjs validate-article | promote-article.py |
 |---|---|---|---|
 | 对象 | 标准库（entity + deps） | 单篇产出文章 | drafts/ 中的文章 |
 | 执行者 | AI | AI | **人** |

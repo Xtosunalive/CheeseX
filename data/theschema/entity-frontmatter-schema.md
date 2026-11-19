@@ -43,7 +43,7 @@
 | `title` | string | — | 是 | 自由文本：自由标题文本（PR-156 刀四：显式声明 free——字典页与门禁不再显示为空值域） | 实体名称——文档标题；实体侧对应语义架构 SA label。 |
 | `aliases` | list | — | 否 | 自由文本：自由别名列表；写通道资格由 field-rule-declarations F17 在场性背书（fail-closed） | 别名——实体别名（Obsidian frontmatter aliases）；修复写通道锚定 F17 声明（别名写通道， 诊断侧不含——三 view 语义差为历史裁决，见 field-policy）。v2 库存补录：v1 漏声明而 server 有通道。 |
 | `tags` | list | — | 否 | enums.tags：正式标签=各分组扁平并集-disabled_tags；别名经 tag_aliases 归一 | 标签——检索标签（行内数组/块列表/标量三种写法均可，解析口径同 G1'）。 |
-| `category-path` | string | — | 建议 | 自由文本：domain:subdomain:topic 三段式——domain/subdomain 为 enums 闭合枚举，topic 自由小写 ASCII slug；禁历史排错口径 troubleshoot | 知识域目录——标准文档分类路径（PR-046 契约，validate-article.py 单一语义）；文章侧必填、实体侧建议 （v1 单值 required=是 按描述拆分落值）。 |
+| `category-path` | string | — | 建议 | 自由文本：domain:subdomain:topic 三段式——domain/subdomain 为 enums 闭合枚举，topic 自由小写 ASCII slug；禁历史排错口径 troubleshoot | 知识域目录——标准文档分类路径（WP-040 冒号两段式——权威＝contracts/validation-rules.json A08，schema-write-client.mjs validate-article 执行）；文章侧必填、实体侧建议 （v1 单值 required=是 按描述拆分落值）。 |
 | `impact_level` | string |  `severity` | 否 | 自由文本 | 影响面等级——检索索引影响面权重辅助字段。 |
 | `is_core` | bool | — | 否 | 自由文本 | 核心标记——是否核心实体（影响面权重）。 |
 
@@ -75,7 +75,7 @@
 |------|------|----------|------|------|--------|------|
 | `title` | string | — | 是 | 自由文本：自由标题文本（PR-156 刀四：显式声明 free——字典页与门禁不再显示为空值域） | 标题——文档标题（文章类属性——与实体类 title 为两个独立属性，恰共享英文键名）。 |
 | `tags` | list | — | 否 | enums.tags：正式标签=各分组扁平并集-disabled_tags；别名经 tag_aliases 归一 | 标签——检索标签（行内数组/块列表/标量三种写法均可，解析口径同 G1'）。 |
-| `category-path` | string | — | 是 | 自由文本：domain:subdomain:topic 三段式——domain/subdomain 为 enums 闭合枚举，topic 自由小写 ASCII slug；禁历史排错口径 troubleshoot | 知识域目录——标准文档分类路径（PR-046 契约，validate-article.py 单一语义）；文章侧必填。 |
+| `category-path` | string | — | 是 | 自由文本：domain:subdomain:topic 三段式——domain/subdomain 为 enums 闭合枚举，topic 自由小写 ASCII slug；禁历史排错口径 troubleshoot | 知识域目录——标准文档分类路径（WP-040 冒号两段式——权威＝contracts/validation-rules.json A08，schema-write-client.mjs validate-article 执行）；文章侧必填。 |
 | `article_type` | enum | — | 是 | enums.article_types | 知识文章类型——标准文章类型（排错指南/常见问题/方案设计等 9 值）。 |
 | `doc-type` | enum | — | 是 | enums.doc_types | 文档类型（兼容写法兼召回参考：doc_type）——文档形态类型（用户手册/部署指南等 8 值）；下划线写法为兼容写法。 |
 | `body` | string | — | 否 | 自由文本：内容通道；ARTICLE_CONTENT_FIELDS 语义由 field-policy 承载（写门排除 body） | 正文——文章正文（内容属性，非 frontmatter 键——正文另有通道；v2 库存补录：UI 标签层有此键而 schema 未声明。声明于此仅为类属性清点完整，不参与 frontmatter 写门）。 |
@@ -98,5 +98,5 @@
 
 - 同名属性跨类并存（title/module/tags/arch_layer/arch_category/arch_subdomain/category-path）＝**同一英文键名下的两个独立属性**——display 随类（实体类 title＝实体名称、文章类 title＝标题），不是命名偏好。
 - `status`：实体类＝页面生命周期状态（有效/已归档/制定中）；文章类＝文档生命周期（enums lifecycle.status，新建缺省 lifecycle.default_status）——两个属性、两个值域。
-- `category-path`：三段式 domain:subdomain:topic 契约见 article-validator-lib.cjs（PR-046 语义；SPEC-022 起 Node 单源）。
+- `category-path`：冒号两段式（WP-040 topic 段退役）——校验见 article-validator-lib.cjs（PR-046 语义；SPEC-022 起 Node 单源）。
 

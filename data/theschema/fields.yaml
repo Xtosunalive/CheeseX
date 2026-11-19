@@ -64,7 +64,7 @@ classes:
         type: string
         required: 建议
         layer: 内容属性
-        description: 标准文档分类路径（PR-046 契约，validate-article.py 单一语义）；文章侧必填、实体侧建议
+        description: 标准文档分类路径（WP-040 冒号两段式——权威＝contracts/validation-rules.json A08，schema-write-client.mjs validate-article 执行）；文章侧必填、实体侧建议
           （v1 单值 required=是 按描述拆分落值）。
         value_domain:
           source: free
@@ -289,7 +289,7 @@ classes:
         type: string
         required: 是
         layer: 内容属性
-        description: 标准文档分类路径（PR-046 契约，validate-article.py 单一语义）；文章侧必填。
+        description: 标准文档分类路径（WP-040 冒号两段式——权威＝contracts/validation-rules.json A08，schema-write-client.mjs validate-article 执行）；文章侧必填。
         value_domain:
           source: free
           composite:

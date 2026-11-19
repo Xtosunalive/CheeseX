@@ -35,6 +35,8 @@ node_types:
   KnowledgeArticle:
     description: 受管知识文章的个体类型
     category: 文档
+    color: amber
+    icon: book
     subClassOf: Document
     data_properties:
       title:

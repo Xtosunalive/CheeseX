@@ -458,9 +458,9 @@ Entity 页面（`wiki/entities/*.md`）是架构组件的唯一事实源。`arch
 
 | 工具 | 位置 | 用途 | 严重级别 |
 |------|------|------|:--:|
-| `validate-article.py` | 知识库 | 文章提交前校验：必填字段（title, module, product, article_type, doc-type）、枚举合法性、标签白名单、`validation_status` 盖章 | ERROR / WARNING |
+| `schema-write-client.mjs validate-article` | 知识库 | 文章提交前校验：必填字段（title, module, product, article_type, doc-type）、枚举合法性、标签白名单、`validation_status` 盖章 | ERROR / WARNING |
 | `validate-entity.py` | 知识库 | entity 页面 + dependency 变更预检：`arch_layer`/`arch_category` 合法性、节点 ID 唯一性、依赖端点存在性 | ERROR 必须清零 |
-| `validate_classification.py` | 知识库 | 四层分类标签校验：`category-path` domain/subdomain 必须在 `enums.yaml` 闭合枚举内 | ERROR |
+| `schema-write-client.mjs validate-article` | 知识库 | 四层分类标签校验：`category-path` domain/subdomain 必须在 `enums.yaml` 闭合枚举内 | ERROR |
 | `validate_graph.py` | 知识库 | 图关系合理性校验：边端点有效性、BELONGS_TO 链完整性、孤立节点检测 | WARNING |
 | `audit-arch-components.py` | 架构图 | 架构组件声明审计：`arch_component` 矛盾、`arch_layer` 预演树、Frontmatter 输出/修订建议 | 信息 |
 | `check-quality-gate.sh` | 架构图 | PR 合并前质量闸门：检查图数据库质量阈值，退出码 0=通过 1=不通过 | 阻断 |
@@ -599,8 +599,8 @@ classify.py pending --apply           # 写入 frontmatter
           ▼
    ┌──────────────────────────────────────────────────┐
    │              所有下游消费者                         │
-   │  validate-article.py  validate-entity.py          │
-   │  validate_classification.py  extract_graph.py     │
+   │  schema-write-client.mjs validate-article  validate-entity.py          │
+   │  schema-write-client.mjs validate-article  extract_graph.py     │
    │  generate-sa.py  dual_query_api.py                │
    └──────────────────────────────────────────────────┘
 ```
@@ -620,8 +620,8 @@ classify.py pending --apply           # 写入 frontmatter
        └─→ enumerations_draft.md  表格追加               (设计草稿)
        
   下游自动生效（无需手动更新）：
-       ├─→ validate-article.py     load_enums_doc_types() 动态读取
-       ├─→ validate_classification.py  schema_loader.doc_types() 动态读取
+       ├─→ schema-write-client.mjs validate-article     load_enums_doc_types() 动态读取
+       ├─→ schema-write-client.mjs validate-article  schema_loader.doc_types() 动态读取
        ├─→ extract_graph.py       透传值，无枚举校验（不受影响）
        └─→ schema_loader.py       _REGISTRY 缓存自动失效，下次加载重新读取
 ```
@@ -635,7 +635,7 @@ classify.py pending --apply           # 写入 frontmatter
 新文档从创建到入库，经过三道校验闸门：
 
 ```
-  草稿 ──→ standardize-article skill ──→ validate-article.py ──→ 知识库
+  草稿 ──→ standardize-article skill ──→ schema-write-client.mjs validate-article ──→ 知识库
                  │                              │
                  │  AI 按模板生成                │  机械校验:
                  │  枚举值必须合法                │  - 必填字段 (ERROR)
@@ -670,13 +670,13 @@ classify.py pending --apply           # 写入 frontmatter
 
 | 校验点 | 脚本 | 执行时机 | 严重级别 |
 |--------|------|----------|:--:|
-| frontmatter 必填字段缺失 | `validate-article.py` | 文章提交前 | ERROR |
-| `article_type` 值非法 | `validate-article.py` | 文章提交前 | WARNING |
-| `doc-type` 值非法 | `validate-article.py` | 文章提交前 | WARNING |
-| `product` 值非法 | `validate-article.py` | 文章提交前 | WARNING |
-| `module` 值不在枚举中 | `validate-article.py` | 文章提交前 | WARNING |
-| `tags` 不在白名单 | `validate-article.py` | 文章提交前 | WARNING |
-| `category-path` domain/subdomain 非法 | `validate_classification.py` | 定时 lint | ERROR |
+| frontmatter 必填字段缺失 | `schema-write-client.mjs validate-article` | 文章提交前 | ERROR |
+| `article_type` 值非法 | `schema-write-client.mjs validate-article` | 文章提交前 | WARNING |
+| `doc-type` 值非法 | `schema-write-client.mjs validate-article` | 文章提交前 | WARNING |
+| `product` 值非法 | `schema-write-client.mjs validate-article` | 文章提交前 | WARNING |
+| `module` 值不在枚举中 | `schema-write-client.mjs validate-article` | 文章提交前 | WARNING |
+| `tags` 不在白名单 | `schema-write-client.mjs validate-article` | 文章提交前 | WARNING |
+| `category-path` domain/subdomain 非法 | `schema-write-client.mjs validate-article` | 定时 lint | ERROR |
 | entity `arch_layer` 非法 | `validate-entity.py` | entity 变更时 | ERROR |
 | entity `architecture_node_id` 重复（含旧写法 `architecture-node-id` 残留） | `validate-entity.py` | entity 变更时 | ERROR |
 | entity `architecture-node-id` 旧写法残留 | `repair-arch-contract.py` | 定时治理 | WARNING |
@@ -745,7 +745,7 @@ classify.py pending --apply           # 写入 frontmatter
              ▼
     ┌──────────────────────┐
     │  阶段四: 定居入库      │
-    │  validate-article.py  │
+    │  schema-write-client.mjs validate-article  │
     │  → validation_status  │
     │  promote-article.py   │
     │  drafts/ → precleaned/│

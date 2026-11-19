@@ -106,7 +106,7 @@ export function buildProjection({ fields, enums }) {
   lines.push("");
   lines.push("- 同名属性跨类并存（title/module/tags/arch_layer/arch_category/arch_subdomain/category-path）＝**同一英文键名下的两个独立属性**——display 随类（实体类 title＝实体名称、文章类 title＝标题），不是命名偏好。");
   lines.push("- `status`：实体类＝页面生命周期状态（有效/已归档/制定中）；文章类＝文档生命周期（enums lifecycle.status，新建缺省 lifecycle.default_status）——两个属性、两个值域。");
-  lines.push("- `category-path`：三段式 domain:subdomain:topic 契约见 article-validator-lib.cjs（PR-046 语义；SPEC-022 起 Node 单源）。");
+  lines.push("- `category-path`：冒号两段式（WP-040 topic 段退役）——校验见 article-validator-lib.cjs（PR-046 语义；SPEC-022 起 Node 单源）。");
   lines.push("");
   return lines.join("\n") + "\n";
 }

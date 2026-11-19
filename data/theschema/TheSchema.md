@@ -15,7 +15,7 @@ updated: 2026-08-17
 > 本文件是 wiki/ 页面体系的唯一权威规则定义。所有 SKILL 必须以此为基准，冲突时以此为准。
 > 枚举值定义在 `enums.yaml`、`ontology.yaml`，本文件只引用不重复。
 >
-> **注意**：`category-path` 现为**点分两段式** `domain.subdomain`（`validate-article.py` 强制）。冒号三段式 `domain:subdomain:topic` 已废弃。
+> **注意**：`category-path` 现为**冒号两段式** `domain:subdomain`（权威＝contracts/validation-rules.json A08，server/shared/enums-loader.cjs validateCategoryPath 强制）。冒号三段式 `domain:subdomain:topic` 已废弃（WP-040）。
 
 ## 一、目录与用途
 
@@ -52,7 +52,7 @@ updated: 2026-08-17
     （component-index.json 已随 PR-245 组件投影退役删除——原规则 10 作废，2026-11-04）
     versions.yaml            #   版本注册表
     DATA-DICTIONARY.md       #   数据字典
-    KNOWLEDGE_SCENARIOS.md   #   标准场景与 category-path/doc-type 组合
+    # KNOWLEDGE_SCENARIOS.md 已随初版格式退役删除——原「标准场景规格」作废，2026-11-19
     article_associations.yaml #  文章关联定义
     entity-disambiguation.md / entity-disambiguation-design.md  # 实体消歧
     interaction-contracts.md #   交互契约
@@ -108,13 +108,13 @@ Vault 根 = `VAULT_PATH`（由使用者在本机配置，勿硬编码机器路�
 
 #### F. `知识库/.claude/scripts/` — 管道脚本
 
-`pipeline-runner.py`、`promote-article.py`、`validate-article.py`（执行）
+`pipeline-runner.py`、`promote-article.py`、`schema-write-client.mjs validate-article`（执行）
 
 #### G. Vault 根 — **无生产读写**（仅测试残留）
 
 ## 二、Wiki 页面类型与 Frontmatter Schema
 
-> 所有页面必填字段随页面类型而定；`article_id` 为文章类必填（准入系统生成）。`category-path` 一律点分两段式 `domain.subdomain`，合法值来自 `enums.yaml` subdomains 段。
+> 所有页面必填字段随页面类型而定；`article_id` 为文章类必填（准入系统生成）。`category-path` 一律冒号两段式 `domain:subdomain`，合法值来自 `enums.yaml` subdomains 段。
 
 ### 2.1 Entity 页面（`wiki/entities/*.md`）
 
@@ -127,7 +127,7 @@ date: YYYY-MM-DD                     # 必填
 tags:                                # 必填，至少1个，来自 enums.yaml tags 白名单
   - 分类标签
 status: 有效                          # 必填：制定中 | 有效 | 已归档
-category-path: ref.component         # L1 架构治理（entity 用 ref: 域；点分两段式）
+category-path: ref:component         # L1 架构治理（entity 用 ref: 域；冒号两段式）
 review-cycle: 365d                   # 必填：30d | 90d | 180d | 365d | never
 updated: YYYY-MM-DD                  # 必填
 
@@ -246,7 +246,7 @@ updated: YYYY-MM-DD
 
 ### 2.5 标准知识文章（`raw/precleaned/` 与 `wiki/articles/`）
 
-由 `standardize-article` 输出，`validate-article.py` 校验闸门。
+由 `articles.standardize` 动作输出（server/routes/article-workflow-routes.cjs），`schema-write-client.mjs validate-article` 校验闸门。
 
 ```yaml
 ---
@@ -256,7 +256,7 @@ date: YYYY-MM-DD
 tags:
   - 标签
 status: 有效
-category-path: ops.deploy            # 点分两段式，合法值见 enums.yaml
+category-path: ops:deploy            # 冒号两段式，合法值见 enums.yaml
 review-cycle: 90d
 updated: YYYY-MM-DD
 product: AnyShare                    # 4 值枚举
@@ -342,7 +342,7 @@ quality: 8                           # 可选，0-10
 完整定义见 `SCHEMA.md` 和 `enums.yaml`。
 
 ```
-L1 category-path: domain.subdomain  (架构治理；点分两段式)
+L1 category-path: domain:subdomain  (架构治理；冒号两段式)
 L2 业务字段:     product + module + version + article_type + doc-type
 L3 tags:         标签白名单 (enums.yaml tags/)
 L4 生命周期:     status + review-cycle + updated + expires
@@ -408,7 +408,7 @@ L4 生命周期:     status + review-cycle + updated + expires
 | "整理成知识文章" | standardize-article |
 | "标准化输出" | standardize-article |
 | "检查知识库健康度" | manage-knowledge-base §9 |
-| "扫描 frontmatter" | validate_classification.py |
+| "扫描 frontmatter" | schema-write-client.mjs validate-article |
 | "生成 Mermaid 依赖图" | manage-knowledge-base §3.9 |
 | "以 X 为中心生成架构图" | obsidian-graph-architecture-integration（路由 G1/G2） |
 | "同步图谱 / 跑管道" | graph-pipeline（路由 G3，pipeline-runner.py） |
@@ -417,8 +417,8 @@ L4 生命周期:     status + review-cycle + updated + expires
 
 ```
 修改 entity / dependencies.yaml → validate-entity.py --changed → ERROR=0 方可提交
-修改 precleaned 标准文章         → validate-article.py          → 合规方可提交
-修改 wiki/ 页面                → validate_classification.py    → 0 问题方可提交
+修改 precleaned 标准文章         → schema-write-client.mjs validate-article → 合规方可提交
+修改 wiki/ 页面                → schema-write-client.mjs validate-article → 0 问题方可提交
 ```
 
 标准库健康度 = **0 ERROR + 0 WARNING**（详见 `AI_CONCEPT.md` §10）。
