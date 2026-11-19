@@ -18,7 +18,8 @@ function register(registerRoute, deps) {
   const __exec_schema_write_fields = async function (ctx) {
     try {
       const payload = ctx.body;
-      return await service.writeFields({ fields: payload.fields, expectedRevision: payload.revision });
+      // WP-195 v2：payload＝{schema_version:2, keys, classes}（类属主整量写）
+      return await service.writeFields({ classes: payload.classes, keys: payload.keys, expectedRevision: payload.revision });
     } catch (e) {
       if (e && e.code) throw e;
       logger.error({ event: "fields-write-failed", error: e.message, code: e.code });
@@ -30,7 +31,8 @@ function register(registerRoute, deps) {
   registerRoute("GET", "/api/schema/fields", function (_req, res) {
     try {
       const { data, revision } = service.readFields();
-      return sendJSON(res, 200, { fields: data.fields || [], revision, last_updated: data.last_updated || null, sourceFile: displayTheSchemaPath(vaultPath, "fields.yaml") });
+      // WP-195 v2：响应＝类属主字典（keys＋classes；FieldsEditor 按 (类,name) 行装配）
+      return sendJSON(res, 200, { keys: data.keys || {}, classes: data.classes || {}, revision, last_updated: data.last_updated || null, sourceFile: displayTheSchemaPath(vaultPath, "fields.yaml") });
     } catch (e) {
       logger.error({ event: "fields-get-failed", error: e.message });
       return sendJSON(res, e.status || 500, { error_code: e.code || "INTERNAL_ERROR", message: e.message, details: e.details });

@@ -70,10 +70,14 @@ function register(registerRoute, deps) {
       const resolvedByKey = new Map(
         (Array.isArray(artifact.byField) ? artifact.byField : []).map((row) => [fieldKey(row.name, row.scope || []), row]),
       );
-      const byField = (fieldsDoc.fields || [])
+      // WP-195 v2：行＝类属主属性展平（行形状不变——label 取 display、scope 由属主类锚生成，下游零感知）
+      const decls = ["entity", "article"].flatMap((cls) =>
+        (((fieldsDoc.classes || {})[cls]?.properties) || []).map((prop) => ({ ...prop, __class: cls })),
+      );
+      const byField = decls
         .filter((f) => f && typeof f.name === "string")
         .map((decl) => {
-          const rec = resolvedByKey.get(fieldKey(decl.name, decl.scope)) || {};
+          const rec = resolvedByKey.get(fieldKey(decl.name, Array.isArray(decl.scope) ? decl.scope : [decl.__class])) || {};
           const vd = decl.value_domain;
           const hasRecipe = Boolean(vd && typeof vd === "object" && (vd.resolve || Array.isArray(vd.composite)));
           const isComposite = Boolean(vd && Array.isArray(vd.composite));
@@ -85,9 +89,9 @@ function register(registerRoute, deps) {
           const domainKind = stale ? "stale" : isComposite ? "composite" : hasValues ? "closed" : "free";
           return {
             name: decl.name,
-            label: typeof decl.label === "string" ? decl.label : decl.name,
+            label: typeof decl.display === "string" ? decl.display : decl.name,
             required: typeof decl.required === "string" ? decl.required : null,
-            scope: Array.isArray(decl.scope) ? decl.scope : [],
+            scope: Array.isArray(decl.scope) ? decl.scope : [decl.__class],
             layer: typeof decl.layer === "string" ? decl.layer : null,
             recipe: describeRecipe(decl.value_domain),
             domainKind,

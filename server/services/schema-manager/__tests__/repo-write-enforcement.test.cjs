@@ -19,7 +19,8 @@ test("执法态全写面：initVaultIO 激活＋仓外钉扎——七写路径�
   const schemaDir = path.join(root, "schema"); // 仓外钉扎目录（模拟真实仓内主源的领地语义）
   fs.mkdirSync(schemaDir, { recursive: true });
   for (const n of ["enums.yaml", "versions.yaml"]) fs.copyFileSync(path.join(FIXTURE, n), path.join(schemaDir, n));
-  fs.writeFileSync(path.join(schemaDir, "fields.yaml"), `schema_version: 1\nfields:\n  - name: module\n    label: 模块\n    type: list\n    required: 是\n    scope: [entity, article]\n    layer: 业务属性\n    value_domain: { source: modules, resolve: { op: keys } }\n    description: 测试。\n`, "utf8");
+  // WP-195 v2 类属主形态：module 分域落 required（entity=建议／article=是——真实字典语义）
+  fs.writeFileSync(path.join(schemaDir, "fields.yaml"), `schema_version: 2\nkeys:\n  entity: {primary: architecture-node-id, display: title}\n  article: {primary: article_id, display: title}\nclasses:\n  entity:\n    properties:\n      - name: module\n        display: 产品模块\n        type: list\n        required: 建议\n        layer: 业务属性\n        value_domain: { source: modules, resolve: { op: keys } }\n        description: 测试。\n  article:\n    properties:\n      - name: module\n        display: 产品模块\n        type: list\n        required: 是\n        layer: 业务属性\n        value_domain: { source: modules, resolve: { op: keys } }\n        description: 测试。\n`, "utf8");
   fs.writeFileSync(path.join(schemaDir, "ontology.yaml"), "node_types: {}\nrelation_types: {}\ninference_rules: []\nconstraints: []\n", "utf8");
   fs.writeFileSync(path.join(schemaDir, "dependencies.yaml"), "rules: []\n", "utf8");
 
@@ -35,11 +36,11 @@ test("执法态全写面：initVaultIO 激活＋仓外钉扎——七写路径�
     assert.ok(r1.revision.startsWith("sha256:"), "enums 写成功");
     assert.ok(YAML.parse(fs.readFileSync(path.join(schemaDir, "enums.yaml"), "utf8")).modules["执法模块"], "enums 落钉扎领地");
 
-    // ② fields 写（含投影联动）
+    // ② fields 写（含投影联动）——WP-195 v2：整量写 payload＝{keys, classes}（类属主）
     const { createFieldsWriteService } = require("../../../services/schema-manager/fields-write-service.cjs");
     const svc = createFieldsWriteService({ vaultPath: vaultRoot, logger: { info() {}, warn() {} } });
-    const fields = YAML.parse(fs.readFileSync(path.join(schemaDir, "fields.yaml"), "utf8")).fields;
-    const r2 = await svc.writeFields({ fields, expectedRevision: svc.readFields().revision });
+    const fieldsDoc = YAML.parse(fs.readFileSync(path.join(schemaDir, "fields.yaml"), "utf8"));
+    const r2 = await svc.writeFields({ classes: fieldsDoc.classes, keys: fieldsDoc.keys, expectedRevision: svc.readFields().revision });
     assert.ok(r2.projectionSynced, "fields 写＋投影联动成功");
 
     // ③ versions 写（WP-075 补实：此行此前只 require 未写——「六写路径全通」对 versions 是空名，

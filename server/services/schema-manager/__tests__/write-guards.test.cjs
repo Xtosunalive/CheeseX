@@ -17,8 +17,9 @@ function buildPinnedVault() {
   // 仅含已注册段（真实 registry 的段集——concept_types 等未注册键不入夹具）
   fs.writeFileSync(path.join(schema, "enums.yaml"), "modules:\n  主模块: {label: 主}\nlayers:\n  - {id: gateway, label: 网关}\n", "utf8");
   fs.writeFileSync(path.join(schema, "versions.yaml"), "schema_version: 1\nproducts: {}\n", "utf8");
+  // WP-195 v2 类属主形态：module 分域落 required（entity=建议／article=是——真实字典语义）
   fs.writeFileSync(path.join(schema, "fields.yaml"),
-    "schema_version: 1\nfields:\n  - name: module\n    label: 模块\n    type: list\n    required: 是\n    scope: [entity, article]\n    layer: 业务属性\n    value_domain: { source: modules, resolve: { op: keys } }\n    description: 测试。\n", "utf8");
+    "schema_version: 2\nkeys:\n  entity: {primary: architecture-node-id, display: title}\n  article: {primary: article_id, display: title}\nclasses:\n  entity:\n    properties:\n      - name: module\n        display: 产品模块\n        type: list\n        required: 建议\n        layer: 业务属性\n        value_domain: { source: modules, resolve: { op: keys } }\n        description: 测试。\n  article:\n    properties:\n      - name: module\n        display: 产品模块\n        type: list\n        required: 是\n        layer: 业务属性\n        value_domain: { source: modules, resolve: { op: keys } }\n        description: 测试。\n", "utf8");
   process.env.THESCHEMA_DIR = schema;
   return { dir, schema };
 }
@@ -52,12 +53,20 @@ test("红：配方悬空拒写（FIELDS_RECIPE_INVALID，不落盘）", async ()
   try {
     const { createFieldsWriteService } = require("../fields-write-service.cjs");
     const svc = createFieldsWriteService({ vaultPath: env.dir, logger: { info() {}, warn() {}, error() {} } });
+    // WP-195 v2：整量写 payload＝{keys, classes}（类属主；配方悬空属性挂 entity 类；
+    // 两类各至少 1 属性——契约 minItems: 1）
     await assert.rejects(
-      svc.writeFields({ fields: [{ name: "bad", label: "坏", type: "enum", required: "否", scope: ["entity"], layer: "内容属性", value_domain: { source: "no_such_segment", resolve: { op: "values" } }, description: "悬空。" }], expectedRevision: svc.readFields().revision }),
+      svc.writeFields({
+        classes: {
+          entity: { properties: [{ name: "bad", display: "坏", type: "enum", required: "否", layer: "内容属性", value_domain: { source: "no_such_segment", resolve: { op: "values" } }, description: "悬空。" }] },
+          article: { properties: [{ name: "title", display: "标题", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题" }] },
+        },
+        expectedRevision: svc.readFields().revision,
+      }),
       (e) => e.code === "FIELDS_RECIPE_INVALID",
     );
     const fields = require("yaml").parse(fs.readFileSync(path.join(env.schema, "fields.yaml"), "utf8"));
-    assert.ok(!fields.fields.some((f) => f.name === "bad"), "拒写不得落盘");
+    assert.ok(!fields.classes.entity.properties.some((f) => f.name === "bad"), "拒写不得落盘");
   } finally { delete process.env.THESCHEMA_DIR; fs.rmSync(env.dir, { recursive: true, force: true }); }
 });
 
@@ -106,7 +115,14 @@ const REL_ROW = {
   asserted_by: "human",
   asserted_at: "2026-11-02",
 };
-const FIELD_ROW = { name: "title", label: "显示名", type: "string", required: "是", scope: ["entity", "article"], layer: "内容属性", description: "标题" };
+// WP-195 v2：fields 写 payload＝{keys, classes}（类属主整量写；display 用真实绑定名——entity=实体名称/article=标题）
+const FIELD_PAYLOAD = {
+  keys: { entity: { primary: "architecture-node-id", display: "title" }, article: { primary: "article_id", display: "title" } },
+  classes: {
+    entity: { properties: [{ name: "title", display: "实体名称", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题" }] },
+    article: { properties: [{ name: "title", display: "标题", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题" }] },
+  },
+};
 
 function codeOf(fn) {
   try { fn(); return { code: null }; } catch (e) { return { code: e && e.code, status: e && e.status, message: e && e.message }; }
@@ -141,11 +157,11 @@ test("PR-200 红：enums/relations/fields 三写入口缺基线一律拒（SCHEM
     const svc = createFieldsWriteService({ vaultPath: env.dir, logger: { info() {}, warn() {}, error() {} } });
     const fieldsBefore = fs.readFileSync(path.join(env.schema, "fields.yaml"), "utf8");
     for (const shape of [{ label: "缺省" }, { label: "空串", expectedRevision: "" }, { label: "undefined", expectedRevision: undefined }]) {
-      const r = await svc.writeFields({ fields: [FIELD_ROW], ...shape }).then(() => ({ code: null }), (e) => ({ code: e.code, status: e.status }));
+      const r = await svc.writeFields({ ...FIELD_PAYLOAD, ...shape }).then(() => ({ code: null }), (e) => ({ code: e.code, status: e.status }));
       assert.equal(r.code, "SCHEMA_REVISION_REQUIRED", `fields ${shape.label}形态必须拒写：` + JSON.stringify(r));
     }
     assert.equal(fs.readFileSync(path.join(env.schema, "fields.yaml"), "utf8"), fieldsBefore, "fields 拒写零落盘");
-    const fieldsWrong = await svc.writeFields({ fields: [FIELD_ROW], expectedRevision: "sha256:" + "0".repeat(64) }).then(() => ({ code: null }), (e) => ({ code: e.code }));
+    const fieldsWrong = await svc.writeFields({ ...FIELD_PAYLOAD, expectedRevision: "sha256:" + "0".repeat(64) }).then(() => ({ code: null }), (e) => ({ code: e.code }));
     assert.equal(fieldsWrong.code, "FIELDS_REVISION_CONFLICT", "fields 错基线走冲突面：" + JSON.stringify(fieldsWrong));
     // 读后写放行（基线恒可取——含缺席文件的空库基线）
     const ok = writeEnums({ vaultPath: env.dir, expectedRevision: readEnums(env.dir).revision, mutate: (doc) => { doc.get("modules").set("合法模块", { system: "b" }); } });
@@ -177,11 +193,11 @@ test("PR-200 出口绿：空库首建有明示路径（fields 回传 null 基线
     const svc = createFieldsWriteService({ vaultPath: dir, logger: { info() {}, warn() {}, error() {} } });
     assert.equal(fs.existsSync(path.join(schema, "fields.yaml")), false, "夹具前提：fields.yaml 缺席");
     assert.equal(svc.readFields().revision, null, "缺席件读侧给出 null 空库基线（首建断言的可取处）");
-    const first = await svc.writeFields({ fields: [FIELD_ROW], expectedRevision: null });
+    const first = await svc.writeFields({ ...FIELD_PAYLOAD, expectedRevision: null });
     assert.match(first.affectedFile, /fields\.yaml/, "回传 null 基线＝首建放行");
     assert.equal(fs.existsSync(path.join(schema, "fields.yaml")), true);
     // 文件已在而仍回传 null（＝基线断言已过时）→ 冲突，不得覆盖
-    const staleCreate = await svc.writeFields({ fields: [FIELD_ROW], expectedRevision: null }).then(() => ({ code: null }), (e) => ({ code: e.code }));
+    const staleCreate = await svc.writeFields({ ...FIELD_PAYLOAD, expectedRevision: null }).then(() => ({ code: null }), (e) => ({ code: e.code }));
     assert.equal(staleCreate.code, "FIELDS_REVISION_CONFLICT", "首建断言过期必须冲突：" + JSON.stringify(staleCreate));
 
     const { readRelationsFile, writeRelations } = require("../relations-write-service.cjs");

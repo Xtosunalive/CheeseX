@@ -35,16 +35,23 @@ function createFixture() {
   git(repo, ["config", "user.name", "Fixture"]);
   const schemaDir = path.join(repo, "知识库", "TheSchema");
   fs.mkdirSync(schemaDir, { recursive: true });
-  // 最小 TheSchema：fields（无 arch 必填起步）＋enums（最小闭合枚举）＋resolved-domains 投影
+  // 最小 TheSchema：fields（无 arch 必填起步；WP-195 v2 类属主形态）＋enums（最小闭合枚举）＋resolved-domains 投影
   const fields = {
-    schema_version: 1,
-    last_updated: "2026-10-30",
-    fields: [
-      { name: "title", label: "标题", type: "string", required: "是", scope: ["article"], layer: "内容属性",
-        value_domain: { source: "free", note: "自由标题" } },
-      { name: "product", label: "产品", type: "string", required: "是", scope: ["article"], layer: "业务属性",
-        value_domain: { source: "products" } },
-    ],
+    schema_version: 2,
+    last_updated: "2026-11-19",
+    keys: { entity: { primary: "architecture-node-id", display: "title" }, article: { primary: "article_id", display: "title" } },
+    classes: {
+      entity: { properties: [
+        { name: "title", display: "实体名称", type: "string", required: "是", layer: "内容属性",
+          value_domain: { source: "free", note: "自由标题" }, description: "夹具实体标题。" },
+      ] },
+      article: { properties: [
+        { name: "title", display: "标题", type: "string", required: "是", layer: "内容属性",
+          value_domain: { source: "free", note: "自由标题" }, description: "夹具文章标题。" },
+        { name: "product", display: "产品", type: "string", required: "是", layer: "业务属性",
+          value_domain: { source: "products" }, description: "夹具产品。" },
+      ] },
+    },
   };
   fs.writeFileSync(path.join(schemaDir, "fields.yaml"), YAML.stringify(fields));
   fs.writeFileSync(path.join(schemaDir, "enums.yaml"), "products:\n  - 通用\n");
@@ -91,10 +98,10 @@ async function confirmOrCatch(service, articleId, input) {
       const abs = writeArticle(env.repo, "a.md", 'title: 文A\nproduct: 通用\narticle_id: a-1\nvalidation_status: passed\nvalidation_errors: 0\nvalidation_timestamp: "2026-01-01T00:00:00Z"\n');
       // 先把文章推到 pending（合法链路：standardize）
       await service.transition("a-1", "standardize", { sourcePath: "知识库/raw/precleaned/a.md", contentHash: sha256File(abs) });
-      // 规则真身变化：fields.yaml 新增必填字段（resolved-domains 随写重算）
+      // 规则真身变化：fields.yaml 新增必填字段（WP-195 v2：挂文章类 properties；resolved-domains 随写重算）
       const fields = YAML.parse(fs.readFileSync(path.join(env.schemaDir, "fields.yaml"), "utf8"));
-      fields.fields.push({ name: "impact_level", label: "影响级", type: "string", required: "是", scope: ["article"], layer: "业务属性",
-        value_domain: { source: "free", note: "H/M/L" } });
+      fields.classes.article.properties.push({ name: "impact_level", display: "影响面等级", type: "string", required: "是", layer: "内容属性",
+        value_domain: { source: "free", note: "H/M/L" }, description: "检索索引影响面权重辅助字段。" });
       fs.writeFileSync(path.join(env.schemaDir, "fields.yaml"), YAML.stringify(fields));
       execFileSync("node", [path.join(REPO, "scripts", "quality", "project-resolved-domains.mjs"), "--vault", env.repo], { stdio: "pipe", env: { ...process.env, VAULT_PATH: env.repo } });
 
@@ -185,9 +192,9 @@ async function confirmOrCatch(service, articleId, input) {
       const stamped2 = v1.applyValidationStamp(stamped1, { errors: [], warnings: [] });
       const hash2 = stamped2.match(/^validation_content_hash: (sha256:[0-9a-f]{64})$/m)?.[1];
       assert.equal(hash2, hash1, "重章不得改变 content_hash");
-      // 规则变化 → rules_hash 变
+      // 规则变化 → rules_hash 变（WP-195 v2：description 探针落文章类 title 属性）
       const fields = YAML.parse(fs.readFileSync(path.join(env.schemaDir, "fields.yaml"), "utf8"));
-      fields.fields[0].description = "规则变更探针";
+      fields.classes.article.properties[0].description = "规则变更探针";
       fs.writeFileSync(path.join(env.schemaDir, "fields.yaml"), YAML.stringify(fields));
       const rules2 = computeRulesHash(env.repo);
       assert.notEqual(rules2, rules1, "规则真身变化必须改变 rules_hash");

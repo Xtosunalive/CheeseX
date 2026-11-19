@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
+import { parse as parseYaml } from "yaml";
 import { FIELD_LABELS, fieldLabel } from "../../shared/field-labels.mjs";
 import { FIELD_LABELS as GENERATED_FIELD_LABELS, fieldLabel as generatedFieldLabel } from "@/lib/generated/field-view";
 import { ENTITY_CREATE_FIELDS } from "@/components/entity-repair/entity-create-fields";
@@ -9,20 +10,38 @@ import { VERSION_DIFF_FIELD_LABELS } from "@/features/architecture-version/compo
 import { DOCUMENT_RESULT_FIELD_LABELS } from "@/features/document-inventory/components/document-result-field-labels";
 import { ARTICLE_PANORAMA_LABELS } from "@/features/document-inventory/components/article-panorama-labels";
 
-// seq209 字段中文名单源锁（前后端收敛到一份：shared/field-labels.mjs）。
-// 五条锁：
+// 字段中文绑定名单源锁。WP-195：seq209 载体（shared/field-labels.mjs 手写字典）已退役为生成物——
+// 单源＝data/theschema/fields.yaml v2 的 classes.*.properties display（类属主立法面）；
+// shared/field-labels.mjs（服务端面）与 src/lib/generated/field-view.ts（前端面）均为
+// gen:field-view 再生物（禁手改，漂移经 L7 与 gen:field-view --check 双面锁）。
+// 各条锁：
 // L1 配置侧（contracts/entity-readiness-rules.json fields[*]）**不得再出现中文名**——
-//    字段中文名的唯一来源是 shared/field-labels.mjs 的实体域字典（seq210：契约侧已去 label，只留 hint）。
-//    故锁的极性从「两边断言相等」翻转为「契约侧出现 label 即红」（防回潮，fail-closed）。
-// L1b 主理人裁定：文章域中文名**不**落在 contracts——article.fields 段只能有表单形状
-//    （control/required/optionsKey）+ 键序，出现 label 即红。
+//    绑定名的唯一来源是 fields.yaml v2 display（seq210：契约侧已去 label 只留 hint；WP-195 后基准上移到立法面）。
+//    契约侧出现 label/display 即红（防回潮，fail-closed）；键集关系锁为：
+//    契约 fields ⊆ v2 entity 类属性集，v2 entity.properties ≡ 生成物字典 entity 域。
+// L1b 主理人裁定：文章域绑定名**不**落在 contracts——article.fields 段只能有表单形状
+//    （control/required/optionsKey）+ 键序，出现 label/display 即红；契约段 ⊆ v2 article 类属性集，
+//    v2 article.properties ≡ 生成物字典 article 域。
 // L2 消费方（B/C/D/E/F/G/H + 从 D 派生的两个展示组件）不得再出现任何字段中文字面量——防新增立法。
-// L3 运行时取值：实体域 title/arch_component 与文章域 title 互不相同（域分段语义本身被锁住）。
-// L4 前端派生结果 ≡ 单源。
+// L3 运行时取值：实体域 title/arch_component/status 与文章域取值按 v2 display 钉死（域分段语义本身被锁住）。
+// L4 前端派生结果 ≡ 生成物字典（链路经派生面，消费方不直连单源）。
 
 function readRepo(relativePath: string): string {
   return readFileSync(path.resolve(process.cwd(), relativePath), "utf8");
 }
+
+// WP-195 立法面：绑定名期望表从 fields.yaml v2 的 classes.*.properties display 构建（比对基准）。
+const FIELDS_YAML = parseYaml(readRepo("data/theschema/fields.yaml")) as {
+  classes: Record<"entity" | "article", { properties: Array<{ name: string; display: string }> }>;
+};
+const V2_ENTITY_LABELS: Record<string, string> = Object.fromEntries(
+  FIELDS_YAML.classes.entity.properties.map((p) => [p.name, p.display]),
+);
+const V2_ARTICLE_LABELS: Record<string, string> = Object.fromEntries(
+  FIELDS_YAML.classes.article.properties.map((p) => [p.name, p.display]),
+);
+const V2_ENTITY_KEYS = Object.keys(V2_ENTITY_LABELS);
+const V2_ARTICLE_KEYS = Object.keys(V2_ARTICLE_LABELS);
 
 const ALL_LABELS: string[] = [...new Set([...Object.values(FIELD_LABELS.entity), ...Object.values(FIELD_LABELS.article)])];
 
@@ -47,10 +66,6 @@ const GUARDED_FILES = [
   "src/features/document-inventory/components/ArticlePanorama.tsx",
 ];
 
-// 文章域字典显式键集（不写条目数——条目数会随新增字段变动而误红，键集才表达「多了/少了谁」）。
-const ARTICLE_KEY_SET = [
-  "title", "article_id", "product", "version", "module", "article_type", "doc-type", "category-path", "arch_layer", "arch_category", "tags", "body",
-];
 // 契约 article.fields 中声明了 control 的 = Web 可补齐字段（渲染顺序 = 键序，勿重排；
 // PR-151：arch_layer/arch_category 入列——字典必填两字段开 Web 补齐）。
 const WEB_COMPLETABLE_FIELDS = ["title", "product", "version", "module", "article_type", "doc-type", "category-path", "arch_layer", "arch_category", "tags"];
@@ -58,14 +73,19 @@ const WEB_COMPLETABLE_FIELDS = ["title", "product", "version", "module", "articl
 describe("field labels SSOT locks (seq209)", () => {
   it("L1 契约侧不得再出现字段中文名（防回潮：fields[*] 只留填写要求 hint）", () => {
     const declared = JSON.parse(readRepo("contracts/entity-readiness-rules.json")).fields as Record<string, Record<string, unknown>>;
-    const declaredKeys = Object.keys(declared);
+    const declaredKeys = Object.keys(declared).filter((key) => key !== "$comment");
     expect(declaredKeys.length).toBe(14);
-    // 键集一致（展示名单不多不少，仍等于 shared 实体域去掉 aliases）
-    expect([...declaredKeys].sort()).toEqual(Object.keys(FIELD_LABELS.entity).filter((key) => key !== "aliases").sort());
+    // ① 契约 fields 键集 ⊆ v2 entity 类属性集（契约段只是实体类属性里参与合规表单的子集）
+    for (const key of declaredKeys) {
+      expect(V2_ENTITY_KEYS.includes(key), `fields.${key} 未在 fields.yaml v2 entity 类属性集登记`).toBe(true);
+    }
+    // ② v2 entity.properties 键集 ≡ 生成物字典 entity 域键集（生成物跟随立法面，多了/少了谁都红）
+    expect([...V2_ENTITY_KEYS].sort()).toEqual(Object.keys(FIELD_LABELS.entity).sort());
     for (const key of declaredKeys) {
       const meta = declared[key];
-      // 防回潮：中文名唯一来源是 shared/field-labels.mjs 的实体域字典，契约里再出现 label 即第二源
+      // ③ 防回潮：绑定名唯一来源是 fields.yaml v2 display，契约里再出现 label/display 即第二源
       expect(Object.keys(meta), `fields.${key} 出现禁用键（label 不得在此）`).not.toContain("label");
+      expect(Object.keys(meta), `fields.${key} 出现禁用键（display 不得在此）`).not.toContain("display");
       for (const shapeKey of Object.keys(meta)) {
         // 2026-10-08 字段托管：system/control/managedBy 为托管声明键（control=readonly-system 表单只读派生），合法成员
         expect(["hint", "system", "control", "managedBy"], `fields.${key} 出现非「填写要求/托管声明」键`).toContain(shapeKey);
@@ -73,23 +93,29 @@ describe("field labels SSOT locks (seq209)", () => {
     }
   });
 
-  it("L1b 文章域中文名不落 contracts：article.fields 只留表单形状，label 字段禁用", () => {
+  it("L1b 文章域绑定名不落 contracts：article.fields 只留表单形状，label/display 字段禁用", () => {
     const articleFields = JSON.parse(readRepo("contracts/entity-readiness-rules.json")).article.fields as Record<string, Record<string, unknown>>;
     const keys = Object.keys(articleFields).filter((key) => key !== "$comment");
     // 键集与键序（键序 = 补齐表单渲染顺序；PR-151：arch 两字段插分类簇尾、tags 前）
+    // L1b 锁的是契约段本身，不是 v2 全集——v2 article.properties 也含 body，两处 body 各自独立锁定
     expect(keys).toEqual(["title", "article_id", "product", "version", "module", "article_type", "doc-type", "category-path", "arch_layer", "arch_category", "tags", "body"]);
     for (const key of keys) {
       const meta = articleFields[key];
-      // 裁定落点：中文名唯一来源是 shared/field-labels.mjs 的文章域字典，契约里再出现 label 即第二源
+      // 裁定落点：绑定名唯一来源是 fields.yaml v2 display，契约里再出现 label/display 即第二源
       expect(Object.keys(meta), `article.fields.${key} 出现禁用键（label 不得在此）`).not.toContain("label");
+      expect(Object.keys(meta), `article.fields.${key} 出现禁用键（display 不得在此）`).not.toContain("display");
       for (const shapeKey of Object.keys(meta)) {
         expect(["control", "required", "optionsKey"], `article.fields.${key} 出现非表单形状键`).toContain(shapeKey);
       }
     }
     // 声明了 control 的十个才是 Web 可补齐字段（article_id/body 只占位登记；PR-151：arch 两字段入列）
     expect(keys.filter((key) => Boolean(articleFields[key].control))).toEqual(WEB_COMPLETABLE_FIELDS);
-    // 文章域字典覆盖契约里登记的全部字段（含只占位的 article_id / body）
-    expect(Object.keys(FIELD_LABELS.article).sort()).toEqual([...ARTICLE_KEY_SET].sort());
+    // 契约段 ⊆ v2 article 类属性集（契约登记的每个字段都在立法面有绑定名）
+    for (const key of keys) {
+      expect(V2_ARTICLE_KEYS.includes(key), `article.fields.${key} 未在 fields.yaml v2 article 类属性集登记`).toBe(true);
+    }
+    // v2 article.properties 键集 ≡ 生成物字典 article 域键集（生成物跟随立法面）
+    expect([...V2_ARTICLE_KEYS].sort()).toEqual(Object.keys(FIELD_LABELS.article).sort());
   });
 
   it("L2 消费方文件不再持有任何字段中文字面量（防新增立法）", () => {
@@ -124,14 +150,18 @@ describe("field labels SSOT locks (seq209)", () => {
     expect(readRepo("src/lib/generated/field-view.ts")).toContain("Generated by scripts/generate-field-view.mjs. Do not edit by hand.");
   });
 
-  it("L3 域分段语义：实体域 title/arch_component 与文章域取值互不相同", () => {
+  it("L3 域分段语义：实体域 title/arch_component/status 与文章域取值互不相同", () => {
     expect(FIELD_LABELS.entity.title).toBe("实体名称");
     expect(FIELD_LABELS.article.title).toBe("标题");
-    expect(FIELD_LABELS.entity.arch_component).toBe("激活为架构组件");
+    // WP-195 三处改名按 Master 裁定落 v2 display
+    expect(FIELD_LABELS.entity["architecture-node-id"]).toBe("架构组件 ID");
+    expect(FIELD_LABELS.entity.arch_component).toBe("是否架构组件");
+    expect(FIELD_LABELS.entity.status).toBe("生命周期状态");
     expect(FIELD_LABELS.article.article_id).toBe("文章标识");
     // 缺省域序：entity → article
     expect(fieldLabel("title")).toBe("实体名称");
-    expect(fieldLabel("arch_component")).toBe("激活为架构组件");
+    expect(fieldLabel("arch_component")).toBe("是否架构组件");
+    expect(fieldLabel("status")).toBe("生命周期状态");
     expect(fieldLabel("article_id")).toBe("文章标识");
     expect(fieldLabel("body")).toBe("正文");
     // 显式域
@@ -209,17 +239,24 @@ describe("field labels SSOT locks (seq209)", () => {
     }
   });
 
-  // L7 生成物 ≡ 单源（WP-187 派生面差分锁）：前端消费的 src/lib/generated/field-view.ts 必须与
-  // shared/field-labels.mjs 逐键同值、fieldLabel 同语义。漂移（手改生成物／源变更未再生）即红——
-  // gen:field-view --check（check-derivation-sync 注册表纳管）是构建期同款锁，本测试是测试期冗余备份。
-  it("L7 派生面 ≡ 单源：生成物两域字典逐键同值、fieldLabel 同语义（WP-187）", () => {
-    expect(Object.keys(GENERATED_FIELD_LABELS.entity).sort()).toEqual(Object.keys(FIELD_LABELS.entity).sort());
-    expect(Object.keys(GENERATED_FIELD_LABELS.article).sort()).toEqual(Object.keys(FIELD_LABELS.article).sort());
-    for (const [key, value] of Object.entries(FIELD_LABELS.entity)) {
-      expect(GENERATED_FIELD_LABELS.entity[key], `entity.${key}`).toBe(value);
+  // L7 生成物 ≡ 立法面（WP-195）：seq209 载体退役后，shared/field-labels.mjs 与
+  // src/lib/generated/field-view.ts 都是生成物——两者互相比对失去意义（同一生成链的手改错两边同错），
+  // 比对基准上移到立法面 data/theschema/fields.yaml v2 的 classes.*.properties display：
+  // 从立法面构建两域期望表，逐键断言 ≡ 两个生成物的字典（原 WP-187 的生成物互比随之上移退役）。
+  // 漂移（手改生成物／立法面变更未再生）即红——gen:field-view --check（check-derivation-sync
+  // 注册表纳管）是构建期同款锁，本测试是测试期冗余备份。
+  it("L7 生成物 ≡ 立法面：两域 display 逐键同值（WP-195）、fieldLabel 同语义", () => {
+    expect(Object.keys(GENERATED_FIELD_LABELS.entity).sort()).toEqual([...V2_ENTITY_KEYS].sort());
+    expect(Object.keys(GENERATED_FIELD_LABELS.article).sort()).toEqual([...V2_ARTICLE_KEYS].sort());
+    expect(Object.keys(FIELD_LABELS.entity).sort()).toEqual([...V2_ENTITY_KEYS].sort());
+    expect(Object.keys(FIELD_LABELS.article).sort()).toEqual([...V2_ARTICLE_KEYS].sort());
+    for (const [key, value] of Object.entries(V2_ENTITY_LABELS)) {
+      expect(GENERATED_FIELD_LABELS.entity[key], `entity.${key}（前端生成物）`).toBe(value);
+      expect(FIELD_LABELS.entity[key], `entity.${key}（服务端生成物）`).toBe(value);
     }
-    for (const [key, value] of Object.entries(FIELD_LABELS.article)) {
-      expect(GENERATED_FIELD_LABELS.article[key], `article.${key}`).toBe(value);
+    for (const [key, value] of Object.entries(V2_ARTICLE_LABELS)) {
+      expect(GENERATED_FIELD_LABELS.article[key], `article.${key}（前端生成物）`).toBe(value);
+      expect(FIELD_LABELS.article[key], `article.${key}（服务端生成物）`).toBe(value);
     }
     // fieldLabel 语义同构：缺省域序 entity → article、显式域、未登记回字段名、空输入回 ""
     expect(generatedFieldLabel("title")).toBe(fieldLabel("title"));
@@ -230,5 +267,30 @@ describe("field labels SSOT locks (seq209)", () => {
     expect(generatedFieldLabel("title", "entity")).toBe(fieldLabel("title", "entity"));
     expect(generatedFieldLabel("not_a_field")).toBe(fieldLabel("not_a_field"));
     expect(generatedFieldLabel("")).toBe(fieldLabel(""));
+  });
+
+  // L8 同值列头收编锁（WP-188 波4）：列头显示词与字段中文名「同值同义」且列数据即该字段值者，
+  // 经派生面 fieldLabel 取（WP-151「同值同义者引既有键不另抄」判据的列头面延伸）——禁经 TERM 转抄
+  // 或字面量第二份。页面语义词列头（文章标题/源实体/产品 / 模块等）不适用本锁（非字段键投影，
+  // 收编即改产品语义——WP-188 合同 non_goals 在案）。
+  it("L8 同值列头经派生面取（WP-188 波4：准入登记表＋检查结果表）", () => {
+    // 接线：两 copy 模块的同值列头经派生面取（显式域）
+    const admissionCopy = readRepo("src/features/admission/admission-copy.ts");
+    expect(admissionCopy).toContain('COL_LAYER: fieldLabel("arch_layer", "entity")');
+    expect(admissionCopy).toContain('COL_CATEGORY: fieldLabel("arch_category", "entity")');
+    const propertyGovCopy = readRepo("src/features/property-gov/property-gov-copy.ts");
+    expect(propertyGovCopy).toContain('COL_LAYER: sharedFieldLabel("arch_layer", "entity")');
+    // 反例：两组件不再以 TERM 转抄同值列头（筛选器 DocumentSearchBar 的 TERM.CATEGORY/TERM.LAYER
+    // 是 facet 过滤标签，非表格列头，不在本锁射程）
+    const registryTable = readRepo("src/features/admission/EntityRegistryTable.tsx");
+    expect(registryTable).not.toContain("TERM.LAYER");
+    expect(registryTable).not.toContain("TERM.CATEGORY");
+    const checkResultsPanel = readRepo("src/features/property-gov/CheckResultsPanel.tsx");
+    expect(checkResultsPanel).not.toContain("TERM.LAYER");
+    // 值等价：派生值与原 TERM 字面量逐字同（显示零变化）
+    expect(FIELD_LABELS.entity.arch_layer).toBe("架构分层");
+    expect(FIELD_LABELS.entity.arch_category).toBe("实体类别");
+    expect(generatedFieldLabel("arch_layer", "entity")).toBe("架构分层");
+    expect(generatedFieldLabel("arch_category", "entity")).toBe("实体类别");
   });
 });

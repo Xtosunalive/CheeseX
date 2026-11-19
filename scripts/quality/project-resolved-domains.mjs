@@ -43,11 +43,17 @@ export function buildResolvedArtifacts({ fields, enums, versions }) {
   // 红队高-1 修复：以字段声明为基座——required/scope 事实不依赖 value_domain 配方存在
   //（title 无配方但其必填执法必须保留）；解析产物（值集/归一/缺省）按 名＋作用域 合并。
   const resolvedByKey = new Map(byField.map((rec) => [`${rec.name}|${(rec.scope || []).join(",")}`, rec]));
-  const rows = (fields.fields || []).filter((f) => f && typeof f.name === "string").map((decl) => {
-    const rec = resolvedByKey.get(`${decl.name}|${(Array.isArray(decl.scope) ? decl.scope : []).join(",")}`) || {};
+  // WP-195 v2：行＝类属主属性（scope 由属主类锚生成——形状与 v1 行保持一致，下游零感知）
+  const decls = ["entity", "article"].flatMap((cls) =>
+    ((fields.classes?.[cls]?.properties) || []).map((prop) => ({ ...prop, __class: cls })),
+  );
+  const rows = decls.filter((f) => f && typeof f.name === "string").map((decl) => {
+    // WP-195 v2：键构造与 resolver 行同式——decl 无 scope（类属主形态）时由属主类锚回填 [cls]，
+    // 与 value-domain-resolver 产出的 rec.scope=[cls] 对齐（否则解析值合并恒 miss，values 假空）。
+    const rec = resolvedByKey.get(`${decl.name}|${(Array.isArray(decl.scope) ? decl.scope : [decl.__class]).join(",")}`) || {};
     return {
       name: decl.name,
-      scope: Array.isArray(decl.scope) ? decl.scope : [],
+      scope: Array.isArray(decl.scope) ? decl.scope : [decl.__class],
       required: typeof decl.required === "string" ? decl.required : null,
       values: rec.values !== undefined ? rec.values : null,
       aliasMap: rec.aliasMap || null,

@@ -49,12 +49,31 @@ function buildVault() {
     "",
   ].join("\n"), "utf8");
   fs.writeFileSync(path.join(schema, "versions.yaml"), "schema_version: 1\nproducts: {}\n", "utf8");
+  // WP-195 v2 类属主形态：字段归类属主（文章校验面消费 article 类行——required 集与 status 值域
+  // 与 v1 夹具逐字段同值，金标回归语义不变）；display 用真实绑定名，doc-type 带 aliases。
   fs.writeFileSync(path.join(schema, "fields.yaml"), [
-    "schema_version: 1",
-    "fields:",
-    ...["title", "module", "product", "article_type", "doc-type", "version", "category-path"].map((name) =>
-      `  - name: ${name}\n    label: 测试\n    type: string\n    required: 是\n    scope: [entity, article]\n    layer: 内容属性`),
-    `  - name: status\n    label: 状态\n    type: enum\n    required: 否\n    scope: [article]\n    layer: 管理属性\n    value_domain: { source: lifecycle, segment: lifecycle.status, resolve: { op: values } }`,
+    "schema_version: 2",
+    "keys:",
+    "  entity: {primary: architecture-node-id, display: title}",
+    "  article: {primary: article_id, display: title}",
+    "classes:",
+    "  entity:",
+    "    properties:",
+    "      - {name: title, display: 实体名称, type: string, required: 是, layer: 内容属性, value_domain: {source: free}, description: 测试。}",
+    "      - {name: module, display: 产品模块, type: list, required: 建议, layer: 业务属性, value_domain: {source: modules, resolve: {op: keys}}, description: 测试。}",
+    "  article:",
+    "    properties:",
+    ...[
+      ["title", "标题", "string", "是", "内容属性", "value_domain: {source: free}"],
+      ["module", "产品模块", "list", "是", "业务属性", "value_domain: {source: modules, resolve: {op: keys}}"],
+      ["product", "产品", "enum", "是", "业务属性", "value_domain: {source: architecture_projection, resolve: {op: product_closure}}"],
+      ["article_type", "知识文章类型", "enum", "是", "内容属性", "value_domain: {source: article_types, resolve: {op: values}}"],
+      ["doc-type", "文档类型", "enum", "是", "内容属性", "value_domain: {source: doc_types, resolve: {op: values}}"],
+      ["version", "产品版本", "enum", "是", "业务属性", "value_domain: {source: versions, resolve: {op: version_registry}}"],
+      ["category-path", "分类路径", "string", "是", "内容属性", "value_domain: {source: free}"],
+    ].map(([name, display, type, required, layer, vd]) =>
+      `      - {name: ${name}, display: ${display}, type: ${type}, required: ${required}, layer: ${layer}, ${vd}, description: 测试。}`),
+    "      - {name: status, display: 文档生命周期状态, type: enum, required: 否, layer: 管理属性, value_domain: {source: lifecycle, segment: lifecycle.status, resolve: {op: values}}, description: 测试。}",
     "",
   ].join("\n"), "utf8");
   // 解析物（两端的必填集与 status 值域单源）——V11 收编后投影写经 repoWrite 目的地执法，

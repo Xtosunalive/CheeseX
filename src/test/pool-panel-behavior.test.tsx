@@ -86,8 +86,8 @@ describe("PR-026 任务池容器行为", () => {
     setViewportWidth(1280);
     useEntityComplianceStore.setState({ selectedEntity: WIDE_ENTITY, repairOpen: true, repairChanges: {} } as never);
     render(<EntityRepairDrawer />);
-    // 未通过字段排前：arch_component 行在（点行展开开关行；行 label=TERM.ARCH_COMPONENT「激活为架构组件」）
-    fireEvent.click(screen.getByRole("button", { name: /激活为架构组件.*当前值/ }));
+    // 未通过字段排前：arch_component 行在（点行展开开关行；行 label=TERM.ARCH_COMPONENT「是否架构组件」）
+    fireEvent.click(screen.getByRole("button", { name: /是否架构组件.*当前值/ }));
     const switchEl = screen.getByRole("switch");
     expect(switchEl).toHaveAttribute("aria-label", expect.stringContaining("架构组件"));
     expect(screen.getByText("否")).toBeInTheDocument();

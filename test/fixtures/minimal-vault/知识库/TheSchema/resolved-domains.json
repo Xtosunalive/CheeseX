@@ -5,6 +5,18 @@
     {
       "name": "title",
       "scope": [
+        "entity"
+      ],
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "title",
+      "scope": [
         "article"
       ],
       "required": "是",
@@ -62,7 +74,9 @@
         "article"
       ],
       "required": "是",
-      "values": null,
+      "values": [
+        "排错指南"
+      ],
       "aliasMap": null,
       "default": null,
       "wikilinkStrip": false,
@@ -74,7 +88,9 @@
         "article"
       ],
       "required": "是",
-      "values": null,
+      "values": [
+        "用户手册"
+      ],
       "aliasMap": null,
       "default": null,
       "wikilinkStrip": false,

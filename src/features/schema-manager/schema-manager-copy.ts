@@ -214,8 +214,9 @@ export const FIELDS_COPY = {
   REQUIRED_OPTIONS: ["是", "否", "建议"],
   /** layer 数据域兼选项文案（字段字典存储值） */
   LAYER_OPTIONS: ["管理属性", "业务属性", "内容属性"],
-  SCOPE_ENTITY: "实体",
-  SCOPE_ARTICLE: "文章",
+  /** WP-195 v2：SCOPE_* 改「类」语义（属性归属类——OpenBKN 形态） */
+  SCOPE_ENTITY: "实体类",
+  SCOPE_ARTICLE: "文章类",
   LOAD_HINT: "加载字段字典…",
   READ_FAILED: "字段字典读取失败",
   SAVE_OK_SYNCED: "已保存（投影同步重生成）",
@@ -230,8 +231,8 @@ export const FIELDS_COPY = {
   TABLE_ARIA: "字段字典编辑表",
   SECTION_ARIA: "字段字典编辑区",
   EMPTY: "暂无字段，点击「新增字段」创建",
-  COL_NAME: "字段名",
-  COL_LABEL: "人读名",
+  COL_NAME: "属性键",
+  COL_LABEL: "绑定名",
   COL_TYPE: "类型",
   COL_REQUIRED: "必填",
   COL_LAYER: "层",

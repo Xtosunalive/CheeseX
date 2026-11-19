@@ -41,15 +41,33 @@ function buildVault({ fields }) {
   return dir;
 }
 
-const BASE_FIELDS = `schema_version: 1
-fields:
-  - name: module
-    label: 模块
-    type: list
-    required: 是
-    scope: [entity, article]
-    layer: 业务属性
-    description: 测试字典。
+// WP-195 v2 类属主形态（无顶层 fields/label/scope——scope 语义由属主类承载）：
+// module 按真实字典分域落 required（entity=建议／article=是），display 用真实绑定名；
+// value_domain 契约必填（缺了装载即降级）——引用的 modules 段在本夹具 vault 不在，
+// 走值域悬空红（与未登记消费红并存，反例只断言 code=1＋未登记消费在场）。
+const BASE_FIELDS = `schema_version: 2
+keys:
+  entity: {primary: architecture-node-id, display: title}
+  article: {primary: article_id, display: title}
+classes:
+  entity:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 建议
+        layer: 业务属性
+        value_domain: { source: modules }
+        description: 测试字典。
+  article:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 是
+        layer: 业务属性
+        value_domain: { source: modules }
+        description: 测试字典。
 `;
 
 test("反例：消费锚点字段未在 fields.yaml 登记 → 门禁红（防校验代码读未登记字段）", () => {
@@ -82,12 +100,14 @@ test("缺字典：fields.yaml 不存在 → 红（fail-closed，不算绿）", (
 
 
 // ── PR-151 续·根治：补齐三方对账纯函数红绿夹具（字典必填↔契约↔选项包）──
+// WP-195 v2：fieldsDoc＝类属主形态（checkCompletionParity 读 classes.article.properties——
+// 字典必填＝文章类 required==="是" 属性键集，不再经 scope 数组间接）。
 const PARITY_BASE = {
-  fieldsDoc: { fields: [
-    { name: "title", required: "是", scope: ["article"] },
-    { name: "product", required: "是", scope: ["article"] },
-    { name: "arch_layer", required: "是", scope: ["entity", "article"] },
-  ] },
+  fieldsDoc: { classes: { entity: { properties: [] }, article: { properties: [
+    { name: "title", display: "标题", required: "是" },
+    { name: "product", display: "产品", required: "是" },
+    { name: "arch_layer", display: "架构分层", required: "是" },
+  ] } } },
   rulesArticle: {
     required: ["title", "article_id", "product", "arch_layer"],
     fields: {
@@ -112,7 +132,7 @@ test("PR-151 续·反例①：字典新增必填（priority）漏登记契约 �
   const { checkCompletionParity } = await import("../check-fields-registry.mjs");
   const errors = checkCompletionParity({
     ...PARITY_BASE,
-    fieldsDoc: { fields: [...PARITY_BASE.fieldsDoc.fields, { name: "priority", required: "是", scope: ["article"] }] },
+    fieldsDoc: { classes: { entity: { properties: [] }, article: { properties: [...PARITY_BASE.fieldsDoc.classes.article.properties, { name: "priority", display: "优先级", required: "是" }] } } },
   });
   assert.ok(errors.some((e) => e.includes("补齐缺口") && e.includes("priority") && e.includes("article.fields")));
   assert.ok(errors.some((e) => e.includes("必填漂移") && e.includes("priority")));

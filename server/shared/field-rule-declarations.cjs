@@ -37,7 +37,7 @@ const FIELD_RULES = [
    // ADR-016 §二／SPEC-046 I2：消费方不得对 ID 做 split／正则解析——身份只欠不撞与不变，形状不入裁决
    "check": "required",
    "severity": "error",
-   "message": "架构组件身份（architecture-node-id）是必填字段，当前值：{actual}",
+   "message": "架构组件 ID（architecture-node-id）是必填字段，当前值：{actual}",
    "gates": [
      "entity-repair.apply-create",
      "entity-repair.preview-edit",
@@ -54,7 +54,7 @@ const FIELD_RULES = [
    "group": "identity",
    "check": "unique-id",
    "severity": "error",
-   "message": "架构组件身份「{actual}」已被其他实体使用，全库必须唯一——已被：{holders}",
+   "message": "架构组件 ID「{actual}」已被其他实体使用，全库必须唯一——已被：{holders}",
    "gates": [
      "pipeline.stage-0-5",
      "entity-repair.apply-create",
@@ -78,7 +78,7 @@ const FIELD_RULES = [
    "group": "identity",
    "check": "exact-true",
    "severity": "error",
-   "message": "激活为架构组件必须显式设为 true",
+   "message": "是否架构组件必须显式设为 true",
    "gates": [
      "entity-repair.apply-create",
      "entity-repair.preview-edit",

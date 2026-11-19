@@ -19,19 +19,33 @@ function buildVault() {
   const schemaDir = path.join(repo, "知识库", "TheSchema");
   fs.mkdirSync(schemaDir, { recursive: true });
   for (const name of ["enums.yaml", "versions.yaml"]) fs.copyFileSync(path.join(FIXTURE_SCHEMA, name), path.join(schemaDir, name));
-  // fields.yaml（客户端解析物联动需要配方源）：最小合法字段字典
+  // fields.yaml（客户端解析物联动需要配方源）：最小合法字段字典——WP-195 v2 类属主形态，
+  // module 分域落 required（entity=建议／article=是——真实字典语义）
   fs.writeFileSync(
     path.join(schemaDir, "fields.yaml"),
-    `schema_version: 1
-fields:
-  - name: module
-    label: 模块
-    type: list
-    required: 是
-    scope: [entity, article]
-    layer: 业务属性
-    value_domain: { source: modules, resolve: { op: keys } }
-    description: 测试。
+    `schema_version: 2
+keys:
+  entity: {primary: architecture-node-id, display: title}
+  article: {primary: article_id, display: title}
+classes:
+  entity:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 建议
+        layer: 业务属性
+        value_domain: { source: modules, resolve: { op: keys } }
+        description: 测试。
+  article:
+    properties:
+      - name: module
+        display: 产品模块
+        type: list
+        required: 是
+        layer: 业务属性
+        value_domain: { source: modules, resolve: { op: keys } }
+        description: 测试。
 `,
     "utf8",
   );
@@ -86,15 +100,20 @@ test("enums-set-modules：整表替换（管线 sync-enums 通道）", () => {
 test("fields-write：迁移通道（投影＋解析物双联动）", () => {
   const vault = buildVault();
   const tmp = path.join(vault, "..", "fields-payload.json");
-  fs.writeFileSync(tmp, JSON.stringify({ fields: [
-    { name: "module", label: "模块", type: "list", required: "是", scope: ["entity", "article"], layer: "业务属性", value_domain: { source: "modules", resolve: { op: "keys" } }, description: "测试。" },
-    { name: "title", label: "显示名", type: "string", required: "是", scope: ["entity", "article"], layer: "内容属性", description: "标题。" },
-  ] }), "utf8");
+  // WP-195 v2：整量写 payload＝{schema_version:2, keys, classes}（类属主；display 用真实绑定名）
+  fs.writeFileSync(tmp, JSON.stringify({
+    schema_version: 2,
+    keys: { entity: { primary: "architecture-node-id", display: "title" }, article: { primary: "article_id", display: "title" } },
+    classes: {
+      entity: { properties: [{ name: "module", display: "产品模块", type: "list", required: "建议", layer: "业务属性", value_domain: { source: "modules", resolve: { op: "keys" } }, description: "测试。" }, { name: "title", display: "实体名称", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题。" }] },
+      article: { properties: [{ name: "module", display: "产品模块", type: "list", required: "是", layer: "业务属性", value_domain: { source: "modules", resolve: { op: "keys" } }, description: "测试。" }, { name: "title", display: "标题", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题。" }] },
+    },
+  }), "utf8");
   const r = runClient(["fields-write", "--file", tmp, "--revision", readBaseline(vault, "fields")], vault);
   assert.equal(r.code, 0, JSON.stringify(r.payload));
   assert.equal(r.payload.ok, true);
   const projection = fs.readFileSync(path.join(vault, "知识库", "TheSchema", "entity-frontmatter-schema.md"), "utf8");
-  assert.match(projection, /显示名/, "frontmatter 投影必须联动重生成");
+  assert.match(projection, /实体名称/, "frontmatter 投影必须联动重生成（v2 类属主 display 取值）");
   fs.rmSync(vault, { recursive: true, force: true });
 });
 
@@ -239,7 +258,14 @@ test("PR-200 红：五个写操作缺 --revision 一律拒（SCHEMA_REVISION_REQ
   const modulesFile = path.join(vault, "..", "pr200-modules.json");
   fs.writeFileSync(modulesFile, JSON.stringify({ 缺基线模块: { system: "a", subdomain: "api" } }), "utf8");
   const fieldsFile = path.join(vault, "..", "pr200-fields.json");
-  fs.writeFileSync(fieldsFile, JSON.stringify({ fields: [{ name: "title", label: "显示名", type: "string", required: "是", scope: ["entity", "article"], layer: "内容属性", description: "标题。" }] }), "utf8");
+  fs.writeFileSync(fieldsFile, JSON.stringify({
+    schema_version: 2,
+    keys: { entity: { primary: "architecture-node-id", display: "title" }, article: { primary: "article_id", display: "title" } },
+    classes: {
+      entity: { properties: [{ name: "title", display: "实体名称", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题。" }] },
+      article: { properties: [{ name: "title", display: "标题", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题。" }] },
+    },
+  }), "utf8");
   const patchFile = path.join(vault, "..", "pr200-patch.json");
   fs.writeFileSync(patchFile, JSON.stringify({ node_types: {} }), "utf8");
   try {
@@ -272,13 +298,20 @@ test("PR-200 出口绿：fields 空库首建原样回传 null 基线即放行（
   assert.equal(read.code, 0, JSON.stringify(read.payload));
   assert.equal(read.payload.revision, null, "缺席 fields 的读侧基线＝null（首建断言的可取处）");
   const fieldsFile = path.join(vault, "..", "pr200-first-fields.json");
-  fs.writeFileSync(fieldsFile, JSON.stringify({ fields: [{ name: "title", label: "显示名", type: "string", required: "是", scope: ["entity", "article"], layer: "内容属性", description: "标题。" }] }), "utf8");
+  fs.writeFileSync(fieldsFile, JSON.stringify({
+    schema_version: 2,
+    keys: { entity: { primary: "architecture-node-id", display: "title" }, article: { primary: "article_id", display: "title" } },
+    classes: {
+      entity: { properties: [{ name: "title", display: "实体名称", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题。" }] },
+      article: { properties: [{ name: "title", display: "标题", type: "string", required: "是", layer: "内容属性", value_domain: { source: "free" }, description: "标题。" }] },
+    },
+  }), "utf8");
   try {
     const r = runClient(["fields-write", "--file", fieldsFile, "--revision", "null"], vault);
     assert.equal(r.code, 0, "回传 null 基线必须放行首建：" + JSON.stringify(r.payload));
     assert.equal(r.payload.ok, true);
     const fields = YAML.parse(fs.readFileSync(path.join(schemaDir, "fields.yaml"), "utf8"));
-    assert.deepEqual(fields.fields.map((f) => f.name), ["title"], "首建落盘");
+    assert.deepEqual(fields.classes.entity.properties.map((f) => f.name), ["title"], "首建落盘");
     // 文件已在而仍回传 null＝断言过期 → 冲突（exit 3），不得静默覆盖
     const stale = runClient(["fields-write", "--file", fieldsFile, "--revision", "null"], vault);
     assert.equal(stale.code, 3, "过期首建断言必须走冲突面：" + JSON.stringify(stale.payload));

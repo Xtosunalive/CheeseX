@@ -402,24 +402,21 @@ validation_override: false # 注释
 function writeMinimalSchema(dir) {
   const schemaDir = path.join(dir, "知识库", "TheSchema");
   fs.mkdirSync(schemaDir, { recursive: true });
+  // WP-195 v2 类属主形态：属性归两类属主（文章校验面消费 article 类行）
   fs.writeFileSync(path.join(schemaDir, "fields.yaml"), [
-    "schema_version: 1",
-    "last_updated: \"2026-10-30\"",
-    "fields:",
-    "  - name: title",
-    "    label: 标题",
-    "    type: string",
-    "    required: 是",
-    "    scope: [article]",
-    "    layer: 内容属性",
-    "    value_domain: { source: free, note: 自由标题 }",
-    "  - name: product",
-    "    label: 产品",
-    "    type: string",
-    "    required: 是",
-    "    scope: [article]",
-    "    layer: 业务属性",
-    "    value_domain: { source: products }",
+    "schema_version: 2",
+    "last_updated: \"2026-11-19\"",
+    "keys:",
+    "  entity: {primary: architecture-node-id, display: title}",
+    "  article: {primary: article_id, display: title}",
+    "classes:",
+    "  entity:",
+    "    properties:",
+    "      - {name: title, display: 实体名称, type: string, required: 是, layer: 内容属性, value_domain: { source: free, note: 自由标题 }, description: 夹具实体标题。}",
+    "  article:",
+    "    properties:",
+    "      - {name: title, display: 标题, type: string, required: 是, layer: 内容属性, value_domain: { source: free, note: 自由标题 }, description: 夹具文章标题。}",
+    "      - {name: product, display: 产品, type: string, required: 是, layer: 业务属性, value_domain: { source: products }, description: 夹具产品。}",
   ].join("\n") + "\n");
   fs.writeFileSync(path.join(schemaDir, "enums.yaml"), "products:\n  - 通用\n");
   process.env.THESCHEMA_DIR = schemaDir; // repo-schema-io 钉扎领地：tmp vault 写解析物的合法通道（同 b3-receipt 夹具）

@@ -10,16 +10,19 @@
 // 但写路径 required 必须含它。生成段＝字典必填 ∪ 身份豁免，规范序（字典重排不漂移）。
 export const IDENTITY_EXEMPT = new Set(["article_id"]);
 
-export function computeRequiredFromFields(fields) {
-  return (fields || [])
-    .filter((f) => f && typeof f.name === "string" && f.required === "是" && Array.isArray(f.scope) && f.scope.includes("article"))
-    .map((f) => f.name);
+export function computeRequiredFromFields(fieldsDoc) {
+  // WP-195 v2：fieldsDoc＝{schema_version:2, keys, classes}——required＝文章类 required==="是" 的属性键集
+  // （类属主：文章类的 required 即文章语义，不再经 scope 数组间接）。
+  const props = (fieldsDoc && fieldsDoc.classes && Array.isArray(fieldsDoc.classes.article?.properties)
+    ? fieldsDoc.classes.article.properties
+    : []);
+  return props.filter((p) => p && typeof p.name === "string" && p.required === "是").map((p) => p.name);
 }
 
 /** 只写 article.required 一段；返回 { rules, changed }——其余内容逐字节保留（手写 UI 元数据不动）。 */
 /** 生成段＝字典必填 ∪ 身份豁免，规范序（sort）。 */
-export function computeRequiredSegment(fields) {
-  const set = new Set([...computeRequiredFromFields(fields), ...IDENTITY_EXEMPT]);
+export function computeRequiredSegment(fieldsDoc) {
+  const set = new Set([...computeRequiredFromFields(fieldsDoc), ...IDENTITY_EXEMPT]);
   return [...set].sort();
 }
 

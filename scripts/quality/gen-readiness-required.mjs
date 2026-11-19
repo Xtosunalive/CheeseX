@@ -22,7 +22,7 @@ const { readVocabDoc } = require("../../server/shared/vocab-load-port.cjs");
 
 const writeMode = process.argv.includes("--write");
 const fieldsDoc = readVocabDoc(FIELDS_DIR, "fields", null) || {};
-const required = computeRequiredSegment(fieldsDoc.fields);
+const required = computeRequiredSegment(fieldsDoc); // WP-195 v2：整档入投影（类属主）
 const rules = JSON.parse(fs.readFileSync(RULES, "utf8"));
 const { rules: next, changed } = applyRequiredToRules(rules, required);
 
