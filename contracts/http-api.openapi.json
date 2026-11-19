@@ -29203,79 +29203,58 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "actions": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "gapId": {
-                            "type": "string"
-                          },
-                          "action": {
-                            "type": "string"
-                          },
-                          "note": {
-                            "type": "string"
-                          },
-                          "resolvedAt": {
-                            "type": "string"
-                          }
-                        }
-                      }
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope_Data"
                     },
-                    "resolvedGapIds": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
-                    "total": {
-                      "type": "integer"
-                    },
-                    "success": {
-                      "type": "boolean",
-                      "const": true
-                    },
-                    "trace_id": {
-                      "type": "string"
-                    },
-                    "data": {
+                    {
                       "type": "object",
+                      "required": [
+                        "data"
+                      ],
                       "properties": {
-                        "actions": {
-                          "type": "array",
-                          "items": {
-                            "type": "object",
-                            "properties": {
-                              "gapId": {
-                                "type": "string"
-                              },
-                              "action": {
-                                "type": "string"
-                              },
-                              "note": {
-                                "type": "string"
-                              },
-                              "resolvedAt": {
+                        "data": {
+                          "type": "object",
+                          "required": [
+                            "actions"
+                          ],
+                          "properties": {
+                            "actions": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "gapId": {
+                                    "type": "string"
+                                  },
+                                  "action": {
+                                    "type": "string"
+                                  },
+                                  "note": {
+                                    "type": "string"
+                                  },
+                                  "resolvedAt": {
+                                    "type": "string"
+                                  }
+                                }
+                              }
+                            },
+                            "resolvedGapIds": {
+                              "type": "array",
+                              "items": {
                                 "type": "string"
                               }
+                            },
+                            "total": {
+                              "type": "integer"
                             }
-                          }
-                        },
-                        "resolvedGapIds": {
-                          "type": "array",
-                          "items": {
-                            "type": "string"
-                          }
-                        },
-                        "total": {
-                          "type": "integer"
+                          },
+                          "description": "已处置治理动作清单（信封 data 层——顶层幽灵声明 actions/resolvedGapIds/total 系历史误登记，实际线上只有信封形；红队 P2 实证 kg-routes.cjs sendJSON 包裹）"
                         }
                       }
                     }
-                  }
+                  ],
+                  "description": "已处置治理动作清单（标准信封形）"
                 }
               }
             }

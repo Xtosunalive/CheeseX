@@ -14471,20 +14471,10 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        actions?: {
-                            gapId?: string;
-                            action?: string;
-                            note?: string;
-                            resolvedAt?: string;
-                        }[];
-                        resolvedGapIds?: string[];
-                        total?: number;
-                        /** @constant */
-                        success?: true;
-                        trace_id?: string;
-                        data?: {
-                            actions?: {
+                    "application/json": components["schemas"]["ApiEnvelope_Data"] & {
+                        /** @description 已处置治理动作清单（信封 data 层——顶层幽灵声明 actions/resolvedGapIds/total 系历史误登记，实际线上只有信封形；红队 P2 实证 kg-routes.cjs sendJSON 包裹） */
+                        data: {
+                            actions: {
                                 gapId?: string;
                                 action?: string;
                                 note?: string;
