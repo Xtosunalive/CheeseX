@@ -189,6 +189,25 @@ function runTest(test, childEnv) {  return new Promise((resolve) => {
       : spawn(process.execPath, [scriptPath], { env: childEnv, stdio: "inherit" });
 
     child.on("close", (code) => {
+      // 红队复核 P2-3 假绿护栏：probe 退出码 0 但完成比对数为 0（全 skip/全非 200）
+      // ＝口径假绿（全绿≠全验），按失败计；结果文件不可读同罪（fail-closed）。
+      if (test.runner === "probe" && code === 0) {
+        try {
+          const args = JSON.parse(childEnv.CONTRACT_PROBE_ARGS ?? "[]");
+          const jsonOut = args[args.indexOf("--json-out") + 1];
+          const ops = JSON.parse(fs.readFileSync(jsonOut, "utf8"));
+          const compared = ops.filter((o) => "actual" in o).length;
+          if (compared === 0) {
+            console.error(`❌ probe 假绿护栏：退出码 0 但完成比对数为 0（全部跳过）——按失败计（红队 P2-3）`);
+            resolve({ name: test.name, exitCode: 1, passed: false });
+            return;
+          }
+        } catch (e) {
+          console.error(`❌ probe 假绿护栏：巡检结果文件不可读（${e?.message}）——按失败计`);
+          resolve({ name: test.name, exitCode: 1, passed: false });
+          return;
+        }
+      }
       resolve({
         name: test.name,
         exitCode: code,
