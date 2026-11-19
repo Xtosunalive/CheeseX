@@ -21,7 +21,7 @@ function makeVocabTree() {
   fs.writeFileSync(path.join(ts, 'enums.yaml'), 'domains: {}\nlayer_aliases:\n  A: ""\n  B: []\n');
   fs.writeFileSync(path.join(ts, 'versions.yaml'), 'products:\n  ghost:\n    versions:\n      - id: 1.0.0\n        aliases: []\n');
   fs.writeFileSync(path.join(ts, 'ontology.yaml'), 'node_types: {}\nrelation_types: {}\n');
-  fs.writeFileSync(path.join(ts, 'fields.yaml'), 'fields: []\n');
+  fs.writeFileSync(path.join(ts, 'fields.yaml'), 'schema_version: 2\nkeys: {}\nclasses:\n  entity: {properties: []}\n  article: {properties: []}\n');
   fs.writeFileSync(path.join(ts, 'dependencies.yaml'), 'dependencies: []\n');
   return { dir, ts };
 }
@@ -85,14 +85,15 @@ const { resolveValueDomains } = require('../../../server/shared/value-domain-res
 
 test('D4 value-domain：op=保留名 → 「未知操作」红；缺段报悬空；对照 op 语义不变', () => {
   const base = { enums: { lifecycle: { status: ['在线', '灰度'] } }, versions: {} };
-  const mk = (op) => ({ fields: { fields: [{ name: 's', scope: ['entity'], value_domain: { source: 'lifecycle.status', resolve: { op } } }] }, ...base });
+  // WP-195 v2 类属主形态：fields={schema_version:2, keys, classes}——属性挂 entity 类 properties
+  const mk = (op) => ({ fields: { schema_version: 2, keys: {}, classes: { entity: { properties: [{ name: 's', value_domain: { source: 'lifecycle.status', resolve: { op } } }] }, article: { properties: [] } } }, ...base });
   for (const op of ['constructor', 'toString', '__proto__']) {
     const r = require('../../../server/shared/value-domain-resolver.cjs').resolveValueDomains(mk(op));
     assert.ok(r.errors.some((e) => e.includes('未知操作') && e.includes(op)), `${op} → 未知操作红`);
   }
   const ok = resolveValueDomains(mk('values'));
   assert.deepEqual(ok.byField[0].values, ['在线', '灰度'], '对照：values 取段值');
-  const dangling = resolveValueDomains({ fields: { fields: [{ name: 's', scope: ['entity'], value_domain: { source: 'no.such', resolve: { op: 'values' } } }] }, ...base });
+  const dangling = resolveValueDomains({ fields: { schema_version: 2, keys: {}, classes: { entity: { properties: [{ name: 's', value_domain: { source: 'no.such', resolve: { op: 'values' } } }] }, article: { properties: [] } } }, ...base });
   assert.ok(dangling.errors.some((e) => e.includes('值域引用悬空')), '缺段报悬空');
 });
 

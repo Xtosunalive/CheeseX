@@ -129,6 +129,24 @@ if (
 }
 // 顶层对象序列化后整体缩进两格，嵌进 lifecycle: 键下（与产品主源同结构，非平铺抄值）
 const LIFECYCLE_YAML = stringifyYaml(productLifecycle).trimEnd().split("\n").map((l) => `  ${l}`).join("\n");
+// WP-195 v2 类属主：fields.yaml 配方引用的词表段（tags/tag_aliases＋architecture_projection 三张
+// 别名表）同样自产品主源构造性搬入（R3 同款纪律——夹具不自造词表），否则解析物生成期
+// 「归一表悬空」红。flowLevel: 1＝单段对象恒为 flow 形（空表＝`{}`），模板内联不破缩进。
+const flowYaml = (value) => stringifyYaml(value, { flowLevel: 1 }).trimEnd();
+const productEnumsData = productEnumsFile.data || {};
+const productTags = productEnumsData.tags;
+const productTagAliases = productEnumsData.tag_aliases;
+const productArch = productEnumsData.architecture_projection || {};
+for (const [name, table] of [["tags", productTags], ["tag_aliases", productTagAliases], ["layer_aliases", productArch.layer_aliases], ["category_aliases", productArch.category_aliases], ["subdomain_aliases", productArch.subdomain_aliases]]) {
+  if (!table || typeof table !== "object" || Array.isArray(table)) {
+    fail(`产品词表段 ${name} 不可用（须为对象映射）——fields.yaml 配方引用闭合需要它，夹具不自造词表`);
+  }
+}
+const TAGS_YAML = flowYaml(productTags);
+const TAG_ALIASES_YAML = flowYaml(productTagAliases);
+const LAYER_ALIASES_YAML = flowYaml(productArch.layer_aliases);
+const CATEGORY_ALIASES_YAML = flowYaml(productArch.category_aliases);
+const SUBDOMAIN_ALIASES_YAML = flowYaml(productArch.subdomain_aliases);
 // layers[].color/layout 为契约必填（SchemaLayerDefinition required；PR-015 勘误：首跑时
 // 缺此二字段致 GET /api/schema/enums 被 enforce 拦截 500，schema-manager 页走 error 分支，
 // Step 1 地标断言红——原「缺发布快照数据」定性有误，实为夹具词表违反契约）。
@@ -179,6 +197,9 @@ architecture_projection:
     - HAS_SYMPTOM
   wikilink_type_labels:
     依赖: DEPENDS_ON
+  layer_aliases: ${LAYER_ALIASES_YAML}
+  category_aliases: ${CATEGORY_ALIASES_YAML}
+  subdomain_aliases: ${SUBDOMAIN_ALIASES_YAML}
 
 arch_categories:
   - 应用组件
@@ -188,6 +209,10 @@ arch_categories:
 
 concept_types:
   - symptom
+
+tags: ${TAGS_YAML}
+
+tag_aliases: ${TAG_ALIASES_YAML}
 `);
 write("知识库/TheSchema/versions.yaml", fs.readFileSync(path.join(FIXTURE_VAULT, "知识库", "TheSchema", "versions.yaml"), "utf8")
   .replace(/FixtureProduct/g, "E2eProduct"));
@@ -211,95 +236,17 @@ copyFromFixture("知识库/TheSchema/ontology.yaml");
   fs.writeFileSync(fixtureOntologyPath, YAML.stringify(fixtureOntology));
 }
 write("知识库/TheSchema/dependencies.yaml", "rules: []\n");
-// ADR-008 D2：字段数据字典进夹具（check:fields-registry 声明集——覆盖消费锚点全部字段的最小字典）。
-write("知识库/TheSchema/fields.yaml", `schema_version: 1
-fields:
-  - name: title
-    label: 显示名
-    type: string
-    required: 是
-    scope: [entity, article]
-    layer: 内容属性
-    description: E2E 夹具字典（最小集——覆盖三消费锚点字段）。
-  - name: module
-    label: 模块
-    type: list
-    required: 是
-    scope: [entity, article]
-    layer: 业务属性
-    description: 模块匹配名列表。
-  - name: product
-    label: 产品
-    type: enum
-    required: 是
-    scope: [article]
-    layer: 业务属性
-    description: 文章所属产品。
-  - name: article_type
-    label: 文章类型
-    type: enum
-    required: 是
-    scope: [article]
-    layer: 内容属性
-    description: 标准文章类型。
-  - name: doc-type
-    label: 文档类型
-    type: enum
-    required: 是
-    scope: [article]
-    layer: 内容属性
-    aliases: [doc_type]
-    description: 文档形态类型。
-  - name: version
-    label: 产品版本
-    type: enum
-    required: 是
-    scope: [article]
-    layer: 业务属性
-    description: 文章针对的产品版本。
-  - name: category-path
-    label: 分类路径
-    type: string
-    required: 是
-    scope: [entity, article]
-    layer: 内容属性
-    description: 三段式分类路径。
-  - name: arch_layer
-    label: 架构层级
-    type: enum
-    required: 是
-    scope: [entity, article]
-    layer: 业务属性
-    description: 架构层。
-  - name: arch_category
-    label: 业务分类
-    type: enum
-    required: 是
-    scope: [entity, article]
-    layer: 业务属性
-    description: 业务分类。
-  - name: arch_subdomain
-    label: 子域
-    type: enum
-    required: 建议
-    scope: [entity, article]
-    layer: 业务属性
-    description: 技术子域。
-  - name: tags
-    label: 标签
-    type: list
-    required: 否
-    scope: [entity, article]
-    layer: 内容属性
-    description: 检索标签。
-  - name: status
-    label: 状态
-    type: enum
-    required: 是
-    scope: [entity, article]
-    layer: 管理属性
-    description: 页面/文档生命周期状态。
-`);
+// ADR-008 D2／WP-195 v2 类属主：字段数据字典＝产品主源 data/theschema/fields.yaml 原样照抄
+// （entity 20＋article 16 全量类属主属性；禁手造——字典即声明集，check:fields-registry 声明集
+// 与消费锚点对账天然同源；配方引用闭合由上方词表增补保证，§8 对账兜底）。
+// 读数经词表装载端口（text＝原文件字节，注释保真）——端口外直读会被 vocab-load-port 门禁红。
+{
+  const productFieldsFile = vocabLoadPort.loadVocabBundle(REPO_ROOT, { files: ["fields"] }).files.fields;
+  if (!productFieldsFile || productFieldsFile.state !== "present" || typeof productFieldsFile.text !== "string") {
+    fail(`产品主源 fields.yaml 不可读（data/theschema/fields.yaml）——字典照抄失去事实源`);
+  }
+  write("知识库/TheSchema/fields.yaml", productFieldsFile.text);
+}
 
 // ── 2. 架构投影产物（vault-paths 按 enums.yaml architecture_projection 解析路径）──
 write("知识库/architecture/E2eProduct/1.0.0/semantic_architecture.json", JSON.stringify({ generatedAt: "2026-01-01T00:00:00.000Z", nodes: [], connections: [] }, null, 2) + "\n");
@@ -550,6 +497,8 @@ const required = [
   "知识库/TheSchema/enums.yaml",
   "知识库/TheSchema/versions.yaml",
   "知识库/TheSchema/ontology.yaml",
+  "知识库/TheSchema/fields.yaml", // WP-195 v2：类属主字段字典（产品主源照抄件）——自检清单随批补
+  "知识库/TheSchema/resolved-domains.json", // 解析物投影（校验器必填集/值域单源）——同批补
   "知识库/wiki/entities/e2e-complete-component.md",
   "知识库/wiki/entities/e2e-incomplete-component.md",
   "知识库/raw/precleaned/e2e-candidate-article.md",
@@ -582,12 +531,23 @@ if (missing.length) fail(`自检失败，缺：${missing.join("、")}`);
 
 // R3 对账（WP-138／PR-262）：夹具词表 lifecycle 段与产品主源逐字段对账——构建期 fail-closed，
 // 不等即废。只核对「造出来的」与「产品声明的」是否同一份，防止未来有人把 §1 的搬入改回手写。
+// WP-195 v2 续：fields.yaml 配方引用的 tags/tag_aliases＋architecture_projection 三张别名表同对账。
 const fixtureEnumsFile = vocabLoadPort.loadVocabBundle(target, { files: ["enums"] }).files.enums;
-const fixtureLifecycle = fixtureEnumsFile && fixtureEnumsFile.state === "present" && fixtureEnumsFile.data
-  ? fixtureEnumsFile.data.lifecycle
-  : null;
+const fixtureEnumsData = fixtureEnumsFile && fixtureEnumsFile.state === "present" && fixtureEnumsFile.data ? fixtureEnumsFile.data : null;
+const fixtureLifecycle = fixtureEnumsData ? fixtureEnumsData.lifecycle : null;
 if (JSON.stringify(fixtureLifecycle) !== JSON.stringify(productLifecycle)) {
   fail(`夹具 lifecycle 段与产品主源不一致（${PRODUCT_ENUMS_PATH}）——夹具不自造词表，请让构建器从主源取`);
+}
+for (const [name, expected] of [["tags", productTags], ["tag_aliases", productTagAliases]]) {
+  if (JSON.stringify(fixtureEnumsData[name]) !== JSON.stringify(expected)) {
+    fail(`夹具词表段 ${name} 与产品主源不一致（${PRODUCT_ENUMS_PATH}）——夹具不自造词表，请让构建器从主源取`);
+  }
+}
+const fixtureArch = fixtureEnumsData.architecture_projection || {};
+for (const [name, expected] of [["layer_aliases", productArch.layer_aliases], ["category_aliases", productArch.category_aliases], ["subdomain_aliases", productArch.subdomain_aliases]]) {
+  if (JSON.stringify(fixtureArch[name]) !== JSON.stringify(expected)) {
+    fail(`夹具 architecture_projection.${name} 与产品主源不一致（${PRODUCT_ENUMS_PATH}）——fields.yaml 配方引用闭合依赖它，夹具不自造词表`);
+  }
 }
 
 console.log(`✓ e2e vault 就绪：${target}（${required.length} 项关键产物齐）`);

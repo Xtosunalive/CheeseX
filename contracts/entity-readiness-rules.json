@@ -85,7 +85,7 @@
       "managedBy": "server"
     },
     "arch_component": {
-      "hint": "激活为架构组件必须显式设为 true"
+      "hint": "是否架构组件必须显式设为 true"
     },
     "arch_layer": {
       "hint": "建议填写架构分层（arch_layer）"

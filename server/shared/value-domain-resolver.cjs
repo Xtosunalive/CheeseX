@@ -117,7 +117,9 @@ function opTypeMismatch(op, source) {
 
 /**
  * 解析全部字段值域。
- * @param {{fields?: {fields?: Array}, enums?: object, versions?: object}} inputs
+ * @param {{fields?: {fields?: object}, enums?: object, versions?: object}} inputs
+ *        fields＝fields.yaml 解析对象（WP-195 v2：{schema_version:2, keys, classes:{entity,article}}；
+ *        v1 扁平 {fields:[]} 形态不再接受——类属主单一形态，无兼容回落）
  * @returns {{byField: Array<object>, errors: string[]}}
  */
 function resolveValueDomains({ fields, enums, versions } = {}) {
@@ -125,14 +127,21 @@ function resolveValueDomains({ fields, enums, versions } = {}) {
   const normalized = normalizeEnumsSafe(enums);
   const enumsSafe = normalized;
   const versionsSafe = isPlainObject(versions) ? versions : {};
-  const rows = (fields && Array.isArray(fields.fields) ? fields.fields : []).filter(isPlainObject);
+  // WP-195 v2：行＝类属主属性（身份=(类,name)）；配方随属性与类无关——两类平铺解析，行带 class 锚
+  const classes = (fields && isPlainObject(fields.classes) ? fields.classes : {});
+  const rows = ["entity", "article"].flatMap((cls) =>
+    (classes[cls] && Array.isArray(classes[cls].properties) ? classes[cls].properties : [])
+      .filter(isPlainObject)
+      .map((prop) => ({ ...prop, __class: cls })),
+  );
   const errors = [];
   const byField = [];
 
   for (const field of rows) {
     const vd = field.value_domain;
     if (!isPlainObject(vd)) continue;
-    const record = { name: field.name, scope: field.scope || [], values: null, aliasMap: null, default: null, wikilinkStrip: false, composite: null };
+    // WP-195 v2：v2 行无 scope——由属主类锚回填（resolved-domains 行形状不变，下游零感知）
+    const record = { name: field.name, scope: Array.isArray(field.scope) ? field.scope : (field.__class ? [field.__class] : []), values: null, aliasMap: null, default: null, wikilinkStrip: false, composite: null };
 
     if (Array.isArray(vd.composite)) {
       // 混合域（category-path）：闭合段逐段解析；scoped_by: previous 段产出按前段键收窄的映射。

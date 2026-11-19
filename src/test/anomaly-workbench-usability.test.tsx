@@ -39,7 +39,7 @@ describe("#1797-A2 describeBlocker · 写门阻断中文化", () => {
   });
 
   it("原文已含中文（检查器直接产出人话）不二次包装", () => {
-    expect(describeBlocker("F02", "架构组件身份（architecture-node-id）是必填字段，当前值：（未填写）")).toBe("架构组件身份（architecture-node-id）是必填字段，当前值：（未填写）");
+    expect(describeBlocker("F02", "架构组件 ID（architecture-node-id）是必填字段，当前值：（未填写）")).toBe("架构组件 ID（architecture-node-id）是必填字段，当前值：（未填写）");
   });
 });
 

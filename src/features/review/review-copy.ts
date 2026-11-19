@@ -7,7 +7,6 @@
 
 import { TERM } from "@/constants/term-const";
 // seq209：字段中文名从派生面 src/lib/generated/field-view 取（seq209 单源装配；status 字段名「状态」——禁手写第二份）
-import { fieldLabel as sharedFieldLabel } from "@/lib/generated/field-view";
 
 // ── 三页签共用（同一事实只一份）──
 export const REVIEW_COPY = {
@@ -174,8 +173,9 @@ export const INFERENCE_CONFLICT_COPY = {
   COL_CANDIDATES: "候选结论",
   COL_CANDIDATES_ASC: "结论升序",
   COL_CANDIDATES_DESC: "结论降序",
-  // 「状态」＝派生面 src/lib/generated/field-view 的实体域 status 字段中文名（seq209 单源原则：字段中文名不手写第二份，经派生）
-  COL_STATUS: sharedFieldLabel("status"),
+  // WP-195 更正：本列渲染的是冲突裁决状态（pending/resolved），非实体类 status 字段——按 C-11 判据
+  // 属页面语义词（非字段键投影），改为本块页面词，不再经 fieldLabel 派生（v2 下派生值＝生命周期状态，语义错位）。
+  COL_STATUS: "状态",
   COL_STATUS_ASC: "待解决优先",
   COL_STATUS_DESC: "历史审计优先",
   COL_ADOPTED: "采用结论",
