@@ -9076,6 +9076,12 @@ export interface components {
             displaySeq?: number | null;
             /** @description 该问题是否已进入全局诊断追踪（diagnostic run 登记态；读侧只呈现） */
             diagnosticTracked?: boolean;
+            /** @description 诊断进行中标记（诊断执行后出现） */
+            diagnosticActive?: boolean;
+            /** @description 最近诊断任务 id */
+            lastDiagnosticJobId?: string | null;
+            /** @description 最近检出时间 */
+            lastDetectedAt?: string | null;
         };
         AnomalyListData: {
             /** Format: date-time */
@@ -9564,10 +9570,31 @@ export interface components {
                 properties?: {
                     [key: string]: unknown;
                 };
+                /** @description 节点副标签 */
+                sublabel?: string | null;
             }[];
             connections: Record<string, never>[];
             /** @description 主图版本号 */
             version?: string;
+            /** @description 图产物格式版本 */
+            _format_version?: string;
+            /** @description vault 抽取应用时刻 */
+            _vault_extract_applied_at?: string;
+            /** @description 待审边集合（元素未观测） */
+            pendingReview?: unknown[];
+            /** @description 未解析 wikilink（元素未观测） */
+            unresolvedWikilinks?: unknown[];
+            /** @description 产物内嵌本体（与 /api/schema/ontology data 同构） */
+            ontology?: {
+                node_types?: {
+                    [key: string]: components["schemas"]["SchemaOntologyNodeType"];
+                };
+                relation_types?: {
+                    [key: string]: components["schemas"]["SchemaOntologyRelationType"];
+                };
+            } & {
+                [key: string]: unknown;
+            };
         };
         KGQueryData: (components["schemas"]["FormalReleaseIdentity"] | components["schemas"]["WorktreeIdentity"]) & {
             version?: string;
@@ -9832,6 +9859,8 @@ export interface components {
             product: string;
             version: string;
             componentIds: string[];
+            /** @description 该文章的关联清单（元素形状本次未观测，宁宽不猜） */
+            associations?: unknown[];
         };
         ArticleAssociationDecision: {
             decisionId: string;
@@ -10061,6 +10090,11 @@ export interface components {
             decidedAt: string;
             /** @description 本次审核写回更新的 master_graph 边数量 */
             updated?: number;
+            /** @description 裁决记录者 */
+            assertedBy?: {
+                actorId?: string;
+                actorType?: string;
+            };
         };
         ReviewHistoryData: {
             total: number;
@@ -10778,7 +10812,10 @@ export interface components {
             /** @description Vault 中最近一次持久化的管道运行摘要 */
             lastRun?: components["schemas"]["PipelineRunSummary"] | null;
             /** @description 全局管道诊断完成后的统一待处理问题对账摘要 */
-            diagnostics?: components["schemas"]["PipelineDiagnosticSummary"] | null;
+            diagnostics?: {
+                /** @description 源已删除计数 */
+                sourceDeletedCount?: number;
+            } & (components["schemas"]["PipelineDiagnosticSummary"] | null);
             /** @description 最近停留的管道阶段（尚无运行为 null） */
             lastStage?: string | null;
             readModelVersion?: components["schemas"]["ReadModelVersion"];
@@ -10881,6 +10918,8 @@ export interface components {
                 /** @description 是否已解决 */
                 resolved?: boolean;
             }[];
+            /** @description 受管字段来源快照（WP-169 面；上传列表实返回） */
+            fieldProvenance?: components["schemas"]["FieldProvenanceMap"];
         };
         ArticleUploadList: {
             items: components["schemas"]["ArticleWorkflowTask"][];
@@ -10932,6 +10971,8 @@ export interface components {
                 previewHash?: string;
                 releaseId?: string;
                 sourceCommit?: string;
+                /** @description 当前标准版标题 */
+                title?: string;
             };
             /**
              * Format: date-time
@@ -11277,6 +11318,14 @@ export interface components {
             tokens?: string[];
             /** @description 人读路径（分类层级显示名） */
             readablePath?: string;
+            /** @description 文档关联清单（元素形状未观测） */
+            associations?: unknown[];
+            /** @description 所属组件 id 集合（元素未观测） */
+            componentIds?: unknown[];
+            /** @description 归属源哈希 */
+            ownerSourceHash?: string;
+            /** @description 归属源路径 */
+            ownerSourcePath?: string;
         };
         CanonicalDocumentSummary: {
             /** @description 本次检索命中总数（PR-269：与 documents 数组同次响应，documents 为其分页切片） */
@@ -12398,7 +12447,7 @@ export interface components {
         SchemaOntologyRelationType: {
             /** @description 方向语义 */
             direction?: string;
-            /** @description 默认权重 */
+            /** @description 默认权重（0..1 浮点——optionalNumber 语义，服务端 relation-capability-selector 实证；旧声明 integer 在关系类型带小数权重时触发 enforce 假拦） */
             weight_default?: number;
             /** @description 关系说明 */
             description?: string;

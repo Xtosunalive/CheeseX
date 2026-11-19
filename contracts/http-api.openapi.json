@@ -828,6 +828,24 @@
           "diagnosticTracked": {
             "type": "boolean",
             "description": "该问题是否已进入全局诊断追踪（diagnostic run 登记态；读侧只呈现）"
+          },
+          "diagnosticActive": {
+            "type": "boolean",
+            "description": "诊断进行中标记（诊断执行后出现）"
+          },
+          "lastDiagnosticJobId": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "最近诊断任务 id"
+          },
+          "lastDetectedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "最近检出时间"
           }
         }
       },
@@ -2799,6 +2817,13 @@
                       "type": "object",
                       "additionalProperties": true,
                       "description": "节点属性开放映射（键=属性名，如 file_path/module/source_path/title，随节点类型而异）"
+                    },
+                    "sublabel": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "节点副标签"
                     }
                   }
                 }
@@ -2812,6 +2837,41 @@
               "version": {
                 "type": "string",
                 "description": "主图版本号"
+              },
+              "_format_version": {
+                "type": "string",
+                "description": "图产物格式版本"
+              },
+              "_vault_extract_applied_at": {
+                "type": "string",
+                "description": "vault 抽取应用时刻"
+              },
+              "pendingReview": {
+                "type": "array",
+                "description": "待审边集合（元素未观测）"
+              },
+              "unresolvedWikilinks": {
+                "type": "array",
+                "description": "未解析 wikilink（元素未观测）"
+              },
+              "ontology": {
+                "type": "object",
+                "description": "产物内嵌本体（与 /api/schema/ontology data 同构）",
+                "properties": {
+                  "node_types": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/SchemaOntologyNodeType"
+                    }
+                  },
+                  "relation_types": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "$ref": "#/components/schemas/SchemaOntologyRelationType"
+                    }
+                  }
+                },
+                "additionalProperties": true
               }
             }
           }
@@ -3822,6 +3882,10 @@
             "items": {
               "type": "string"
             }
+          },
+          "associations": {
+            "type": "array",
+            "description": "该文章的关联清单（元素形状本次未观测，宁宽不猜）"
           }
         }
       },
@@ -4643,6 +4707,18 @@
           "updated": {
             "type": "integer",
             "description": "本次审核写回更新的 master_graph 边数量"
+          },
+          "assertedBy": {
+            "type": "object",
+            "description": "裁决记录者",
+            "properties": {
+              "actorId": {
+                "type": "string"
+              },
+              "actorType": {
+                "type": "string"
+              }
+            }
           }
         }
       },
@@ -6978,7 +7054,13 @@
                 "type": "null"
               }
             ],
-            "description": "全局管道诊断完成后的统一待处理问题对账摘要"
+            "description": "全局管道诊断完成后的统一待处理问题对账摘要",
+            "properties": {
+              "sourceDeletedCount": {
+                "type": "integer",
+                "description": "源已删除计数"
+              }
+            }
           },
           "lastStage": {
             "type": [
@@ -7348,6 +7430,10 @@
               }
             },
             "description": "promote 上报通道（#862）：validate 分级的可上报字段问题，随任务落盘供 anomaly collector 消费"
+          },
+          "fieldProvenance": {
+            "$ref": "#/components/schemas/FieldProvenanceMap",
+            "description": "受管字段来源快照（WP-169 面；上传列表实返回）"
           }
         }
       },
@@ -7537,6 +7623,10 @@
                   "sourceCommit": {
                     "type": "string",
                     "pattern": "^[0-9a-f]{40}$"
+                  },
+                  "title": {
+                    "type": "string",
+                    "description": "当前标准版标题"
                   }
                 }
               }
@@ -8842,6 +8932,22 @@
           "readablePath": {
             "type": "string",
             "description": "人读路径（分类层级显示名）"
+          },
+          "associations": {
+            "type": "array",
+            "description": "文档关联清单（元素形状未观测）"
+          },
+          "componentIds": {
+            "type": "array",
+            "description": "所属组件 id 集合（元素未观测）"
+          },
+          "ownerSourceHash": {
+            "type": "string",
+            "description": "归属源哈希"
+          },
+          "ownerSourcePath": {
+            "type": "string",
+            "description": "归属源路径"
           }
         }
       },
@@ -12554,8 +12660,8 @@
             "description": "方向语义"
           },
           "weight_default": {
-            "type": "integer",
-            "description": "默认权重"
+            "type": "number",
+            "description": "默认权重（0..1 浮点——optionalNumber 语义，服务端 relation-capability-selector 实证；旧声明 integer 在关系类型带小数权重时触发 enforce 假拦）"
           },
           "description": {
             "type": "string",
