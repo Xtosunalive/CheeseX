@@ -6,6 +6,8 @@
 #     arch_component→是否架构组件（名词性布尔）、entity status→生命周期状态（类限定 XX状态惯例）。
 #   description＝属性级业务规则唯一书写处（BKN 定位：声明用于理解与展示，校验另做——执法归合规引擎）。
 #   value_domain.source＝值域引用（free 或 enums.yaml 命名段；resolve 配方随属性，被引用段删除保护归门禁）。
+#   semantic＝受控语义词表轻量版（WP-197；OpenBKN §6.8 九值子集：valid_from/valid_to/status/severity）——
+#   机器可判读的时间/状态语义标注，类内每值至多一次；LLM 自动分配据此判断而非凭中文名猜。
 # 派生面族（禁手改，全部从本文件再生）：
 #   entity-frontmatter-schema.md（project-frontmatter-schema.mjs）
 #   shared/field-labels.mjs 与 src/lib/generated/field-view.ts（gen:field-view）
@@ -81,6 +83,7 @@ classes:
       - name: impact_level
         display: 影响面等级
         type: string
+        semantic: severity
         required: 否
         layer: 内容属性
         description: 检索索引影响面权重辅助字段。
@@ -152,6 +155,7 @@ classes:
       - name: arch_since
         display: 组件有效期起点
         type: string
+        semantic: valid_from
         required: 建议
         layer: 业务属性
         description: 此组件从哪个版本开始存在（如 7.0.0）。
@@ -161,6 +165,7 @@ classes:
       - name: arch_until
         display: 组件有效期终点
         type: string
+        semantic: valid_to
         required: 建议
         layer: 业务属性
         description: 此组件在哪个版本后废弃。
@@ -208,6 +213,7 @@ classes:
       - name: status
         display: 生命周期状态
         type: enum
+        semantic: status
         required: 是
         layer: 管理属性
         description: 实体 Obsidian 页面状态（有效/已归档/制定中）。display 取 OpenBKN 类限定惯例（XX状态；
@@ -421,6 +427,7 @@ classes:
       - name: status
         display: 文档生命周期状态
         type: enum
+        semantic: status
         required: 否
         layer: 管理属性
         description: 文章文档生命周期（灰度/在线/退役/已驳回）；新建缺省灰度。与实体类 status（生命周期状态）为同名独立属性。

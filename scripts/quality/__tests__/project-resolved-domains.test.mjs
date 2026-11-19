@@ -58,10 +58,18 @@ classes:
         layer: 业务属性
         value_domain: { source: modules, resolve: { op: keys }, normalize: { wikilink_strip: true } }
         description: 测试字典。
+      - name: status
+        display: 文档生命周期状态
+        type: enum
+        required: 否
+        layer: 管理属性
+        semantic: status
+        value_domain: { source: lifecycle, segment: lifecycle.status, resolve: { op: values } }
+        description: 测试字典。
 `,
     "utf8",
   );
-  fs.writeFileSync(path.join(schema, "enums.yaml"), "modules:\n  主模块: {label: 主}\n", "utf8");
+  fs.writeFileSync(path.join(schema, "enums.yaml"), "modules:\n  主模块: {label: 主}\nlifecycle:\n  status: [灰度, 在线]\n  default_status: \"\"\n", "utf8");
   fs.writeFileSync(path.join(schema, "versions.yaml"), "schema_version: 1\nproducts: {}\n", "utf8");
   return dir;
 }
@@ -86,6 +94,12 @@ test("确定性＋--check 一致：连续两遍生成 diff 为空，check 绿", 
   assert.equal(articleRow.required, "是");
   assert.deepEqual(articleRow.values, ["主模块"]);
   assert.equal(articleRow.wikilinkStrip, true);
+  // WP-197：semantic 列透传——带声明的行落值；无声明键的行落 null（列形状恒定）
+  const statusRow = doc.byField.find((r) => r.name === "status" && r.scope[0] === "article");
+  assert.ok(statusRow, "article.status 行在册");
+  assert.equal(statusRow.semantic, "status");
+  assert.deepEqual(statusRow.values, ["灰度", "在线"]);
+  assert.equal(entityRow.semantic, null);
   fs.rmSync(vault, { recursive: true, force: true });
 });
 

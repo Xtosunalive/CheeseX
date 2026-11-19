@@ -158,6 +158,16 @@
           ],
           "description": "属性类型（enum=值域受控；map=键值对象）"
         },
+        "semantic": {
+          "type": "string",
+          "enum": [
+            "valid_from",
+            "valid_to",
+            "status",
+            "severity"
+          ],
+          "description": "受控语义词表轻量版（WP-197；OpenBKN §6.8 九值子集）——机器可判读的时间/状态语义，类内每值至多一次（check-fields-dictionary 执法）。类型联动：status→type=enum；severity→type=enum|string（本仓 impact_level 为权重辅助 type=string——对 BKN 枚举联动的放宽，SPEC-097 波2 记档）；valid_from/valid_to→type=string（本仓为版本串形态——对 BKN date 联动的偏差，同记档）"
+        },
         "required": {
           "type": "string",
           "enum": [
@@ -262,7 +272,8 @@
           "items": {
             "type": "string"
           },
-          "description": "兼容写法收口（如 architecture_node_id 是 architecture-node-id 的兼容写法）"
+          "description": "兼容写法收口（如 architecture_node_id 是 architecture-node-id 的兼容写法）；≤10（OpenBKN Aliases 惯例），兼作 LLM 召回参考（AI_CONCEPT.md 消费契约）",
+          "maxItems": 10
         },
         "description": {
           "type": "string",

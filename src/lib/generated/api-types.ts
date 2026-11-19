@@ -12699,6 +12699,8 @@ export interface components {
             name: string;
             /** @description 人读名 */
             label?: string;
+            /** @description 受控语义词表轻量版（valid_from/valid_to/status/severity；WP-197 波2）——机器可判读属性角色 */
+            semantic?: string | null;
             /** @description 必填强度（是/否/建议） */
             required?: string | null;
             scope: ("entity" | "article")[];

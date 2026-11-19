@@ -226,6 +226,36 @@ test("红队A6：别名表标量值 → aliasMap 统一数组形态", () => {
   assert.deepEqual(r.byField[0].aliasMap, { 野生: ["a"], 组: ["x", "y"] });
 });
 
+test("WP-197：semantic 透传——行带 semantic＝值原样；无 semantic 键的行 semantic=null（行形状恒定）", () => {
+  const r = resolveValueDomains({
+    fields: {
+      schema_version: 2,
+      keys: {},
+      classes: {
+        entity: {
+          properties: [
+            { name: "arch_since", display: "组件有效期起点", type: "string", required: "建议", semantic: "valid_from", value_domain: { source: "free" } },
+            { name: "title", display: "标题", type: "string", required: "是", value_domain: { source: "free" } },
+          ],
+        },
+        article: {
+          properties: [
+            { name: "status", display: "文档生命周期状态", type: "enum", required: "否", semantic: "status", value_domain: { source: "lifecycle", segment: "lifecycle.status", resolve: { op: "values" } } },
+          ],
+        },
+      },
+    },
+    enums: { lifecycle: { status: ["灰度", "在线"], default_status: "" } },
+    versions: {},
+  });
+  assert.deepEqual(r.errors, []);
+  const byName = Object.fromEntries(r.byField.map((f) => [f.name, f]));
+  assert.equal(byName.arch_since.semantic, "valid_from"); // semantic 值原样透传
+  assert.equal(byName.status.semantic, "status"); // 跨类同名独立属性各带各值（entity/article 平铺）
+  assert.equal(byName.title.semantic, null); // 无 semantic 键的行 → null（不缺键，行形状恒定）
+  assert.ok(Object.hasOwn(byName.title, "semantic"), "无声明行也必须有 semantic 键");
+});
+
 test("红队A4/A5/A7：脏形态经 normalizeEnums 收口后与运行时同观", () => {
   const enums = {
     layers: [{ id: "gw" }, { id: "plate", entity_layer: "false" }],

@@ -44,8 +44,9 @@ function valueDomainText(field) {
 }
 
 function fieldRow(field, cls) {
-  const aliases = field.aliases?.length ? `（兼容写法：${field.aliases.join("、")}）` : "";
-  return `| \`${field.name}\` | ${field.type} | ${field.required} | ${valueDomainText(field)} | ${field.display}${aliases}——${field.description} |`;
+  const aliases = field.aliases?.length ? `（兼容写法兼召回参考：${field.aliases.join("、")}）` : "";
+  const semantic = field.semantic ? ` \`${field.semantic}\`` : "—";
+  return `| \`${field.name}\` | ${field.type} | ${semantic} | ${field.required} | ${valueDomainText(field)} | ${field.display}${aliases}——${field.description} |`;
 }
 
 export function buildProjection({ fields, enums }) {
@@ -61,8 +62,8 @@ export function buildProjection({ fields, enums }) {
       if (!group.length) continue;
       lines.push(`### ${layer}（${LAYER_INTENT[layer]}）`);
       lines.push("");
-      lines.push("| 属性 | 类型 | 必填 | 值域 | 绑定名 | 说明 |");
-      lines.push("|------|------|------|------|--------|------|");
+      lines.push("| 属性 | 类型 | semantic | 必填 | 值域 | 绑定名 | 说明 |");
+      lines.push("|------|------|----------|------|------|--------|------|");
       for (const field of group) lines.push(fieldRow(field, cls));
       lines.push("");
     }
@@ -83,6 +84,8 @@ export function buildProjection({ fields, enums }) {
     const k = keys[cls] || {};
     lines.push(`- **${cls}**：primary＝\`${k.primary || "—"}\`（系统铸造身份锚）／display＝\`${k.display || "—"}\`／incremental＝\`${k.incremental || "—"}\``);
   }
+  lines.push("");
+  lines.push("> **semantic 受控词表（轻量版）**：属性级 `semantic` 列是机器可判读的时间/状态语义标注（valid_from/valid_to/status/severity，类内每值至多一次）——自动分配器据此判断属性角色，勿凭绑定名猜语义。属性随类而变：同名键在实体类与文章类是两个独立属性，填前先查本表对应类小节。");
   lines.push("");
   lines.push(...classOf("entity", "一、实体类属性"));
   lines.push(...classOf("article", "二、文章类属性"));
@@ -144,11 +147,21 @@ function main() {
       console.error("project-frontmatter-schema --check: 投影漂移（vault 文档与 fields.yaml 不一致）——重跑 npm run project:frontmatter-schema");
       process.exit(1);
     }
-    console.log("project-frontmatter-schema --check: ok（投影与字段字典一致）");
+    const repoCopy = path.join(ROOT, "data/theschema/entity-frontmatter-schema.md");
+    const repoCurrent = fs.existsSync(repoCopy) ? fs.readFileSync(repoCopy, "utf8") : "";
+    if (repoCurrent !== output) {
+      console.error("project-frontmatter-schema --check: 仓内副本漂移（data/theschema/entity-frontmatter-schema.md 与生成输出不一致）——重跑 npm run project:frontmatter-schema");
+      process.exit(1);
+    }
+    console.log("project-frontmatter-schema --check: ok（投影与字段字典一致＋仓内副本同步）");
     return;
   }
   replaceTheSchemaFile(target, output, { summary: "投影重生成（TheSchema 主源）" }); // 唯一门：钉扎领地外／vault 侧未钉扎一律拒写
-  console.log(`project-frontmatter-schema: 已生成 ${path.relative(vault, target)}（${propCount} 类属主属性）`);
+  // WP-197：仓内副本同步（data/theschema/entity-frontmatter-schema.md）——vault 缺席环境的投影对账面
+  // 与 AI 契约指向件（此前停在 v1 旧格式漂移）。同 bytes 直写（派生物，writer=system 登记）。
+  const repoCopy = path.join(ROOT, "data/theschema/entity-frontmatter-schema.md");
+  fs.writeFileSync(repoCopy, output, "utf8");
+  console.log(`project-frontmatter-schema: 已生成 ${path.relative(vault, target)}（${propCount} 类属主属性）＋仓内副本同步`);
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main();

@@ -146,7 +146,7 @@ module:                              # 文章 module 匹配名
 ---
 ```
 
-> 说明：`architecture-node-id` 是作者侧主写法，`architecture_node_id` 是工具链兼容写法。字段定义以 `entity-frontmatter-schema.md` 为权威，`arch_layer`/`arch_category` 合法值由 `enums.yaml` 集中声明并归一化。
+> 说明：`architecture-node-id` 是作者侧主写法，`architecture_node_id` 是工具链兼容写法。字段定义以 `entity-frontmatter-schema.md` 为权威（类属主 v2——属性归属类，身份＝(类,name)，semantic 机器标注随表），`arch_layer`/`arch_category` 合法值由 `enums.yaml` 集中声明并归一化。
 
 Body 结构：
 ```markdown

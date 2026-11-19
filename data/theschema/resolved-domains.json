@@ -5,10 +5,23 @@
     {
       "name": "title",
       "scope": [
-        "entity",
-        "article"
+        "entity"
       ],
+      "semantic": null,
       "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "aliases",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "否",
       "values": null,
       "aliasMap": null,
       "default": null,
@@ -18,9 +31,9 @@
     {
       "name": "tags",
       "scope": [
-        "entity",
-        "article"
+        "entity"
       ],
+      "semantic": null,
       "required": "否",
       "values": [],
       "aliasMap": {},
@@ -31,10 +44,10 @@
     {
       "name": "category-path",
       "scope": [
-        "entity",
-        "article"
+        "entity"
       ],
-      "required": "是",
+      "semantic": null,
+      "required": "建议",
       "values": null,
       "aliasMap": null,
       "default": null,
@@ -88,6 +101,7 @@
       "scope": [
         "entity"
       ],
+      "semantic": "severity",
       "required": "否",
       "values": null,
       "aliasMap": null,
@@ -100,6 +114,7 @@
       "scope": [
         "entity"
       ],
+      "semantic": null,
       "required": "否",
       "values": null,
       "aliasMap": null,
@@ -108,10 +123,315 @@
       "composite": null
     },
     {
+      "name": "architecture-node-id",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_layer",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "建议",
+      "values": [
+        "gateway",
+        "foundation",
+        "data-lake",
+        "cloud-native",
+        "service",
+        "open",
+        "application",
+        "external",
+        "crosscutting"
+      ],
+      "aliasMap": {},
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_category",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "建议",
+      "values": [
+        "测试实体类别"
+      ],
+      "aliasMap": {},
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_subdomain",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "建议",
+      "values": [
+        "overview",
+        "maintain",
+        "method",
+        "doc",
+        "architecture",
+        "api",
+        "general"
+      ],
+      "aliasMap": {},
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_since",
+      "scope": [
+        "entity"
+      ],
+      "semantic": "valid_from",
+      "required": "建议",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_until",
+      "scope": [
+        "entity"
+      ],
+      "semantic": "valid_to",
+      "required": "建议",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_version_overrides",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "module",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "建议",
+      "values": [
+        "测试模块"
+      ],
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": true,
+      "composite": null
+    },
+    {
+      "name": "arch_component",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "arch_status",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "否",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "status",
+      "scope": [
+        "entity"
+      ],
+      "semantic": "status",
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "date",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "updated",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "建议",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "review-cycle",
+      "scope": [
+        "entity"
+      ],
+      "semantic": null,
+      "required": "建议",
+      "values": [
+        "30d",
+        "90d",
+        "180d",
+        "365d",
+        "never"
+      ],
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "title",
+      "scope": [
+        "article"
+      ],
+      "semantic": null,
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "article_id",
+      "scope": [
+        "article"
+      ],
+      "semantic": null,
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "tags",
+      "scope": [
+        "article"
+      ],
+      "semantic": null,
+      "required": "否",
+      "values": [],
+      "aliasMap": {},
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": null
+    },
+    {
+      "name": "category-path",
+      "scope": [
+        "article"
+      ],
+      "semantic": null,
+      "required": "是",
+      "values": null,
+      "aliasMap": null,
+      "default": null,
+      "wikilinkStrip": false,
+      "composite": [
+        {
+          "source": "domains",
+          "values": [
+            "ref",
+            "ops",
+            "concept",
+            "product",
+            "meta",
+            "arch",
+            "tech"
+          ]
+        },
+        {
+          "source": "subdomains",
+          "scoped": {
+            "ref": [
+              "overview"
+            ],
+            "ops": [
+              "maintain"
+            ],
+            "concept": [
+              "method"
+            ],
+            "product": [
+              "general"
+            ],
+            "meta": [
+              "doc"
+            ],
+            "arch": [
+              "architecture"
+            ],
+            "tech": [
+              "api"
+            ]
+          }
+        },
+        {
+          "op": "free_slug"
+        }
+      ]
+    },
+    {
       "name": "article_type",
       "scope": [
         "article"
       ],
+      "semantic": null,
       "required": "是",
       "values": [
         "排错指南",
@@ -134,6 +454,7 @@
       "scope": [
         "article"
       ],
+      "semantic": null,
       "required": "是",
       "values": [
         "用户手册",
@@ -155,6 +476,7 @@
       "scope": [
         "article"
       ],
+      "semantic": null,
       "required": "否",
       "values": null,
       "aliasMap": null,
@@ -167,19 +489,8 @@
       "scope": [
         "article"
       ],
+      "semantic": null,
       "required": "否",
-      "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
-      "name": "architecture-node-id",
-      "scope": [
-        "entity"
-      ],
-      "required": "是",
       "values": null,
       "aliasMap": null,
       "default": null,
@@ -189,9 +500,9 @@
     {
       "name": "arch_layer",
       "scope": [
-        "entity",
         "article"
       ],
+      "semantic": null,
       "required": "建议",
       "values": [
         "gateway",
@@ -212,9 +523,9 @@
     {
       "name": "arch_category",
       "scope": [
-        "entity",
         "article"
       ],
+      "semantic": null,
       "required": "建议",
       "values": [
         "测试实体类别"
@@ -227,9 +538,9 @@
     {
       "name": "arch_subdomain",
       "scope": [
-        "entity",
         "article"
       ],
+      "semantic": null,
       "required": "建议",
       "values": [
         "overview",
@@ -246,47 +557,11 @@
       "composite": null
     },
     {
-      "name": "arch_since",
-      "scope": [
-        "entity"
-      ],
-      "required": "建议",
-      "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
-      "name": "arch_until",
-      "scope": [
-        "entity"
-      ],
-      "required": "建议",
-      "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
-      "name": "arch_version_overrides",
-      "scope": [
-        "entity"
-      ],
-      "required": "否",
-      "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
       "name": "module",
       "scope": [
-        "entity",
         "article"
       ],
+      "semantic": null,
       "required": "是",
       "values": [
         "测试模块"
@@ -297,34 +572,11 @@
       "composite": null
     },
     {
-      "name": "arch_component",
-      "scope": [
-        "entity"
-      ],
-      "required": "是",
-      "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
-      "name": "arch_status",
-      "scope": [
-        "entity"
-      ],
-      "required": "否",
-      "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
       "name": "product",
       "scope": [
         "article"
       ],
+      "semantic": null,
       "required": "是",
       "values": [
         "测试产品",
@@ -340,6 +592,7 @@
       "scope": [
         "article"
       ],
+      "semantic": null,
       "required": "是",
       "values": [
         "1.0"
@@ -352,20 +605,9 @@
     {
       "name": "status",
       "scope": [
-        "entity"
-      ],
-      "required": "是",
-      "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
-      "name": "status",
-      "scope": [
         "article"
       ],
+      "semantic": "status",
       "required": "否",
       "values": [
         "灰度",
@@ -379,42 +621,13 @@
       "composite": null
     },
     {
-      "name": "date",
+      "name": "body",
       "scope": [
-        "entity"
+        "article"
       ],
-      "required": "是",
+      "semantic": null,
+      "required": "否",
       "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
-      "name": "updated",
-      "scope": [
-        "entity"
-      ],
-      "required": "建议",
-      "values": null,
-      "aliasMap": null,
-      "default": null,
-      "wikilinkStrip": false,
-      "composite": null
-    },
-    {
-      "name": "review-cycle",
-      "scope": [
-        "entity"
-      ],
-      "required": "建议",
-      "values": [
-        "30d",
-        "90d",
-        "180d",
-        "365d",
-        "never"
-      ],
       "aliasMap": null,
       "default": null,
       "wikilinkStrip": false,
