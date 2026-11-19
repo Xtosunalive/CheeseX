@@ -13243,7 +13243,7 @@ export interface components {
             category: string;
             degree: number;
             labels: string[];
-            /** @description 节点属性开放映射（实际观测 name/is_active/last_extract_time/source_vault_path/extraction_trace[] 等） */
+            /** @description 节点属性开放映射（实际观测 name/is_active/source_vault_path/extraction_trace[] 等；last_extract_time 等运行时刻字段不入投影——2026-11-19 图面稳定修复） */
             properties: {
                 [key: string]: unknown;
             };

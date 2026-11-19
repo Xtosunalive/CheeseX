@@ -192,6 +192,21 @@ try { GRAPH_ADMISSION = require("../../../contracts/graph-admission.json"); } ca
 const ENTITY_LABELS = GRAPH_ADMISSION.entityLabels;
 
 // Normalize master_graph node → TopoNode {id, label, category, degree, labels, properties}
+// 运行时刻元数据不入投影（Master 2026-11-19「obsidian图变大变小复发」修复）：抽取管线每次运行
+// 都对重建节点重打 last_extract_time（apply_minimal_lineage_props，extract_graph.py:505）——
+// 图谱零语义变化时投影负载仍逐次不同，前端 topology-store 的「数据未变不换引用」守卫被击穿，
+// LocalGraph 整图销毁重建＋力导向重排＋fitView＝图面反复缩放跳动。投影面＝图谱语义；运行时刻
+// 血统只在 blob/库层留痕（derived_artifacts 原文行字节精确），不进拓扑投影。前端零消费实测
+// （src 全量 grep last_extract_time 仅 generated api-types 观测注释，2026-11-19）。
+var NODE_VOLATILE_PROP_KEYS = ["last_extract_time"];
+function stripVolatileNodeProps(properties) {
+  if (!properties || typeof properties !== "object") return properties || {};
+  var out = {};
+  for (var k in properties) {
+    if (Object.hasOwn(properties, k) && NODE_VOLATILE_PROP_KEYS.indexOf(k) < 0) out[k] = properties[k];
+  }
+  return out;
+}
 function nodeToTopo(n, deg) {
   return {
     id: n.id,
@@ -199,7 +214,7 @@ function nodeToTopo(n, deg) {
     category: n.category || "未分类",
     degree: deg || 0,
     labels: n.labels || [],
-    properties: n.properties || {},
+    properties: stripVolatileNodeProps(n.properties),
   };
 }
 
