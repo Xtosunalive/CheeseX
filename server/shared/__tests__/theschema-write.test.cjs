@@ -96,3 +96,48 @@ test("全权替换同样单路：钉扎领地可用、vault 侧未钉扎即拒",
     (error) => error.code === "REPO_SCHEMA_DESTINATION",
   );
 });
+
+// ── WP-203 测试回落拒写闸（repo-schema-io 落点谓词）──
+const { REPO_SCHEMA_ROOT } = require("../repo-schema-io.cjs");
+const { execFileSync } = require("node:child_process");
+
+test("WP-203 闸：测试上下文写真仓 data/theschema → 拒且零落盘（夹具投影穿透实录防线）", function (t) {
+  const previous = { dir: process.env.THESCHEMA_DIR, runnerRoot: process.env.NODE_TEST_RUNNER_ROOT };
+  delete process.env.THESCHEMA_DIR; // 未钉扎；本进程由 node --test 拉起，NODE_TEST_CONTEXT 在场＝测试上下文
+  // 跑批器仓根标记自设（语义单测两态可测：npm run test:node 由 buildRunnerEnv 下发同值；直跑 node --test 无标记）
+  process.env.NODE_TEST_RUNNER_ROOT = path.resolve(REPO_SCHEMA_ROOT, "..", "..");
+  const realRepoTarget = path.join(REPO_SCHEMA_ROOT, "wp203-probe-should-not-exist.yaml");
+  t.after(() => {
+    if (previous.dir === undefined) delete process.env.THESCHEMA_DIR;
+    else process.env.THESCHEMA_DIR = previous.dir;
+    if (previous.runnerRoot === undefined) delete process.env.NODE_TEST_RUNNER_ROOT;
+    else process.env.NODE_TEST_RUNNER_ROOT = previous.runnerRoot;
+    fs.rmSync(realRepoTarget, { force: true });
+  });
+  assert.throws(
+    () => replaceTheSchemaFile(realRepoTarget, "schema_version: 1\n", { summary: "测试态禁写真仓" }),
+    (error) => error.code === "REPO_SCHEMA_TEST_WRITE",
+    "测试上下文禁写真仓 data/theschema（fail-closed）——测试领地请钉扎 THESCHEMA_DIR",
+  );
+  assert.equal(fs.existsSync(realRepoTarget), false, "拒写即零落盘");
+});
+
+test("WP-203 生产分支保持：无 NODE_TEST_CONTEXT 的子进程写真仓唯一名文件成功且即清", function (t) {
+  // 真进程证据：生产上下文（无 NODE_TEST_CONTEXT）回落仓内＝生产正解，闸不得误伤（真 vault 迁离后唯一写径）。
+  const probe = path.join(REPO_SCHEMA_ROOT, `wp203-prod-probe-${process.pid}.yaml`);
+  t.after(() => fs.rmSync(probe, { force: true }));
+  const childEnv = { ...process.env };
+  delete childEnv.NODE_TEST_CONTEXT; // 生产形态子进程
+  const out = execFileSync(
+    process.execPath,
+    [
+      "-e",
+      `const { replaceTheSchemaFile } = require(${JSON.stringify(path.join(__dirname, "..", "theschema-write.cjs"))});
+       replaceTheSchemaFile(${JSON.stringify(probe)}, "schema_version: 1\\n", { summary: "WP-203 生产分支真进程证据" });
+       console.log("written");`,
+    ],
+    { env: childEnv, encoding: "utf8" },
+  );
+  assert.match(out, /written/);
+  assert.equal(fs.readFileSync(probe, "utf8"), "schema_version: 1\n", "生产形态写成功");
+});

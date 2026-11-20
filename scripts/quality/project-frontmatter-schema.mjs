@@ -10,7 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
-import { resolveTheSchemaDir } from "./shared/theschema-root.mjs";
+import { resolveTheSchemaDir, repoTheschemaRoot } from "./shared/theschema-root.mjs";
 
 const require = createRequire(import.meta.url);
 const { replaceTheSchemaFile } = require("../../server/shared/theschema-write.cjs"); // WP-079 唯一门：TheSchema 投影写也走咽喉（内部即目的地执法网关），服务与生成器一律不自判通道
@@ -157,10 +157,11 @@ function main() {
       console.error("project-frontmatter-schema --check: 投影漂移（vault 文档与 fields.yaml 不一致）——重跑 npm run project:frontmatter-schema");
       process.exit(1);
     }
-    const repoCopy = path.join(ROOT, "data/theschema/entity-frontmatter-schema.md");
+    // WP-203：--check 副本对账与写分支同源（repoTheschemaRoot）——否则夹具态对账打真仓副本＝假红
+    const repoCopy = path.join(repoTheschemaRoot(), "entity-frontmatter-schema.md");
     const repoCurrent = fs.existsSync(repoCopy) ? fs.readFileSync(repoCopy, "utf8") : "";
     if (repoCurrent !== output) {
-      console.error("project-frontmatter-schema --check: 仓内副本漂移（data/theschema/entity-frontmatter-schema.md 与生成输出不一致）——重跑 npm run project:frontmatter-schema");
+      console.error(`project-frontmatter-schema --check: 仓内副本漂移（${path.relative(ROOT, repoCopy)} 与生成输出不一致）——重跑 npm run project:frontmatter-schema`);
       process.exit(1);
     }
     console.log("project-frontmatter-schema --check: ok（投影与字段字典一致＋仓内副本同步）");
@@ -169,8 +170,13 @@ function main() {
   replaceTheSchemaFile(target, output, { summary: "投影重生成（TheSchema 主源）" }); // 唯一门：钉扎领地外／vault 侧未钉扎一律拒写
   // WP-197：仓内副本同步（data/theschema/entity-frontmatter-schema.md）——vault 缺席环境的投影对账面
   // 与 AI 契约指向件（此前停在 v1 旧格式漂移）。同 bytes 直写（派生物，writer=system 登记）。
-  const repoCopy = path.join(ROOT, "data/theschema/entity-frontmatter-schema.md");
-  fs.writeFileSync(repoCopy, output, "utf8");
+  // WP-203 收口：副本写收进唯一门（裸 writeFileSync 曾绕开咽喉——夹具 vault 投影经此面穿透真仓，
+  // WP-202 收官实录两次退化写）＋副本住址随 repoTheschemaRoot（THESCHEMA_REPO_FALLBACK_DIR 注入语义
+  // 与 PR-158 一致）；主源落点即副本住址时（生产回落态）免二次写。
+  const repoCopy = path.join(repoTheschemaRoot(), "entity-frontmatter-schema.md");
+  if (path.resolve(target) !== path.resolve(repoCopy)) {
+    replaceTheSchemaFile(repoCopy, output, { summary: "仓内副本同步（投影派生物）" }); // 唯一门：测试上下文写真仓即拒（REPO_SCHEMA_TEST_WRITE）
+  }
   console.log(`project-frontmatter-schema: 已生成 ${path.relative(vault, target)}（${propCount} 类属主属性）＋仓内副本同步`);
 }
 

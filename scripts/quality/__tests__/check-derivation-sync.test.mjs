@@ -22,7 +22,9 @@ const REGISTRY = JSON.parse(fs.readFileSync(path.join(ROOT, "contracts", "thesch
 
 function runNode(script, vault) {
   try {
-    const stdout = execFileSync("node", [script], { env: { ...process.env, VAULT_PATH: vault, THESCHEMA_DIR: path.join(vault, "知识库", "TheSchema") }, encoding: "utf8" });
+    // WP-203 钉扎补钉：生成器仓内副本面（repoTheschemaRoot）随 THESCHEMA_REPO_FALLBACK_DIR 钉进夹具领地——
+    // 未钉时经唯一门写真仓 data/theschema＝测试回落拒写闸（REPO_SCHEMA_TEST_WRITE）红；夹具投影面不受影响。
+    const stdout = execFileSync("node", [script], { env: { ...process.env, VAULT_PATH: vault, THESCHEMA_DIR: path.join(vault, "知识库", "TheSchema"), THESCHEMA_REPO_FALLBACK_DIR: path.join(vault, "data", "theschema") }, encoding: "utf8" });
     return { code: 0, stdout };
   } catch (e) {
     return { code: e.status ?? 1, stdout: String(e.stdout || "") + String(e.stderr || "") };

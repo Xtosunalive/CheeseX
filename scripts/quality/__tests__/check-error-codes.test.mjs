@@ -149,7 +149,8 @@ test("真仓实跑：车道读数在册（unregistered 与 internalSignals 分�
   const out = execFileSync("node", [path.join(ROOT, "scripts", "quality", "check-error-codes.mjs")], { encoding: "utf8" });
   // WP-178/PR-316·317：RELATION_REVIEW_STATE_FORBIDDEN＋GAP_ALREADY_RESOLVED 两码入册，棘轮 199→201（先例：PR-303 198→199）
   // WP-199 波3：ENUMS_REFERENCED_SEGMENT_REMOVED 入册（值域引用段删除保护），棘轮 202→203
-  assert.match(out, /error_codes=ok contract=203 thrown=\d+ unregistered_baseline=138 internal_signals=9 dead_enum_baseline=31/);
+  // WP-203：REPO_SCHEMA_TEST_WRITE 入 internalSignals 车道（测试回落拒写闸），internal_signals 9→10
+  assert.match(out, /error_codes=ok contract=203 thrown=\d+ unregistered_baseline=138 internal_signals=10 dead_enum_baseline=31/);
 });
 
 test("collectContractCodes：穿透 allOf 目录单元", () => {

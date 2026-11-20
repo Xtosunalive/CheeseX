@@ -1250,6 +1250,13 @@
       "owner": "klena",
       "expiresAt": "2026-12-31",
       "reviewCondition": "保持防御闸；任何新写出口接回只读装配即触发真 409——届时改装配或登记契约，不许裸码上线"
+    },
+    {
+      "code": "REPO_SCHEMA_TEST_WRITE",
+      "reason": "测试回落拒写闸（WP-203 立，2026-11-21）：repo-schema-io 落点谓词在 node --test 上下文（NODE_TEST_CONTEXT）拒写真仓 data/theschema——WP-202 收官实录夹具投影经生成器仓内副本面穿透真文件两次；测试领地走 THESCHEMA_DIR/THESCHEMA_REPO_FALLBACK_DIR 钉扎，生产回落态不受影响；不经 HTTP（throw 点 server/shared/repo-schema-io.cjs，routes 层零引用）",
+      "owner": "klena",
+      "expiresAt": "2026-12-31",
+      "reviewCondition": "保持闸位；若未来 e2e 改挂 node --test runner 或写面需要测试态真仓写，须升外发码入端点契约而非撤闸"
     }
   ]
 }

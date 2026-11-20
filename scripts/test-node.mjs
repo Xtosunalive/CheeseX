@@ -126,8 +126,11 @@ export const SERIAL_NODE_TESTS = new Set([
 // ②KB_DATA_DIR（PR-116）：server/main.cjs 顶层 dataDbPath() 缺省落 repo data/
 //   ——起真服务的测试漏注入时，夹具行会进任务树 data/derived-index.db（本机两树实测）；
 //   钉 /tmp 一次性目录同构兜底。显式给出者（e2e/单测自钉）不覆盖。
-export function buildRunnerEnv(baseEnv, pid = process.pid) {
+export function buildRunnerEnv(baseEnv, pid = process.pid, root = process.cwd()) {
   const env = { ...baseEnv };
+  // WP-203：跑批器所在仓根标记——repo-schema-io 测试回落拒写闸据此识别「真仓 data/theschema」；
+  // 复制仓世界（PR-261 假仓等）的模块根≠跑批器仓根，其自含领地不在锁内（闸误伤修复实录）。
+  if (!env.NODE_TEST_RUNNER_ROOT) env.NODE_TEST_RUNNER_ROOT = path.resolve(root);
   if (!env.DECISIONS_MIRROR_DIR) env.DECISIONS_MIRROR_DIR = path.join(os.tmpdir(), `test-node-mirror-${pid}`);
   if (!env.KB_DATA_DIR) env.KB_DATA_DIR = path.join(os.tmpdir(), `test-node-data-${pid}`);
   // runtime-scope 波4（launch_pins_full_set 落到写面全集）：管线轨迹与分类观察账本同钉
