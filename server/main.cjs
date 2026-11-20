@@ -61,7 +61,7 @@ const vaultIO = initVaultIO({ vaultPath, gitLedger: vaultGitLedger, logger }); /
 const { initActionRegistry, getActiveActionSnapshot, isRetainedActionSnapshot } = require("./shared/action-registry.cjs");
 const { initActionFactory, executeAction, hasActionExecutor } = require("./shared/action-execution-factory.cjs");
 const { getRequestContext } = require("./shared/request-context.cjs");
-const { compileClassDerivation, compileLifecycleRoutes, assembleDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
+const { compileClassDerivation, compileAllClassDerivations, compileLifecycleRoutes, assembleDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
 // Wave3 走查缺口①阶段一：生命周期 transitions 单源（PR-329 批已收编的路径单源同一契约族）
 const ARTICLE_LIFECYCLE = require("../contracts/article-lifecycle.json");
 const { lifecycleOf } = require("./shared/ontology-inheritance-resolver.cjs");
@@ -93,7 +93,12 @@ const initialActions = initActionRegistry({
       if (fields.state !== "present" || fields.degradedNodes?.length) {
         throw new Error("文章类派生缺少可用的字段定义");
       }
-      return { ...compileClassDerivation(ontology.data, fields.data, "KnowledgeArticle"), lifecycleRoutes: compileLifecycleRoutes(ARTICLE_LIFECYCLE) };
+      // WP-207（SPEC-100 批 1·多类推广）：文章类仍是绑定主计划（bind 流不变）；其余 approved 类
+      // 全量编译为计划面（additionalPlans）——执行器缺位的路由显式 pending 不安装（装配层泛化）。
+      const articleCompiled = compileClassDerivation(ontology.data, fields.data, "KnowledgeArticle");
+      const allClassPlans = compileAllClassDerivations(ontology.data, fields.data)
+        .filter((plan) => plan.classId !== "KnowledgeArticle");
+      return { ...articleCompiled, allClassPlans, lifecycleRoutes: compileLifecycleRoutes(ARTICLE_LIFECYCLE) };
     },
     validateActivation(previous, next) {
       const routes = (compiled) => (compiled?.apiRoutes ?? [])
@@ -379,6 +384,7 @@ const httpApp = createHttpApp({
 });
 const articleRoutes = assembleDerivedRoutes({
   compiled: initialActions.articleDerivation,
+  additionalPlans: initialActions.articleDerivation?.allClassPlans ?? [],
   registerRoute: httpApp.registerRoute,
   executeAction,
   hasExecutor: hasActionExecutor,
@@ -994,7 +1000,11 @@ registerRoute("GET", "/api/derivation/article", function (_req, res) {
   if (isRetainedActionSnapshot(snapshot)) res.header("X-Derivation-Retained", "true");
   return sendJSON(res, 200, derivation);
 });
-articleRoutes.finish();
+// WP-207：finish 返回装配摘要——执行器缺位的计划路由显式 pending（响亮日志，不安装不假绿）
+const finishSummary = articleRoutes.finish();
+if (finishSummary.pendingRoutes.length) {
+  logger.warn({ event: "derivation-routes-pending", installed: finishSummary.installed, plannedTotal: finishSummary.plannedTotal, pending: finishSummary.pendingRoutes });
+}
 
 Promise.all([bootDriftReady, derivedIndexReady, stateJournalReplayReady, graphIngestReady, schemaSelfcheckReady]).then(() => {
   httpApp.listen({ port: PORT, host: HOST }).then((address) => {

@@ -117,6 +117,43 @@
           "minimum": 200,
           "maximum": 299,
           "description": "WP-048 W1-B：成功响应状态码（缺省 200；先例＝文章上传 201）"
+        },
+        "impact": {
+          "type": "array",
+          "description": "WP-207（SPEC-100 批 1·OpenBKN §8.4 轻量版）：动作影响面声明——本动作改动哪个类的哪些字段（预期操作）。声明面立法：快照透传可查，执法（投影写入校验）随批 2/3；未声明合法",
+          "items": {
+            "type": "object",
+            "properties": {
+              "class_id": {
+                "type": "string",
+                "description": "受影响类（node_types 键）"
+              },
+              "operation": {
+                "enum": [
+                  "add",
+                  "modify",
+                  "delete"
+                ],
+                "description": "预期操作"
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "受影响字段清单"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "class_id",
+              "operation",
+              "fields"
+            ],
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": true

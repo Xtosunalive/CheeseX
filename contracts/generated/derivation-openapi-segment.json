@@ -1,0 +1,1100 @@
+{
+  "schema_version": 1,
+  "paths": {
+    "/api/action-approvals": {
+      "post": {
+        "operationId": "action-approvals.create",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/action-approvals requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/action-approvals/{id}/decision": {
+      "post": {
+        "operationId": "action-approvals.decide",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/action-approvals/:id/decision requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/anomalies/reconcile": {
+      "post": {
+        "operationId": "anomalies.reconcile",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/anomalies/reconcile requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/anomalies/{issueId}/{operation}": {
+      "post": {
+        "operationId": "anomalies.operate",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/anomalies/{issueId}/{operation} requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/approval/{articleId}/transition": {
+      "post": {
+        "operationId": "approval.transition",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/approval/{articleId}/transition requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/article-associations/remove": {
+      "post": {
+        "operationId": "article-associations.remove",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/article-associations/remove requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/article-associations/save": {
+      "post": {
+        "operationId": "article-associations.save",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/article-associations/save requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/drafts/promote": {
+      "post": {
+        "operationId": "articles.drafts-promote",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/drafts/promote requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/drafts/validate": {
+      "post": {
+        "operationId": "articles.drafts-validate",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/drafts/validate requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/lifecycle/{articleId}/archive": {
+      "post": {
+        "operationId": "articles.lifecycle.archive",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/lifecycle/{articleId}/archive requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/lifecycle/{articleId}/promote": {
+      "post": {
+        "operationId": "articles.lifecycle.promote",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/lifecycle/{articleId}/promote requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/lifecycle/{articleId}/publish": {
+      "post": {
+        "operationId": "articles.lifecycle.publish",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/lifecycle/{articleId}/publish requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/lifecycle/{articleId}/retire": {
+      "post": {
+        "operationId": "articles.lifecycle.retire",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/lifecycle/{articleId}/retire requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/precleaned/{id}/fields": {
+      "patch": {
+        "operationId": "articles.patch-fields",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PATCH /api/articles/precleaned/{id}/fields requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/precleaned/{id}/standardization": {
+      "post": {
+        "operationId": "articles.standardize",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/precleaned/{id}/standardization requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/retire": {
+      "post": {
+        "operationId": "articles.retire",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/retire requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/upload": {
+      "post": {
+        "operationId": "articles.upload",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/articles/upload requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/articles/{id}/status": {
+      "get": {
+        "operationId": "articles.status",
+        "tags": [
+          "KnowledgeArticle"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        }
+      }
+    },
+    "/api/entity/repair/apply": {
+      "post": {
+        "operationId": "entity.repair-apply",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/entity/repair/apply requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/governance/reopen": {
+      "post": {
+        "operationId": "governance.reopen",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/governance/reopen requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/governance/resolve": {
+      "post": {
+        "operationId": "governance.resolve",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/governance/resolve requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/kg/inference-conflicts/{conflictId}/review": {
+      "post": {
+        "operationId": "inference.review",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/kg/inference-conflicts/{conflictId}/review requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/kg/review": {
+      "post": {
+        "operationId": "kg.review",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/kg/review requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pipeline/cancel": {
+      "post": {
+        "operationId": "pipeline.cancel",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/pipeline/cancel requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pipeline/rebuild": {
+      "post": {
+        "operationId": "pipeline.rebuild",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/pipeline/rebuild requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/pipeline/run": {
+      "post": {
+        "operationId": "pipeline.run",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/pipeline/run requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/property/refresh": {
+      "post": {
+        "operationId": "property.refresh",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/property/refresh requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/releases/current/restore": {
+      "post": {
+        "operationId": "releases.current-restore",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/releases/current/restore requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/releases/mint": {
+      "post": {
+        "operationId": "releases.mint",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/releases/mint requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/rules/lifecycle": {
+      "post": {
+        "operationId": "rules.lifecycle.transition",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/rules/lifecycle requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/dependencies": {
+      "put": {
+        "operationId": "schema.dependencies.write",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/dependencies requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/dependencies/rollback": {
+      "post": {
+        "operationId": "schema.dependencies.rollback",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/dependencies/rollback requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/derived/rebuild": {
+      "post": {
+        "operationId": "schema.derived-rebuild",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/derived/rebuild requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/discovery/absorb": {
+      "post": {
+        "operationId": "schema.discovery.absorb",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/discovery/absorb requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/entity-parent": {
+      "put": {
+        "operationId": "schema.entity-parent.write",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/entity-parent requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/enums": {
+      "put": {
+        "operationId": "schema.enums.write",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/enums requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/enums/rollback": {
+      "post": {
+        "operationId": "schema.enums.rollback",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/enums/rollback requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/fields": {
+      "put": {
+        "operationId": "schema.fields.write",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/fields requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/ontology": {
+      "put": {
+        "operationId": "schema.ontology.write",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/ontology requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/ontology/rollback": {
+      "post": {
+        "operationId": "schema.ontology.rollback",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/ontology/rollback requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/product-identity": {
+      "put": {
+        "operationId": "schema.product-identity.write",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/product-identity requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/relations": {
+      "put": {
+        "operationId": "schema.relations.write",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/relations requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/relations/rollback": {
+      "post": {
+        "operationId": "schema.relations.rollback",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/relations/rollback requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/versions": {
+      "put": {
+        "operationId": "schema.versions.write",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/versions requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/versions/deprecate": {
+      "post": {
+        "operationId": "schema.versions.deprecate",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/versions/deprecate requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/versions/freeze": {
+      "post": {
+        "operationId": "schema.versions.freeze",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/versions/freeze requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/sync/push": {
+      "post": {
+        "operationId": "sync.push",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/sync/push requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/system/open-obsidian": {
+      "post": {
+        "operationId": "system.open-obsidian",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/system/open-obsidian requestBody"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "source_revision": "sha256:d28bf1828d40c2921fda00b3d2b75a327f26ca99b76283a6893620dfa0979280"
+}

@@ -93,4 +93,21 @@ function compileLifecycleRoutes(lifecycle) {
   });
 }
 
-module.exports = { compileClassDerivation, projectArticleFields, compileLifecycleRoutes };
+// WP-207（SPEC-100 批 1·多类推广）：全 approved 类遍历——路由计划面泛化到任意类。单类编译失败
+// 降级为 error 计划（显式可见，不静默丢类）；无 data_properties／无绑定动作的类产出空计划（合法）。
+function compileAllClassDerivations(ontology, fields) {
+  const out = [];
+  const nodeTypes = (ontology && ontology.node_types) || {};
+  for (const [classId, def] of Object.entries(nodeTypes)) {
+    const status = def && def.lifecycle_status === undefined ? "approved" : def.lifecycle_status;
+    if (status !== "approved") continue;
+    try {
+      out.push(compileClassDerivation(ontology, fields || {}, classId));
+    } catch (error) {
+      out.push({ version: null, classId, apiRoutes: [], uiConfig: null, error: error.message });
+    }
+  }
+  return out;
+}
+
+module.exports = { compileClassDerivation, compileAllClassDerivations, projectArticleFields, compileLifecycleRoutes };

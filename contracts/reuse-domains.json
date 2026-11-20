@@ -531,6 +531,26 @@
       "metrics": null,
       "last_updated": "2026-11-19",
       "generator": "gen:field-view"
+    },
+    {
+      "id": "derivation-contract",
+      "name": "派生契约段（本体 approved 动作→OpenAPI 段生成物）",
+      "status": "candidate",
+      "authority": null,
+      "contract": "docs/spec/SPEC-100-本体驱动升级Wave3-全链路本体派生.md（SPEC-100 批 1·交付物①——契约可派生的可检证明物；过渡期手写 openapi 仍是唯一权威，权威翻转另批）",
+      "gate": "npm run gen:derivation-contract -- --check（挂 check-derivation-sync 自动纳管；对账＝派生段逐条 ∈ 手写契约操作表，手写缺项即红——fail-closed 不放松）",
+      "tests": [
+        "server/shared/__tests__/derivation-contract.test.cjs"
+      ],
+      "writers": [],
+      "recipes": null,
+      "guide": null,
+      "register_entry": "docs/work-packages/WP-207.json",
+      "note": "WP-207（2026-11-21）：生成器从本体全部 approved 动作派生契约段（方法/路径/operationId/requestBody-from-input_schema），确定性输出字节对拍；对账复用 contract-request-schema.lookupRoute 单点（既有 fail-closed 口径不放松）",
+      "verification_evidence": "首版生成与对账实测随 WP-207 提交（contracts/generated/derivation-openapi-segment.json）",
+      "metrics": null,
+      "last_updated": "2026-11-21",
+      "generator": "gen:derivation-contract"
     }
   ]
 }
