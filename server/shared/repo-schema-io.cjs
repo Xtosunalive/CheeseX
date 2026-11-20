@@ -12,6 +12,22 @@ const ALLOWED_PREFIX = path.join(ROOT, "data", "theschema") + path.sep;
 
 function assertRepoSchemaDestination(absPath) {
   const resolved = path.resolve(absPath);
+  // WP-203 测试回落拒写闸：node --test 上下文（NODE_TEST_CONTEXT，测试子进程随 env 继承）禁写
+  // 跑批器所在仓的 data/theschema——测试消费活库磁盘态＝写通道穿透（WP-202 收官实录：夹具投影经
+  // resolveTheSchemaDir 回落档退化写进真文件两例）。「真仓」判定＝跑批器仓根标记 NODE_TEST_RUNNER_ROOT
+  // （test-node.mjs buildRunnerEnv 下发，随子进程/env 继承面传播）：复制仓世界（PR-261 假仓）模块根≠
+  // 跑批器仓根，其自含领地不在锁内；无标记的直跑 node --test 不执法（执法面＝npm run test:node 正门；
+  // 语义单测自设标记覆盖闸逻辑）。测试/e2e 自含领地一律 THESCHEMA_DIR 钉扎（repo-write-enforcement
+  // 同款纪律）；生产不受影响——真 vault 迁离后回落仓内＝生产正解（保留）；e2e 走 Playwright runner
+  // 不设 NODE_TEST_CONTEXT，天然不触发。fail-closed 不设旁路开关。
+  const runnerRoot = process.env.NODE_TEST_RUNNER_ROOT ? path.resolve(process.env.NODE_TEST_RUNNER_ROOT) : null;
+  if (runnerRoot && process.env.NODE_TEST_CONTEXT && resolved.startsWith(path.join(runnerRoot, "data", "theschema") + path.sep)) {
+    const err = new Error(
+      `repo-schema-io 测试回落拒写：${absPath} 指向真仓 data/theschema——测试上下文禁消费活库磁盘态（WP-202 实录防线）；测试领地请钉扎 THESCHEMA_DIR`,
+    );
+    err.code = "REPO_SCHEMA_TEST_WRITE";
+    throw err;
+  }
   // 钉扎世界（THESCHEMA_DIR）＝合法领地：测试/e2e 自含 TheSchema——但拒绝把仓根/根目录当领地（红队 P2-4：防全仓可写）
   const pinnedRaw = process.env.THESCHEMA_DIR ? path.resolve(process.env.THESCHEMA_DIR) : null;
   if (pinnedRaw && (pinnedRaw === path.parse(pinnedRaw).root || pinnedRaw === ROOT || pinnedRaw === path.dirname(ROOT))) {
@@ -20,7 +36,19 @@ function assertRepoSchemaDestination(absPath) {
     throw err;
   }
   const pinned = pinnedRaw ? pinnedRaw + path.sep : null;
-  const allowed = resolved.startsWith(ALLOWED_PREFIX) || (pinned && resolved.startsWith(pinned));
+  // WP-203：PR-158 的 THESCHEMA_REPO_FALLBACK_DIR（仓内回落语义的测试注入口）升格为合法写领地——
+  // 生成器仓内副本面随 repoTheschemaRoot 注入落点后须经唯一门，领地判据在此对齐（同 P2-4 根目录防全仓可写）。
+  const fallbackRaw = process.env.THESCHEMA_REPO_FALLBACK_DIR ? path.resolve(process.env.THESCHEMA_REPO_FALLBACK_DIR) : null;
+  if (fallbackRaw && (fallbackRaw === path.parse(fallbackRaw).root || fallbackRaw === ROOT || fallbackRaw === path.dirname(ROOT))) {
+    const err = new Error(`repo-schema-io 钉扎领地非法：THESCHEMA_REPO_FALLBACK_DIR=${fallbackRaw} 指向根/仓根——须指向具体 TheSchema 目录`);
+    err.code = "REPO_SCHEMA_DESTINATION";
+    throw err;
+  }
+  const fallback = fallbackRaw ? fallbackRaw + path.sep : null;
+  const allowed =
+    resolved.startsWith(ALLOWED_PREFIX) ||
+    (pinned && resolved.startsWith(pinned)) ||
+    (fallback && resolved.startsWith(fallback));
   if (!allowed) {
     const err = new Error(`repo-schema-io 目的地执法：${absPath} 不在 data/theschema/ 内——仓内 schema 通道只写 TheSchema 主源（越界写须走对应通道）`);
     err.code = "REPO_SCHEMA_DESTINATION";
