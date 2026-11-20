@@ -2,7 +2,7 @@
 // @responsible: action_types/risk_types 只读快照单一来源——route-roles 投影与执行工厂动作查找
 //               必须读到同一 active revision（同本模块同缓存实例保证）；快照构建时完成 OpenAPI
 //               对账（动作路由必须是在册契约操作）与静态 ROUTE_ROLES 互斥对账（同一端点不得
-//               同时维护两份角色声明）。构建失败：首次（boot）即抛=fail-closed；重建失败保留
+//               同时维护两份角色声明）。构建失败：boot 时先按回滚源回走历史激活上一份好快照（WP-185 走查尾巴，快照带 bootRollback 标记），历史不可用才抛=fail-closed；运行期重建失败保留
 //               旧快照并显式报错（新 revision 不激活）。
 // @inputs: ontology.yaml（经 readOntology 通用咽喉——形态收口语义与 Wave 0 一致；红队发现②：其局部
 //          降级对带点号 ID 失效〔存量缺口〕，动作定义的形状防线由快照构建期自查承载，见 buildSnapshot）
@@ -164,13 +164,56 @@ function buildCandidate({ vaultPath, logger, derivation }, ontology, additionalI
   return snapshot;
 }
 
-function initActionRegistry({ vaultPath, logger, derivation } = {}) {
+function initActionRegistry({ vaultPath, logger, derivation, rollbackSource } = {}) {
   if (!vaultPath) throw new TypeError("[action-registry] initActionRegistry 需要 vaultPath");
-  // 首次构建失败＝boot fail-closed（仓内基线必然合法；活库改坏本体属现场事故，大声失败）
-  const options = { vaultPath, logger, derivation };
-  const snapshot = buildCandidate(options, readOntology(vaultPath), derivation?.read(), true);
+  const options = { vaultPath, logger, derivation, rollbackSource };
+  let snapshot;
+  try {
+    snapshot = buildCandidate(options, readOntology(vaultPath), derivation?.read(), true);
+  } catch (bootError) {
+    // WP-185 走查尾巴（跨重启自动回滚）：活库改坏本体不再一律炸 boot——按回滚源（默认＝仓内
+    // git 历史逐版回走）找上一份可构建的 ontology 快照激活，快照带 bootRollback 标记＋响亮事件；
+    // 回滚源不可用或历史全军覆没才保留原 fail-closed 语义（大声失败）。 derivation 编译失败不进
+    // 此路径（boot=true 已降级为 articleDerivationUnavailable——503 面语义不变）。
+    const rolled = rollbackToLastGoodSnapshot(options, bootError);
+    if (!rolled) throw bootError;
+    snapshot = rolled;
+  }
   state = { ...options, snapshot, rejectedRevision: null, rejected: false };
   return snapshot;
+}
+
+/** 冷启动回滚源（默认）：仓内 git 历史（data/theschema/ontology.yaml 逐版）——仅当 TheSchema
+ *  解析落仓内主源时启用（迁移窗口 vault 侧副本的回滚源另有住址，缺位即不回滚）。 */
+function defaultRollbackSource(vaultPath) {
+  const { resolveTheSchemaDir } = require("./theschema-root.cjs");
+  const resolved = resolveTheSchemaDir(vaultPath);
+  const repoSchemaRoot = require("node:path").resolve(__dirname, "..", "..", "data", "theschema");
+  if (resolved !== repoSchemaRoot) return null; // vault 侧副本／注入目录——回滚源缺位，保持 fail-closed
+  const { listGitSnapshots, readGitSnapshot } = require("./repo-schema-io.cjs");
+  const repoRel = require("node:path").relative(require("node:path").resolve(__dirname, "..", ".."), repoSchemaRoot) + require("node:path").sep + "ontology.yaml";
+  return {
+    list: () => listGitSnapshots(repoRel).slice(0, 10),
+    read: (id) => readGitSnapshot(repoRel, id),
+  };
+}
+
+function rollbackToLastGoodSnapshot({ vaultPath, logger, derivation, rollbackSource }, bootError) {
+  const source = rollbackSource !== undefined ? rollbackSource : defaultRollbackSource(vaultPath);
+  if (!source || typeof source.list !== "function") return null;
+  for (const item of source.list()) {
+    try {
+      const { parseOntologyRaw } = require("../services/schema-manager/ontology-write-service.cjs");
+      const ontology = parseOntologyRaw(source.read(item.id));
+      const snapshot = buildCandidate({ vaultPath, logger, derivation }, ontology, derivation?.read(), true);
+      snapshot.bootRollback = { reason: bootError.message, source: item.sourceFile, rolledAt: new Date().toISOString() };
+      if (logger) logger.error({ event: "action-registry-boot-rollback", source: item.sourceFile, reason: bootError.message });
+      return snapshot;
+    } catch (_error) {
+      // 该历史版本同样建不起来——继续向更早版本回走
+    }
+  }
+  return null;
 }
 
 function getActiveActionSnapshot() {
