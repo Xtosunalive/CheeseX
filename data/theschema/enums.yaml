@@ -109,7 +109,7 @@ layers:
     color: rose
     layout: right-panel
 architecture_projection:
-  product: 测试产品
+  product: 个人知识管理
   version: "1.0"
   product_aliases: {}
   layer_aliases: {}
