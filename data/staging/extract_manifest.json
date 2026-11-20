@@ -1,27 +1,17 @@
 {
   "version": 1,
   "vault": "/Users/magic/xqy/cheese/知识库",
-  "generatedAt": "2026-11-21T06:22:23.526298",
+  "generatedAt": "2026-11-21T06:37:49.465993",
   "files": {
-    "知识库/raw/archive/本地草稿/fe154decdce4a1010e586efb9cf0b0cd0f374b4615fd055e028a3fbb438b5307-秩序-决策中心.md": {
-      "mtime_ns": 1794690677917269423,
-      "size": 1951,
-      "sha16": "fe154decdce4a101"
-    },
     "知识库/raw/boards/_enums-cache.md": {
       "mtime_ns": 1795211072275643462,
       "size": 372,
       "sha16": "ce692d59638cfc2b"
     },
-    "知识库/raw/precleaned/秩序-决策中心.md": {
-      "mtime_ns": 1795212099499128519,
-      "size": 2901,
-      "sha16": "0a3a483dee068732"
-    },
     "知识库/wiki/graph-status.md": {
-      "mtime_ns": 1795213343521555951,
-      "size": 1536,
-      "sha16": "40d8fd99c42ceb34"
+      "mtime_ns": 1795214269461579998,
+      "size": 1492,
+      "sha16": "1b645476ac66a71e"
     },
     "知识库/wiki/log.md": {
       "mtime_ns": 1795211072774021018,
