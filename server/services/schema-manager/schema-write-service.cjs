@@ -403,6 +403,16 @@ function createSchemaWriteService(options) {
     return { category: "versions", affectedFile: SCHEMA_FILES.versions, revision: result.revision };
   }
 
+  // PR-319/WP-181 缺陷修复（2026-11-21）：deprecate 路由执行器期待 schemaWriteService.deprecateVersion，
+  // 但服务从未长出该方法——端点自上线即 SCHEMA_WRITE_UNAVAILABLE（路由层测试被 mock 掩盖，服务层零覆盖）。
+  // 补委托：registry.deprecateVersion 已就绪（version-registry-service.cjs:290），此处只做入参映射＋图输入通知。
+  function deprecateVersion(input) {
+    const registry = requireVersionRegistry();
+    const result = registry.deprecateVersion({ product: input?.product, version: input?.version, expectedRevision: input?.revision });
+    notifyGraphInputWrite("versions"); // WP-027
+    return { category: "versions", affectedFile: SCHEMA_FILES.versions, revision: result.revision };
+  }
+
   function writeProductIdentity(input) {
     const registry = requireVersionRegistry();
     const result = registry.writeProductIdentity(input.revision, input.patch?.aliases, input.patch?.product);
@@ -663,6 +673,7 @@ function createSchemaWriteService(options) {
     writeEnums: writeEnumsPatch,
     growCategoryMatrix,
     writeVersions,
+    deprecateVersion,
     writeProductIdentity,
     freezeVersion,
     writeEntityParent,
