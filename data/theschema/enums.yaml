@@ -66,7 +66,11 @@ lifecycle:
     有效: 在线
     已归档: 退役
 arch_categories:
-  - 测试实体类别
+  - 终端
+  - 服务
+  - 存储
+  - 基础设施
+  - 安全
 layers:
   - id: gateway
     label: 网关与安全边界
@@ -169,5 +173,4 @@ tag_aliases: {}
 subdomain_constraints:
   overview:
     domain_id: ref
-    allowed_categories:
-      - 测试实体类别
+    allowed_categories: []

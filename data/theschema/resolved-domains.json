@@ -166,7 +166,11 @@
       "semantic": null,
       "required": "建议",
       "values": [
-        "测试实体类别"
+        "终端",
+        "服务",
+        "存储",
+        "基础设施",
+        "安全"
       ],
       "aliasMap": {},
       "default": null,
@@ -528,7 +532,11 @@
       "semantic": null,
       "required": "建议",
       "values": [
-        "测试实体类别"
+        "终端",
+        "服务",
+        "存储",
+        "基础设施",
+        "安全"
       ],
       "aliasMap": {},
       "default": null,

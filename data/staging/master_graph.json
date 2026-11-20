@@ -1,6 +1,6 @@
 {
   "_format_version": "1.0",
-  "_vault_extract_applied_at": "2026-11-17T00:43:43",
+  "_vault_extract_applied_at": "2026-11-21T05:46:58",
   "ontology": {
     "node_types": {
       "System": {
@@ -45,6 +45,8 @@
       "KnowledgeArticle": {
         "description": "受管知识文章的个体类型",
         "category": "文档",
+        "color": "amber",
+        "icon": "book",
         "subClassOf": "Document",
         "data_properties": {
           "title": {
@@ -1337,7 +1339,7 @@
       "properties": {
         "name": "ref",
         "is_active": true,
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:ref",
         "extraction_trace": [
           {
@@ -1368,7 +1370,7 @@
         "slug": "overview",
         "category_path_prefix": "ref:overview",
         "domain_id": "ref",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:overview",
         "extraction_trace": [
           {
@@ -1397,7 +1399,7 @@
       "properties": {
         "name": "运维操作",
         "is_active": true,
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:运维操作",
         "extraction_trace": [
           {
@@ -1428,7 +1430,7 @@
         "slug": "maintain",
         "category_path_prefix": "ops:maintain",
         "domain_id": "ops",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:维护",
         "extraction_trace": [
           {
@@ -1457,7 +1459,7 @@
       "properties": {
         "name": "概念",
         "is_active": true,
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:概念",
         "extraction_trace": [
           {
@@ -1488,7 +1490,7 @@
         "slug": "method",
         "category_path_prefix": "concept:method",
         "domain_id": "concept",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:方法论",
         "extraction_trace": [
           {
@@ -1517,7 +1519,7 @@
       "properties": {
         "name": "产品",
         "is_active": true,
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:产品",
         "extraction_trace": [
           {
@@ -1548,7 +1550,7 @@
         "slug": "general",
         "category_path_prefix": "product:general",
         "domain_id": "product",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:通用",
         "extraction_trace": [
           {
@@ -1577,7 +1579,7 @@
       "properties": {
         "name": "元数据",
         "is_active": true,
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:元数据",
         "extraction_trace": [
           {
@@ -1608,7 +1610,7 @@
         "slug": "doc",
         "category_path_prefix": "meta:doc",
         "domain_id": "meta",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:文档",
         "extraction_trace": [
           {
@@ -1637,7 +1639,7 @@
       "properties": {
         "name": "架构",
         "is_active": true,
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:架构",
         "extraction_trace": [
           {
@@ -1668,7 +1670,7 @@
         "slug": "architecture",
         "category_path_prefix": "arch:architecture",
         "domain_id": "arch",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:架构",
         "extraction_trace": [
           {
@@ -1697,7 +1699,7 @@
       "properties": {
         "name": "技术域",
         "is_active": true,
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:技术域",
         "extraction_trace": [
           {
@@ -1728,7 +1730,7 @@
         "slug": "api",
         "category_path_prefix": "tech:api",
         "domain_id": "tech",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:应用程序接口",
         "extraction_trace": [
           {
@@ -1742,56 +1744,6 @@
           {
             "stage": "result",
             "kind": "subdomain"
-          }
-        ]
-      }
-    },
-    {
-      "id": "9d353279-dc5d-4166-b855-06ee2d4e0556",
-      "label": "测试模块1",
-      "sublabel": "",
-      "category": "测试实体类别",
-      "labels": [
-        "Module",
-        "ArchitectureComponent"
-      ],
-      "properties": {
-        "name": "测试模块1",
-        "title": "测试模块1",
-        "category_path": "",
-        "tags": [
-          "teest"
-        ],
-        "file_path": "知识库/wiki/entities/测试模块1.md",
-        "date": "2026-11-15",
-        "updated": "2026-11-15",
-        "review_cycle": "",
-        "module": "测试模块1",
-        "architecture_node_id": "9d353279-dc5d-4166-b855-06ee2d4e0556",
-        "arch_component": true,
-        "arch_layer": "gateway",
-        "arch_layer_canonical": "gateway",
-        "arch_category": "测试实体类别",
-        "arch_category_canonical": "测试实体类别",
-        "arch_subdomain": "",
-        "arch_subdomain_canonical": "",
-        "arch_since": "",
-        "arch_until": "",
-        "arch_status": "在线",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
-        "source_vault_path": "知识库/wiki/entities/测试模块1.md",
-        "extraction_trace": [
-          {
-            "stage": "origin",
-            "detail": "知识库/wiki/entities/测试模块1.md"
-          },
-          {
-            "stage": "rule",
-            "rule_id": "R-wiki-entity-module-page"
-          },
-          {
-            "stage": "result",
-            "kind": "module"
           }
         ]
       }
@@ -1824,7 +1776,7 @@
         "subdomain_id": "ref:overview",
         "domain_id": "ref",
         "plate_id": "plate:component:测试产品-测试模块1-排错指南",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "知识库/raw/precleaned/秩序-决策中心.md",
         "extraction_trace": [
           {
@@ -1853,7 +1805,7 @@
       "properties": {
         "name": "测试产品",
         "title": "测试产品",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:测试产品",
         "extraction_trace": [
           {
@@ -1885,7 +1837,7 @@
         "product": "测试产品",
         "version": "1.0",
         "versionRange": "=1.0",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:测试产品 1.0",
         "extraction_trace": [
           {
@@ -1914,7 +1866,7 @@
       "properties": {
         "name": "待分配",
         "is_placeholder": true,
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:待分配",
         "extraction_trace": [
           {
@@ -1950,7 +1902,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:内容管理与协作",
         "extraction_trace": [
           {
@@ -1986,7 +1938,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:搜索与知识发现",
         "extraction_trace": [
           {
@@ -2022,7 +1974,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:安全与合规",
         "extraction_trace": [
           {
@@ -2058,7 +2010,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:数据与存储",
         "extraction_trace": [
           {
@@ -2094,7 +2046,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:集成与API网关",
         "extraction_trace": [
           {
@@ -2130,7 +2082,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:可观测性与运维",
         "extraction_trace": [
           {
@@ -2166,7 +2118,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:AI与智能服务",
         "extraction_trace": [
           {
@@ -2202,7 +2154,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:测试产品 用户手册",
         "extraction_trace": [
           {
@@ -2238,7 +2190,7 @@
         "arch_component": true,
         "arch_layer": "plate",
         "arch_category": "板块",
-        "last_extract_time": "2026-11-17T00:43:43.979819",
+        "last_extract_time": "2026-11-21T05:46:58.370193",
         "source_vault_path": "derived:测试产品 测试模块1 排错指南",
         "extraction_trace": [
           {
