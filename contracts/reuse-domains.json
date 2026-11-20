@@ -309,12 +309,13 @@
         "scripts/quality/__tests__/check-conflict-markers.test.mjs",
         "scripts/quality/__tests__/check-action-coverage.test.mjs",
         "scripts/quality/__tests__/check-knip.test.mjs",
-        "scripts/quality/__tests__/check-vocab-envelope-coverage.test.mjs"
+        "scripts/quality/__tests__/check-vocab-envelope-coverage.test.mjs",
+        "scripts/__tests__/flaky-report.test.mjs"
       ],
-      "note": "PR-099 收案批（2026-10-26）：check-derivation-sync/check-fields-registry 两认领测试加反例回显防误读警示头（其红绿夹具的子进程输出回显曾致 CI 误立案）；pre-commit 域批与 test-node 跑批器随 PR-116 增写通道环境钉——门禁基建事实源仍在 quality-gates.json。；2026-10-26 WP-022：conflict-markers 门禁入册（暂存面文本文件扫七字符起止标记——两次带病推送实录防线）；2026-11-07 WP-144 波1：lint 行补 commit 面＋展示面两族选择器入 lint（ADR-019）；基线棘轮 lint:ratchet｜2026-11-09 WP-151/152 沉淀：workflow-gates 两判定缺陷先例（合同闸不认分支已落库合同；冻结闸 A/M 状态混判）——已修（状态过滤＋合同实测回写合规先例），先例登记防下一个写闸者重蹈；断言建造规则＝判定显式处理 git 状态字母＋每判定一具红绿夹具｜probe: wp143-probe-member（WP-143 域同步闸破坏实验探针，随后撤销）",
+      "note": "PR-099 收案批（2026-10-26）：check-derivation-sync/check-fields-registry 两认领测试加反例回显防误读警示头（其红绿夹具的子进程输出回显曾致 CI 误立案）；pre-commit 域批与 test-node 跑批器随 PR-116 增写通道环境钉——门禁基建事实源仍在 quality-gates.json。；2026-10-26 WP-022：conflict-markers 门禁入册（暂存面文本文件扫七字符起止标记——两次带病推送实录防线）；2026-11-07 WP-144 波1：lint 行补 commit 面＋展示面两族选择器入 lint（ADR-019）；基线棘轮 lint:ratchet｜2026-11-09 WP-151/152 沉淀：workflow-gates 两判定缺陷先例（合同闸不认分支已落库合同；冻结闸 A/M 状态混判）——已修（状态过滤＋合同实测回写合规先例），先例登记防下一个写闸者重蹈；断言建造规则＝判定显式处理 git 状态字母＋每判定一具红绿夹具｜probe: wp143-probe-member（WP-143 域同步闸破坏实验探针，随后撤销）｜2026-11-21 WP-202：flaky 周报自测试入册（CI 观测仪测试件，scripts/__tests__ 落位）",
       "register_entry": "docs/plans/problem-register.md#PR-066",
       "verification_evidence": "PR-066 关闭卡（历史）＋结构审计批（2026-10-20 台账）：gate-wiring 已于 10-16 随注册表驱动执行器退役；现执法＝域门禁七面＋别名投影对账",
-      "last_updated": "2026-11-07",
+      "last_updated": "2026-11-21",
       "recipes": "docs/system/reuse-playbook.md#P10（实现-消费断链——接线活性三案例 PR-109/115/102 本域长出）；#P11（双许可对照——WP-020 row-schema-guard 实战）"
     },
     {

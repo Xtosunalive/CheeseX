@@ -6,8 +6,10 @@
 //   ④ Playwright 解析面扩展（CR-1/D1，Master 2026-11-19 批「批准」）——新增解析分支
 //      抓 Playwright 失败清单行（"N) [project] › file.spec.mjs:L:C › title"），
 //      上游 vitest 分支保持零修改。
-// 其余逻辑逐行保持上游原样；其自测试 flaky-report.test.mjs 未随本批移植
-//（合同 in_scope_paths 之外，扩面走 change_request 另裁）。
+//   ⑤ Playwright 分支实测补钉（WP-202）：list 报告器失败行尾的 ─ 分隔线不吞进测试名
+//      （自测试随 WP-202 移植就位——scripts/__tests__/flaky-report.test.mjs）。
+// 其余逻辑逐行保持上游原样；其自测试 flaky-report.test.mjs 已随 WP-202 移植
+//（原 WP-190 合同递延项，扩面经 Master 2026-11-21 批「先做能确定的任务」）。
 //
 // Weekly report of flaky CI: workflow attempts that failed and then passed on
 // the same code without a change.
@@ -94,8 +96,10 @@ const TIMESTAMP = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z ?/;
 const VITEST_FAIL =
   /^\s*FAIL\s+(?:\|[^|]+\|\s+)?(\S+?\.(?:test|spec)\.[cm]?[jt]sx?)(?:\s+\[[^\]]*\])?(?:\s+>\s+(.+?))?\s*$/;
 // 适配④（CR-1/D1 批准）：Playwright 失败清单行——"N) [project] › file.spec.mjs:L:C › title"
+// ⑤（WP-202 实测补钉）：list 报告器在失败行尾追加宽度随标题变化的 ─ 分隔线，
+//    (?:\s*─+)? 只剥行尾分隔线，不吞进测试名（夹具取自本仓 @playwright/test@1.62.1 实跑探针）。
 const PLAYWRIGHT_FAIL =
-  /^\s*\d+\)\s+(?:\[[^\]]*\]\s+)?(?:›\s*)?(\S+?\.(?:spec|test)\.[cm]?[jt]sx?):\d+:\d+\s+›\s*(.+?)\s*$/;
+  /^\s*\d+\)\s+(?:\[[^\]]*\]\s+)?(?:›\s*)?(\S+?\.(?:spec|test)\.[cm]?[jt]sx?):\d+:\d+\s+›\s*(.+?)(?:\s*─+)?\s*$/;
 
 // Vitest prints one `FAIL <file> > <suite> > <test>` line per failed test (or
 // per failed file, without a test name) in its failure summary.
