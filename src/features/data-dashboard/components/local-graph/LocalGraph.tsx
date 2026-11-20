@@ -72,40 +72,67 @@ type GraphApi = {
   removeData: (ids: { nodes?: unknown[]; edges?: unknown[] }) => void;
   draw: () => Promise<void>;
   layout: () => Promise<void>;
+  // 视口记忆面（G6 v5.1.1：getViewportCenter=视口中心的画布坐标（相机内参，与页面滚动无关；
+  // Point=[x,y,z] 三维取两维）；translateTo=绝对平移（画布原点的视口坐标）；zoomTo=绝对缩放）
+  getZoom: () => number;
+  getViewportCenter: () => [number, number];
+  zoomTo: (zoom: number) => Promise<void>;
+  translateTo: (position: [number, number]) => Promise<void>;
 };
 
-// 位置缓存（Obsidian 体感：图谱视图关了再开、甚至关浏览器重开，节点还在原地——重挂载与
-// 页面刷新都不再从中心炸开）。2026-11-20 补持久化：内存 Map 每次刷新清零＝刷新后必播一次
-// 冷启动爆发动画（Master「还是一样！」的残留场景）；localStorage 落盘后刷新即原地恢复，
-// 与 Obsidian「图谱状态随 vault 走」同构。键版本化（v1——位置语义变更时换键弃旧）；
-// 写入整键覆盖＝只存当前图可见节点，有界不累积僵尸条目；存储不可用（隐私模式/配额）降级
-// 为会话内存缓存，功能不损。
-const POSITION_STORAGE_KEY = "local-graph:positions:v1";
-const positionCache: Map<string, { x: number; y: number }> = (() => {
-  try {
-    const raw = typeof window !== "undefined" ? window.localStorage?.getItem(POSITION_STORAGE_KEY) : null;
-    if (!raw) return new Map();
+// 视图缓存（Obsidian 体感：图谱视图关了再开、甚至关浏览器重开，节点在原地＋缩放平移也
+// 保持你调过的样子）。2026-11-20 三批演进：①内存位置缓存 ②localStorage 刷新恢复
+// ③本批＝视口（缩放＋平移）随位置一起记忆——Master 实录「每次切换到这个页面都大小变一下」
+// 根因＝恢复节点位置却不恢复用户视口，无条件 fitView 把滚轮调过的缩放打回默认适配。
+// 键版本化 v2（v1 只有位置，弃用）；写入整键覆盖＝只存当前图可见节点，有界；存储不可用
+// （隐私模式/配额）降级为会话内存缓存，功能不损。
+// 视口持久化语义＝相机内参（zoom＋视口中心的世界坐标）。不用 getPosition（画布原点的
+// 视口坐标）——那是 DOM 视口量，页面滚动会污染（实录：滚轮缩放顺带滚页 141px，落盘平移
+// 被污染→恢复后节点映射到画布外＝全空白）。恢复换算：translate = 画布中心视口坐标(尺寸/2)
+// − 中心世界坐标 × zoom。
+type SavedViewport = { zoom: number; center: [number, number] };
+type SavedView = { positions: Array<[string, { x: number; y: number }]>; viewport: SavedViewport | null };
+const VIEW_STORAGE_KEY = "local-graph:view:v2";
+const positionCache: Map<string, { x: number; y: number }> = new Map();
+let savedViewport: SavedViewport | null = null;
+try {
+  const raw = typeof window !== "undefined" ? window.localStorage?.getItem(VIEW_STORAGE_KEY) : null;
+  if (raw) {
     const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return new Map();
-    const m = new Map<string, { x: number; y: number }>();
-    for (const entry of parsed) {
-      if (Array.isArray(entry) && typeof entry[0] === "string" && entry[1] && typeof entry[1].x === "number" && typeof entry[1].y === "number") {
-        m.set(entry[0], { x: entry[1].x, y: entry[1].y });
+    if (parsed && typeof parsed === "object") {
+      const p = parsed as Partial<SavedView>;
+      if (Array.isArray(p.positions)) {
+        for (const entry of p.positions) {
+          if (Array.isArray(entry) && typeof entry[0] === "string" && entry[1] && typeof entry[1].x === "number" && typeof entry[1].y === "number") {
+            positionCache.set(entry[0], { x: entry[1].x, y: entry[1].y });
+          }
+        }
+      }
+      if (p.viewport && typeof p.viewport.zoom === "number" && Array.isArray(p.viewport.center) && typeof p.viewport.center[0] === "number" && typeof p.viewport.center[1] === "number") {
+        savedViewport = { zoom: p.viewport.zoom, center: [p.viewport.center[0], p.viewport.center[1]] };
       }
     }
-    return m;
-  } catch { return new Map(); }
-})();
-function rememberPositions(api: GraphApi): void {
+  }
+} catch { /* 存储不可用/坏数据——降级为空缓存 */ }
+function rememberView(api: GraphApi): void {
   try {
-    const next: Array<[string, { x: number; y: number }]> = [];
+    const positions: Array<[string, { x: number; y: number }]> = [];
     for (const n of api.getNodeData()) {
       const x = n.style?.x, y = n.style?.y;
-      if (typeof x === "number" && typeof y === "number") next.push([String(n.id), { x, y }]);
+      if (typeof x === "number" && typeof y === "number") positions.push([String(n.id), { x, y }]);
     }
+    let viewport: SavedViewport | null = null;
+    try {
+      const zoom = api.getZoom();
+      const center = api.getViewportCenter();
+      if (typeof zoom === "number" && Array.isArray(center) && typeof center[0] === "number" && typeof center[1] === "number") {
+        viewport = { zoom, center: [center[0], center[1]] };
+      }
+    } catch { /* 视口读取失败——保留旧值 */ }
     positionCache.clear();
-    for (const [k, v] of next) positionCache.set(k, v);
-    try { window.localStorage?.setItem(POSITION_STORAGE_KEY, JSON.stringify(next)); } catch { /* 存储不可用降级内存 */ }
+    for (const [k, v] of positions) positionCache.set(k, v);
+    if (viewport) savedViewport = viewport;
+    try { window.localStorage?.setItem(VIEW_STORAGE_KEY, JSON.stringify({ positions, viewport: savedViewport } satisfies SavedView)); } catch { /* 存储不可用降级内存 */ }
   } catch { /* 位置读取失败不阻断（缓存只是连续性优化） */ }
 }
 
@@ -154,7 +181,7 @@ async function syncGraphData(
   if (plan.updateNodes.length) api.updateData({ nodes: plan.updateNodes });
   await api.draw();
   if (plan.structureChanged) await api.layout(); // d3-force 从现位重入仿真，轻推即停
-  rememberPositions(api);
+  rememberView(api);
 }
 type LiveGraphSyncNodes = TopoNode[];
 
@@ -210,10 +237,12 @@ export function LocalGraph() {
 
   // 实例销毁仅随卸载（2026-11-20 Obsidian 式收口：数据变化不再销毁重建——跳变根源即此）。
   // 空数据态也走同一销毁（空态覆盖层接管画面；下批数据到来时重新首建）。
+  // 销毁前先落盘视口——滚轮缩放/画布拖移不经过数据同步，SPA 内切页只有这一刻能截到。
   const destroyInstance = useCallback(() => {
     const g = graphRef.current;
     graphRef.current = null;
     if (g) {
+      rememberView(g);
       g.destroy();
       const c = containerRef.current;
       // G6 destroy 不清挂载层——强制清空容器兜底
@@ -221,6 +250,14 @@ export function LocalGraph() {
     }
   }, []);
   useEffect(() => destroyInstance, [destroyInstance]);
+
+  // 视口截获（滚轮缩放/画布拖移不经过数据同步——只有离开时刻能截到）：页面刷新/关闭走
+  // pagehide（React 卸载钩子在浏览器关闭时不保证执行）；SPA 内切页由销毁钩子截获（见上）。
+  useEffect(() => {
+    const save = () => { const g = graphRef.current; if (g) rememberView(g); };
+    window.addEventListener("pagehide", save);
+    return () => window.removeEventListener("pagehide", save);
+  }, []);
 
   // 数据落图（常驻实例）：无实例→首建（fitView 仅此一次）；有实例→增量同步（节点原位、
   // 视口不动、结构变化才轻推布局）；选中/搜索态走独立 state 通道不受影响。
@@ -347,16 +384,39 @@ export function LocalGraph() {
       }
       // render/draw 迭代期间组件可能已重建（disposed）——晚到的僵尸实例不得再绑事件/覆盖 graphRef
       if (disposed) { inflight?.destroy(); return; }
-      // 首次适配：无条件 fitView（节点围绕世界原点散布，不适配必出界）＋缩放上限 1（防稀疏图放大闪跳，
-      // Master 2026-10-29「点进关系查询突然变大」——放大被夹回后仅剩平移居中，无两段式猛放缩回）。
-      // 有位置种子时 fitView 得到与上次相同的视口＝重挂载无缩放跳变；增量路径不做任何视口操作。
-      try {
-        // 首帧适配必须无条件执行：d3-force 围绕世界原点 (0,0) 散布、画布原点在左上角——
-        // 不适配则节点大半散布在画布外/左上角（探针实测 3 孤点 c.y=-59 出界 2026-10-30）。
-        // 缩放上限 1 保留：fitView 对稀疏图的放大被夹回，大图适配为缩小不受影响。
-        await graph.fitView();
-        if (graph.getZoom() > 1) await graph.zoomTo(1);
-      } catch { /* 首次适配失败不阻断 */ }
+      if (positionsFullyCached && savedViewport) {
+        // 视口恢复路径（Master 2026-11-20「每次切换到这个页面都大小变一下」收口）：有缓存视口
+        // 时绝不做 fitView——用户滚轮调过的缩放/拖移过的画布必须原样回来。
+        // 平移恢复用量测-迭代（G6 v5.1.1 translateTo 的参数→相机映射经真机标定为仿射面、
+        // 与文档语义不符，闭式换算两次被内部合成顺序坑——改为：zoomTo 关动画后，读视口中心
+        // 世界坐标与目标的偏差，按 zoom 折算步进驱动，3 轮收敛 ±1px；zoomTo 本身实测精确）。
+        // ⚠️ 所有相机调用必须 duration:0——默认动画的相机帧会互相覆盖（实测半吊子相机＝节点
+        // 映射出画布＝全空白）。
+        try {
+          await graph.zoomTo(savedViewport.zoom, { duration: 0 } as never);
+          // 目标＝画布中心处呈现落盘的世界中心点；每轮读 getViewportCenter 实测、按 zoom 折算步进
+          let arg: [number, number] = [0, 0];
+          for (let i = 0; i < 4; i++) {
+            await graph.translateTo(arg, { duration: 0 } as never);
+            const now = graph.getViewportCenter();
+            const errX = savedViewport.center[0] - (now[0] ?? 0);
+            const errY = savedViewport.center[1] - (now[1] ?? 0);
+            if (Math.abs(errX) < 1 && Math.abs(errY) < 1) break;
+            arg = [arg[0] - errX * savedViewport.zoom, arg[1] - errY * savedViewport.zoom];
+          }
+        } catch {
+          // 视口恢复失败回落适配（有图无景好过黑屏）
+          try { await graph.fitView(); if (graph.getZoom() > 1) await graph.zoomTo(1, { duration: 0 } as never); } catch { /* */ }
+        }
+      } else {
+        // 首次适配（无缓存视口——真首访或缓存路径视口缺失兜底）：无条件 fitView（节点围绕世界
+        // 原点散布，不适配必出界）＋缩放上限 1（防稀疏图放大闪跳，Master 2026-10-29
+        // 「点进关系查询突然变大」——放大被夹回后仅剩平移居中，无两段式猛放缩回）。
+        try {
+          await graph.fitView();
+          if (graph.getZoom() > 1) await graph.zoomTo(1);
+        } catch { /* 首次适配失败不阻断 */ }
+      }
       try {
         graph.on?.("node:click", (evt: unknown) => {
           const t = (evt as { target?: { getID?: () => unknown; id?: unknown } })?.target;
@@ -376,8 +436,14 @@ export function LocalGraph() {
         removeData: (ids) => { try { graph.removeData(ids as never); } catch { /* 同上 */ } },
         draw: () => graph.draw(),
         layout: () => graph.layout(),
+        getZoom: () => graph.getZoom(),
+        // G6 Point 为 [x,y,z] 三维——视图缓存只取平面两维（z 恒 0，本图无旋转）
+        getViewportCenter: () => { const p = graph.getViewportCenter(); return [p[0] ?? 0, p[1] ?? 0]; },
+        zoomTo: (zoom) => graph.zoomTo(zoom),
+        translateTo: (position) => graph.translateTo(position as never),
       };
-      rememberPositions(graphRef.current);
+      const adopted = graphRef.current;
+      if (adopted) rememberView(adopted);
 
       } catch (err) {
         // G6 画布初始化/渲染失败（无 canvas 环境如 jsdom、容器竞态卸载）——图区降级为空，

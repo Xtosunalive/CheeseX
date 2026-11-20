@@ -61,10 +61,17 @@ vi.mock("@antv/g6", () => {
     }
     async fitView(): Promise<void> {}
     getZoom(): number {
-      return 1;
+      return this._zoom;
     }
-    async zoomTo(_zoom: number): Promise<void> {}
+    getViewportCenter(): [number, number] {
+      return [0, 0];
+    }
+    async zoomTo(zoom: number): Promise<void> {
+      this._zoom = zoom;
+    }
+    async translateTo(_position: [number, number]): Promise<void> {}
     setElementState(_id: string, _states: string[]): void {}
+    private _zoom = 1;
   }
   return { Graph: GraphStub };
 });

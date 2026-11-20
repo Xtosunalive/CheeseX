@@ -13,6 +13,7 @@ const GraphStub = Graph as unknown as typeof Graph & {
     nodes: Array<Record<string, unknown>>;
     edges: Array<Record<string, unknown>>;
     destroyed: boolean;
+    zoomTo: (zoom: number) => Promise<void>;
   }>;
   reset: () => void;
 };
@@ -106,5 +107,23 @@ describe("LocalGraph 常驻实例（Obsidian 式增量同步）", () => {
     view.unmount();
     await waitFor(() => expect(inst.destroyed).toBe(true));
     expect(GraphStub.created).toBe(1);
+  });
+
+  it("卸载时视口连同位置落盘（滚轮缩放/拖移不经数据同步——离开时刻必须截获）", async () => {
+    const view = render(<LocalGraph />);
+    await waitFor(() => expect(GraphStub.created).toBe(1));
+    const inst = GraphStub.instances[0];
+    await waitFor(() => expect(inst.nodes.length).toBe(2));
+    // 模拟用户交互后的视口（桩的 zoomTo 会改 getZoom 返回值）
+    await inst.zoomTo(1.6);
+    view.unmount();
+    await waitFor(() => expect(inst.destroyed).toBe(true));
+    const raw = window.localStorage.getItem("local-graph:view:v2");
+    expect(raw).toBeTruthy();
+    const saved = JSON.parse(raw as string) as { positions: unknown[]; viewport: { zoom: number } | null };
+    expect(saved.viewport).not.toBeNull();
+    expect(saved.viewport?.zoom).toBe(1.6);
+    // 桩不模拟布局写回位置（真实链路 style.x/y 由 d3-force/fitView 写入）——只断言数组形态
+    expect(Array.isArray(saved.positions)).toBe(true);
   });
 });
