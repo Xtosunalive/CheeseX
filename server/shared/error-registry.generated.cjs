@@ -942,9 +942,9 @@ module.exports = {
         "server/services/schema-manager/schema-write-service.cjs:346",
         "server/services/schema-manager/schema-write-service.cjs:357",
         "server/services/schema-manager/schema-write-service.cjs:366",
-        "server/services/schema-manager/schema-write-service.cjs:519",
-        "server/services/schema-manager/schema-write-service.cjs:588",
-        "server/services/schema-manager/schema-write-service.cjs:590"
+        "server/services/schema-manager/schema-write-service.cjs:529",
+        "server/services/schema-manager/schema-write-service.cjs:598",
+        "server/services/schema-manager/schema-write-service.cjs:600"
       ]
     },
     "INVALID_DOCUMENT": {
@@ -1804,7 +1804,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/schema-manager/schema-write-service.cjs:65",
-        "server/services/schema-manager/schema-write-service.cjs:593"
+        "server/services/schema-manager/schema-write-service.cjs:603"
       ]
     },
     "SCHEMA_REVISION_CONFLICT": {
@@ -1841,8 +1841,8 @@ module.exports = {
         "server/services/schema-manager/schema-write-service.cjs:302",
         "server/services/schema-manager/schema-write-service.cjs:315",
         "server/services/schema-manager/schema-write-service.cjs:371",
-        "server/services/schema-manager/schema-write-service.cjs:526",
-        "server/services/schema-manager/schema-write-service.cjs:534"
+        "server/services/schema-manager/schema-write-service.cjs:536",
+        "server/services/schema-manager/schema-write-service.cjs:544"
       ]
     },
     "SCHEMA_WRITE_FAILED": {
@@ -2213,8 +2213,8 @@ module.exports = {
         "server/services/schema-manager/schema-history-service.cjs:81",
         "server/services/schema-manager/schema-write-service.cjs:142",
         "server/services/schema-manager/schema-write-service.cjs:146",
-        "server/services/schema-manager/schema-write-service.cjs:433",
-        "server/services/schema-manager/schema-write-service.cjs:434",
+        "server/services/schema-manager/schema-write-service.cjs:443",
+        "server/services/schema-manager/schema-write-service.cjs:444",
         "server/shared/status-transition-guard.cjs:50"
       ]
     },

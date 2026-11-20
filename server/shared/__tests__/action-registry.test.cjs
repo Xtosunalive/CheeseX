@@ -15,6 +15,7 @@ const {
   actionRouteRoleFor,
   resetActionRegistry,
   canonicalRouteKey,
+  isRetainedActionSnapshot,
 } = require('../action-registry.cjs');
 const { listRouteRoleBindings } = require('../auth/route-roles.cjs');
 
@@ -192,4 +193,46 @@ test('风险注册表只收 approved；供工厂静态评估消费', () => {
   const snap = initActionRegistry({ vaultPath: vault, logger: null });
   assert.ok(snap.risks.has('rk.block'));
   assert.ok(!snap.risks.has('rk.draft'));
+});
+
+// ── WP-185 走查尾巴：跨重启自动回滚（冷启动本体改坏 → 回滚源回走激活上一份好快照）──
+
+test('冷启动回滚：当前本体建不起来时回走历史，激活上一份好快照并带 bootRollback 标记', () => {
+  const vault = makeVault(ontologyWith({
+    'a.ok': { http_route: 'PUT /api/schema/ontology', executor: 't.ok', required_roles: ['admin'] },
+  }));
+  const good = fs.readFileSync(path.join(vault, '知识库', 'TheSchema', 'ontology.yaml'), 'utf8');
+  const broken = good.replace('http_route: "PUT /api/schema/ontology"', 'http_route: "PUT /api/schema/not-in-contract"');
+  writeTheSchema(vault, broken); // 活库改坏（契约对账必炸）
+  const source = {
+    list: () => [
+      { id: 'aaa0000001', sourceFile: 'data/theschema/ontology.yaml@aaa0000001' },
+      { id: 'aaa0000002', sourceFile: 'data/theschema/ontology.yaml@aaa0000002' },
+    ],
+    read: (id) => (id === 'aaa0000002' ? 'node_types: [broken\n' : good), // 更早版本也坏——回走两版才落好
+  };
+  const snap = initActionRegistry({ vaultPath: vault, logger: null, rollbackSource: source });
+  assert.ok(snap.bootRollback, '必须带 bootRollback 标记');
+  assert.equal(snap.bootRollback.source, 'data/theschema/ontology.yaml@aaa0000001');
+  assert.ok(snap.actions.has('a.ok'), '回滚激活的是好快照的动作面');
+  assert.deepEqual(actionRouteRoleFor('PUT', '/api/schema/ontology', undefined, snap), ['admin']);
+});
+
+test('冷启动回滚：回滚源缺位或历史全坏＝保留 fail-closed（大声失败）', () => {
+  const vault = makeVault('action_types:\n  a.bad: { http_route: "PUT /api/schema/not-in-contract", executor: t.x }\n');
+  assert.throws(() => initActionRegistry({ vaultPath: vault, logger: null, rollbackSource: { list: () => [], read: () => '' } }));
+  assert.throws(() => initActionRegistry({ vaultPath: vault, logger: null, rollbackSource: { list: () => [{ id: 'b1', sourceFile: 'x@b1' }], read: () => 'node_types: [broken\n' } }));
+});
+
+test('回滚激活后运行期保留语义一致：当前本体仍坏 → rebuild 失败保留回滚快照', () => {
+  const vault = makeVault(ontologyWith({
+    'a.ok': { http_route: 'PUT /api/schema/ontology', executor: 't.ok', required_roles: ['admin'] },
+  }));
+  const good = fs.readFileSync(path.join(vault, '知识库', 'TheSchema', 'ontology.yaml'), 'utf8');
+  writeTheSchema(vault, 'action_types:\n  a.bad: { http_route: "PUT /api/schema/not-in-contract", executor: t.x }\n');
+  const source = { list: () => [{ id: 'c1', sourceFile: 'x@c1' }], read: () => good };
+  const snap = initActionRegistry({ vaultPath: vault, logger: null, rollbackSource: source });
+  const kept = getActiveActionSnapshot(); // 活库仍坏 → 重建失败 → 保留回滚快照（不激活坏修订）
+  assert.equal(kept, snap);
+  assert.equal(isRetainedActionSnapshot(kept), true);
 });
