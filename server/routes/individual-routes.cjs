@@ -24,10 +24,11 @@ function register(registerRoute, deps = {}) {
       const classId = String((req.params && req.params.classId) || "");
       if (!classId) throw Object.assign(new Error("classId 必填"), { code: "INVALID_CLASS_ID", status: 422 });
       if (typeof deps.uiConfigFor !== "function") throw Object.assign(new Error("uiConfigFor 端口未装配"), { code: "INDIVIDUAL_CONFIG_UNAVAILABLE", status: 503 });
-      return sendJSON(res, 200, { success: true, data: deps.uiConfigFor(classId) });
+      // sendJSON 自建信封——传裸数据即可（此前手包信封＝双层嵌套，客户端读空——WP-210 修）
+      return sendJSON(res, 200, deps.uiConfigFor(classId));
     } catch (error) {
       const status = error.status || 500;
-      return sendJSON(res, status, { success: false, error: error.message, error_code: error.code || "INTERNAL_ERROR" });
+      return sendJSON(res, status, { error_code: error.code || "INTERNAL_ERROR", message: error.message });
     }
   });
 }

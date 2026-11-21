@@ -403,7 +403,7 @@ require("./shared/individual-executors.cjs").registerIndividualExecutors({ servi
 // WP-210（SPEC-100 批 4）：派生 UI 配置闭包——字段中文走 fields.yaml v2 display 单源（未声明回退字段名）
 const individualsUiConfigFor = (classId) => {
   const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });
-  const fieldsDoc = fieldsBundle.files.fields;
+  const fieldsDoc = fieldsBundle.files.fields.data;
   const resolved = individualBindingsResolver(classId);
   const clsKeys = [classId, classId === "KnowledgeArticle" ? "article" : "entity"];
   const declared = new Map();
@@ -434,7 +434,7 @@ require("./routes/individual-routes.cjs").register(registerRoute, { uiConfigFor:
 const individualBindingsResolver = (classId) => {
   const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
   const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });
-  return resolveClassInheritance(readOntology(vaultPath).data, classId, fieldsBundle.files.fields);
+  return resolveClassInheritance(readOntology(vaultPath).data, classId, fieldsBundle.files.fields.data);
 };
 // WP-209（SPEC-100 批 3）：个体投影——每类表自动 DDL＋CRUD 同步口＋boot 重建（fail-open 派生族）
 const individualProjectionService = require("./services/ontology/individual-projection-service.cjs").createIndividualProjectionService({
