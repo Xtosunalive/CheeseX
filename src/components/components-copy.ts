@@ -248,9 +248,6 @@ export const PIPELINE_PANEL_COPY = {
   RUNNING_DIAGNOSTIC: "正在执行全局管道诊断",
   DIAGNOSTIC_TITLE: "只读诊断：不重写图。排查图谱为何未更新——内容阻断会汇入待处理问题",
   DIAGNOSTIC: "诊断",
-  REBUILD: "重建图谱",
-  REBUILD_CONFIRM_TEXT: "完整重建将全量重跑管道并重写工作投影（主图、语义架构、布局、文档索引）；来源为空时将重建为空投影。不批准文章、不发布正式版本。",
-  CONFIRM_REBUILD: "确认重建",
   OPEN_PENDING_ISSUES: `打开${TERM.PENDING_ISSUES}`,
 } as const;
 

@@ -1,5 +1,5 @@
-import { ArrowRight, LoaderCircle, Play, RefreshCw, Square, Terminal } from "lucide-react";
-import { PIPELINE_REBUILD_ACTION, PIPELINE_RUN_ACTION } from "@/lib/pipeline-api";
+import { ArrowRight, LoaderCircle, Play, Square, Terminal } from "lucide-react";
+import { PIPELINE_RUN_ACTION } from "@/lib/pipeline-api";
 import { usePipelineStore } from "@/lib/pipeline-store";
 import { TERM } from "@/constants/term-const";
 import { PIPELINE_PANEL_COPY, PIPELINE_STATE_LABELS, pipelineRunLogs, pipelineStageSuffix } from "../components-copy";
@@ -14,24 +14,18 @@ function statusText() {
 }
 
 /**
- * 图谱管道浮层（WP-146 件1：重建/诊断分主次）：
- * ① 主路径=只读诊断（醒目主按钮，直执行无阻断确认——零副作用文案自证低风险）；
- * ② 重建=高风险低频路径，收进「进阶操作」折叠区（details 范式同本面板运行日志/CheckResultsPanel），
- *    保留阻断确认，确认块与确认钮改 error 险级视觉（bg-status-error 系），与 warn 平权旧态区分；
- * ③ 状态机：诊断走 startRun 直执行；重建走 requestRun→confirmRun，二者共用同一起动体，
- *    进入起动即清 confirming 与上一轮 error，执行中/失败展示两条路径共用。
+ * 图谱管道浮层（WP-146 件1 ＋ 2026-11-22 Master 裁「现在就删」）：
+ * ① 唯一交互＝只读诊断（主按钮，直执行零副作用）；
+ * ② 重建按钮已退役：日常由自动链路覆盖（源增量＋代码升级/产物丢失自愈〔WP-216〕），维修通道
+ *    保留在 POST /api/pipeline/rebuild 路由（断路器人工出口＋resume 宿主），不再占 UI；
+ * ③ 自动触发的重建（purpose=article_graph）运行中仍以 RUNNING_REBUILD 文案如实展示＋可取消。
  */
 export function PipelinePanel() {
   const job = usePipelineStore((state) => state.job);
   const loading = usePipelineStore((state) => state.status === "loading");
-  const confirming = usePipelineStore((state) => state.confirming);
   const error = usePipelineStore((state) => state.error);
-  const requestRun = usePipelineStore((state) => state.requestRun);
-  const dismissConfirmation = usePipelineStore((state) => state.dismissConfirmation);
   const startRun = usePipelineStore((state) => state.startRun);
-  const confirmRun = usePipelineStore((state) => state.confirmRun);
   const cancel = usePipelineStore((state) => state.cancel);
-  const confirmingMode = usePipelineStore((state) => state.confirmingMode);
   const running = job?.state === "running" || job?.state === "cancelling";
   const rebuilding = running && job?.purpose === "article_graph";
   const runningLabel = rebuilding ? PIPELINE_PANEL_COPY.RUNNING_REBUILD : PIPELINE_PANEL_COPY.RUNNING_DIAGNOSTIC;
@@ -53,28 +47,6 @@ export function PipelinePanel() {
           </button>
         )}
       </div>
-
-      {!running && (
-        <details className="mt-3">
-          <summary className="flex cursor-pointer select-none items-center gap-1.5 text-xs text-text-hint">
-            <RefreshCw className="h-4 w-4" />{TERM.PIPELINE_ADVANCED_ACTIONS}
-          </summary>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <button type="button" aria-label={TERM.RUN_FULL_GRAPH_PIPELINE_ACTION} onClick={() => requestRun("rebuild")} disabled={loading} className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs text-status-warn ring-1 ring-status-warn-7 hover:bg-amber-3 disabled:opacity-40">
-              <RefreshCw className="h-4 w-4" />{PIPELINE_PANEL_COPY.REBUILD}
-            </button>
-          </div>
-          {confirming && confirmingMode === "rebuild" && (
-            <div className="mt-2 bg-status-error-2 px-3 py-2.5 text-xs text-text-sub ring-1 ring-status-error-6" data-action-id={PIPELINE_REBUILD_ACTION.id} data-risk={PIPELINE_REBUILD_ACTION.risk} data-channel={PIPELINE_REBUILD_ACTION.dataChannel}>
-              <p className="leading-5">{PIPELINE_PANEL_COPY.REBUILD_CONFIRM_TEXT}</p>
-              <div className="mt-2 flex justify-end gap-2">
-                <button type="button" onClick={dismissConfirmation} className="h-7 px-2 text-text-hint hover:text-text-main">{TERM.CANCEL_ACTION}</button>
-                <button type="button" onClick={() => void confirmRun()} className="h-7 rounded bg-status-error-3 px-3 text-status-error hover:bg-red-5">{PIPELINE_PANEL_COPY.CONFIRM_REBUILD}</button>
-              </div>
-            </div>
-          )}
-        </details>
-      )}
 
       {error && <p className="mt-3 bg-status-error-2 px-3 py-2 text-xs leading-5 text-status-error">{error}</p>}
       {running && <div className="mt-3 flex items-center gap-2 text-xs text-accent-base"><LoaderCircle className="h-4 w-4 animate-spin" />{runningLabel}</div>}
