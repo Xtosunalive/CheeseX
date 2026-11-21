@@ -215,7 +215,10 @@ const pipelineDue = createPipelineDueService({
   ingestStagedGraph: ingestGraphStaging,
   recordGraphRefreshed: () => graphDriftRefresher.recordRefreshed(),
 });
-pipelineDue.runIfDue(); // fire-and-forget（boot 兜底；服务运行期由 watcher 计数驱动下一轮）
+// PIPELINE_DUE_BOOT=0 整体停用 boot 兜底（e2e 夹具测试缝——GRAPH_DRIFT_REFRESH=0 同款逃生口先例：
+// CI runner 上 boot due 抽取与夹具断言赛跑，fixture 候选的 doc-article 节点入列使 property/check
+// total 1→2 翻转，读数不可判定形态——2026-11-21 CI 实录，同提交 20:59 绿/00:59 红即纯时序）。
+if (process.env.PIPELINE_DUE_BOOT !== "0") pipelineDue.runIfDue();
 // WP-027（PR-142，Master 2026-10-28 裁「要」）：schema 图输入写→图谱自动跟随——去抖调度器。
 // 双缝汇入：①服务回调（schema-write-service/fields-write-service 成功后 onGraphInputWrite）
 // ②watcher 桥（知识库/TheSchema 四件写事件，不分内外部写）；静默窗后 freshness 复核，未最新即经
