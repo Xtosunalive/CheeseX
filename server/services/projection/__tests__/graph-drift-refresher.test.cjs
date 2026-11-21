@@ -285,7 +285,7 @@ test("PR-307 同内容重写不算漂移（mtime 抖动被内容确认吸收）�
     // 对账对象＝FS 实际存储的 mtime（CI 文件系统对 utimes 写入有毫秒级截断，对 Date.now() 字面值
     // 做等号断言即间歇假红；吸收语义＝基线持有文件现值而非旧值，新旧相差约 5s，判据不弱化）
     const stored = JSON.parse(getDerivedIndexStore(vaultPath).kv.get(GRAPH_DRIFT_KV_KEY));
-    assert.equal(stored.v, 2, "基线 v2 形态");
+    assert.equal(stored.v, 3, "基线 v3 形态（WP-216：源指纹外增 code/artifact 两维身份）");
     assert.equal(
       stored.files["知识库/raw/boards/_enums-cache.md"].mtimeMs,
       Math.floor(fs.statSync(cache).mtimeMs),
@@ -367,4 +367,119 @@ test("PR-307 实录循环形态端到端：管线写面（状态产物内容变�
       assert.equal(pipeline.starts.length, 0, `第 ${round} 轮不再自触发（修复前每 ~15s 一轮实录）`);
     }
   } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
+
+// ══ WP-216/PR-344 自愈补盲回归：代码指纹／产物身份／阶梯恢复／断路器 ══
+// 注入面：getCodeFingerprint/getArtifactIdentity/reingestArtifacts（均构造器可注入——零真实 git/产物依赖）。
+function makeSelfhealHarness(overrides = {}) {
+  const vaultPath = makeVault();
+  const pipeline = makePipeline();
+  let code = overrides.code0 ?? "code-v1";
+  let art = overrides.art0 ?? { graph: "sha:g1", derived: "sha:d1" };
+  let reingests = 0;
+  const { refresher, events } = makeRefresher(vaultPath, pipeline, {
+    getCodeFingerprint: () => code,
+    getArtifactIdentity: () => art,
+    reingestArtifacts: () => {
+      reingests += 1;
+      if (overrides.reingestEffect) overrides.reingestEffect({ get: () => art, set: (v) => { art = v; } });
+    },
+  });
+  return {
+    vaultPath, pipeline, events, refresher, reingestCount: () => reingests,
+    setCode: (v) => { code = v; }, setArt: (v) => { art = v; }, getArt: () => art,
+  };
+}
+
+test("WP-216①代码指纹不符→自动全量重建（源未变也触发，trigger=code-changed）", () => {
+  const h = makeSelfhealHarness();
+  try {
+    h.refresher.recordRefreshed(); // 基线 v3：code=code-v1, artifact={g1,d1}
+    h.setCode("code-v2"); // 模拟换代码（git 子树哈希变化）
+    const result = h.refresher.check("read-time");
+    assert.equal(result.triggered, true, "代码变更触发全量重算");
+    assert.equal(result.trigger, "code-changed");
+    assert.equal(h.pipeline.starts.length, 1);
+    assert.equal(h.pipeline.starts[0].mode, "full");
+    assert.equal(h.pipeline.starts[0].options.purpose, "article_graph");
+  } finally { fs.rmSync(h.vaultPath, { recursive: true, force: true }); }
+});
+
+test("WP-216②a 库坏 staging 好→仅幂等重摄取，不跑管线；收敛后稳定", () => {
+  const h = makeSelfhealHarness({ reingestEffect: ({ set }) => set({ graph: "sha:g1", derived: "sha:d1" }) });
+  try {
+    h.refresher.recordRefreshed();
+    h.setArt({ graph: "sha:g1", derived: "sha:CORRUPTED" }); // 派生库同步哈希坏，staging 与账本一致
+    const result = h.refresher.check("read-time");
+    assert.equal(result.recovered, "reingest", "阶梯恢复第一级＝重摄取");
+    assert.equal(h.reingestCount(), 1);
+    assert.equal(h.pipeline.starts.length, 0, "不启动管线");
+    assert.equal(h.refresher.check("read-time").triggered, undefined, "收敛后不再触发");
+    assert.equal(h.reingestCount(), 1, "稳定后不重复摄取");
+  } finally { fs.rmSync(h.vaultPath, { recursive: true, force: true }); }
+});
+
+test("WP-216②b staging 哈希对不上账本→全量重建（不把半成品灌入库）＋②c 产物整体丢失→全量重建", () => {
+  const h = makeSelfhealHarness();
+  try {
+    h.refresher.recordRefreshed();
+    h.setArt({ graph: "sha:HALF-WRITTEN", derived: "sha:d1" }); // staging 半成品/被改写
+    let result = h.refresher.check("read-time");
+    assert.equal(result.trigger, "artifact-staging-mismatch");
+    assert.equal(h.pipeline.starts.length, 1, "staging 不符走全量");
+    assert.equal(h.reingestCount(), 0, "不走重摄取");
+
+    h.pipeline.starts.length = 0;
+    h.refresher.recordRefreshed(); // 上一轮已 start（模拟）——重记账回到稳态
+    h.setArt(null); // 产物身份整体取不到（库＋staging 双失形态）
+    result = h.refresher.check("read-time");
+    assert.equal(result.trigger, "artifact-lost");
+    assert.equal(h.pipeline.starts.length, 1, "产物丢失走全量");
+  } finally { fs.rmSync(h.vaultPath, { recursive: true, force: true }); }
+});
+
+test("WP-216③产物身份不收敛（每次读取漂移形态）→恢复断路器 3 次后停手", () => {
+  let n = 0;
+  const vaultPath = makeVault();
+  const pipeline = makePipeline();
+  let reingests = 0;
+  const { refresher } = makeRefresher(vaultPath, pipeline, {
+    getCodeFingerprint: () => "code-v1",
+    getArtifactIdentity: () => ({ graph: "sha:g1", derived: `sha:flap-${++n}` }), // 每读必变
+    reingestArtifacts: () => { reingests += 1; },
+  });
+  try {
+    refresher.recordRefreshed(); // 记账读一次（flap-1 入账）
+    const r1 = refresher.check("read-time"); // flap-2 ≠ flap-1 → 重摄取（streak 1，记账 flap-3，复检 flap-4 仍异）
+    assert.equal(r1.recovered, "reingest");
+    refresher.check("read-time"); // streak 2
+    refresher.check("read-time"); // streak 3
+    const r4 = refresher.check("read-time");
+    assert.equal(r4.artifactBackoff, true, "达上限停手");
+    assert.equal(reingests, 3, "恰好三次恢复尝试");
+    assert.equal(pipeline.starts.length, 0, "全程不动管线");
+  } finally { fs.rmSync(vaultPath, { recursive: true, force: true }); }
+});
+
+test("WP-216④旧 v2 基线两维未知不触发（保守升级）；下次记账补记升 v3；git 失败 fail-open", () => {
+  const h = makeSelfhealHarness();
+  try {
+    h.refresher.recordRefreshed(); // v3 基线
+    const v3 = JSON.parse(getDerivedIndexStore(h.vaultPath).kv.get(GRAPH_DRIFT_KV_KEY));
+    // 降级回 v2 形态（模拟存量部署基线），随后换代码＋产物全丢——两维未知均不得触发
+    getDerivedIndexStore(h.vaultPath).kv.put(GRAPH_DRIFT_KV_KEY, JSON.stringify({ v: 2, files: v3.files }));
+    h.setCode("code-v9");
+    h.setArt(null);
+    const result = h.refresher.check("read-time");
+    assert.equal(result.triggered, undefined, "v2 基线两维未知＝不触发（部署首启保守先例）");
+    assert.equal(h.pipeline.starts.length, 0);
+    // 下次记账（如管线成功/吸收回写）补记升级 v3，此后比对才开始
+    h.refresher.recordRefreshed();
+    const upgraded = JSON.parse(getDerivedIndexStore(h.vaultPath).kv.get(GRAPH_DRIFT_KV_KEY));
+    assert.equal(upgraded.v, 3, "记账即升级 v3");
+    assert.equal(upgraded.code, "code-v9", "补记当前代码指纹");
+    // git 取值失败（抛错）→ readCodeFingerprint 兜 null＝未知不触发（fail-open）
+    h.setCode(null); // 注入面直接给 null（等价 git 失败兜底路径）
+    assert.equal(h.refresher.check("read-time").triggered, undefined);
+  } finally { fs.rmSync(h.vaultPath, { recursive: true, force: true }); }
 });

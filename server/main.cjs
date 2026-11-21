@@ -181,6 +181,13 @@ const graphDriftRefresher = createGraphDriftRefresher({
     getStatus: () => pipelineRunServiceRef.getStatus(),
   },
   logger,
+  // WP-216/PR-344 自愈补盲注入：产物身份＝read-model-port 现成组件（只取 graph/derived 两维——
+  // vocab 属源域由 scheduler/源指纹管辖）；阶梯恢复第一级＝既有摄取函数（幂等，boot 摄取同源）
+  getArtifactIdentity: () => {
+    const v = require("./shared/read-model-port.cjs").getReadModelVersion({ vaultPath, dataDir: graphDataDir });
+    return v && v.components ? { graph: v.components.graph, derived: v.components.derived } : null;
+  },
+  reingestArtifacts: () => { ingestGraphStaging(); },
 });
 const derivedIndexReady = Promise.resolve()
   .then(() => derivedIndexSync.rebuildAll())
@@ -1068,6 +1075,9 @@ if (finishSummary.pendingRoutes.length) {
 }
 
 Promise.all([bootDriftReady, derivedIndexReady, stateJournalReplayReady, graphIngestReady, schemaSelfcheckReady]).then(() => {
+  // WP-216/PR-344：boot 即「部署时刻」——摄取就绪后立刻做一次漂移＋自愈检查（换代码后的首次
+  // 启动在此被看见：code 指纹不符→自动全量重建；产物丢失→阶梯恢复）。静默失败不阻断 listen。
+  try { graphDriftRefresher.checkAndSchedule(); } catch (_e) { /* 图族读路径同款 fail-open */ }
   httpApp.listen({ port: PORT, host: HOST }).then((address) => {
     logger.info({ event: "server-start", port: address.port, vaultPath });
   }).catch((error) => {
