@@ -14,14 +14,15 @@ export const INDIVIDUALS_COPY = {
   CANCEL_BUTTON: "取消",
   LIST_EMPTY: "该类暂无未退役个体（空数据态合法）",
   COL_ID: "个体 ID",
-  COL_TITLE: "标题",
   COL_ACTIONS: "操作",
   EDIT_ACTION: "编辑",
   RETIRE_ACTION: "退役",
   UNDECLARED_SHORT: "（未声明）",
+  TABLE_ARIA: "个体清单表",
+  COL_TITLE: "标题",
   NEUTRAL_FALLBACK: "中性兜底",
   LIST_TITLE: "个体清单",
   REQUIRED_MARK: "必填",
   UNDECLARED_NOTE: "字段未在 fields.yaml 声明 display（回退字段名）",
-  UNDECLARED_MARK: "字段未在 fields.yaml 声明 display（回退字段名）",
+
 } as const;

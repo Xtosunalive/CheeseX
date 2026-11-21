@@ -1,4 +1,8 @@
-// WP-210（SPEC-100 批 4）：派生个体清单表——列＝个体 ID/标题/操作（编辑/退役）。
+// WP-213（红队 M1②）：派生个体清单——DataTable 基座（自写表格退役；T11 豁免不适用）。
+import { Search } from "lucide-react";
+import { DataTable } from "@/components/data-table/DataTable";
+import type { Column } from "@/components/data-table/types";
+import { Button } from "@/components/ui/button";
 import type { IndividualListItem } from "../individuals-types";
 import { INDIVIDUALS_COPY } from "../individuals-copy";
 
@@ -10,28 +14,31 @@ interface Props {
 }
 
 export function DerivedIndividualsTable({ items, onEdit, onRetire, busy }: Props) {
-  if (items.length === 0) return <p className="text-xs text-text-hint">{INDIVIDUALS_COPY.LIST_EMPTY}</p>;
+  const columns: Array<Column<IndividualListItem>> = [
+    { key: "individualId", title: INDIVIDUALS_COPY.COL_ID, dataIndex: "individualId" },
+    { key: "title", title: INDIVIDUALS_COPY.COL_TITLE, dataIndex: "title" },
+    {
+      key: "actions",
+      title: INDIVIDUALS_COPY.COL_ACTIONS,
+      render: (row: IndividualListItem) => (
+        <span className="flex gap-2">
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => onEdit(row)}>{INDIVIDUALS_COPY.EDIT_ACTION}</Button>
+          <Button type="button" variant="outline" size="sm" disabled={busy} onClick={() => onRetire(row)}>{INDIVIDUALS_COPY.RETIRE_ACTION}</Button>
+        </span>
+      ),
+    },
+  ];
   return (
-    <table className="w-full text-xs" data-testid="individuals-table">
-      <thead>
-        <tr className="text-left text-text-hint">
-          <th className="px-2 py-1">{INDIVIDUALS_COPY.COL_ID}</th>
-          <th className="px-2 py-1">{INDIVIDUALS_COPY.COL_TITLE}</th>
-          <th className="px-2 py-1">{INDIVIDUALS_COPY.COL_ACTIONS}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {items.map((item) => (
-          <tr key={item.individualId} className="border-t border-border-thin">
-            <td className="px-2 py-1">{item.individualId}</td>
-            <td className="px-2 py-1">{item.title}</td>
-            <td className="px-2 py-1">
-              <button type="button" className="mr-2 rounded px-2 py-0.5 ring-1 ring-border-thin" disabled={busy} onClick={() => onEdit(item)}>{INDIVIDUALS_COPY.EDIT_ACTION}</button>
-              <button type="button" className="rounded px-2 py-0.5 ring-1 ring-status-error-6 text-status-error" disabled={busy} onClick={() => onRetire(item)}>{INDIVIDUALS_COPY.RETIRE_ACTION}</button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+    <DataTable
+      ariaLabel={INDIVIDUALS_COPY.TABLE_ARIA}
+      columns={columns}
+      rows={items}
+      rowKey={(row) => row.individualId}
+      empty={items.length === 0 ? {
+        icon: Search,
+        title: INDIVIDUALS_COPY.LIST_EMPTY,
+      } : undefined}
+      minWidth={480}
+    />
   );
 }

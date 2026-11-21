@@ -1,4 +1,7 @@
-// WP-210（SPEC-100 批 4）：派生字段表单——按服务端派生配置渲染输入族（文本/数值/布尔三形态 MVP）。
+// WP-213（红队 M1②）：派生字段表单——统一件化（ui-kit Input/Checkbox，原生件退役）。
+// 渲染形态（文本/数值/布尔三形态 MVP）与中文 display/必填/未声明标注不变（INDIVIDUALS_COPY 闭集）。
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
 import type { IndividualFieldConfig } from "../individuals-types";
 import { INDIVIDUALS_COPY } from "../individuals-copy";
 
@@ -8,6 +11,8 @@ interface Props {
   onChange: (name: string, value: unknown) => void;
   disabled?: boolean;
 }
+
+const NUMERIC_TYPES = new Set(["integer", "float", "decimal", "unsigned integer"]);
 
 export function DerivedFieldForm({ fields, values, onChange, disabled }: Props) {
   return (
@@ -20,20 +25,19 @@ export function DerivedFieldForm({ fields, values, onChange, disabled }: Props) 
             {!field.declared && <span className="ml-1 text-text-placeholder" title={INDIVIDUALS_COPY.UNDECLARED_NOTE}>{INDIVIDUALS_COPY.UNDECLARED_SHORT}</span>}
           </span>
           {field.type === "boolean" ? (
-            <input
-              type="checkbox"
+            <Checkbox
               checked={Boolean(values[field.name])}
               disabled={disabled}
-              onChange={(event) => onChange(field.name, event.target.checked)}
-              className="h-4 w-4"
+              onCheckedChange={(checked) => onChange(field.name, checked === true)}
+              aria-label={field.display}
             />
           ) : (
-            <input
-              type={field.type === "integer" || field.type === "float" || field.type === "decimal" || field.type === "unsigned integer" ? "number" : "text"}
+            <Input
+              type={NUMERIC_TYPES.has(field.type) ? "number" : "text"}
               value={String(values[field.name] ?? "")}
               disabled={disabled}
-              onChange={(event) => onChange(field.name, field.type.includes("integer") || field.type === "float" || field.type === "decimal" ? Number(event.target.value) : event.target.value)}
-              className="h-8 w-full max-w-md rounded bg-surface-root px-3 text-xs text-text-main ring-1 ring-border-thin outline-none focus:ring-border-focus"
+              onChange={(event) => onChange(field.name, NUMERIC_TYPES.has(field.type) ? Number(event.target.value) : event.target.value)}
+              className="h-8 w-full max-w-md"
             />
           )}
         </label>

@@ -17,6 +17,8 @@ const { createError: serviceError } = require("../../shared/error-factory.cjs");
 const vaultIO = require("../../shared/vault-io.cjs");
 
 const INDIVIDUALS_ROOT = path.join("知识库", "wiki", "individuals");
+// WP-213（红队 M2）：系统键清单——引擎管理的 frontmatter 基建字段，调用方入参出现即拒
+const SYSTEM_KEYS = new Set(["class_id", "individual_id", "lifecycle_status", "created", "updated", "retired", "status"]);
 
 function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {}) {
   if (!vaultPath) throw new TypeError("[individual-crud] 需要 vaultPath");
@@ -84,7 +86,17 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
     return bindingsResolver(classId);
   }
 
-  function validateFields(classId, incoming) {
+  // WP-213（红队 M2）：系统键拒绝——create/update 入参含系统键即 422（隐身个体/身份伪造/退役绕过三面封死）。
+  // 系统键由引擎按自身状态写入，永远不接受调用方供给（fail-loud）。
+  function rejectSystemKeys(incoming) {
+    const hits = Object.keys(incoming || {}).filter((key) => SYSTEM_KEYS.has(key));
+    if (hits.length) {
+      throw serviceError("INDIVIDUAL_SYSTEM_KEY_FORBIDDEN", "入参含系统键（class_id/individual_id/lifecycle_status 等由引擎管理，不可供给）", 422, { keys: hits });
+    }
+  }
+
+  function validateFields(classId, incoming, { allowSystem = false } = {}) {
+    if (!allowSystem) rejectSystemKeys(incoming);
     const resolved = resolveBindings(classId);
     const props = (resolved && resolved.data_properties) || {};
     const missing = [];
@@ -96,8 +108,6 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
         missing.push(fieldName);
       }
     }
-    // 系统键（frontmatter 基建字段）不参与白名单对账——它们不是用户字段
-    const SYSTEM_KEYS = new Set(["class_id", "individual_id", "title", "lifecycle_status", "created", "updated", "retired", "status"]);
     for (const key of Object.keys(incoming || {})) {
       if (SYSTEM_KEYS.has(key)) continue;
       if (!allowed.has(key)) unknown.push(key);
@@ -160,7 +170,8 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
     if (fm.lifecycle_status === "retired") {
       throw serviceError("INDIVIDUAL_RETIRED", "个体已退役（ADR-017 生命周期终态）——不可更新", 409);
     }
-    validateFields(classId, { ...fm, ...(fields || {}) });
+    rejectSystemKeys(fields || {}); // delta 系统键拒绝（合并校验放行 fm 自身基建键）
+    validateFields(classId, { ...fm, ...(fields || {}) }, { allowSystem: true });
     const nextFm = { ...fm, ...(fields || {}), updated: new Date().toISOString() };
     const nextRaw = buildMarkdown(nextFm) + body;
     channel.writeVault(absPath, nextRaw, { expectedContentHash: currentRevision, summary: `个体更新（generic:update·${classId}）` });
