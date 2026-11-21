@@ -49,7 +49,6 @@ const STATUS_STEP_TOKENS: [string, string][] = [
   ["--color-status-warn-3", STATUS_STEP_NOTES.s3],
   ["--color-status-warn-4", STATUS_STEP_NOTES.s4],
   ["--color-status-warn-6", STATUS_STEP_NOTES.s6],
-  ["--color-status-warn-7", STATUS_STEP_NOTES.s7],
   ["--color-status-warn-8", STATUS_STEP_NOTES.s8],
   ["--color-status-warn-11", STATUS_STEP_NOTES.s11],
   ["--color-status-error-2", STATUS_STEP_NOTES.s2],

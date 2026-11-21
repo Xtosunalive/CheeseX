@@ -21,13 +21,6 @@ export const PIPELINE_RUN_ACTION = {
   writes: [],
 } as const;
 
-// 重建档（显式确认）：--force 全量重跑并重写工作投影（ADR063）。
-export const PIPELINE_REBUILD_ACTION = {
-  id: "pipeline.rebuild",
-  risk: "high",
-  dataChannel: "POST /api/pipeline/rebuild",
-  writes: ["master_graph.json", "master_graph.db", "semantic_architecture.json", "architecture_layout.json"],
-} as const;
 
 async function readEnvelope<T>(response: Response): Promise<T> {
   const body = (await response.json()) as T & {
