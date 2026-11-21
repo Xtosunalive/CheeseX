@@ -547,7 +547,7 @@ def _write_extract_errors():
         "generatedAt": datetime.now().isoformat(timespec="seconds"),
         "errors": EXTRACT_ERRORS,
     }
-    tmp = EXTRACT_ERRORS_JSON + ".tmp"
+    tmp = _unique_tmp(EXTRACT_ERRORS_JSON)
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(payload, f, ensure_ascii=False, indent=2)
     os.replace(tmp, EXTRACT_ERRORS_JSON)
@@ -795,7 +795,7 @@ def _diff_incremental_manifest(previous, current):
 
 def _write_incremental_manifest(manifest):
     os.makedirs(os.path.dirname(INCREMENTAL_MANIFEST), exist_ok=True)
-    tmp = INCREMENTAL_MANIFEST + ".tmp"
+    tmp = _unique_tmp(INCREMENTAL_MANIFEST)
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
     os.rename(tmp, INCREMENTAL_MANIFEST)
@@ -2682,7 +2682,9 @@ def extract_plate_nodes(all_nodes, external_node_ids):
 
         # (Plate) -[:APPLIES_TO]-> (ProductVersion) — 聚合去重
         for ver_str in unique_versions:
-            ver_id = f"version-{slugify(product)}-{slugify(ver_str)}"
+            # WP-215 批5（红队 R2）：版本身份与新方案同源——拼名公式已随 node_id_for_file 退役，
+            # 残留本址曾致 3 条 plate→ProductVersion 真值边永不命中（密封 eval R_edges 0.9375→0.75）
+            ver_id = _version_id(product, ver_str)
             if ver_id in version_id_set or ver_id in node_by_id:
                 edges.append({
                     "source": plate_id,
@@ -2904,6 +2906,12 @@ def _populate_document_index(nodes):
         print(f"  ⚠️ document_index 写入失败: {e}")
 
 # ── 主流程 ──
+
+def _unique_tmp(path):
+    """并发安全 tmp 名（红队 R5）：共享固定 tmp 会被并发第二进程的 rename 抢走
+    （实测一方 FileNotFoundError 崩溃＋偶发图/映射分叉）——pid 后缀隔离。"""
+    return f"{path}.{os.getpid()}.tmp"
+
 
 def main():
     global ADMISSION_COORDINATES
@@ -3821,7 +3829,7 @@ def main():
         extract_applied_iso = datetime.now().isoformat(timespec="seconds")
         # Atomic write
         os.makedirs(os.path.dirname(MASTER_JSON), exist_ok=True)
-        tmp = MASTER_JSON + ".tmp"
+        tmp = _unique_tmp(MASTER_JSON)
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump({
                 "_format_version": MASTER_GRAPH_FORMAT_VERSION,
@@ -3857,7 +3865,7 @@ def main():
                 "edges": all_edges,
             }
             os.makedirs(os.path.dirname(OUTPUT), exist_ok=True)
-            tmp = OUTPUT + ".tmp"
+            tmp = _unique_tmp(OUTPUT)
             with open(tmp, "w", encoding="utf-8") as f:
                 json.dump(flat_graph, f, ensure_ascii=False, indent=2)
             os.rename(tmp, OUTPUT)
@@ -3953,4 +3961,9 @@ def main():
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    # 红队 R5：运行级 flock——同 vault 并发抽取对身份账本 read-modify-write 全程序列化
+    IDENTITY_MAP.acquire_run_lock()
+    try:
+        sys.exit(main())
+    finally:
+        IDENTITY_MAP.release_run_lock()

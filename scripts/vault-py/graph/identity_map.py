@@ -15,22 +15,37 @@
 产品改名经注册表既有别名机制（product_aliases 旧名→新名）声明；解析侧拿到
 via 名（旧名）与 canonical（新名）后，若映射表有旧名条目而新名缺位，则
 **同一身份迁移**到新名键，旧行为以 renamedFrom 线性记录（不删历史、不改 id）。
+**迟到窗口**（红队 R3）：文章先改新名铸了新号、别名后到——按声明方向合并
+（新名继承旧身份）＋stderr 大声告警，禁止静默双号并存；被弃号的存量边经旧图
+接力保留为幽灵（清理归 PR-337），账本失配面由告警点名交人。
 
 文档路径迁移（D-2 裁 B＝保留 fallback＋迁移映射）：路径变更以**内容 sha256
 前 16 位精确匹配**为唯一自动迁移信号——无歧义才动手；内容也变的（歧义）
 一律新身份，不猜（fail-closed 口径＝PR-229 参照结论「窄谓词才自动、歧义列
 清单交人裁」；旧节点幽灵清理归 PR-337 剪枝批，非本件范围）。
+**内容变更留痕**（红队 R4）：路径命中但 sha16 与在册不符＝原位编辑（身份保持，
+常见态）与同名异文替换（跨文档错配面）内容上不可区分——身份保持＋sha16 更新
+＋stderr 留痕，替换场景由告警点名交人处置，静默继承不可接受。
+
+并发（红队 R5）：acquire_run_lock()/release_run_lock() 以 flock 序列化同 vault
+并发抽取的 read-modify-write 全程；账本 tmp 落盘带 pid 后缀（防共享 tmp 被抢）。
 """
 
 from __future__ import annotations
 
+import fcntl
 import json
 import os
+import sys
 import uuid
 from datetime import datetime, timezone
 
 MAP_FILENAME = "identity_map.json"
 SHA16_LEN = 16
+
+
+class IdentityMapCorrupt(RuntimeError):
+    """身份账本存在但损坏（解析失败/形状非法）——铸造事实不可再生，fail-closed 拒跑（红队 R1）。"""
 
 
 def _now() -> str:
@@ -54,29 +69,71 @@ class IdentityMap:
         self.path = os.path.join(base_dir, MAP_FILENAME)
         self.data = self._load()
         self.dirty = False
+        self._lock_fp = None
+
+    # ── 并发运行锁（红队 R5） ──
+
+    def acquire_run_lock(self) -> None:
+        """运行级互斥：同 vault 并发抽取对账本的 read-modify-write 全程序列化
+        （阻塞排队——并发第二进程等第一进程收尾，构造性消除铸造号竞态）。"""
+        lock_path = self.path + ".lock"
+        self._lock_fp = open(lock_path, "w")
+        fcntl.flock(self._lock_fp, fcntl.LOCK_EX)
+
+    def release_run_lock(self) -> None:
+        if self._lock_fp is not None:
+            try:
+                fcntl.flock(self._lock_fp, fcntl.LOCK_UN)
+            finally:
+                self._lock_fp.close()
+                self._lock_fp = None
 
     # ── 持久化 ──
 
-    def _load(self) -> dict:
-        try:
-            with open(self.path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-            if not isinstance(data, dict):
-                raise ValueError("identity_map 顶层必须是对象")
-        except (OSError, ValueError, json.JSONDecodeError):
+    def _load(self):
+        if not os.path.exists(self.path):
             data = {}
+        else:
+            try:
+                with open(self.path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                if not isinstance(data, dict):
+                    raise ValueError("顶层必须是对象")
+            except (OSError, ValueError, json.JSONDecodeError) as err:
+                # 红队 R1：文件在但损坏＝铸造事实不可再生——禁止静默重铸
+                # （静默重铸＝全部身份永久漂移＋评审账本全量失配，且增量指纹对损坏恒跳过不暴露）
+                raise IdentityMapCorrupt(
+                    f"identity_map.json 损坏（解析失败/形状非法）：{self.path} —— "
+                    "身份账本不可再生，禁止静默重铸；请人工修复或从备份恢复后重跑"
+                ) from err
         data.setdefault("version", 1)
         data.setdefault("products", {})
         data.setdefault("docs", {})
         data.setdefault("renames", [])
+        # 红队 R1 形状校验：id 必须非空字符串（数字 id 会以 JSON number 污染图模式）
+        for section in ("products", "docs"):
+            table = data[section]
+            if not isinstance(table, dict):
+                raise IdentityMapCorrupt(
+                    f"identity_map 形状非法：{section} 必须是对象（{self.path}）"
+                )
+            for key, entry in table.items():
+                if (
+                    not isinstance(entry, dict)
+                    or not isinstance(entry.get("id"), str)
+                    or not entry["id"].strip()
+                ):
+                    raise IdentityMapCorrupt(
+                        f"identity_map 形状非法：{section}[{key!r}] 的 id 必须是非空字符串（{self.path}）"
+                    )
         return data
 
     def save(self) -> None:
-        """原子写盘（tmp＋replace，与账本族同款纪律）；仅 dirty 时落盘。"""
+        """原子写盘（tmp 带 pid 后缀防并发共享 tmp 被抢——红队 R5；仅 dirty 时落盘）。"""
         if not self.dirty:
             return
         os.makedirs(os.path.dirname(self.path), exist_ok=True)
-        tmp = self.path + ".tmp"
+        tmp = f"{self.path}.{os.getpid()}.tmp"
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(self.data, f, ensure_ascii=False, indent=2)
             f.write("\n")
@@ -137,32 +194,63 @@ class IdentityMap:
 
         动机：改名后文章可能已先改成新名（via 信号消失），仅靠查询侧 via 检测接不住；
         以别名对（旧名→新名）为声明源 proactive 迁移：旧名在册而新名缺位 → 同身份迁移。
-        幂等：新名已在册（迁过）即无操作；旧名不在册同理。pairs 形态＝
-        architecture_projection.product_aliases（{旧名: 新名}）。"""
+        幂等：新名已在册且同号即无操作；旧名不在册同理。
+        **迟到窗口**（红队 R3）：两侧都在册且异号＝文章先改新名铸了新号、别名后到——
+        按声明方向合并（新名继承旧身份）＋stderr 大声告警，禁止静默双号并存。
+        pairs 形态＝architecture_projection.product_aliases（{旧名: 新名}）。"""
         for old, new in dict(alias_pairs or {}).items():
             old, new = str(old).strip(), str(new).strip()
             if not old or not new or old == new:
                 continue
             prods = self.data["products"]
-            if old in prods and prods[old].get("id") and new not in prods:
-                same_id = prods[old]["id"]
-                prods[new] = {"id": same_id, "renamedFrom": old, "migratedAt": _now()}
-                del prods[old]
-                self.data["renames"].append({"from": old, "to": new, "at": _now()})
-                self.dirty = True
+            old_entry = prods.get(old)
+            new_entry = prods.get(new)
+            if old_entry and old_entry.get("id"):
+                if not new_entry or not new_entry.get("id"):
+                    same_id = old_entry["id"]
+                    prods[new] = {"id": same_id, "renamedFrom": old, "migratedAt": _now()}
+                    del prods[old]
+                    self.data["renames"].append({"from": old, "to": new, "at": _now()})
+                    self.dirty = True
+                elif new_entry["id"] != old_entry["id"]:
+                    merged_id = old_entry["id"]
+                    sys.stderr.write(
+                        f"IDENTITY_ALIAS_LATE_ARRIVAL: 别名声明 {old}→{new} 迟到——"
+                        f"{new} 已在册为 {new_entry['id']}，按声明方向合并继承 {merged_id}；"
+                        "被弃号的存量边经旧图接力保留（幽灵清理归 PR-337），评审账本失配面请人工复核\n"
+                    )
+                    prods[new] = {
+                        "id": merged_id,
+                        "renamedFrom": old,
+                        "lateArrival": True,
+                        "migratedAt": _now(),
+                    }
+                    del prods[old]
+                    self.data["renames"].append({"from": old, "to": new, "at": _now()})
+                    self.dirty = True
 
     # ── 文档路径 fallback 身份（D-2 B：保留＋sha16 精确迁移） ──
 
     def doc_id(self, rel_path: str, sha256_hex: str = "", current_paths=None) -> tuple[str, str]:
         """文档 fallback 稳定身份。返回 (node_id, migratedFrom)——migratedFrom 非空
         表示本次按内容精确匹配完成了路径迁移（可观测，不静默）。
-        current_paths＝本轮扫描的全部受管路径集合（迁移候选必须不在其中，防误配在册路径）。"""
+        current_paths＝本轮扫描的全部受管路径集合（迁移候选必须不在其中，防误配在册路径）。
+        路径命中但 sha16 变更＝原位编辑（身份保持＋留痕；同名异文替换由告警点名交人——红队 R4）。"""
         rel_path = str(rel_path or "").strip()
         if not rel_path:
             return "", ""
         docs = self.data["docs"]
         entry = docs.get(rel_path)
         if entry and entry.get("id"):
+            sha16 = sha16_of(sha256_hex)
+            stored = entry.get("sha16") or ""
+            if sha16 and stored and stored != sha16:
+                sys.stderr.write(
+                    f"IDENTITY_DOC_CONTENT_CHANGED: {rel_path} 内容指纹 {stored}→{sha16}"
+                    "（身份保持；若实为同名异文替换请人工处置 identity_map.json）\n"
+                )
+                entry["sha16"] = sha16
+                self.dirty = True
             return entry["id"], ""
 
         sha16 = sha16_of(sha256_hex)
