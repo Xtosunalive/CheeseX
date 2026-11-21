@@ -111,8 +111,7 @@ layers:
 architecture_projection:
   product: 个人知识管理
   version: "1.0"
-  product_aliases:
-    改名实测产品A: 改名实测产品B
+  product_aliases: {}
   layer_aliases: {}
   category_aliases: {}
   subdomain_aliases: {}
