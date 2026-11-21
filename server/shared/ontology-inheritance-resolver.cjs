@@ -188,9 +188,15 @@ function fieldDefinitionsOf(fields, classId) {
     // WP-195 v2 类属主：身份＝(类,name)——按调用方类上下文取属主类属性集；
     // 无类上下文（全量校验面）＝两类并集（存在性语义，同名键后到者覆盖无害）。
     // 类映射：本体文章类（KnowledgeArticle）→ article；其余（实体类族）→ entity。
-    const cls = classId === "KnowledgeArticle" ? "article" : classId === undefined ? undefined : "entity";
     const pick = (c) => (isRecord(fields.classes[c]) && Array.isArray(fields.classes[c].properties) ? fields.classes[c].properties : []);
-    definitions = cls ? pick(cls) : [...pick("entity"), ...pick("article")];
+    // WP-212（SPEC-100 批 6·泛化键解析）：类属主键精确直查优先（fields.classes[classId]）——
+    // 新类字段属主不再挤占 entity 键（通用机制，非 per-class）；直查缺位再走既有既裁映射。
+    if (classId !== undefined && isRecord(fields.classes[classId]) && Array.isArray(fields.classes[classId].properties)) {
+      definitions = fields.classes[classId].properties;
+    } else {
+      const cls = classId === "KnowledgeArticle" ? "article" : classId === undefined ? undefined : "entity";
+      definitions = cls ? pick(cls) : [...pick("entity"), ...pick("article")];
+    }
   } else if (Array.isArray(fields)) {
     definitions = fields;
   } else if (isRecord(fields) && Array.isArray(fields.fields)) {

@@ -139,6 +139,17 @@ node_types:
     color: slate
     icon: eye
     allows_relations: []
+  FaqCard:
+    description: 问题卡（WP-212 终验实例类——问题/答案结构化知识条目）
+    category: 概念
+    color: purple
+    icon: lightbulb
+    data_properties:
+      question:
+        required: true
+      answer:
+        required: true
+      weight: {}
 relation_types:
   DEPENDS_ON:
     assertion_policies:

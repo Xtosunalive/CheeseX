@@ -27,6 +27,9 @@
         },
         "article": {
           "$ref": "#/$defs/classKeys"
+        },
+        "faq_card": {
+          "$ref": "#/$defs/classKeys"
         }
       },
       "additionalProperties": false
@@ -42,6 +45,9 @@
           "$ref": "#/$defs/classDecl"
         },
         "article": {
+          "$ref": "#/$defs/classDecl"
+        },
+        "FaqCard": {
           "$ref": "#/$defs/classDecl"
         }
       },

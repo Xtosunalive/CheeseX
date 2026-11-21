@@ -17,6 +17,9 @@
 schema_version: 2
 last_updated: 2026-11-19
 keys:
+  faq_card:
+    primary: individual_id
+    display: question
   entity:
     primary: architecture-node-id
     display: title
@@ -25,6 +28,32 @@ keys:
     primary: article_id
     display: title
 classes:
+  FaqCard:
+    properties:
+      - name: question
+        display: 问题
+        type: string
+        required: 是
+        layer: 内容属性
+        description: 问题卡的问题（终验实例类 WP-212）
+        value_domain:
+          source: free
+      - name: answer
+        display: 答案
+        type: string
+        required: 是
+        layer: 内容属性
+        description: 问题卡的答案
+        value_domain:
+          source: free
+      - name: weight
+        display: 权重
+        type: string
+        required: 否
+        layer: 业务属性
+        description: 排序权重（选填）
+        value_domain:
+          source: free
   entity:
     properties:
       - name: title
