@@ -23,6 +23,17 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
   const channel = io || vaultIO; // 注入端口（测试）／默认 vault-io 模块通道（生产）
   const root = path.join(vaultPath, INDIVIDUALS_ROOT);
   let bindingsResolver = null; // (classId) → resolveClassInheritance 结果（data_properties 含 required 绑定）
+  let projectionPort = null; // { upsert, markRetired }——批 3 投影同步口（fail-open：投影失败不阻断主写）
+
+  function syncProjection(kind, classId, fm) {
+    if (!projectionPort) return;
+    try {
+      if (kind === "retire") projectionPort.markRetired(classId, fm.individual_id, fm.updated);
+      else projectionPort.upsert(classId, fm);
+    } catch (error) {
+      if (logger) logger.warn({ event: "individual-projection-sync-failed", classId, error: String(error.message).slice(0, 160) });
+    }
+  }
 
   function assertIds(classId, individualId) {
     if (!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(String(classId || ""))) {
@@ -127,6 +138,7 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
       throw error;
     }
     if (logger) logger.info({ event: "individual-created", classId, individualId });
+    syncProjection("upsert", classId, fm);
     return { classId, individualId, path: path.relative(vaultPath, absPath), revision: vaultIO.contentRevision(buildMarkdown(fm)) };
   }
 
@@ -153,6 +165,7 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
     const nextRaw = buildMarkdown(nextFm) + body;
     channel.writeVault(absPath, nextRaw, { expectedContentHash: currentRevision, summary: `个体更新（generic:update·${classId}）` });
     if (logger) logger.info({ event: "individual-updated", classId, individualId });
+    syncProjection("upsert", classId, nextFm);
     return { classId, individualId, revision: vaultIO.contentRevision(nextRaw) };
   }
 
@@ -168,6 +181,7 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
     const nextFm = { ...fm, lifecycle_status: "retired", retired: new Date().toISOString() };
     channel.writeVault(absPath, buildMarkdown(nextFm) + body, { expectedContentHash: currentRevision, summary: `个体退役（generic:retire·${classId}）` });
     if (logger) logger.info({ event: "individual-retired", classId, individualId });
+    syncProjection("retire", classId, nextFm);
     return { classId, individualId, retired: true };
   }
 
@@ -198,6 +212,9 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
     list,
     setBindingsResolver(fn) {
       bindingsResolver = fn;
+    },
+    setProjectionPort(port) {
+      projectionPort = port;
     },
   };
 }

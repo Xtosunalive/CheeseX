@@ -144,6 +144,15 @@ const { ingestStagedGraphArtifacts, readGraphArtifactText } = require("./shared/
 const derivedIndexDb = openPersistenceDb({ path: dataDbPath("derived-index.db") });
 const derivedIndexStore = initDerivedIndexStore(derivedIndexDb);
 const graphDataDir = path.dirname(dataDbPath("derived-index.db")); // staging/ 与 master_graph.db 同住持久层根
+// WP-209（SPEC-100 批 3）：个体投影——每类表自动 DDL＋CRUD 同步口＋boot 重建（fail-open 派生族）
+const individualProjectionService = require("./services/ontology/individual-projection-service.cjs").createIndividualProjectionService({
+  vaultPath,
+  db: derivedIndexDb,
+  logger,
+  bindingsResolver: individualBindingsResolver,
+});
+individualCrudService.setProjectionPort(individualProjectionService);
+setImmediate(() => { try { individualProjectionService.rebuildAll(); } catch (error) { logger.warn({ event: "individual-projection-boot-rebuild-failed", error: error.message }); } });
 // EDGE-RELATION-GOV-001（ADR-012/SPEC-026 §五）②类 edge 投影：图族入行后重建行级两表——boot 摄取/
 // 存量导入补摄取/管线完成钩三点共用本包装，摄取后重建（staging 空 no-op 时也对既有行重建，保一致）。
 // setVaultPath 提前（幂等 setter，后文装配点同参再设无害）保证 boot 首次重建时图读取（含审批账本合并）就绪。
@@ -398,12 +407,13 @@ const individualCrudService = require("./services/ontology/individual-crud-servi
   logger,
   loadFields: () => { const b = loadVocabBundle(vaultPath, { files: ["fields"] }); return b.files.fields; },
 });
-// 类绑定活解析（个体写低频——每次现读成本可接受，快照缓存注记同款先例）
-individualCrudService.setBindingsResolver((classId) => {
+// 类绑定活解析（个体写低频——每次现读成本可接受，快照缓存注记同款先例）——单源闭包共用（引擎＋批 3 投影）
+const individualBindingsResolver = (classId) => {
   const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
   const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });
   return resolveClassInheritance(readOntology(vaultPath).data, classId, fieldsBundle.files.fields);
-});
+};
+individualCrudService.setBindingsResolver(individualBindingsResolver);
 require("./shared/individual-executors.cjs").registerIndividualExecutors({ service: individualCrudService, registerActionExecutor });
 require("./routes/individual-routes.cjs").register(registerRoute);
 
