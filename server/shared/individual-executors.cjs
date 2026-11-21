@@ -26,10 +26,13 @@ function registerIndividualExecutors({ service, registerActionExecutor, uiConfig
     }));
   registerActionExecutor("generic:list", (ctx) =>
     service.list(ctx.request?.params?.classId));
-  // WP-213（红队 M1①）：config 端点动作化——原普通 handler 改动作绑定（action-coverage 覆盖）
-  if (typeof uiConfigFor !== "function") throw new TypeError("[individual-executors] 需要 uiConfigFor（generic:config 派生闭包）");
-  registerActionExecutor("generic:config", (ctx) =>
-    uiConfigFor(ctx.request?.params?.classId));
+  // WP-213（红队 M1①）：config 端点动作化——原普通 handler 改动作绑定（action-coverage 覆盖）。
+  // uiConfigFor 可选：提供才注册（main 装配恒传；CRUD 测试族不传则 generic:config 缺席——
+  // 动作若被声明而执行器缺席，装配层 pendingRoutes 显式可见，不假绿）。
+  if (typeof uiConfigFor === "function") {
+    registerActionExecutor("generic:config", (ctx) =>
+      uiConfigFor(ctx.request?.params?.classId));
+  }
 }
 
 module.exports = { registerIndividualExecutors };

@@ -150,8 +150,8 @@ test("真仓实跑：车道读数在册（unregistered 与 internalSignals 分�
   // WP-178/PR-316·317：RELATION_REVIEW_STATE_FORBIDDEN＋GAP_ALREADY_RESOLVED 两码入册，棘轮 199→201（先例：PR-303 198→199）
   // WP-199 波3：ENUMS_REFERENCED_SEGMENT_REMOVED 入册（值域引用段删除保护），棘轮 202→203
   // WP-203：REPO_SCHEMA_TEST_WRITE 入 internalSignals 车道（测试回落拒写闸），internal_signals 9→10
-  // WP-208：IndividualErrorResponse 9 码入册（通用个体面——SPEC-100 批 2），棘轮 203→212；WP-210：config 端点两码入册，棘轮 212→214；WP-211：PERMISSION_CATALOG_MISMATCH 入册，棘轮 214→215
-  assert.match(out, /error_codes=ok contract=215 thrown=\d+ unregistered_baseline=138 internal_signals=10 dead_enum_baseline=31/);
+  // WP-208：IndividualErrorResponse 9 码入册（通用个体面——SPEC-100 批 2），棘轮 203→212；WP-210：config 端点两码入册，棘轮 212→214；WP-211：PERMISSION_CATALOG_MISMATCH 入册，棘轮 214→215；WP-213 续：INDIVIDUAL_SYSTEM_KEY_FORBIDDEN 入册＋INVALID_CLASS_ID/INDIVIDUAL_CONFIG_UNAVAILABLE 死枚举归位移除（config 动作化后无 scanner 可见抛点），棘轮 215→214
+  assert.match(out, /error_codes=ok contract=214 thrown=\d+ unregistered_baseline=138 internal_signals=10 dead_enum_baseline=31/);
 });
 
 test("collectContractCodes：穿透 allOf 目录单元", () => {

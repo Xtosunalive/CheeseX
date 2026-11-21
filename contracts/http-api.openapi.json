@@ -17106,8 +17106,7 @@
               "INDIVIDUAL_ID_COLLISION",
               "INDIVIDUAL_FRONTMATTER_INVALID",
               "INDIVIDUAL_BINDINGS_UNAVAILABLE",
-              "INVALID_CLASS_ID",
-              "INDIVIDUAL_CONFIG_UNAVAILABLE"
+              "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN"
             ]
           },
           "details": {
