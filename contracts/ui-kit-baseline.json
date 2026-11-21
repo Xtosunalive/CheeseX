@@ -1,8 +1,8 @@
 {
   "$comment": "ui-kit 域原生 <button>/<input> 棘轮基线（check:ui-kit 执法；机器生成——改动一律 `node scripts/quality/check-ui-kit.mjs --write` 重算，禁手改）。规则：①基线外文件出现原生标签即红（新代码必须用 @/components/ui/button 与 ui/input）②基线内文件分标签计数只减不增③全部标签归零的条目必须缩减（重算即可）。豁免 ui/（基础件自身）与 aria/（侧栏专属皮肤，PR-070）。",
-  "generated_at": "2026-11-19",
+  "generated_at": "2026-11-22",
   "total": {
-    "button": 207,
+    "button": 204,
     "input": 67
   },
   "files": {
@@ -70,7 +70,7 @@
       "button": 1
     },
     "src/components/pipeline/PipelinePanel.tsx": {
-      "button": 5
+      "button": 2
     },
     "src/components/pool-panel/BooleanPoolRow.tsx": {
       "input": 1
