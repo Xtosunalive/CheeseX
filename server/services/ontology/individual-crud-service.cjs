@@ -171,7 +171,24 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
       throw serviceError("INDIVIDUAL_RETIRED", "个体已退役（ADR-017 生命周期终态）——不可更新", 409);
     }
     rejectSystemKeys(fields || {}); // delta 系统键拒绝（合并校验放行 fm 自身基建键）
-    validateFields(classId, { ...fm, ...(fields || {}) }, { allowSystem: true });
+    // WP-213（浏览器 E2E 实测缺陷）：update 校验三段分离——①delta 白名单（fields 键 ⊆ 类绑定）
+    // ②必填查合并结果（fm 供给既有值）③fm 回退键（如无 title 字段类的 title=个体 ID）不罚——
+    // 此前合并整体验 unknown 把引擎自写回退键误拒（无 title 类的更新腿必挂）。
+    const resolved = resolveBindings(classId);
+    const props = (resolved && resolved.data_properties) || {};
+    const allowed = new Set(Object.keys(props));
+    const merged = { ...fm, ...(fields || {}) };
+    const deltaUnknown = Object.keys(fields || {}).filter((key) => !allowed.has(key));
+    const missing = [];
+    for (const [fieldName, def] of Object.entries(props)) {
+      const required = def && def.binding && def.binding.required === true;
+      if (required && (merged[fieldName] === undefined || String(merged[fieldName]).trim() === "")) {
+        missing.push(fieldName);
+      }
+    }
+    if (deltaUnknown.length || missing.length) {
+      throw serviceError("INDIVIDUAL_FIELDS_INVALID", "个体字段校验未过（白名单外字段／必填缺失）", 422, { deltaUnknown, missing });
+    }
     const nextFm = { ...fm, ...(fields || {}), updated: new Date().toISOString() };
     const nextRaw = buildMarkdown(nextFm) + body;
     channel.writeVault(absPath, nextRaw, { expectedContentHash: currentRevision, summary: `个体更新（generic:update·${classId}）` });
