@@ -393,13 +393,6 @@ const articleRoutes = assembleDerivedRoutes({
 });
 const registerRoute = articleRoutes.bind;
 // WP-208（SPEC-100 批 2）：通用个体面——引擎＋generic:* 执行器＋路由注册（本体声明即接线）
-const individualCrudService = require("./services/ontology/individual-crud-service.cjs").createIndividualCrudService({
-  vaultPath,
-  logger,
-  loadFields: () => { const b = loadVocabBundle(vaultPath, { files: ["fields"] }); return b.files.fields; },
-});
-// 类绑定活解析（个体写低频——每次现读成本可接受，快照缓存注记同款先例）——单源闭包共用（引擎＋批 3 投影）
-require("./shared/individual-executors.cjs").registerIndividualExecutors({ service: individualCrudService, registerActionExecutor });
 // WP-210（SPEC-100 批 4）：派生 UI 配置闭包——字段中文走 fields.yaml v2 display 单源（未声明回退字段名）
 const individualsUiConfigFor = (classId) => {
   const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });
@@ -430,6 +423,13 @@ const individualsUiConfigFor = (classId) => {
     },
   };
 };
+const individualCrudService = require("./services/ontology/individual-crud-service.cjs").createIndividualCrudService({
+  vaultPath,
+  logger,
+  loadFields: () => { const b = loadVocabBundle(vaultPath, { files: ["fields"] }); return b.files.fields; },
+});
+// 类绑定活解析（个体写低频——每次现读成本可接受，快照缓存注记同款先例）——单源闭包共用（引擎＋批 3 投影）
+require("./shared/individual-executors.cjs").registerIndividualExecutors({ service: individualCrudService, registerActionExecutor, uiConfigFor: individualsUiConfigFor });
 require("./routes/individual-routes.cjs").register(registerRoute, { uiConfigFor: individualsUiConfigFor });
 // WP-211（SPEC-100 批 5）：权限点目录只读面（动作快照单源派生＋同源自证）
 require("./routes/permission-catalog-routes.cjs").register(registerRoute);

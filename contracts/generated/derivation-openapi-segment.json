@@ -498,6 +498,19 @@
         }
       }
     },
+    "/api/individuals/{classId}/config": {
+      "get": {
+        "operationId": "individuals.config",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        }
+      }
+    },
     "/api/individuals/{classId}/{individualId}": {
       "get": {
         "operationId": "individuals.read",
@@ -1157,5 +1170,5 @@
       }
     }
   },
-  "source_revision": "sha256:61f304e6102a685e09bd3a225f63a51d0fe86af9581e9696e71ebddc3c3219d0"
+  "source_revision": "sha256:e02d46af05f5bc3647096c4e6f52917f43ac6bc2af3ff1cfd4a8db8196b6ed50"
 }

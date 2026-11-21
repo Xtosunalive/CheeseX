@@ -1,6 +1,8 @@
 // WP-210（SPEC-100 批 4）：个体派生面视图——类选择→config 动态渲染表单/清单→创建/编辑/退役
 // 全链路走批 2 generic:* 通用面（单一执法点：后端按类绑定校验，前端只转述）。
 import { useCallback, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   createIndividual,
   fetchIndividual,
@@ -117,16 +119,16 @@ export function IndividualsView() {
       <div className="flex items-center gap-2">
         <label className="text-kg-xs text-text-hint">
           {INDIVIDUALS_COPY.CLASS_LABEL}
-          <input
+          <Input
             value={classIdInput}
             placeholder={INDIVIDUALS_COPY.CLASS_PLACEHOLDER}
             onChange={(event) => setClassIdInput(event.target.value)}
-            className="ml-2 h-8 w-64 rounded bg-surface-root px-3 text-xs text-text-main ring-1 ring-border-thin outline-none focus:ring-border-focus"
+            className="ml-2 h-8 w-64"
           />
         </label>
-        <button type="button" disabled={busy || !classIdInput.trim()} onClick={() => void loadClass(classIdInput.trim())} className="h-8 rounded px-3 text-xs ring-1 ring-border-thin">
+        <Button type="button" disabled={busy || !classIdInput.trim()} onClick={() => void loadClass(classIdInput.trim())}>
           {INDIVIDUALS_COPY.LOAD_BUTTON}
-        </button>
+        </Button>
       </div>
 
       {error && <p role="alert" className="whitespace-pre-line rounded-md bg-status-error-2 px-3 py-2 text-xs text-status-error ring-1 ring-status-error-6">{error}</p>}
@@ -138,15 +140,15 @@ export function IndividualsView() {
               <p className="mb-2 text-xs font-medium">{formMode.kind === "create" ? INDIVIDUALS_COPY.CREATE_TITLE : INDIVIDUALS_COPY.EDIT_TITLE}</p>
               <DerivedFieldForm fields={config.fields} values={formValues} onChange={(name, value) => setFormValues((prev) => ({ ...prev, [name]: value }))} disabled={busy} />
               <div className="mt-2 flex gap-2">
-                <button type="button" disabled={busy} onClick={() => void handleSave()} className="h-8 rounded bg-accent-bg px-3 text-xs">{INDIVIDUALS_COPY.SAVE_BUTTON}</button>
-                <button type="button" disabled={busy} onClick={() => { setFormMode(null); setFormValues({}); }} className="h-8 rounded px-3 text-xs ring-1 ring-border-thin">{INDIVIDUALS_COPY.CANCEL_BUTTON}</button>
+                <Button type="button" disabled={busy} onClick={() => void handleSave()}>{INDIVIDUALS_COPY.SAVE_BUTTON}</Button>
+                <Button type="button" variant="outline" disabled={busy} onClick={() => { setFormMode(null); setFormValues({}); }}>{INDIVIDUALS_COPY.CANCEL_BUTTON}</Button>
               </div>
             </div>
           )}
 
           {!formMode && (
             <div>
-              <button type="button" disabled={busy} onClick={() => { setFormValues({}); setFormMode({ kind: "create" }); }} className="h-8 rounded bg-accent-bg px-3 text-xs">{INDIVIDUALS_COPY.CREATE_BUTTON}</button>
+              <Button type="button" disabled={busy} onClick={() => { setFormValues({}); setFormMode({ kind: "create" }); }}>{INDIVIDUALS_COPY.CREATE_BUTTON}</Button>
             </div>
           )}
 

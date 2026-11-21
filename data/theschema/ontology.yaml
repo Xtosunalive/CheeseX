@@ -1109,6 +1109,11 @@ action_types:
     executor: generic:retire
     required_roles: []
     description: 通用个体退役（lifecycle_status 翻转，ADR-017）
+  individuals.config:
+    http_route: GET /api/individuals/:classId/config
+    executor: generic:config
+    required_roles: []
+    description: 个体派生 UI 配置（WP-213 红队 M1 动作化——服务端派生字段/中文绑定/必填/类型）
 
   schema.ontology.write:
     http_route: "PUT /api/schema/ontology"

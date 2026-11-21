@@ -8,7 +8,6 @@
 "use strict";
 
 const { executeAction } = require("../shared/action-execution-factory.cjs");
-const { sendJSON } = require("../shared/api-envelope.cjs");
 
 function register(registerRoute, deps = {}) {
   // 路径字面量逐条注册（contract-route-parity 静态扫描口径）——每条绑定对应动作
@@ -19,18 +18,7 @@ function register(registerRoute, deps = {}) {
   registerRoute("POST", "/api/individuals/:classId/:individualId/retire", (req, res) => executeAction({ actionId: "individuals.retire", executor: "generic:retire", request: req, reply: res }), "individuals.retire");
   // WP-210（SPEC-100 批 4·交付物②）：派生 UI 配置——服务端派生（字段名/中文 display/必填/类型），
   // 中文 display 走 fields.yaml v2 display 单源（未声明回退字段名并如实标注 declared:false）。
-  registerRoute("GET", "/api/individuals/:classId/config", (req, res) => {
-    try {
-      const classId = String((req.params && req.params.classId) || "");
-      if (!classId) throw Object.assign(new Error("classId 必填"), { code: "INVALID_CLASS_ID", status: 422 });
-      if (typeof deps.uiConfigFor !== "function") throw Object.assign(new Error("uiConfigFor 端口未装配"), { code: "INDIVIDUAL_CONFIG_UNAVAILABLE", status: 503 });
-      // sendJSON 自建信封——传裸数据即可（此前手包信封＝双层嵌套，客户端读空——WP-210 修）
-      return sendJSON(res, 200, deps.uiConfigFor(classId));
-    } catch (error) {
-      const status = error.status || 500;
-      return sendJSON(res, status, { error_code: error.code || "INTERNAL_ERROR", message: error.message });
-    }
-  });
+  registerRoute("GET", "/api/individuals/:classId/config", (req, res) => executeAction({ actionId: "individuals.config", executor: "generic:config", request: req, reply: res }), "individuals.config");
 }
 
 module.exports = { register };
