@@ -202,10 +202,11 @@ test("读时入口节流：静默窗与节流窗内重复读不重复检查", as
   const vaultPath = makeVault();
   try {
     const pipeline = makePipeline();
-    const { refresher, events } = makeRefresher(vaultPath, pipeline, { recheckIntervalMs: 80 });
+    const { refresher, events } = makeRefresher(vaultPath, pipeline, { recheckIntervalMs: 80, getCodeFingerprint: () => "test-code" });
     refresher.checkAndSchedule(); // 首读立基线
     refresher.checkAndSchedule();
     refresher.checkAndSchedule();
+    await new Promise((resolve) => setImmediate(resolve)); // WP-216/PR-056：读入口异步化（先刷代码指纹缓存再查）——让出一拍再断言
     const baselines = events.filter((e) => e.event === "graph-drift-baseline-established");
     assert.equal(baselines.length, 1, "节流窗内连读只查一次");
     await sleep(60);

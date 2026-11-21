@@ -38,7 +38,7 @@
 const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
-const { execSync } = require("node:child_process");
+const { runCommand } = require("../../shared/async-exec.cjs"); // PR-056：server 禁同步子进程——git 取值走异步
 const { listManifestSources, sourceExists } = require("../article-workflow/article-manifest-paths.cjs");
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..", "..");
@@ -87,17 +87,28 @@ function createGraphDriftRefresher({ vaultPath, store, pipeline, logger, quietMs
     return process.env.GRAPH_DRIFT_REFRESH !== "0";
   }
 
-  /** WP-216：代码指纹取值（默认 git 子树哈希——内容寻址零人工 bump；注入面供测试）。
-   *  fail-open：git 不可用/非 git 环境 → null（未知不触发）。 */
-  function readCodeFingerprint() {
+  /** WP-216：代码指纹取值。默认 git 子树哈希（内容寻址零人工 bump；PR-056 合规——git 经
+   *  async-exec 异步取值写缓存，入口先刷后查；注入面同步直取供测试）。fail-open：git 不可用/
+   *  非 git 环境 → null（未知不触发）。 */
+  let cachedCodeFingerprint = null;
+  let codeRefreshInFlight = null;
+  function refreshCodeFingerprint() {
+    if (getCodeFingerprint) return Promise.resolve(); // 注入面：currentCodeFingerprint 同步直取，无需缓存
+    if (codeRefreshInFlight) return codeRefreshInFlight;
+    codeRefreshInFlight = runCommand("git", ["rev-parse", "HEAD:scripts/vault-py", "HEAD:scripts/vault-runtime"], { cwd: REPO_ROOT })
+      .then((result) => {
+        const parts = String(result.stdout || "").trim().split(/\s+/).filter(Boolean);
+        cachedCodeFingerprint = parts.length === 2 ? parts.join("+") : null;
+      })
+      .catch(() => { cachedCodeFingerprint = null; })
+      .finally(() => { codeRefreshInFlight = null; });
+    return codeRefreshInFlight;
+  }
+  function currentCodeFingerprint() {
     if (getCodeFingerprint) {
       try { return getCodeFingerprint(); } catch { return null; }
     }
-    try {
-      const out = execSync("git rev-parse HEAD:scripts/vault-py HEAD:scripts/vault-runtime", { cwd: REPO_ROOT, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] });
-      const parts = out.trim().split(/\s+/).filter(Boolean);
-      return parts.length === 2 ? parts.join("+") : null;
-    } catch { return null; }
+    return cachedCodeFingerprint;
   }
 
   /** WP-216：产物身份取值（main.cjs 注入 read-model-port 现成组件；未注入＝能力降级不触发）。
@@ -118,7 +129,7 @@ function createGraphDriftRefresher({ vaultPath, store, pipeline, logger, quietMs
    *  账本一致而派生库同步哈希不符——库坏 staging 好，幂等重摄取即愈）。账本无产物身份（v2 旧
    *  基线/空库期）＝未知，不判定。 */
   function evaluateSelfHeal(baseline) {
-    const codeNow = readCodeFingerprint();
+    const codeNow = currentCodeFingerprint();
     const codeChanged = baseline.code != null && codeNow != null && codeNow !== baseline.code;
     let artifactIssue = null;
     const recorded = baseline.artifact;
@@ -167,7 +178,7 @@ function createGraphDriftRefresher({ vaultPath, store, pipeline, logger, quietMs
   function writeBaseline(files, stamps) {
     const s = stamps || {};
     const entry = { v: 3, files: Object.fromEntries(files) };
-    entry.code = s.code !== undefined ? s.code : readCodeFingerprint();
+    entry.code = s.code !== undefined ? s.code : currentCodeFingerprint();
     const art = s.artifact !== undefined ? s.artifact : readArtifactIdentity();
     entry.artifact = art && (art.graph != null || art.derived != null) ? { graph: art.graph ?? null, derived: art.derived ?? null } : null;
     kv.put(KV_BASELINE, JSON.stringify(entry));
@@ -351,7 +362,10 @@ function createGraphDriftRefresher({ vaultPath, store, pipeline, logger, quietMs
     if (quietTimer) clearTimeout(quietTimer);
     quietTimer = setTimeout(() => {
       quietTimer = null;
-      try { check(reason); } catch (error) { log.warn({ event: "graph-drift-check-crashed", error: error.message }); }
+      // WP-216/PR-056：先异步刷代码指纹缓存（真实 git 路径；失败兜 null＝fail-open）再检查
+      refreshCodeFingerprint()
+        .catch(() => {})
+        .then(() => { try { check(reason); } catch (error) { log.warn({ event: "graph-drift-check-crashed", error: error.message }); } });
     }, quietMs);
     if (typeof quietTimer.unref === "function") quietTimer.unref();
   }
@@ -373,7 +387,11 @@ function createGraphDriftRefresher({ vaultPath, store, pipeline, logger, quietMs
     if (!enabled()) return;
     if (quietTimer) return; // 已有静默窗在途，事件会覆盖本次读
     if (Date.now() - lastCheckAt < recheckIntervalMs) return;
-    try { check("read-time"); } catch (error) { log.warn({ event: "graph-drift-check-crashed", error: error.message }); }
+    lastCheckAt = Date.now(); // 调度即占节流窗（检查本身异步化，防在途窗口内重复调度）
+    // WP-216/PR-056：读路径不阻塞——异步刷代码指纹缓存后检查（失败兜 null＝fail-open）
+    refreshCodeFingerprint()
+      .catch(() => {})
+      .then(() => { try { check("read-time"); } catch (error) { log.warn({ event: "graph-drift-check-crashed", error: error.message }); } });
   }
 
   /** 管线成功摄取后记基线（main.cjs post-run 钩子接线；再清一次孤儿行）。PR-307：全树内容哈希；
