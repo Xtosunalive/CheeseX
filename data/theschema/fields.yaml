@@ -27,6 +27,53 @@ keys:
   article:
     primary: article_id
     display: title
+  # WP-214（批 A 照准落纸）：13 骨架类身份三键——keys-only 登记（零手工字段，不进 classes 段；
+  # 实例非 frontmatter 文档，主键语义随各源登记册：词表键/系统铸造 id/归一化路径）
+  Document:
+    primary: source_file
+    display: title
+    incremental: updated
+  System:
+    primary: architecture-node-id
+    display: name
+    incremental: updated
+  Concept:
+    primary: architecture-node-id
+    display: title
+    incremental: updated
+  BusinessDomain:
+    primary: id
+    display: name
+  Subdomain:
+    primary: id
+    display: name
+  Product:
+    primary: id
+    display: name
+    incremental: updated
+  ProductVersion:
+    primary: id
+    display: name
+  Team:
+    primary: id
+    display: name
+    incremental: updated
+  Module:
+    primary: id
+    display: name
+  Plate:
+    primary: id
+    display: name
+  business_object:
+    primary: id
+    display: name
+    incremental: updated
+  config_object:
+    primary: id
+    display: name
+  runtime_view:
+    primary: id
+    display: name
 classes:
   FaqCard:
     properties:

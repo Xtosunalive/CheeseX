@@ -30,6 +30,45 @@
         },
         "faq_card": {
           "$ref": "#/$defs/classKeys"
+        },
+        "Document": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "System": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "Concept": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "BusinessDomain": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "Subdomain": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "Product": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "ProductVersion": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "Team": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "Module": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "Plate": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "business_object": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "config_object": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "runtime_view": {
+          "$ref": "#/$defs/classKeys"
         }
       },
       "additionalProperties": false

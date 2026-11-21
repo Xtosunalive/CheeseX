@@ -68,6 +68,16 @@ describe("IndividualsView（派生面）", () => {
     await waitFor(() => expect(screen.getByText(/空数据态合法/)).toBeDefined());
   });
 
+  it("类管理地图渲染：四族×管理面×通道一处看全", async () => {
+    api.fetchIndividualConfig.mockResolvedValue(config);
+    api.fetchIndividualList.mockResolvedValue({ success: true, data: [] });
+    render(<IndividualsView />);
+    expect(screen.getByText(/类管理地图/)).toBeDefined();
+    expect(screen.getByText(/内容族/)).toBeDefined();
+    expect(screen.getByText(/知识文章/)).toBeDefined();
+    expect(screen.getByText(/派生面新增/)).toBeDefined();
+  });
+
   it("后端错误透传（fail-loud——后端为单一执法点）", async () => {
     api.createIndividual.mockResolvedValue({ success: false, data: null });
     await loadClass();

@@ -809,6 +809,11 @@
       "a": "src/features/entity-compliance/EntityComplianceView.tsx#EntityComplianceView",
       "b": "src/features/individuals/IndividualsView.tsx#IndividualsView",
       "score": 0.8910433979686058
+    },
+    {
+      "a": "src/features/individuals/IndividualsView.tsx#IndividualsView",
+      "b": "src/test/architecture-projection/architecture-projection-visual-fixture.tsx#VisualFixture",
+      "score": 0.701010101010101
     }
   ]
 }

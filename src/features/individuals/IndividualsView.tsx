@@ -11,7 +11,7 @@ import {
   retireIndividual,
   updateIndividual,
 } from "./individuals-api";
-import { INDIVIDUALS_COPY } from "./individuals-copy";
+import { CLASS_MANAGEMENT_MAP, INDIVIDUALS_COPY } from "./individuals-copy";
 import type { IndividualListItem, IndividualUiConfig } from "./individuals-types";
 import { DerivedFieldForm } from "./components/DerivedFieldForm";
 import { DerivedIndividualsTable } from "./components/DerivedIndividualsTable";
@@ -115,6 +115,23 @@ export function IndividualsView() {
         <h2 className="text-sm font-medium text-text-main">{INDIVIDUALS_COPY.VIEW_TITLE}</h2>
         <p className="text-xs text-text-hint">{INDIVIDUALS_COPY.VIEW_HINT}</p>
       </div>
+
+      {/* WP-214 类管理地图：四族×管理面×通道——入口层"各在哪管"一处看全（机制层已统一，语义层按类分治） */}
+      <details className="rounded-lg bg-surface-root ring-1 ring-border-thin">
+        <summary className="cursor-pointer select-none px-3 py-2 text-kg-xs text-text-hint">{INDIVIDUALS_COPY.MAP_SUMMARY}</summary>
+        <div className="space-y-3 px-3 pb-3">
+          {CLASS_MANAGEMENT_MAP.map((group) => (
+            <div key={group.family}>
+              <p className="text-xs font-medium text-text-main">{group.family}</p>
+              {group.rows.map((row) => (
+                <p key={row.cls} className="mt-1 text-kg-xs leading-5 text-text-hint">
+                  <span className="font-medium text-text-main">{row.cls}</span>：{row.surface}（{row.channel}）
+                </p>
+              ))}
+            </div>
+          ))}
+        </div>
+      </details>
 
       <div className="flex items-center gap-2">
         <label className="text-kg-xs text-text-hint">
