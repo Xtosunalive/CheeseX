@@ -132,6 +132,15 @@ function createIndividualProjectionService({ vaultPath, db, logger, bindingsReso
         if (!seen.has(id)) db.prepare(`DELETE FROM ${table} WHERE individual_id = ?`).run(id);
       }
     }
+    // WP-213（红队 R1 补口）：类目录已删的整表孤儿——individuals_* 表逐表对账，
+    // 目录不存在即整表剪除（投影可丢弃语义，重建由 ensureSchema 按需再生）。
+    for (const row of db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'individuals_%'").all()) {
+      const cls = row.name.replace(/^individuals_/, "");
+      if (!fs.existsSync(path.join(fsRoot, cls))) {
+        db.exec(`DROP TABLE IF EXISTS ${row.name}`); // 整表剪除（投影可丢弃；类回归时 ensureSchema 按需再生）
+        log.info({ event: "individual-projection-orphan-table-pruned", table: row.name });
+      }
+    }
     if (log) log.info({ event: "individual-projection-rebuilt", classes, rows });
     return { classes, rows };
   }

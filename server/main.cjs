@@ -434,7 +434,6 @@ require("./routes/individual-routes.cjs").register(registerRoute, { uiConfigFor:
 // WP-211（SPEC-100 批 5）：权限点目录只读面（动作快照单源派生＋同源自证）
 require("./routes/permission-catalog-routes.cjs").register(registerRoute);
 const individualBindingsResolver = (classId) => {
-  if (process.env.WP212_DEBUG) console.log('[dbg] resolver classId =', JSON.stringify(classId).slice(0, 80));
   const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
   const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });
   return resolveClassInheritance(readOntology(vaultPath).data, classId, fieldsBundle.files.fields.data);
