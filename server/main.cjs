@@ -431,6 +431,8 @@ const individualsUiConfigFor = (classId) => {
   };
 };
 require("./routes/individual-routes.cjs").register(registerRoute, { uiConfigFor: individualsUiConfigFor });
+// WP-211（SPEC-100 批 5）：权限点目录只读面（动作快照单源派生＋同源自证）
+require("./routes/permission-catalog-routes.cjs").register(registerRoute);
 const individualBindingsResolver = (classId) => {
   const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
   const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });

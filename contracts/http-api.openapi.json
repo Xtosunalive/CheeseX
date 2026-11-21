@@ -17114,6 +17114,21 @@
             "type": "object"
           }
         }
+      },
+      "PermissionCatalogErrorResponse": {
+        "type": "object",
+        "description": "WP-211 权限点目录面错误（同源对账失败即 500 当场红）",
+        "properties": {
+          "error_code": {
+            "type": "string",
+            "enum": [
+              "PERMISSION_CATALOG_MISMATCH"
+            ]
+          },
+          "details": {
+            "type": "object"
+          }
+        }
       }
     }
   },
@@ -29844,6 +29859,103 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/permissions/catalog": {
+      "get": {
+        "summary": "权限点目录（WP-211／SPEC-100 批 5·交付物④）",
+        "description": "动作注册快照派生（approved 动作：actionId/路由/required_roles/载荷敏感升级）＋route-roles 静态车道分列——单一事实源只读目录，内建同源自证（目录与运行时角色门不一致即 500）。",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope_Data"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "generatedFrom": {
+                              "type": [
+                                "string",
+                                "null"
+                              ]
+                            },
+                            "actions": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "actionId": {
+                                    "type": "string"
+                                  },
+                                  "httpRoute": {
+                                    "type": [
+                                      "string",
+                                      "null"
+                                    ]
+                                  },
+                                  "requiredRoles": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  },
+                                  "payloadRoleOverrides": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "object"
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            "staticRoutes": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "route": {
+                                    "type": "string"
+                                  },
+                                  "requiredRoles": {
+                                    "type": "array",
+                                    "items": {
+                                      "type": "string"
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "同源对账失败（目录失真当场红）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PermissionCatalogErrorResponse"
                 }
               }
             }
