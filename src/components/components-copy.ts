@@ -246,8 +246,6 @@ export const PIPELINE_PANEL_COPY = {
   STATE_UNKNOWN: "状态未知",
   RUNNING_REBUILD: "正在执行完整图谱重建",
   RUNNING_DIAGNOSTIC: "正在执行全局管道诊断",
-  DIAGNOSTIC_TITLE: "只读诊断：不重写图。排查图谱为何未更新——内容阻断会汇入待处理问题",
-  DIAGNOSTIC: "诊断",
   OPEN_PENDING_ISSUES: `打开${TERM.PENDING_ISSUES}`,
 } as const;
 

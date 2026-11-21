@@ -1,4 +1,4 @@
-import { ArrowRight, LoaderCircle, Play, Square, Terminal } from "lucide-react";
+import { ArrowRight, LoaderCircle, Square, Terminal } from "lucide-react";
 import { PIPELINE_RUN_ACTION } from "@/lib/pipeline-api";
 import { usePipelineStore } from "@/lib/pipeline-store";
 import { TERM } from "@/constants/term-const";
@@ -14,17 +14,17 @@ function statusText() {
 }
 
 /**
- * 图谱管道浮层（WP-146 件1 ＋ 2026-11-22 Master 裁「现在就删」）：
- * ① 唯一交互＝只读诊断（主按钮，直执行零副作用）；
- * ② 重建按钮已退役：日常由自动链路覆盖（源增量＋代码升级/产物丢失自愈〔WP-216〕），维修通道
- *    保留在 POST /api/pipeline/rebuild 路由（断路器人工出口＋resume 宿主），不再占 UI；
- * ③ 自动触发的重建（purpose=article_graph）运行中仍以 RUNNING_REBUILD 文案如实展示＋可取消。
+ * 图谱管道浮层（纯状态面板——2026-11-22 Master 连裁「现在就删」×2）：
+ * ① 重建与诊断按钮均已退役：日常由自动链路覆盖（源增量＋代码升级/产物丢失自愈〔WP-216〕）；
+ *    「图谱为何未更新」由本面板管道状态＋运行日志如实呈现，内容阻断由服务端链路汇入待处理问题；
+ * ② 维修通道保留在路由层：POST /api/pipeline/rebuild（断路器人工出口＋resume 宿主）与
+ *    POST /api/pipeline/run（同步流等服务端消费者）；
+ * ③ 运行中（自愈/服务端触发的重建或诊断）仍如实展示运行文案＋可取消。
  */
 export function PipelinePanel() {
   const job = usePipelineStore((state) => state.job);
   const loading = usePipelineStore((state) => state.status === "loading");
   const error = usePipelineStore((state) => state.error);
-  const startRun = usePipelineStore((state) => state.startRun);
   const cancel = usePipelineStore((state) => state.cancel);
   const running = job?.state === "running" || job?.state === "cancelling";
   const rebuilding = running && job?.purpose === "article_graph";
@@ -37,13 +37,9 @@ export function PipelinePanel() {
           <h2 className="text-sm font-semibold text-text-main">{TERM.GRAPH_PIPELINE}</h2>
           <p className="mt-1 truncate font-mono text-xs text-text-hint">{statusText()}</p>
         </div>
-        {running ? (
+        {running && (
           <button type="button" onClick={() => void cancel()} disabled={loading} className="inline-flex h-8 items-center gap-1.5 rounded-md px-2.5 text-xs text-status-error ring-1 ring-status-error-6 hover:bg-red-3 disabled:opacity-40">
             <Square className="h-4 w-4" />{TERM.CANCEL_ACTION}
-          </button>
-        ) : (
-          <button type="button" aria-label={TERM.RUN_PIPELINE_DIAGNOSTIC_ACTION} title={PIPELINE_PANEL_COPY.DIAGNOSTIC_TITLE} onClick={() => void startRun("diagnostic")} disabled={loading} className="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent-base px-3 text-xs font-medium text-accent-contrast transition-colors hover:bg-accent-bg-strong disabled:opacity-40">
-            <Play className="h-4 w-4" />{PIPELINE_PANEL_COPY.DIAGNOSTIC}
           </button>
         )}
       </div>

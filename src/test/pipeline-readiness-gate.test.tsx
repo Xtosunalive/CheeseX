@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { GlobalPipelineControl } from "@/components/pipeline/GlobalPipelineControl";
 import { cancelPipeline, fetchPipelineStatus, rebuildPipeline, runPipeline, type PipelineJob } from "@/lib/pipeline-api";
 import { usePipelineStore } from "@/lib/pipeline-store";
@@ -30,30 +30,19 @@ describe("Pipeline readiness gate", () => {
     expect(await screen.findByRole("dialog", { name: TERM.GRAPH_PIPELINE })).toHaveTextContent("尚未运行");
   }
 
-  it("starts global diagnosis even when content blockers may exist", async () => {
+  it("diagnostic entry is retired from UI too — panel is status-only; channel stays at POST /api/pipeline/run (2026-11-22 Master「诊断按钮功能为什么还在」)", async () => {
     await openPanel();
-    // ADR063 双模式：默认档=只读诊断（WP-146 件1：只读诊断升主按钮，直执行无阻断确认）
-    fireEvent.click(screen.getByRole("button", { name: TERM.RUN_PIPELINE_DIAGNOSTIC_ACTION }));
-    await waitFor(() => expect(runPipeline).toHaveBeenCalledOnce());
-    expect(await screen.findByText("运行中 · 阶段 1")).toBeInTheDocument();
-  });
-
-  it("runs the read-only diagnosis directly without a blocking confirmation (WP-146 件1)", async () => {
-    await openPanel();
-    fireEvent.click(screen.getByRole("button", { name: TERM.RUN_PIPELINE_DIAGNOSTIC_ACTION }));
-    await waitFor(() => expect(runPipeline).toHaveBeenCalledOnce());
-    expect(screen.queryByText(/内容阻断不会拒绝诊断，也不会自动批准文章或发布图谱/)).not.toBeInTheDocument();
-    expect(await screen.findByText("运行中 · 阶段 1")).toBeInTheDocument();
+    // 诊断按钮退役：面板纯状态化——「图为何未更新」由管道状态＋日志呈现，阻断由服务端链路汇入待处理问题
+    expect(screen.queryByRole("button", { name: TERM.RUN_PIPELINE_DIAGNOSTIC_ACTION })).not.toBeInTheDocument();
+    expect(runPipeline).not.toHaveBeenCalled();
   });
 
   it("rebuild entry is retired from UI — no rebuild button/confirmation; channel stays at POST /api/pipeline/rebuild (2026-11-22 Master「现在就删」)", async () => {
     await openPanel();
-    // 重建按钮与确认卡退役：日常走自愈链路（WP-216），维修通道保留在 rebuild 路由，UI 只留只读诊断
+    // 重建按钮与确认卡退役：日常走自愈链路（WP-216），维修通道保留在 rebuild 路由
     expect(screen.queryByRole("button", { name: TERM.RUN_FULL_GRAPH_PIPELINE_ACTION })).not.toBeInTheDocument();
     expect(screen.queryByText(/完整重建将全量重跑管道并重写工作投影/)).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "确认重建" })).not.toBeInTheDocument();
-    // 诊断主按钮仍在
-    expect(screen.getByRole("button", { name: TERM.RUN_PIPELINE_DIAGNOSTIC_ACTION })).toBeInTheDocument();
     expect(rebuildPipeline).not.toHaveBeenCalled();
   });
 
