@@ -185,7 +185,7 @@ def _doc_envelope_md_docs_under(prefix, skip_dir_names=(), skip_dot_dirs=False):
 # kb_paths.staging_dir（A 类 symlink→cheeseh-runtime 快照，含本函数）。此前本地独立实现为
 # 五份散布推导之一（wave-2 漏改点族温床）；收敛后与 runner/generate-sa/状态库同一入口，
 # 搬家只改 kb_paths 一处。目录创建职责保留在此（写方语义，单源只管地址）。
-from kb_paths import staging_dir as _staging_dir_src
+from kb_paths import staging_dir as _staging_dir_src, ledger_dir as _ledger_dir_src
 
 
 def _staging_dir():
@@ -208,8 +208,10 @@ from article_admission_manifest import load_admitted_precleaned_paths
 from identity_map import IdentityMap
 
 # WP-215（PR-339／D-3 A）：图节点稳定身份映射——product/version/doc-fallback 不再拼名造号。
-# 映射住 staging/identity_map.json（与 master_graph.json 同属抽取输出族；I4：身份键不入指纹）。
-IDENTITY_MAP = IdentityMap(_STAGING)
+# 住址＝vault .ledger/identity_map.json（kb_paths.ledger_dir 单源）——身份账本族：
+# 铸造事实不可再生，不随 staging 派生物清空陪葬（WP-170 DR 不变量「删库重建产物一致」
+# 实测裁定；合同 wiring.sink 原定住所，批1 误安家 staging 已自纠）。I4：身份键不入指纹。
+IDENTITY_MAP = IdentityMap(_ledger_dir_src())
 
 ADMISSION_COORDINATES = {}
 

@@ -5,9 +5,11 @@
 （Node 侧 entity-identity-mint.cjs 用内建 randomUUID 同源；本仓不引 UUID 库、
 不自写 v7 编码器——SPEC-046 §六在册；Python 侧＝stdlib uuid.uuid4，零新依赖）。
 
-持久化：``<staging>/identity_map.json``（与 master_graph.json 同属抽取输出族）。
-I4 纪律：身份键不入任何指纹/增量比对输入——本文件只被本模块读写，
-抽取指纹面只扫 vault .md，天然不含身份键。
+持久化：``<vault>/.ledger/identity_map.json``（kb_paths.ledger_dir 单源——**身份账本族，
+不是派生物**：铸造事实不可再生，必须与 .ledger 决策流水同面留存；WP-170 故障恢复
+不变量实测裁定——staging 全清后 boot 全量重建产物必须一致，映射若住 staging 会被
+轮间清空陪葬、铸造号漂移）。I4 纪律：身份键不入任何指纹/增量比对输入——本文件只被
+本模块读写，抽取指纹面只扫 vault .md，天然不含身份键。
 
 改名退出通道（D-1 裁 B＝replaced_by 生命周期退出，PR-229④ 闭合）：
 产品改名经注册表既有别名机制（product_aliases 旧名→新名）声明；解析侧拿到

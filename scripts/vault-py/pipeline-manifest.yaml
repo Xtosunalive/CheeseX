@@ -102,7 +102,7 @@ scripts:
       - {path: "$KB_VAULT/.pipeline/intermediates/merged_edges.json", format: json, desc: "多源推断合并边"}
     writes:
       - {path: "$KB_VAULT/.ledger/master_graph.json", format: json, sovereignty: exclusive}
-      - {path: "$KB_VAULT/.ledger/identity_map.json", format: json, sovereignty: exclusive, note: "WP-215 图节点稳定身份映射（实际落盘与 master_graph 同目录＝$KB_DATA_DIR/staging/identity_map.json；I4：身份键不入指纹）"}
+      - {path: "$KB_VAULT/.ledger/identity_map.json", format: json, sovereignty: exclusive, note: "WP-215 图节点稳定身份映射——身份账本族（非派生物，随 .ledger 流水面留存；kb_paths.ledger_dir 单源；I4：身份键不入指纹）"}
       - {path: "$KB_VAULT/.ledger/master_graph.db", format: sqlite, sovereignty: exclusive, table: document_index}
       - {path: "$KB_VAULT/.ledger/extract_manifest.json", format: json, sovereignty: exclusive}
       - {path: "$KB_VAULT/.ledger/extract_change_logs/change_*.json", format: json, sovereignty: exclusive}
