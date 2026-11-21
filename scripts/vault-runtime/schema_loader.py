@@ -422,7 +422,7 @@ def resolve_product_identity(raw):
 
 
 def product_registry_identity(canonical):
-    """产品注册表显式身份（WP-215 D-3 A「人给就沿用」通道）：versions.yaml 产品条目
+    """产品注册表显式身份（WP-215 D-3 A「人给就沿用」通道）：词表注册产品条目
     可选 identity 字段＝人给的不透明身份号，最高权威；未给＝空串（调用方走铸造映射）。
     读侧只读不写——注册表写仍走 TheSchema 统一写门（SPEC-021）。"""
     entry = (_load_versions_registry().get("products") or {}).get(str(canonical or "").strip())

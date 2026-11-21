@@ -88,7 +88,7 @@ class IdentityMap:
     def product_id(self, canonical: str, via_name: str = "", registry_identity: str = "") -> str:
         """产品稳定身份。canonical＝resolve_product_identity 归一后的规范名；
         via_name＝解析前原文（别名/旧名信号）；registry_identity＝注册表显式身份
-        （versions.yaml 产品条目可选 identity 字段，人给即权威）。"""
+        （词表注册产品条目可选 identity 字段，人给即权威）。"""
         canonical = str(canonical or "").strip()
         if not canonical:
             return ""
