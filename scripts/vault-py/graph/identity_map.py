@@ -130,6 +130,25 @@ class IdentityMap:
         self.dirty = True
         return new_id
 
+    def apply_alias_renames(self, alias_pairs) -> None:
+        """注册表别名＝改名声明（D-1 B）——每轮抽取前按别名对预迁移，顺序无关。
+
+        动机：改名后文章可能已先改成新名（via 信号消失），仅靠查询侧 via 检测接不住；
+        以别名对（旧名→新名）为声明源 proactive 迁移：旧名在册而新名缺位 → 同身份迁移。
+        幂等：新名已在册（迁过）即无操作；旧名不在册同理。pairs 形态＝
+        architecture_projection.product_aliases（{旧名: 新名}）。"""
+        for old, new in dict(alias_pairs or {}).items():
+            old, new = str(old).strip(), str(new).strip()
+            if not old or not new or old == new:
+                continue
+            prods = self.data["products"]
+            if old in prods and prods[old].get("id") and new not in prods:
+                same_id = prods[old]["id"]
+                prods[new] = {"id": same_id, "renamedFrom": old, "migratedAt": _now()}
+                del prods[old]
+                self.data["renames"].append({"from": old, "to": new, "at": _now()})
+                self.dirty = True
+
     # ── 文档路径 fallback 身份（D-2 B：保留＋sha16 精确迁移） ──
 
     def doc_id(self, rel_path: str, sha256_hex: str = "", current_paths=None) -> tuple[str, str]:

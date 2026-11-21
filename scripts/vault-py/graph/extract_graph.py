@@ -1780,6 +1780,12 @@ def extract_document_nodes(arch_node_ids, name_to_id, concept_names, old_doc_pro
             for _fname, _kb_rel, _doc in _dir_docs:
                 managed_doc_paths.add(_kb_rel)
 
+    # WP-215（D-1 B）：注册表别名＝改名声明——每轮抽取前按别名对预迁移（顺序无关：
+    # 文章先改新名或后改，身份都由本步兜住；迁移幂等，无对应在册旧名时为无操作）。
+    IDENTITY_MAP.apply_alias_renames(
+        (schema_loader.architecture_projection() or {}).get("product_aliases") or {}
+    )
+
     for scan_dir in scan_dirs:
         # WP-117 批2：遍历面改信封过滤——七根各按原根前缀过滤（原 os.walk 口径：剪 .git/.obsidian/
         # Attachments 目录名〔任意层〕；根缺失＝空清单与原 isdir 跳过同形；准入模式 precleaned

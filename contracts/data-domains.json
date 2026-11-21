@@ -96,7 +96,7 @@
       "data_owner": "应用——同步器为唯一写者；①类是数据源头但不直接写本库",
       "writers": [
         "server/shared/persistence/derived-index-store.cjs（唯一 SQL 网关——三库族行级写入单源）",
-        "scripts/vault-py/graph/extract_graph.py:2418（W1 迁仓后 B 类网关：master_graph.db document_index 直写＋data/staging 投影产出——vault 侧旧位已退役＝旧地址停用，库本身未退役、随 SPEC-012 wave-2 迁 repo 侧 data/；ADR-011/SPEC-025 C1）",
+        "scripts/vault-py/graph/extract_graph.py:2418（W1 迁仓后 B 类网关：master_graph.db document_index 直写＋data/staging 投影产出——vault 侧旧位已退役＝旧地址停用，库本身未退役、随 SPEC-012 wave-2 迁 repo 侧 data/；ADR-011/SPEC-025 C1）；WP-215（PR-339）追加产出 data/staging/identity_map.json（图节点稳定身份映射——product/version/doc-fallback 拼名造号退役，首见铸 UUIDv4 持久〔WP-113 v4 口径〕，改名经 product_aliases 声明同身份迁移〔D-1 B replaced_by 退出〕，文档移动按内容 sha16 精确匹配自动迁移〔D-2 B〕；I4：身份键不入指纹）",
         "scripts/vault-runtime/generate-sa.py（PR-082：SA/layout 派生槽生产者——data/staging/sa/ 投影产出，经 graph-artifact-ingest 摄入；身份可选，元层态合法）"
       ],
       "write_protocol": "库级唯一 SQL 网关＝derived-index-store.cjs（唯一实现口径——调用方经网关 API 写入不入 writers，运行时写者由回执回答）；族级写者各自单源：enums 试点＝derived-index-synchronizer（boot 全量/通道挂钩/watcher external 三源）、article-manifests＝article-manifest-service＋batch-service（boot rebuild＋管线完成钩）、图族原文行＝graph-artifact-ingest（staging 摄取 boot＋完成钩双点）、edge 行级投影＝edge-projection-service（EDGE-RELATION-GOV-001：boot/图族摄取钩重建，经网关 graphProjection.replaceAll 单事务替换——先删 edges 后删 graph_nodes；投影层断链单边跳过＋warn，edges 双 FK REFERENCES graph_nodes ON DELETE CASCADE 物理兜底（迁移 0006，PR-100/WP-008）；contentHash 落 derived_kv 键 edge-projection:content-hash）；edge 读面＝shared/edge-query（阶段 3：出链/反链/有向邻域，SQL 全经网关方向查询 edgesFrom/edgesTo，模块零连接点）；master_graph.db 由 extract_graph.py 直写（document_index 字节工件，DELETE 全清重灌）；可丢弃、boot 全量重建；同步失败 fail-open（旧索引＋stale 标记不阻断主链路）；删库零数据损失（与①内容哈希对账）；W1 起（SPEC-025）：图谱管线代码归仓 scripts/vault-py/graph/（extract_graph 三件），boot 挂钩扩容中（D2），空配置降级运行（D3）；图族原文行字节锚（PR-104/WP-013）：artifacts.put 网关写时落 content_hash（sha256 与管线指纹同口径，迁移 0007），存量行随下次摄取覆写回填，hashOf 读面；graphProjection.listNodeIds 读面供装配取图域校验集（PR-102 哑键根治——调用点不再手工映射行字段名）；WP-020：article_manifests.put 行级形状守卫（manifestKey 必填＋与行键一致性断言——ROW_SCHEMA_VIOLATION fail-closed）",
@@ -138,8 +138,8 @@
         "scripts/e2e/__tests__/build-e2e-vault-vocab.test.cjs"
       ],
       "register_entry": "docs/plans/problem-register.md#PR-059",
-      "last_updated": "2026-11-08",
-      "note": "2026-10-26 WP-020 沉淀：P11 双许可对照样板（manifests.put key↔manifestKey 一致性断言）"
+      "last_updated": "2026-11-21",
+      "note": "2026-10-26 WP-020 沉淀：P11 双许可对照样板（manifests.put key↔manifestKey 一致性断言）｜2026-11-21 WP-215 净新增：staging identity_map.json 产物＋图节点身份铸造/迁移规则（ADR-016 §二 落地——细节见 extract_graph 写者行）"
     },
     {
       "id": "runtime-state-data",
