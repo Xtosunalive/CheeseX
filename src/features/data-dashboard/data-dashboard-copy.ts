@@ -122,7 +122,7 @@ export const LOCAL_GRAPH_COPY = {
   ZOOM_OUT: "缩小",
   FIT_VIEW: "适配视口",
   EMPTY_TITLE: "图谱暂无内容",
-  EMPTY_DESCRIPTION: "还没有文件节点入图——完成投稿准入或重建图谱后，这里会随文件实时展示。",
+  EMPTY_DESCRIPTION: "还没有文件节点入图——完成投稿准入后，这里会随文件实时展示。",
   DETAIL_HEADING: "选中明细",
   DETAIL_HINT: "点击图中任一节点查看它的关系明细",
   CLEAR_SELECTION: "清除选中",

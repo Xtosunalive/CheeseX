@@ -46,18 +46,15 @@ describe("Pipeline readiness gate", () => {
     expect(await screen.findByText("运行中 · 阶段 1")).toBeInTheDocument();
   });
 
-  it("asks rebuild-specific confirmation with error-level visuals before a full --force rebuild (ADR063 + WP-146 件1)", async () => {
+  it("rebuild entry is retired from UI — no rebuild button/confirmation; channel stays at POST /api/pipeline/rebuild (2026-11-22 Master「现在就删」)", async () => {
     await openPanel();
-    // 重建档收进「进阶操作」折叠区（jsdom 中 details 收起内容仍可查询）
-    fireEvent.click(screen.getByRole("button", { name: TERM.RUN_FULL_GRAPH_PIPELINE_ACTION }));
-    expect(screen.getByText(/完整重建将全量重跑管道并重写工作投影/)).toBeInTheDocument();
-    expect(screen.getByText(/来源为空时将重建为空投影/)).toBeInTheDocument();
-    const confirmButton = screen.getByRole("button", { name: "确认重建" });
-    // 险级视觉分离：重建确认钮=error 险级（bg-status-error 系），不再是 warn 同款
-    expect(confirmButton).toHaveClass("bg-status-error-3", "text-status-error");
-    fireEvent.click(confirmButton);
-    await waitFor(() => expect(rebuildPipeline).toHaveBeenCalledOnce());
-    expect(runPipeline).not.toHaveBeenCalled();
+    // 重建按钮与确认卡退役：日常走自愈链路（WP-216），维修通道保留在 rebuild 路由，UI 只留只读诊断
+    expect(screen.queryByRole("button", { name: TERM.RUN_FULL_GRAPH_PIPELINE_ACTION })).not.toBeInTheDocument();
+    expect(screen.queryByText(/完整重建将全量重跑管道并重写工作投影/)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "确认重建" })).not.toBeInTheDocument();
+    // 诊断主按钮仍在
+    expect(screen.getByRole("button", { name: TERM.RUN_PIPELINE_DIAGNOSTIC_ACTION })).toBeInTheDocument();
+    expect(rebuildPipeline).not.toHaveBeenCalled();
   });
 
   it("links a completed diagnostic with blockers to the refreshed workbench", async () => {
