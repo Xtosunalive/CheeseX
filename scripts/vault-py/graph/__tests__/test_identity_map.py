@@ -104,3 +104,48 @@ def test_save只在dirty时落盘(tmp_path):
     m.save()
     data = json.loads((tmp_path / "identity_map.json").read_text(encoding="utf-8"))
     assert data["products"]["产品甲"]["id"]
+
+
+# ── 红队复核必修项回归（WP-215 批5，2026-11-22） ──
+
+def test_R1_损坏账本fail_closed拒跑(tmp_path):
+    """红队 R1：文件在但解析失败/形状非法 → IdentityMapCorrupt 拒跑，禁止静默重铸。"""
+    import pytest
+    from identity_map import IdentityMapCorrupt
+    truncated = tmp_path / "identity_map.json"
+    truncated.write_text('{"version": 1, "products": {"A": {"id": "abc"', encoding="utf-8")
+    with pytest.raises(IdentityMapCorrupt):
+        IdentityMap(str(tmp_path))
+    bad_shape = tmp_path / "identity_map.json"
+    bad_shape.write_text('{"version": 1, "products": {"A": {"id": 424242}}, "docs": {}, "renames": []}', encoding="utf-8")
+    with pytest.raises(IdentityMapCorrupt):
+        IdentityMap(str(tmp_path))
+
+
+def test_R1_删除账本等于全新库_照常铸造(tmp_path):
+    """红队 R1 边界如实记：文件不存在＝全新库（与「删除账本」不可区分）——首见铸造，不拒跑。"""
+    m = _fresh(tmp_path)
+    assert m.product_id("产品甲"), "空库首铸必须可用"
+
+
+def test_R3_别名迟到窗口按声明方向合并(tmp_path, capsys):
+    """红队 R3：两侧都在册异号 → 按声明方向合并（新名继承旧号）＋stderr 大声告警，禁静默双号。"""
+    m = _fresh(tmp_path)
+    old_id = m.product_id("旧名")
+    new_id = m.product_id("新名")  # 迟到场景：文章先改新名铸了新号
+    assert new_id != old_id
+    m.apply_alias_renames({"旧名": "新名"})  # 别名后到
+    assert m.product_id("新名") == old_id, "按声明方向合并＝新名继承旧号（差分自证：静默并存实现这里必红）"
+    assert "旧名" not in m.data["products"], "旧键移除，双号不并存"
+    assert m.data["products"]["新名"].get("lateArrival") is True
+    assert "IDENTITY_ALIAS_LATE_ARRIVAL" in capsys.readouterr().err, "必须大声告警（零信号＝违反 R3 修法）"
+
+
+def test_R4_路径命中内容变更_身份保持且指纹更新留痕(tmp_path, capsys):
+    """红队 R4：路径命中但 sha16 变更（原位编辑）→ 身份保持＋sha16 更新＋stderr 留痕（静默继承不可接受）。"""
+    m = _fresh(tmp_path)
+    id1, _ = m.doc_id("知识库/a.md", sha16_of("aaaabbbbccccdddd"))
+    id2, moved = m.doc_id("知识库/a.md", sha16_of("ffff000011112222"), current_paths={"知识库/a.md"})
+    assert id2 == id1 and moved == "", "原位编辑身份必须保持"
+    assert m.data["docs"]["知识库/a.md"]["sha16"] == sha16_of("ffff000011112222"), "指纹必须随内容更新"
+    assert "IDENTITY_DOC_CONTENT_CHANGED" in capsys.readouterr().err, "必须留痕（静默＝R4 本犯）"
