@@ -1,22 +1,22 @@
 {
   "version": 1,
   "vault": "/Users/magic/xqy/cheese/知识库",
-  "generatedAt": "2026-11-21T10:19:40.117084",
+  "generatedAt": "2026-11-22T05:48:22.733599",
   "files": {
     "知识库/raw/boards/_enums-cache.md": {
-      "mtime_ns": 1795211072275643462,
+      "mtime_ns": 1795297698818717590,
       "size": 372,
       "sha16": "ce692d59638cfc2b"
     },
     "知识库/wiki/graph-status.md": {
-      "mtime_ns": 1795227580112333760,
-      "size": 1492,
-      "sha16": "db215ddc01a8d8f8"
+      "mtime_ns": 1795297702728948069,
+      "size": 1457,
+      "sha16": "e1482f0d56938811"
     },
     "知识库/wiki/log.md": {
-      "mtime_ns": 1795224605083079206,
-      "size": 266539,
-      "sha16": "24f8d97d5961b5c2"
+      "mtime_ns": 1795297699806302785,
+      "size": 270225,
+      "sha16": "5b9bd2700bb33b1c"
     },
     ".ledger/vocab/article_associations.yaml": {
       "mtime_ns": 0,
@@ -36,12 +36,12 @@
     ".ledger/vocab/fields.yaml": {
       "mtime_ns": 0,
       "size": 32,
-      "sha16": "c6170bb092189508"
+      "sha16": "4796e5747a7719f6"
     },
     ".ledger/vocab/ontology.yaml": {
       "mtime_ns": 0,
       "size": 32,
-      "sha16": "61f304e6102a685e"
+      "sha16": "e02d46af05f5bc36"
     },
     ".ledger/vocab/versions.yaml": {
       "mtime_ns": 0,
