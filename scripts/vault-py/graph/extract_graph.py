@@ -205,6 +205,11 @@ OUTPUT = os.path.join(os.path.dirname(__file__), "graph_data.json")
 sys.path.insert(0, os.path.dirname(__file__))
 import schema_loader
 from article_admission_manifest import load_admitted_precleaned_paths
+from identity_map import IdentityMap
+
+# WP-215（PR-339／D-3 A）：图节点稳定身份映射——product/version/doc-fallback 不再拼名造号。
+# 映射住 staging/identity_map.json（与 master_graph.json 同属抽取输出族；I4：身份键不入指纹）。
+IDENTITY_MAP = IdentityMap(_STAGING)
 
 ADMISSION_COORDINATES = {}
 
@@ -799,7 +804,10 @@ def slugify(text):
 
 
 def node_id_for_file(rel_path):
-    return "doc-" + slugify(rel_path.replace(".md", ""))
+    # WP-215 撤销（PR-339／D-2 B）：「doc-＋路径 slug」拼名造号已退役——文档 fallback
+    # 身份统一走 IDENTITY_MAP.doc_id（首见铸定持久复用＋同内容 sha16 精确迁移）。
+    # 本函数保留空壳以防历史调用回潮隐匿，任何新调用都应改走身份映射。
+    raise NotImplementedError("node_id_for_file 已退役（WP-215）——文档 fallback 身份走 IDENTITY_MAP.doc_id")
 
 
 def _component_role(name):
@@ -938,12 +946,28 @@ def _is_promoted_arch_component(fm):
     )
 
 
-def _version_id(product, version):
-    return f"version-{slugify(product)}-{slugify(version)}"
+def _product_identity_id(product):
+    """产品稳定身份统一入口（WP-215，PR-339／ADR-016 §二落地）：
+    ①resolve_product_identity 归一（别名/注册键→规范名——产品改名的声明通道即
+    product_aliases 旧名→新名，经此处自动接住）；②注册表显式 identity 字段（人给就沿用，
+    最高权威）；③映射表（首见铸 UUIDv4 持久——WP-113 裁定同源，不引库不自造 v7 编码器）。
+    返回 (稳定身份号, 规范名)。"""
+    identity = schema_loader.resolve_product_identity(product)
+    canonical = identity["canonical"]
+    registry_identity = schema_loader.product_registry_identity(canonical)
+    return IDENTITY_MAP.product_id(canonical, via_name=str(product or ""), registry_identity=registry_identity), canonical
 
 
 def _product_id(product):
-    return f"product-{slugify(product)}"
+    return _product_identity_id(product)[0]
+
+
+def _version_id(product, version):
+    # WP-215：版本身份＝确定性派生（product 稳定身份＋版本值），零持久化——
+    # product 身份稳定则版本身份随稳（改名经别名迁移后 pid 不变，版本身份跟着不变）。
+    from identity_port import make_id
+    pid, _ = _product_identity_id(product)
+    return make_id("version", [pid, str(version or "")])
 
 
 def _normalize_version_value(raw):
@@ -1745,6 +1769,17 @@ def extract_document_nodes(arch_node_ids, name_to_id, concept_names, old_doc_pro
     precleaned_prefix = os.path.relpath(os.path.join(VAULT, "raw", "precleaned"), VAULT).replace(os.sep, "/")
     approved_articles_prefix = os.path.relpath(os.path.join(VAULT, "wiki", "articles"), VAULT).replace(os.sep, "/")
 
+    # WP-215（D-2 B）：本轮受管路径全集预收集（信封内存态遍历，零额外读盘）——
+    # 文档迁移候选必须不在本轮在册路径中，防「未真移动」被误迁移成双路径同身份。
+    managed_doc_paths = set()
+    for _scan_dir in scan_dirs:
+        _scan_prefix = os.path.relpath(os.path.abspath(_scan_dir), VAULT).replace(os.sep, "/")
+        for _root, _dir_docs in _doc_envelope_walk_md_docs(
+            _scan_prefix, skip_dir_names=(".git", ".obsidian", "Attachments")
+        ):
+            for _fname, _kb_rel, _doc in _dir_docs:
+                managed_doc_paths.add(_kb_rel)
+
     for scan_dir in scan_dirs:
         # WP-117 批2：遍历面改信封过滤——七根各按原根前缀过滤（原 os.walk 口径：剪 .git/.obsidian/
         # Attachments 目录名〔任意层〕；根缺失＝空清单与原 isdir 跳过同形；准入模式 precleaned
@@ -1773,7 +1808,15 @@ def extract_document_nodes(arch_node_ids, name_to_id, concept_names, old_doc_pro
                         knowledge_rel_path = os.path.relpath(filepath, VAULT)
                         rel_path = os.path.relpath(filepath, VAULT_ROOT)
                         article_id = str(fm.get("article_id", "") or "").strip()
-                        doc_id = f"doc-article-{slugify(article_id)}" if article_id else node_id_for_file(knowledge_rel_path)
+                        if article_id:
+                            doc_id = f"doc-article-{slugify(article_id)}"
+                        else:
+                            # WP-215（D-2 B）：路径 fallback 走身份映射——首见铸定持久复用；
+                            # 同内容 sha16 精确匹配才自动迁移（歧义不猜——fail-closed 口径，
+                            # 旧节点幽灵清理归 PR-337 剪枝批）。
+                            doc_id, _doc_migrated_from = IDENTITY_MAP.doc_id(
+                                kb_rel, _source_sha256(doc), current_paths=managed_doc_paths
+                            )
                         product, inferred_version = _infer_product_version(fm, knowledge_rel_path)
 
                         symptoms_preview = _extract_symptoms_preview(body)
@@ -3782,6 +3825,7 @@ def main():
                 "unresolvedWikilinks": unresolved_wikilinks,
             }, f, ensure_ascii=False, indent=2)
         os.rename(tmp, MASTER_JSON)
+        IDENTITY_MAP.save()  # WP-215：身份映射随 apply 落盘（dirty 才写；预览不落盘）
         print(f"✅ master_graph.json 已同步: {len(merged_nodes)} 节点, {len(merged_conns)} 连接")
         if deduped_pending:
             print(f"📋 待审核: {len(deduped_pending)} 个无 module 的文档（在架构图系统 KGPanel → 同步 中查看）")
