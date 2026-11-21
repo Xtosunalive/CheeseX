@@ -546,7 +546,7 @@
       "recipes": null,
       "guide": null,
       "register_entry": "docs/work-packages/WP-207.json",
-      "note": "WP-207（2026-11-21）：生成器从本体全部 approved 动作派生契约段（方法/路径/operationId/requestBody-from-input_schema），确定性输出字节对拍；对账复用 contract-request-schema.lookupRoute 单点（既有 fail-closed 口径不放松）；WP-208（2026-11-21）批 2 同批沉淀：契约增通用个体面五条目（/api/individuals 族——generic:* 执行器域，类无关动作＋classId 路径参数）＋IndividualErrorResponse 9 码（INDIVIDUAL_READ_FAILED 死枚举归位移除，错误码棘轮 203→212）；派生段 48→51 路径（本体 individuals 五动作入段）——批 2 收口后 51 路径零分叉复绿。",
+      "note": "WP-207（2026-11-21）：生成器从本体全部 approved 动作派生契约段（方法/路径/operationId/requestBody-from-input_schema），确定性输出字节对拍；对账复用 contract-request-schema.lookupRoute 单点（既有 fail-closed 口径不放松）；WP-208（2026-11-21）批 2 同批沉淀：契约增通用个体面五条目（/api/individuals 族——generic:* 执行器域，类无关动作＋classId 路径参数）＋IndividualErrorResponse 9 码（INDIVIDUAL_READ_FAILED 死枚举归位移除，错误码棘轮 203→212）；派生段 48→51 路径（本体 individuals 五动作入段）——批 2 收口后 51 路径零分叉复绿。；WP-208（2026-11-21）批 2 同批沉淀：契约增通用个体面五条目（/api/individuals 族）＋IndividualErrorResponse 9 码（INDIVIDUAL_READ_FAILED 死枚举归位移除，错误码棘轮 203→212）＋响应声明按信封惯例修正；派生段 48→51 路径。",
       "verification_evidence": "首版生成与对账实测随 WP-207 提交（contracts/generated/derivation-openapi-segment.json）",
       "metrics": null,
       "last_updated": "2026-11-21",

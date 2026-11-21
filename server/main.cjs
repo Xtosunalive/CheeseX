@@ -64,7 +64,8 @@ const { getRequestContext } = require("./shared/request-context.cjs");
 const { compileClassDerivation, compileAllClassDerivations, compileUnboundActionsPlan, compileLifecycleRoutes, assembleDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
 // Wave3 走查缺口①阶段一：生命周期 transitions 单源（PR-329 批已收编的路径单源同一契约族）
 const ARTICLE_LIFECYCLE = require("../contracts/article-lifecycle.json");
-const { lifecycleOf } = require("./shared/ontology-inheritance-resolver.cjs");
+const { lifecycleOf, resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
+const { readOntology } = require("./services/schema-manager/ontology-write-service.cjs");
 const { loadVocabBundle } = require("./shared/vocab-load-port.cjs");
 const { projectArticleIndividual, validateArticleIndividual } = require("./services/article-workflow/article-individual.cjs");
 const readRequestActionSnapshot = () => {
@@ -314,7 +315,6 @@ let releaseRuntimeRef = null;
 const { createRelationCandidateEmitter, GENERATOR: WP170_GENERATOR } = require("./services/article-workflow/article-relation-candidates.cjs");
 const { scanEntities } = require("./services/entity-compliance/entity-source-scanner.cjs");
 const { buildAliasIndex, aliasesOf } = require("./services/entity-compliance/entity-alias-index.cjs");
-const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
 const { readReviewActions } = require("./services/governance/review-action-store.cjs");
 // WP-170（SPEC-095 §3.2 首批）：标准化成功 → 正文实体×类白名单 → 候选边进 staging 图 → 既有摄取/投影/审查链
 const emitRelationCandidates = createRelationCandidateEmitter({
@@ -397,6 +397,12 @@ const individualCrudService = require("./services/ontology/individual-crud-servi
   vaultPath,
   logger,
   loadFields: () => { const b = loadVocabBundle(vaultPath, { files: ["fields"] }); return b.files.fields; },
+});
+// 类绑定活解析（个体写低频——每次现读成本可接受，快照缓存注记同款先例）
+individualCrudService.setBindingsResolver((classId) => {
+  const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
+  const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });
+  return resolveClassInheritance(readOntology(vaultPath).data, classId, fieldsBundle.files.fields);
 });
 require("./shared/individual-executors.cjs").registerIndividualExecutors({ service: individualCrudService, registerActionExecutor });
 require("./routes/individual-routes.cjs").register(registerRoute);

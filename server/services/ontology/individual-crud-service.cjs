@@ -28,7 +28,7 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
     if (!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(String(classId || ""))) {
       throw serviceError("INDIVIDUAL_CLASS_INVALID", `非法类标识 ${JSON.stringify(classId)}`, 422);
     }
-    if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(String(individualId || ""))) {
+    if (!/^[A-Za-z0-9一-龥][A-Za-z0-9._一-龥-]*$/.test(String(individualId || ""))) {
       throw serviceError("INDIVIDUAL_ID_INVALID", `非法个体 ID ${JSON.stringify(individualId)}`, 422);
     }
   }
