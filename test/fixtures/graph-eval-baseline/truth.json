@@ -5,7 +5,8 @@
     "derivation": "真值从源文档与配置独立枚举（非抄管线输出）：内容边＝文章 frontmatter product/version（×2 篇）＋实体页类型化 wikilink；结构边＝产品注册表 HAS_VERSION＋版图配置挂靠；结构节点＝TheSchema 域树＋版图卡＋团队缺省；2026-11-04 修正：首版真值误按旧库快照（含 e2e 跑残留文章 doc-article-e2e-测试文章-1793749969520）枚举，首跑 eval 点名缺节点后按密封 input/ 复核——该文章不在夹具内，删 1 节点 2 边（修正记录留账，真值账可审计）",
     "known_disputes": [
       "E-EDGE-018 已裁（2026-11-04 Master「签收」）：应然含——依赖::wikilink 字段式连线管线未产出＝抽取缺口，立案 PR-242；基线 R_edges=0.9375 为缺口的常设提醒，抽取器修复后升至 1"
-    ]
+    ],
+    "identity_reexpression": "WP-215 批4：product/version 节点 id 随不透明身份方案重表达（种子身份预置夹具 .ledger/identity_map.json）；节点/边语义集与 Master 2026-11-04 签收口径一致（17/16），拼名 id 见 origin 注"
   },
   "nodes": [
     {
@@ -29,12 +30,12 @@
       "origin": "content（raw/precleaned/e2e-candidate-article.md：article_id）"
     },
     {
-      "id": "product-e2eproduct",
-      "origin": "structural（产品注册表 E2eProduct）"
+      "id": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
+      "origin": "structural（产品注册表 E2eProduct）；WP-215 身份重表达（原拼名 id=9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64→种子身份，语义集不变）"
     },
     {
-      "id": "version-e2eproduct-1-0-0",
-      "origin": "structural（产品版本 1.0.0）"
+      "id": "version:36:9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64|5:1.0.0",
+      "origin": "structural（产品版本 1.0.0）；WP-215 身份重表达（原拼名 id=version:36:9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64|5:1.0.0→种子身份，语义集不变）"
     },
     {
       "id": "team-unassigned",
@@ -80,13 +81,13 @@
   "edges": [
     {
       "from": "doc-article-e2e-candidate-001",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "APPLIES_TO",
       "origin": "content（文章 frontmatter product）"
     },
     {
       "from": "doc-article-e2e-candidate-001",
-      "to": "version-e2eproduct-1-0-0",
+      "to": "version:36:9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64|5:1.0.0",
       "relationType": "APPLIES_TO",
       "origin": "content（frontmatter product＋version）"
     },
@@ -97,80 +98,80 @@
       "origin": "content（实体页 依赖::[[…]] 字段式类型化 wikilink）——known_disputes E-EDGE-018，管线 2026-11-04 实跑未产出——签收裁定（2026-11-04）：应然含，缺口＝PR-242"
     },
     {
-      "from": "product-e2eproduct",
-      "to": "version-e2eproduct-1-0-0",
+      "from": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
+      "to": "version:36:9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64|5:1.0.0",
       "relationType": "HAS_VERSION",
       "origin": "structural（产品注册表）"
     },
     {
       "from": "plate:business:content-collaboration",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural（版图挂靠）"
     },
     {
       "from": "plate:business:content-collaboration",
-      "to": "version-e2eproduct-1-0-0",
+      "to": "version:36:9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64|5:1.0.0",
       "relationType": "APPLIES_TO",
       "origin": "structural"
     },
     {
       "from": "plate:business:search-discovery",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural"
     },
     {
       "from": "plate:business:security-compliance",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural"
     },
     {
       "from": "plate:business:data-storage",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural"
     },
     {
       "from": "plate:business:integration-gateway",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural"
     },
     {
       "from": "plate:business:observability-ops",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural"
     },
     {
       "from": "plate:business:ai-intelligence",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural"
     },
     {
       "from": "plate:publication:e2eproduct-用户手册",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural"
     },
     {
       "from": "plate:publication:e2eproduct-用户手册",
-      "to": "version-e2eproduct-1-0-0",
+      "to": "version:36:9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64|5:1.0.0",
       "relationType": "APPLIES_TO",
       "origin": "structural"
     },
     {
       "from": "plate:component:e2eproduct-e2e-module-排错指南",
-      "to": "product-e2eproduct",
+      "to": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
       "relationType": "ASSOCIATED_WITH",
       "origin": "structural"
     },
     {
       "from": "plate:component:e2eproduct-e2e-module-排错指南",
-      "to": "version-e2eproduct-1-0-0",
+      "to": "version:36:9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64|5:1.0.0",
       "relationType": "APPLIES_TO",
       "origin": "structural"
     }

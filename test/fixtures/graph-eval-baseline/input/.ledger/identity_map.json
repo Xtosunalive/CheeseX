@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "products": {
+    "E2eProduct": {
+      "id": "9f2c6a1e-4b7d-4e8a-9c31-5d0f8b2a7e64",
+      "mintedAt": "2026-11-22T00:00:00Z"
+    }
+  },
+  "docs": {},
+  "renames": []
+}
