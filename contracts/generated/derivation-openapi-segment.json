@@ -474,6 +474,67 @@
         }
       }
     },
+    "/api/individuals/{classId}": {
+      "post": {
+        "operationId": "individuals.create",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        }
+      },
+      "get": {
+        "operationId": "individuals.list",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        }
+      }
+    },
+    "/api/individuals/{classId}/{individualId}": {
+      "get": {
+        "operationId": "individuals.read",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        }
+      },
+      "put": {
+        "operationId": "individuals.update",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        }
+      }
+    },
+    "/api/individuals/{classId}/{individualId}/retire": {
+      "post": {
+        "operationId": "individuals.retire",
+        "tags": [
+          "unclassified"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        }
+      }
+    },
     "/api/kg/inference-conflicts/{conflictId}/review": {
       "post": {
         "operationId": "inference.review",
@@ -1096,5 +1157,5 @@
       }
     }
   },
-  "source_revision": "sha256:d28bf1828d40c2921fda00b3d2b75a327f26ca99b76283a6893620dfa0979280"
+  "source_revision": "sha256:ac2f61d2d204f99a75ce42b41b15dd89e7a0b3f1b64d79a3a2899abf5fa3a155"
 }

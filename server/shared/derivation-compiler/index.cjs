@@ -1,4 +1,4 @@
-const { compileClassDerivation, compileAllClassDerivations, compileLifecycleRoutes } = require("./derivation-compiler.cjs");
+const { compileClassDerivation, compileAllClassDerivations, compileUnboundActionsPlan, compileLifecycleRoutes } = require("./derivation-compiler.cjs");
 const { normalizeTemplate } = require("../contract-request-schema.cjs");
 
 // WP-207（SPEC-100 批 1·多类推广）：计划面从单类扩到多类——additionalPlans 为其余 approved 类的
@@ -57,4 +57,4 @@ function assembleDerivedRoutes({ compiled, additionalPlans = [], registerRoute, 
   };
 }
 
-module.exports = { compileClassDerivation, compileAllClassDerivations, compileLifecycleRoutes, assembleDerivedRoutes };
+module.exports = { compileClassDerivation, compileAllClassDerivations, compileUnboundActionsPlan, compileLifecycleRoutes, assembleDerivedRoutes };

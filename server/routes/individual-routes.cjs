@@ -1,0 +1,21 @@
+// Component: Individual-Routes（WP-208／SPEC-100 批 2）
+// @responsible: 通用个体面五条公开端点——路径字面量逐条注册（contract-route-parity 静态扫描口径），
+//   全部走统一执行工厂（executeAction→generic:* 执行器→个体 CRUD 引擎）。类来自路径参数：
+//   新类零路由/零契约成本（本体类声明＋字段即用）。
+// @inputs: 动作快照（individuals.* 五动作，类无关——compileUnboundActionsPlan 全局计划）
+// @outputs: 五条注册（POST 创建/GET 清单/GET 读取/PUT 更新/POST 退役）
+// @context: SPEC-100 §三 批 2；审计经执行工厂 decisions 流水；角色门走动作 required_roles。
+"use strict";
+
+const { executeAction } = require("../shared/action-execution-factory.cjs");
+
+function register(registerRoute) {
+  // 路径字面量逐条注册（contract-route-parity 静态扫描口径）——每条绑定对应动作
+  registerRoute("POST", "/api/individuals/:classId", (req, res) => executeAction({ actionId: "individuals.create", executor: "generic:create", request: req, reply: res }), "individuals.create");
+  registerRoute("GET", "/api/individuals/:classId", (req, res) => executeAction({ actionId: "individuals.list", executor: "generic:list", request: req, reply: res }), "individuals.list");
+  registerRoute("GET", "/api/individuals/:classId/:individualId", (req, res) => executeAction({ actionId: "individuals.read", executor: "generic:read", request: req, reply: res }), "individuals.read");
+  registerRoute("PUT", "/api/individuals/:classId/:individualId", (req, res) => executeAction({ actionId: "individuals.update", executor: "generic:update", request: req, reply: res }), "individuals.update");
+  registerRoute("POST", "/api/individuals/:classId/:individualId/retire", (req, res) => executeAction({ actionId: "individuals.retire", executor: "generic:retire", request: req, reply: res }), "individuals.retire");
+}
+
+module.exports = { register };

@@ -110,4 +110,42 @@ function compileAllClassDerivations(ontology, fields) {
   return out;
 }
 
-module.exports = { compileClassDerivation, compileAllClassDerivations, projectArticleFields, compileLifecycleRoutes };
+// WP-208（SPEC-100 批 2）：类无关动作全局计划——generic:* 等「无 class_id／绑定类不在册」的动作
+// （如通用个体面五件套）不属任何类计划，独立成全局计划供装配（契约对账口径与类计划一致：
+// 路由不在册即该计划内显式 error，不静默）。
+function compileUnboundActionsPlan(ontology) {
+  const nodeTypes = (ontology && ontology.node_types) || {};
+  const approvedClasses = new Set(Object.entries(nodeTypes)
+    .filter(([, def]) => (def && def.lifecycle_status === undefined ? "approved" : def.lifecycle_status) === "approved")
+    .map(([id]) => id));
+  const apiRoutes = [];
+  for (const [id, def] of Object.entries((ontology && ontology.action_types) || {})) {
+    const status = def && def.lifecycle_status === undefined ? "approved" : def.lifecycle_status;
+    if (status !== "approved") continue;
+    const classId = def.class_id || null;
+    if (classId && approvedClasses.has(classId)) continue; // 类绑定动作已由类计划覆盖
+    // WP-208 修正：全局计划只收 generic:* 执行器的动作（通用个体面五件套）——其余无 class_id
+    // 的存量动作（如 open-obsidian）由各自路由文件普通注册，卷入计划即撞绑定冲突（boot 实测）。
+    if (!String(def.executor || "").startsWith("generic:")) continue;
+    const route = String(def.http_route || "").trim();
+    const parts = route.split(/\s+/);
+    if (parts.length !== 2) continue;
+    const [method, rawPath] = parts;
+    const contract = lookupRoute(method, rawPath);
+    if (!contract.inContract || !def.executor) {
+      apiRoutes.push({ actionId: id, method, pathTemplate: contract.path || rawPath, executor: def.executor || null, classId, error: "不在公开契约或未登记执行器" });
+      continue;
+    }
+    apiRoutes.push({
+      actionId: id,
+      method,
+      pathTemplate: contract.path.replace(/\{([A-Za-z_][A-Za-z0-9_]*)\}/g, ":$1"),
+      executor: def.executor,
+      requiredRoles: def.required_roles || [],
+      classId,
+    });
+  }
+  return { version: null, classId: null, apiRoutes, uiConfig: null };
+}
+
+module.exports = { compileClassDerivation, compileAllClassDerivations, compileUnboundActionsPlan, projectArticleFields, compileLifecycleRoutes };

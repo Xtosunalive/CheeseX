@@ -17089,6 +17089,29 @@
           }
         },
         "additionalProperties": false
+      },
+      "IndividualErrorResponse": {
+        "type": "object",
+        "description": "WP-208 通用个体面错误（generic:* 执行器域）——SPEC-100 批 2",
+        "properties": {
+          "error_code": {
+            "type": "string",
+            "enum": [
+              "INDIVIDUAL_FIELDS_INVALID",
+              "INDIVIDUAL_NOT_FOUND",
+              "INDIVIDUAL_REVISION_CONFLICT",
+              "INDIVIDUAL_RETIRED",
+              "INDIVIDUAL_CLASS_INVALID",
+              "INDIVIDUAL_ID_INVALID",
+              "INDIVIDUAL_ID_COLLISION",
+              "INDIVIDUAL_FRONTMATTER_INVALID",
+              "INDIVIDUAL_BINDINGS_UNAVAILABLE"
+            ]
+          },
+          "details": {
+            "type": "object"
+          }
+        }
       }
     }
   },
@@ -29400,6 +29423,250 @@
                     }
                   ],
                   "description": "已处置治理动作清单（标准信封形）"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/individuals/{classId}": {
+      "post": {
+        "summary": "通用个体创建（individuals.create／generic:create）",
+        "description": "WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。body.fields 按类绑定校验（必填缺失/白名单外拒 422）；个体 ID 服务端铸造（slug+短熵）。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "object",
+                    "description": "个体字段"
+                  }
+                },
+                "required": [
+                  "fields"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "individualId": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "revision": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "字段校验未过",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "乐观锁冲突/已退役/撞号",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "summary": "通用个体清单（individuals.list／generic:list）",
+        "description": "WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。返回该类全部未退役个体（读面 fail-open）。",
+        "responses": {
+          "200": {
+            "description": "成功（空数组＝空数据态合法）",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/individuals/{classId}/{individualId}": {
+      "get": {
+        "summary": "通用个体读取（individuals.read／generic:read）",
+        "description": "WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。返回 frontmatter 全量＋乐观锁 revision。",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "个体不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "通用个体更新（individuals.update／generic:update）",
+        "description": "WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。乐观锁 expectedRevision 必填（read 签发）；retired 态拒 409。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "fields": {
+                    "type": "object"
+                  },
+                  "expectedRevision": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "fields",
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "revision": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "乐观锁冲突/已退役/撞号",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "字段校验未过",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "个体不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/individuals/{classId}/{individualId}/retire": {
+      "post": {
+        "summary": "通用个体退役（individuals.retire／generic:retire）",
+        "description": "WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。lifecycle_status→retired（非硬删）；乐观锁必填。",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "expectedRevision": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "expectedRevision"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "乐观锁冲突/已退役/撞号",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "个体不存在",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
                 }
               }
             }

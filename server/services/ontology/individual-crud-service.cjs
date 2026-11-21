@@ -1,0 +1,205 @@
+// Component: Individual-CRUD-Service（WP-208／SPEC-100 批 2·交付物）
+// @responsible: 类级通用个体增删改查引擎——个体＝Markdown 事实源（ADR-014 §Individual：不新增第二实例账），
+//   落 知识库/wiki/individuals/<classId>/<individualId>.md（allowedPermanent「知识库/」前缀既有条目覆盖，零合同改动）。
+//   写走 vault-io 唯一通道（git 即账）；必填按类绑定 fail-closed；移除＝生命周期退役（ADR-017：
+//   lifecycle_status 翻转，非硬删）；乐观锁 contentRevision（PR-083 凭据制同款）。
+// @inputs: 类绑定经 setBindingsResolver 端口注入（main＝本体/词表现读经继承解析器；测试＝夹具）
+//          ＋ io 端口（默认 vault-io 模块通道；测试注入临时库通道或端口对象）
+// @outputs: create／read／update／retire／list——generic:* 执行器（individual-executors.cjs）消费
+// @context: 一份代码服务所有类（本体类声明 generic:* 执行器＋契约条目即自动接线——批 1 pendingRoutes
+//   转安装，零每类代码）；个体 ID＝slug(title)＋短哈希铸造（OpenMAIC 身份键纪律：服务端铸造＋随机熵）。
+"use strict";
+
+const path = require("node:path");
+const crypto = require("node:crypto");
+const YAML = require("yaml");
+const { createError: serviceError } = require("../../shared/error-factory.cjs");
+const vaultIO = require("../../shared/vault-io.cjs");
+
+const INDIVIDUALS_ROOT = path.join("知识库", "wiki", "individuals");
+
+function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {}) {
+  if (!vaultPath) throw new TypeError("[individual-crud] 需要 vaultPath");
+  const channel = io || vaultIO; // 注入端口（测试）／默认 vault-io 模块通道（生产）
+  const root = path.join(vaultPath, INDIVIDUALS_ROOT);
+  let bindingsResolver = null; // (classId) → resolveClassInheritance 结果（data_properties 含 required 绑定）
+
+  function assertIds(classId, individualId) {
+    if (!/^[A-Za-z_][A-Za-z0-9_-]*$/.test(String(classId || ""))) {
+      throw serviceError("INDIVIDUAL_CLASS_INVALID", `非法类标识 ${JSON.stringify(classId)}`, 422);
+    }
+    if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/.test(String(individualId || ""))) {
+      throw serviceError("INDIVIDUAL_ID_INVALID", `非法个体 ID ${JSON.stringify(individualId)}`, 422);
+    }
+  }
+
+  function individualPath(classId, individualId) {
+    assertIds(classId, individualId);
+    return path.join(root, classId, `${individualId}.md`);
+  }
+
+  function classDir(classId) {
+    return path.join(root, classId);
+  }
+
+  function readRaw(absPath) {
+    const fs = require("node:fs");
+    if (!fs.existsSync(absPath)) {
+      throw serviceError("INDIVIDUAL_NOT_FOUND", `个体不存在：${path.basename(absPath)}`, 404);
+    }
+    return fs.readFileSync(absPath, "utf8");
+  }
+
+  function parseFrontmatter(raw) {
+    const match = /^---\n([\s\S]*?)\n---\n?/.exec(raw);
+    if (!match) return { fm: {}, body: raw };
+    let fm;
+    try {
+      fm = YAML.parse(match[1]) || {};
+    } catch (error) {
+      throw serviceError("INDIVIDUAL_FRONTMATTER_INVALID", error.message, 500);
+    }
+    return { fm, body: raw.slice(match[0].length) };
+  }
+
+  function buildMarkdown(fm) {
+    return `---\n${YAML.stringify(fm).trimEnd()}\n---\n`;
+  }
+
+  function resolveBindings(classId) {
+    if (typeof bindingsResolver !== "function") {
+      throw serviceError("INDIVIDUAL_BINDINGS_UNAVAILABLE", "类绑定端口未装配（装配缺陷）", 503);
+    }
+    return bindingsResolver(classId);
+  }
+
+  function validateFields(classId, incoming) {
+    const resolved = resolveBindings(classId);
+    const props = (resolved && resolved.data_properties) || {};
+    const missing = [];
+    const unknown = [];
+    const allowed = new Set(Object.keys(props));
+    for (const [fieldName, def] of Object.entries(props)) {
+      const required = def && def.binding && def.binding.required === true;
+      if (required && (incoming[fieldName] === undefined || String(incoming[fieldName]).trim() === "")) {
+        missing.push(fieldName);
+      }
+    }
+    // 系统键（frontmatter 基建字段）不参与白名单对账——它们不是用户字段
+    const SYSTEM_KEYS = new Set(["class_id", "individual_id", "title", "lifecycle_status", "created", "updated", "retired", "status"]);
+    for (const key of Object.keys(incoming || {})) {
+      if (SYSTEM_KEYS.has(key)) continue;
+      if (!allowed.has(key)) unknown.push(key);
+    }
+    if (missing.length || unknown.length) {
+      throw serviceError("INDIVIDUAL_FIELDS_INVALID", "个体字段校验未过（必填缺失／白名单外字段）", 422, { missing, unknown });
+    }
+  }
+
+  function mintIndividualId(classId, fields) {
+    const display = String(fields.title || fields.name || "").trim();
+    const slug = display ? display.replace(/\s+/g, "-").replace(/[^A-Za-z0-9_\u4e00-\u9fa5-]/g, "").slice(0, 24) : classId;
+    const short = crypto.createHash("sha256").update(`${classId}|${display}|${Date.now()}|${crypto.randomBytes(8).toString("hex")}`).digest("hex").slice(0, 8);
+    return `${slug || classId}-${short}`;
+  }
+
+  function create({ classId, fields }) {
+    validateFields(classId, fields || {});
+    const individualId = mintIndividualId(classId, fields || {});
+    const absPath = individualPath(classId, individualId);
+    const now = new Date().toISOString();
+    const fm = {
+      class_id: classId,
+      individual_id: individualId,
+      title: String((fields || {}).title || individualId),
+      lifecycle_status: "active",
+      created: now,
+      updated: now,
+      ...(fields || {}),
+    };
+    require("node:fs").mkdirSync(path.dirname(absPath), { recursive: true }); // 类目录惰性建立（vault-io 排他写不建父目录）
+    try {
+      channel.writeVaultExclusive(absPath, buildMarkdown(fm), { summary: `个体创建（generic:create·${classId}）` });
+    } catch (error) {
+      if (error && /exists|EEXIST/i.test(String(error.code || error.message))) {
+        throw serviceError("INDIVIDUAL_ID_COLLISION", `个体 ID 撞号（概率极低，重试即可）：${individualId}`, 409);
+      }
+      throw error;
+    }
+    if (logger) logger.info({ event: "individual-created", classId, individualId });
+    return { classId, individualId, path: path.relative(vaultPath, absPath), revision: vaultIO.contentRevision(buildMarkdown(fm)) };
+  }
+
+  function read(classId, individualId) {
+    const absPath = individualPath(classId, individualId);
+    const raw = readRaw(absPath);
+    const { fm } = parseFrontmatter(raw);
+    return { classId, individualId, fields: fm, revision: vaultIO.contentRevision(raw) };
+  }
+
+  function update({ classId, individualId, fields, expectedRevision }) {
+    const absPath = individualPath(classId, individualId);
+    const raw = readRaw(absPath);
+    const currentRevision = vaultIO.contentRevision(raw);
+    if (!expectedRevision || expectedRevision !== currentRevision) {
+      throw serviceError("INDIVIDUAL_REVISION_CONFLICT", "个体已被其他流程修改，请重新读取后再更新", 409, { expectedRevision, currentRevision });
+    }
+    const { fm, body } = parseFrontmatter(raw);
+    if (fm.lifecycle_status === "retired") {
+      throw serviceError("INDIVIDUAL_RETIRED", "个体已退役（ADR-017 生命周期终态）——不可更新", 409);
+    }
+    validateFields(classId, { ...fm, ...(fields || {}) });
+    const nextFm = { ...fm, ...(fields || {}), updated: new Date().toISOString() };
+    const nextRaw = buildMarkdown(nextFm) + body;
+    channel.writeVault(absPath, nextRaw, { expectedContentHash: currentRevision, summary: `个体更新（generic:update·${classId}）` });
+    if (logger) logger.info({ event: "individual-updated", classId, individualId });
+    return { classId, individualId, revision: vaultIO.contentRevision(nextRaw) };
+  }
+
+  function retire({ classId, individualId, expectedRevision }) {
+    const absPath = individualPath(classId, individualId);
+    const raw = readRaw(absPath);
+    const currentRevision = vaultIO.contentRevision(raw);
+    if (!expectedRevision || expectedRevision !== currentRevision) {
+      throw serviceError("INDIVIDUAL_REVISION_CONFLICT", "个体已被其他流程修改，请重新读取后再退役", 409, { expectedRevision, currentRevision });
+    }
+    const { fm, body } = parseFrontmatter(raw);
+    if (fm.lifecycle_status === "retired") return { classId, individualId, alreadyRetired: true };
+    const nextFm = { ...fm, lifecycle_status: "retired", retired: new Date().toISOString() };
+    channel.writeVault(absPath, buildMarkdown(nextFm) + body, { expectedContentHash: currentRevision, summary: `个体退役（generic:retire·${classId}）` });
+    if (logger) logger.info({ event: "individual-retired", classId, individualId });
+    return { classId, individualId, retired: true };
+  }
+
+  function list(classId) {
+    const fs = require("node:fs");
+    const dir = classDir(classId);
+    if (!fs.existsSync(dir)) return [];
+    const out = [];
+    for (const name of fs.readdirSync(dir).sort()) {
+      if (!name.endsWith(".md")) continue;
+      try {
+        const raw = fs.readFileSync(path.join(dir, name), "utf8");
+        const { fm } = parseFrontmatter(raw);
+        if (fm.lifecycle_status === "retired") continue;
+        out.push({ individualId: fm.individual_id || name.replace(/\.md$/, ""), title: fm.title, revision: vaultIO.contentRevision(raw) });
+      } catch (_error) {
+        // 单文件坏不拖垮清单（fail-open 读面）——坏行由 read 接口显式报错
+      }
+    }
+    return out;
+  }
+
+  return {
+    create,
+    read,
+    update,
+    retire,
+    list,
+    setBindingsResolver(fn) {
+      bindingsResolver = fn;
+    },
+  };
+}
+
+module.exports = { createIndividualCrudService, INDIVIDUALS_ROOT };

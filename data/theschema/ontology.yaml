@@ -1073,6 +1073,32 @@ risk_types:
     label_cn: 文章破坏性操作
     description: 不可逆的文章级破坏操作（退役删除沿 source_file 链全清）——必经人工审批后单次放行
 action_types:
+  individuals.create:
+    http_route: POST /api/individuals/:classId
+    executor: generic:create
+    required_roles: []
+    description: 通用个体创建（SPEC-100 批 2——类无关动作，类来自路径参数；字段按类绑定校验）
+  individuals.list:
+    http_route: GET /api/individuals/:classId
+    executor: generic:list
+    required_roles: []
+    description: 通用个体清单（未退役）
+  individuals.read:
+    http_route: GET /api/individuals/:classId/:individualId
+    executor: generic:read
+    required_roles: []
+    description: 通用个体读取（frontmatter 全量＋revision）
+  individuals.update:
+    http_route: PUT /api/individuals/:classId/:individualId
+    executor: generic:update
+    required_roles: []
+    description: 通用个体更新（乐观锁必填；retired 拒）
+  individuals.retire:
+    http_route: POST /api/individuals/:classId/:individualId/retire
+    executor: generic:retire
+    required_roles: []
+    description: 通用个体退役（lifecycle_status 翻转，ADR-017）
+
   schema.ontology.write:
     http_route: "PUT /api/schema/ontology"
     executor: schema-write.ontology

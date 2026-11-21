@@ -1,6 +1,6 @@
 {
   "_format_version": "1.0",
-  "_vault_extract_applied_at": "2026-11-21T07:10:29",
+  "_vault_extract_applied_at": "2026-11-21T07:43:55",
   "ontology": {
     "node_types": {
       "System": {
@@ -1400,7 +1400,7 @@
       "properties": {
         "name": "参考资料",
         "is_active": true,
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:参考资料",
         "extraction_trace": [
           {
@@ -1431,7 +1431,7 @@
         "slug": "overview",
         "category_path_prefix": "ref:overview",
         "domain_id": "ref",
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:总览",
         "extraction_trace": [
           {
@@ -1460,7 +1460,7 @@
       "properties": {
         "name": "运维操作",
         "is_active": true,
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:运维操作",
         "extraction_trace": [
           {
@@ -1491,7 +1491,7 @@
         "slug": "maintain",
         "category_path_prefix": "ops:maintain",
         "domain_id": "ops",
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:维护",
         "extraction_trace": [
           {
@@ -1520,7 +1520,7 @@
       "properties": {
         "name": "概念",
         "is_active": true,
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:概念",
         "extraction_trace": [
           {
@@ -1551,7 +1551,7 @@
         "slug": "method",
         "category_path_prefix": "concept:method",
         "domain_id": "concept",
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:方法论",
         "extraction_trace": [
           {
@@ -1580,7 +1580,7 @@
       "properties": {
         "name": "产品",
         "is_active": true,
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:产品",
         "extraction_trace": [
           {
@@ -1611,7 +1611,7 @@
         "slug": "general",
         "category_path_prefix": "product:general",
         "domain_id": "product",
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:通用",
         "extraction_trace": [
           {
@@ -1640,7 +1640,7 @@
       "properties": {
         "name": "元数据",
         "is_active": true,
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:元数据",
         "extraction_trace": [
           {
@@ -1671,7 +1671,7 @@
         "slug": "doc",
         "category_path_prefix": "meta:doc",
         "domain_id": "meta",
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:文档",
         "extraction_trace": [
           {
@@ -1700,7 +1700,7 @@
       "properties": {
         "name": "架构",
         "is_active": true,
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:架构",
         "extraction_trace": [
           {
@@ -1731,7 +1731,7 @@
         "slug": "architecture",
         "category_path_prefix": "arch:architecture",
         "domain_id": "arch",
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:架构",
         "extraction_trace": [
           {
@@ -1760,7 +1760,7 @@
       "properties": {
         "name": "技术域",
         "is_active": true,
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:技术域",
         "extraction_trace": [
           {
@@ -1791,7 +1791,7 @@
         "slug": "api",
         "category_path_prefix": "tech:api",
         "domain_id": "tech",
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:应用程序接口",
         "extraction_trace": [
           {
@@ -1820,7 +1820,7 @@
       "properties": {
         "name": "待分配",
         "is_placeholder": true,
-        "last_extract_time": "2026-11-21T07:10:29.624997",
+        "last_extract_time": "2026-11-21T07:43:55.132224",
         "source_vault_path": "derived:待分配",
         "extraction_trace": [
           {

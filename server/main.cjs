@@ -59,9 +59,9 @@ const vaultIO = initVaultIO({ vaultPath, gitLedger: vaultGitLedger, logger }); /
 // WP-048 Wave 1（ADR-014 §6.1）：动作注册快照＋统一执行工厂——必须在路由注册之前装配
 // （快照供 preHandler 角色门与工厂动作查找同源同 revision；首次构建失败＝boot fail-closed）。
 const { initActionRegistry, getActiveActionSnapshot, isRetainedActionSnapshot } = require("./shared/action-registry.cjs");
-const { initActionFactory, executeAction, hasActionExecutor } = require("./shared/action-execution-factory.cjs");
+const { initActionFactory, executeAction, hasActionExecutor, registerActionExecutor } = require("./shared/action-execution-factory.cjs");
 const { getRequestContext } = require("./shared/request-context.cjs");
-const { compileClassDerivation, compileAllClassDerivations, compileLifecycleRoutes, assembleDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
+const { compileClassDerivation, compileAllClassDerivations, compileUnboundActionsPlan, compileLifecycleRoutes, assembleDerivedRoutes } = require("./shared/derivation-compiler/index.cjs");
 // Wave3 走查缺口①阶段一：生命周期 transitions 单源（PR-329 批已收编的路径单源同一契约族）
 const ARTICLE_LIFECYCLE = require("../contracts/article-lifecycle.json");
 const { lifecycleOf } = require("./shared/ontology-inheritance-resolver.cjs");
@@ -96,8 +96,10 @@ const initialActions = initActionRegistry({
       // WP-207（SPEC-100 批 1·多类推广）：文章类仍是绑定主计划（bind 流不变）；其余 approved 类
       // 全量编译为计划面（additionalPlans）——执行器缺位的路由显式 pending 不安装（装配层泛化）。
       const articleCompiled = compileClassDerivation(ontology.data, fields.data, "KnowledgeArticle");
-      const allClassPlans = compileAllClassDerivations(ontology.data, fields.data)
-        .filter((plan) => plan.classId !== "KnowledgeArticle");
+      const allClassPlans = [
+        ...compileAllClassDerivations(ontology.data, fields.data).filter((plan) => plan.classId !== "KnowledgeArticle"),
+        compileUnboundActionsPlan(ontology.data),
+      ];
       return { ...articleCompiled, allClassPlans, lifecycleRoutes: compileLifecycleRoutes(ARTICLE_LIFECYCLE) };
     },
     validateActivation(previous, next) {
@@ -390,6 +392,14 @@ const articleRoutes = assembleDerivedRoutes({
   hasExecutor: hasActionExecutor,
 });
 const registerRoute = articleRoutes.bind;
+// WP-208（SPEC-100 批 2）：通用个体面——引擎＋generic:* 执行器＋路由注册（本体声明即接线）
+const individualCrudService = require("./services/ontology/individual-crud-service.cjs").createIndividualCrudService({
+  vaultPath,
+  logger,
+  loadFields: () => { const b = loadVocabBundle(vaultPath, { files: ["fields"] }); return b.files.fields; },
+});
+require("./shared/individual-executors.cjs").registerIndividualExecutors({ service: individualCrudService, registerActionExecutor });
+require("./routes/individual-routes.cjs").register(registerRoute);
 
 require("./shared/retired-route-registrar.cjs").registerRetiredRoutes(registerRoute);
 // PR-048：补齐字段写后即时对账 anomaly issue 卡（钩子经路由层调 reconcileDiagnostic，

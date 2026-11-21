@@ -805,6 +805,79 @@ module.exports = {
         "server/services/projection/document-inventory-service.cjs:166"
       ]
     },
+    "INDIVIDUAL_BINDINGS_UNAVAILABLE": {
+      "statuses": [
+        503
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:71"
+      ]
+    },
+    "INDIVIDUAL_CLASS_INVALID": {
+      "statuses": [
+        422
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:29"
+      ]
+    },
+    "INDIVIDUAL_FIELDS_INVALID": {
+      "statuses": [
+        422
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:95"
+      ]
+    },
+    "INDIVIDUAL_FRONTMATTER_INVALID": {
+      "statuses": [
+        500
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:60"
+      ]
+    },
+    "INDIVIDUAL_ID_COLLISION": {
+      "statuses": [
+        409
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:125"
+      ]
+    },
+    "INDIVIDUAL_ID_INVALID": {
+      "statuses": [
+        422
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:32"
+      ]
+    },
+    "INDIVIDUAL_NOT_FOUND": {
+      "statuses": [
+        404
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:48"
+      ]
+    },
+    "INDIVIDUAL_RETIRED": {
+      "statuses": [
+        409
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:149"
+      ]
+    },
+    "INDIVIDUAL_REVISION_CONFLICT": {
+      "statuses": [
+        409
+      ],
+      "sites": [
+        "server/services/ontology/individual-crud-service.cjs:145",
+        "server/services/ontology/individual-crud-service.cjs:164"
+      ]
+    },
     "INTERNAL_ERROR": {
       "statuses": [
         500
