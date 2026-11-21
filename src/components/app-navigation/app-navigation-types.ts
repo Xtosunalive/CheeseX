@@ -23,6 +23,7 @@ export type NavId =
   | "document-inventory"
   | "article-workflow"
   | "anomalies"
+  | "individuals"
   /** DEV-only 主题预览（PR-025 阶段 4）：不进 NAV_GROUPS，仅 hash 直达 */
   | "theme";
 

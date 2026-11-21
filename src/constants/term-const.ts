@@ -10,6 +10,7 @@
  */
 
 export const TERM = {
+  INDIVIDUALS_ADMIN: "个体管理（派生面）",
   // ── 架构分层 Layer ──
   /** 页面标题 / 导航 / Tab 标签 */
   LAYER: "架构分层",

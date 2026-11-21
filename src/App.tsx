@@ -17,6 +17,7 @@ const ImpactAnalysisView = lazy(() => import("@/features/impact-analysis/ImpactA
 const ArchitectureVersionView = lazy(() => import("@/features/architecture-version/ArchitectureVersionView").then(m => ({ default: m.ArchitectureVersionView })));
 const SchemaManagerView = lazy(() => import("@/features/schema-manager/SchemaManagerView").then(m => ({ default: m.SchemaManagerView })));
 const ArticleWorkflowView = lazy(() => import("@/features/article-workflow/ArticleWorkflowView").then(m => ({ default: m.ArticleWorkflowView })));
+const IndividualsView = lazy(() => import("@/features/individuals").then(m => ({ default: m.IndividualsView })));
 const ArticleAssociationsView = lazy(() => import("@/features/article-associations/ArticleAssociationsView").then(m => ({ default: m.ArticleAssociationsView })));
 const WorkbenchView = lazy(() => import("@/features/workbench/WorkbenchView").then(m => ({ default: m.WorkbenchView })));
 const AnomalyWorkbenchView = lazy(() => import("@/features/anomaly-workbench/AnomalyWorkbenchView").then(m => ({ default: m.AnomalyWorkbenchView })));
@@ -69,6 +70,7 @@ const NAV_GROUPS: NavGroup[] = [
   {
     id: "region-config-audit", icon: Settings, label: TERM.REGION_CONFIG_AUDIT,
     items: [
+      { id: "individuals", icon: Database, label: TERM.INDIVIDUALS_ADMIN },
       { id: "schema", icon: Settings, label: TERM.SCHEMA },
       { id: "review", icon: Link2, label: TERM.RELATION_REVIEW },
     ],
@@ -100,6 +102,7 @@ function getNavFromHash(): NavId {
   if (h === "schema") return "schema";
   if (h === "workbench") return "workbench";
   if (h === "anomalies") return "anomalies";
+  if (h === "individuals") return "individuals";
   if (h === "article-workflow") return "article-workflow";
   if (h === "publish") return "article-workflow"; // 审批与发布页退役（2026-10-15 收敛）——旧链接回落文章工作台
   // 主题预览仅 DEV 可达（import.meta.env.DEV）；生产回落 dashboard
@@ -142,6 +145,7 @@ const VIEWS: Record<NavId, React.ComponentType> = {
   anomalies: AnomalyWorkbenchView,
   "document-inventory": DocumentInventoryView,
   "article-workflow": ArticleWorkflowView,
+  individuals: IndividualsView,
   theme: ThemePreviewLazy,
 };
 
@@ -161,6 +165,7 @@ const VIEW_BOUNDARIES: Record<NavId, string> = {
   anomalies: "AnomalyWorkbenchView",
   "document-inventory": "DocumentInventoryView",
   "article-workflow": "ArticleWorkflowView",
+  individuals: "IndividualsView",
   theme: "ThemePreviewView",
 };
 

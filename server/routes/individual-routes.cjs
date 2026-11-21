@@ -8,14 +8,28 @@
 "use strict";
 
 const { executeAction } = require("../shared/action-execution-factory.cjs");
+const { sendJSON } = require("../shared/api-envelope.cjs");
 
-function register(registerRoute) {
+function register(registerRoute, deps = {}) {
   // 路径字面量逐条注册（contract-route-parity 静态扫描口径）——每条绑定对应动作
   registerRoute("POST", "/api/individuals/:classId", (req, res) => executeAction({ actionId: "individuals.create", executor: "generic:create", request: req, reply: res }), "individuals.create");
   registerRoute("GET", "/api/individuals/:classId", (req, res) => executeAction({ actionId: "individuals.list", executor: "generic:list", request: req, reply: res }), "individuals.list");
   registerRoute("GET", "/api/individuals/:classId/:individualId", (req, res) => executeAction({ actionId: "individuals.read", executor: "generic:read", request: req, reply: res }), "individuals.read");
   registerRoute("PUT", "/api/individuals/:classId/:individualId", (req, res) => executeAction({ actionId: "individuals.update", executor: "generic:update", request: req, reply: res }), "individuals.update");
   registerRoute("POST", "/api/individuals/:classId/:individualId/retire", (req, res) => executeAction({ actionId: "individuals.retire", executor: "generic:retire", request: req, reply: res }), "individuals.retire");
+  // WP-210（SPEC-100 批 4·交付物②）：派生 UI 配置——服务端派生（字段名/中文 display/必填/类型），
+  // 中文 display 走 fields.yaml v2 display 单源（未声明回退字段名并如实标注 declared:false）。
+  registerRoute("GET", "/api/individuals/:classId/config", (req, res) => {
+    try {
+      const classId = String((req.params && req.params.classId) || "");
+      if (!classId) throw Object.assign(new Error("classId 必填"), { code: "INVALID_CLASS_ID", status: 422 });
+      if (typeof deps.uiConfigFor !== "function") throw Object.assign(new Error("uiConfigFor 端口未装配"), { code: "INDIVIDUAL_CONFIG_UNAVAILABLE", status: 503 });
+      return sendJSON(res, 200, { success: true, data: deps.uiConfigFor(classId) });
+    } catch (error) {
+      const status = error.status || 500;
+      return sendJSON(res, status, { success: false, error: error.message, error_code: error.code || "INTERNAL_ERROR" });
+    }
+  });
 }
 
 module.exports = { register };

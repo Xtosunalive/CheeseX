@@ -810,7 +810,7 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:71"
+        "server/services/ontology/individual-crud-service.cjs:82"
       ]
     },
     "INDIVIDUAL_CLASS_INVALID": {
@@ -818,7 +818,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:29"
+        "server/services/ontology/individual-crud-service.cjs:40"
       ]
     },
     "INDIVIDUAL_FIELDS_INVALID": {
@@ -826,7 +826,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:95"
+        "server/services/ontology/individual-crud-service.cjs:106"
       ]
     },
     "INDIVIDUAL_FRONTMATTER_INVALID": {
@@ -834,7 +834,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:60"
+        "server/services/ontology/individual-crud-service.cjs:71"
       ]
     },
     "INDIVIDUAL_ID_COLLISION": {
@@ -842,7 +842,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:125"
+        "server/services/ontology/individual-crud-service.cjs:136"
       ]
     },
     "INDIVIDUAL_ID_INVALID": {
@@ -850,7 +850,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:32"
+        "server/services/ontology/individual-crud-service.cjs:43"
       ]
     },
     "INDIVIDUAL_NOT_FOUND": {
@@ -858,7 +858,7 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:48"
+        "server/services/ontology/individual-crud-service.cjs:59"
       ]
     },
     "INDIVIDUAL_RETIRED": {
@@ -866,7 +866,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:149"
+        "server/services/ontology/individual-crud-service.cjs:161"
       ]
     },
     "INDIVIDUAL_REVISION_CONFLICT": {
@@ -874,8 +874,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:145",
-        "server/services/ontology/individual-crud-service.cjs:164"
+        "server/services/ontology/individual-crud-service.cjs:157",
+        "server/services/ontology/individual-crud-service.cjs:177"
       ]
     },
     "INTERNAL_ERROR": {

@@ -17105,7 +17105,9 @@
               "INDIVIDUAL_ID_INVALID",
               "INDIVIDUAL_ID_COLLISION",
               "INDIVIDUAL_FRONTMATTER_INVALID",
-              "INDIVIDUAL_BINDINGS_UNAVAILABLE"
+              "INDIVIDUAL_BINDINGS_UNAVAILABLE",
+              "INVALID_CLASS_ID",
+              "INDIVIDUAL_CONFIG_UNAVAILABLE"
             ]
           },
           "details": {
@@ -29742,6 +29744,107 @@
                 "required": [
                   "expectedRevision"
                 ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/individuals/{classId}/config": {
+      "get": {
+        "summary": "个体派生 UI 配置（WP-210／SPEC-100 批 4）",
+        "description": "服务端派生：字段名/中文 display（fields.yaml v2 display 单源，未声明回退字段名并标注 declared:false）/必填/类型＋generic:* 动作路由表。前端派生渲染器据此动态渲染。",
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope_Data"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "properties": {
+                            "classId": {
+                              "type": "string"
+                            },
+                            "fields": {
+                              "type": "array",
+                              "items": {
+                                "type": "object",
+                                "properties": {
+                                  "name": {
+                                    "type": "string"
+                                  },
+                                  "display": {
+                                    "type": "string"
+                                  },
+                                  "required": {
+                                    "type": "boolean"
+                                  },
+                                  "type": {
+                                    "type": "string"
+                                  },
+                                  "declared": {
+                                    "type": "boolean"
+                                  }
+                                }
+                              }
+                            },
+                            "actions": {
+                              "type": "object",
+                              "properties": {
+                                "create": {
+                                  "type": "string"
+                                },
+                                "list": {
+                                  "type": "string"
+                                },
+                                "read": {
+                                  "type": "string"
+                                },
+                                "update": {
+                                  "type": "string"
+                                },
+                                "retire": {
+                                  "type": "string"
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "classId 缺失",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "uiConfigFor 端口未装配",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IndividualErrorResponse"
+                }
               }
             }
           }

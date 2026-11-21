@@ -774,6 +774,41 @@
       "a": "src/components/app-shell/sidebar-primitives.tsx#EmptyLeaf",
       "b": "src/components/no-data/MissingValue.tsx#MissingValue",
       "score": 0.7
+    },
+    {
+      "a": "src/components/bento/BentoGrid.tsx#BentoGrid",
+      "b": "src/features/individuals/IndividualsView.tsx#IndividualsView",
+      "score": 0.8910433979686058
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellSelect",
+      "b": "src/features/individuals/IndividualsView.tsx#IndividualsView",
+      "score": 0.8910433979686058
+    },
+    {
+      "a": "src/components/data-table/EditableCell.tsx#EditableCellText",
+      "b": "src/features/individuals/IndividualsView.tsx#IndividualsView",
+      "score": 0.8910433979686058
+    },
+    {
+      "a": "src/components/side-panel/SidePanel.tsx#SidePanelAction",
+      "b": "src/features/individuals/IndividualsView.tsx#IndividualsView",
+      "score": 0.8910433979686058
+    },
+    {
+      "a": "src/features/admission/ArticleDrawer.tsx#ArticleDrawer",
+      "b": "src/features/individuals/IndividualsView.tsx#IndividualsView",
+      "score": 0.8910433979686058
+    },
+    {
+      "a": "src/features/data-dashboard/DataDashboardView.tsx#DataDashboardView",
+      "b": "src/features/individuals/IndividualsView.tsx#IndividualsView",
+      "score": 0.8910433979686058
+    },
+    {
+      "a": "src/features/entity-compliance/EntityComplianceView.tsx#EntityComplianceView",
+      "b": "src/features/individuals/IndividualsView.tsx#IndividualsView",
+      "score": 0.8910433979686058
     }
   ]
 }

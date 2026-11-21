@@ -68,7 +68,8 @@ describe("Skeleton Management navigation", () => {
     expect(window.location.hash).toBe("#/schema");
     const globalNavigation = screen.getByTestId("global-navigation");
     const routeButtons = within(globalNavigation).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route");
-    expect(routeButtons).toHaveLength(8);
+    // WP-210：individuals（个体管理派生面）入导航树，棘轮 8→9
+    expect(routeButtons).toHaveLength(9);
     expect(within(globalNavigation).queryByText("参考资料")).not.toBeInTheDocument();
     expect(within(globalNavigation).queryByText("backup")).not.toBeInTheDocument();
     const sidebarRoute = within(globalNavigation).getByRole("button", { name: "图谱规则配置" });
@@ -99,8 +100,9 @@ describe("Skeleton Management navigation", () => {
       // F3 视图懒加载：各视图首挂异步解析，改 findBy 等待
       expect(await screen.findByText(page)).toBeInTheDocument();
       const navigation = within(screen.getByTestId("global-navigation"));
-      // 完整树常驻：全 8 个 route（第 5 批收尾批 A：版本分析入审批区＋gaps 项退役入工作台量值带），当前页面标记 aria-current
-      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(8);
+      // 完整树常驻：全 9 个 route（WP-210：individuals 个体管理派生面入册），当前页面标记 aria-current
+      // WP-210：individuals 入导航树，棘轮 8→9
+      expect(navigation.getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(9);
       const currentButton = navigation.getAllByRole("button", { name: activeRoute }).find((b) => b.getAttribute("data-navigation-kind") === "route");
       expect(currentButton).toHaveAttribute("aria-current", "page");
       view.unmount();
@@ -137,7 +139,8 @@ describe("Skeleton Management navigation", () => {
     render(<App />);
     const sidebar = screen.getByTestId("global-navigation");
     expect(sidebar).toHaveAttribute("aria-label", "全局导航");
-    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(8);
+    // WP-210：individuals 入导航树，棘轮 8→9
+    expect(within(sidebar).getAllByRole("button").filter((button) => button.getAttribute("data-navigation-kind") === "route")).toHaveLength(9);
   });
 
   it("professional pages remain independently accessible and are not anomaly sub-routes", () => {

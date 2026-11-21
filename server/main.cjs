@@ -400,7 +400,37 @@ const individualCrudService = require("./services/ontology/individual-crud-servi
 });
 // 类绑定活解析（个体写低频——每次现读成本可接受，快照缓存注记同款先例）——单源闭包共用（引擎＋批 3 投影）
 require("./shared/individual-executors.cjs").registerIndividualExecutors({ service: individualCrudService, registerActionExecutor });
-require("./routes/individual-routes.cjs").register(registerRoute);
+// WP-210（SPEC-100 批 4）：派生 UI 配置闭包——字段中文走 fields.yaml v2 display 单源（未声明回退字段名）
+const individualsUiConfigFor = (classId) => {
+  const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });
+  const fieldsDoc = fieldsBundle.files.fields;
+  const resolved = individualBindingsResolver(classId);
+  const clsKeys = [classId, classId === "KnowledgeArticle" ? "article" : "entity"];
+  const declared = new Map();
+  for (const key of clsKeys) {
+    const props = ((fieldsDoc.classes || {})[key] || {}).properties || [];
+    for (const p of props) if (!declared.has(p.name)) declared.set(p.name, p);
+  }
+  const fields = Object.entries(resolved.data_properties || {}).map(([name, def]) => ({
+    name,
+    display: (declared.get(name) && declared.get(name).display) || name,
+    required: Boolean(def.binding && def.binding.required === true),
+    type: String(def.type || "text").toLowerCase(),
+    declared: declared.has(name),
+  }));
+  return {
+    classId,
+    fields,
+    actions: {
+      create: "POST /api/individuals/{classId}",
+      list: "GET /api/individuals/{classId}",
+      read: "GET /api/individuals/{classId}/{individualId}",
+      update: "PUT /api/individuals/{classId}/{individualId}",
+      retire: "POST /api/individuals/{classId}/{individualId}/retire",
+    },
+  };
+};
+require("./routes/individual-routes.cjs").register(registerRoute, { uiConfigFor: individualsUiConfigFor });
 const individualBindingsResolver = (classId) => {
   const { resolveClassInheritance } = require("./shared/ontology-inheritance-resolver.cjs");
   const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });

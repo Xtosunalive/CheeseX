@@ -25,6 +25,7 @@ export const NAV_ROUTES = [
   "impact-analysis",
   "architecture-version",
   "document-inventory",
+  "individuals",
 ] as const;
 
 export type NavRoute = (typeof NAV_ROUTES)[number];
