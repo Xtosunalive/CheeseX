@@ -13,6 +13,7 @@
 const path = require("node:path");
 const fs = require("node:fs");
 const YAML = require("yaml");
+const { createHash } = require("node:crypto");
 const { INDIVIDUALS_ROOT } = require("./individual-crud-service.cjs");
 
 const TYPE_MAP = {
@@ -29,9 +30,28 @@ function createIndividualProjectionService({ vaultPath, db, logger, bindingsReso
   if (!db) throw new TypeError("[individual-projection] 需要 derived-index.db 句柄");
   const log = logger || { info() {}, warn() {}, error() {} };
   const individualsRoot = path.join(vaultPath, INDIVIDUALS_ROOT);
+  db.exec(`CREATE TABLE IF NOT EXISTS individual_projection_owners (
+    class_id TEXT PRIMARY KEY,
+    table_name TEXT NOT NULL UNIQUE COLLATE NOCASE
+  )`);
 
   function tableName(classId) {
-    return `individuals_${sanitizeIdent(classId)}`;
+    const existingOwner = db.prepare("SELECT table_name FROM individual_projection_owners WHERE class_id = ?").get(classId);
+    if (existingOwner) return existingOwner.table_name;
+    const legacy = `individuals_${sanitizeIdent(classId)}`;
+    const owner = db.prepare("SELECT class_id FROM individual_projection_owners WHERE table_name = ? COLLATE NOCASE").get(legacy);
+    const legacyTable = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ? COLLATE NOCASE").get(legacy);
+    const legacyIds = legacyTable
+      ? db.prepare(`SELECT fields_json FROM ${legacyTable.name}`).all().map((row) => JSON.parse(row.fields_json).class_id)
+      : [];
+    // 旧表中缺身份或含多类时拒绝认领，待按 Markdown 重建，避免继续覆盖历史混合行。
+    const mayAdopt = !legacyTable || (legacyTable.name === legacy && legacyIds.every((id) => id === classId));
+    const name = !owner && mayAdopt ? legacy
+      : `individuals_${sanitizeIdent(classId)}_${createHash("sha256").update(classId).digest("hex")}`;
+    const occupied = db.prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name = ? COLLATE NOCASE").get(name);
+    if (name !== legacy && occupied) throw new Error(`个体投影表未经登记，拒绝覆盖：${name}`);
+    db.prepare("INSERT INTO individual_projection_owners (class_id, table_name) VALUES (?, ?)").run(classId, name);
+    return name;
   }
 
   /** storageFields 派生（类绑定→投影列描述）。类型映射 MVP：数值/布尔→NUMERIC，余 TEXT。 */
@@ -112,13 +132,14 @@ function createIndividualProjectionService({ vaultPath, db, logger, bindingsReso
   /** 重建（删库重建语义）：按文件系统真值全量重灌 + 剪除幽灵行（文件已删的残留行）。 */
   function rebuildAll() {
     const fsRoot = individualsRoot;
-    if (!fs.existsSync(fsRoot)) return { classes: 0, rows: 0 };
+    const liveTables = new Set();
     let classes = 0;
     let rows = 0;
-    for (const classId of fs.readdirSync(fsRoot)) {
+    for (const classId of fs.existsSync(fsRoot) ? fs.readdirSync(fsRoot).sort() : []) {
       const dir = path.join(fsRoot, classId);
       if (!fs.statSync(dir).isDirectory()) continue;
       const table = tableName(classId);
+      liveTables.add(table);
       ensureSchema(classId);
       classes += 1;
       const seen = new Set();
@@ -145,8 +166,7 @@ function createIndividualProjectionService({ vaultPath, db, logger, bindingsReso
     // WP-213（红队 R1 补口）：类目录已删的整表孤儿——individuals_* 表逐表对账，
     // 目录不存在即整表剪除（投影可丢弃语义，重建由 ensureSchema 按需再生）。
     for (const row of db.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name LIKE 'individuals_%'").all()) {
-      const cls = row.name.replace(/^individuals_/, "");
-      if (!fs.existsSync(path.join(fsRoot, cls))) {
+      if (!liveTables.has(row.name)) {
         db.exec(`DROP TABLE IF EXISTS ${row.name}`); // 整表剪除（投影可丢弃；类回归时 ensureSchema 按需再生）
         log.info({ event: "individual-projection-orphan-table-pruned", table: row.name });
       }

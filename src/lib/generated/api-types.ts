@@ -7932,6 +7932,10 @@ export interface paths {
                             article: {
                                 properties?: components["schemas"]["FieldDefinition"][];
                             };
+                        } & {
+                            [key: string]: {
+                                properties?: components["schemas"]["FieldDefinition"][];
+                            };
                         };
                         /** @description 乐观锁基线（PR-200 必填）——GET /api/schema/fields 读到的 revision 原样回传；null＝读到的空库基线（fields.yaml 首建合法） */
                         revision: string | null;
@@ -13289,6 +13293,10 @@ export interface components {
                     properties?: components["schemas"]["FieldDefinition"][];
                 };
                 article: {
+                    properties?: components["schemas"]["FieldDefinition"][];
+                };
+            } & {
+                [key: string]: {
                     properties?: components["schemas"]["FieldDefinition"][];
                 };
             };

@@ -90,7 +90,7 @@
       "authority": null,
       "contract": "docs/spec/SPEC-012-W12-持久层分层.md",
       "guide": "docs/system/reuse-playbook.md",
-      "description": "②类派生投影（article-manifests 行级/图族原文行〔master_graph＋SA 族 sa/sa_layout〕/enums 试点表/edge 行级投影〔graph_nodes＋edges——EDGE-RELATION-GOV-001/ADR-012，master_graph 经 normalizeTopology 投影〕）——可丢弃、boot 全量重建、删库零数据损失（PR-082：SA 族自①类源树补认入域，通用槽 data/staging/sa/ 无产品段）",
+      "description": "②类派生投影（article-manifests 行级/图族原文行〔master_graph＋SA 族 sa/sa_layout〕/enums 试点表/edge 行级投影〔graph_nodes＋edges——EDGE-RELATION-GOV-001/ADR-012，master_graph 经 normalizeTopology 投影〕）——可丢弃、boot 全量重建、删库零数据损失（PR-082：SA 族自①类源树补认入域，通用槽 data/staging/sa/ 无产品段）；WP-213 续修（2026-11-23）：个体投影表归属由同库 individual_projection_owners 派生登记，表名大小写冲突隔离，孤儿剪除按真实类目录映射；登记可随派生库删除重建。",
       "store": "data/derived-index.db＋data/master_graph.db（KB_DATA_DIR 解析，缺省 repo 根 data/，.gitignore 收录）",
       "store_location": "repo-data",
       "data_owner": "应用——同步器为唯一写者；①类是数据源头但不直接写本库",

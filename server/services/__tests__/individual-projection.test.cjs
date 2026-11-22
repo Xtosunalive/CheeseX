@@ -130,3 +130,58 @@ test("temp vault 真链路：CRUD 经投影端口落行（引擎→端口→DDL�
   assert.equal(row.f_question, "真链路");
   resetVaultIO();
 });
+
+test("合法类名净化碰撞时投影行保持各自归属，旧常见表名保持兼容", () => {
+  const { db, service } = makeService();
+  const classes = ["FaqCard", "Foo-Bar", "Foo_Bar", "_Foo", "Foo", "foo", "A".repeat(70), "A".repeat(69) + "B"];
+  for (const classId of classes) {
+    service.upsert(classId, { class_id: classId, individual_id: "same", title: classId, question: classId });
+  }
+  assert.equal(service.tableName("FaqCard"), "individuals_FaqCard");
+  assert.equal(new Set(classes.map((id) => service.tableName(id).toLowerCase())).size, classes.length);
+  for (const classId of classes) {
+    const row = db.prepare(`SELECT title FROM ${service.tableName(classId)} WHERE individual_id = ?`).get("same");
+    assert.equal(row.title, classId);
+  }
+  db.close();
+});
+
+test("连字符类双轮完整重建仍保留真表，目录删除才剪除投影", () => {
+  const vaultPath = fs.mkdtempSync(path.join(os.tmpdir(), "wp209-hyphen-"));
+  const classes = ["Only-Hyphen", "Foo-Bar", "Foo_Bar", "_Foo", "Foo"];
+  for (const classId of classes) {
+    const dir = path.join(vaultPath, "知识库/wiki/individuals", classId);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, "same.md"), `---\n${YAML.stringify({ class_id: classId, individual_id: "same", question: classId })}---\n`);
+  }
+  for (let round = 0; round < 2; round += 1) {
+    const { db, service } = makeService({ vaultPath });
+    assert.equal(service.rebuildAll().rows, classes.length);
+    assert.equal(service.rebuildAll().rows, classes.length);
+    for (const classId of classes) {
+      assert.equal(db.prepare(`SELECT f_question FROM ${service.tableName(classId)}`).get().f_question, classId);
+    }
+    const dir = path.join(vaultPath, "知识库/wiki/individuals/Only-Hyphen");
+    const moved = path.join(vaultPath, "kept-hyphen");
+    fs.renameSync(dir, moved);
+    service.rebuildAll();
+    assert.equal(db.prepare("SELECT name FROM sqlite_master WHERE name = ?").get(service.tableName("Only-Hyphen")), undefined);
+    fs.renameSync(moved, dir);
+    db.close();
+  }
+});
+
+test("存量有行投影表按原类认领，重新装配后归属仍稳定", () => {
+  const { db, service } = makeService();
+  service.upsert("FaqCard", { class_id: "FaqCard", individual_id: "kept", question: "原记录" });
+  db.exec("DELETE FROM individual_projection_owners");
+  const resumed = createIndividualProjectionService({
+    vaultPath: fs.mkdtempSync(path.join(os.tmpdir(), "wp209-adopt-")),
+    db, bindingsResolver: BINDINGS(),
+  });
+  assert.equal(resumed.tableName("FaqCard"), "individuals_FaqCard");
+  resumed.upsert("faqcard", { class_id: "faqcard", individual_id: "kept", question: "另一类" });
+  assert.equal(db.prepare("SELECT f_question FROM individuals_FaqCard").get().f_question, "原记录");
+  assert.notEqual(resumed.tableName("faqcard").toLowerCase(), resumed.tableName("FaqCard").toLowerCase());
+  db.close();
+});
