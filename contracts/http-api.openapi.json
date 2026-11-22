@@ -14052,7 +14052,17 @@
                 }
               }
             },
-            "additionalProperties": false
+            "additionalProperties": {
+              "type": "object",
+              "properties": {
+                "properties": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldDefinition"
+                  }
+                }
+              }
+            }
           },
           "revision": {
             "type": [
@@ -27664,7 +27674,17 @@
                         }
                       }
                     },
-                    "additionalProperties": false
+                    "additionalProperties": {
+                      "type": "object",
+                      "properties": {
+                        "properties": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/FieldDefinition"
+                          }
+                        }
+                      }
+                    }
                   },
                   "revision": {
                     "type": [

@@ -60,6 +60,19 @@ describe("IndividualsView（派生面）", () => {
     await waitFor(() => expect(api.createIndividual).toHaveBeenCalledWith("FaqCard", { question: "新问题" }));
   });
 
+  it("编辑仅提交类声明字段，忽略服务端回退标题与系统字段", async () => {
+    api.fetchIndividual.mockResolvedValue({ success: true, data: {
+      ...record.data, fields: { question: "问题一", title: "faq-1", class_id: "FaqCard", individual_id: "faq-1", status: "active" },
+    } });
+    api.updateIndividual.mockResolvedValue({ success: true, data: {} });
+    await loadClass();
+    fireEvent.click(screen.getByRole("button", { name: "编辑" }));
+    await screen.findByRole("button", { name: "保存" });
+    fireEvent.change(screen.getByLabelText(/问题/), { target: { value: "修改问题" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存" }));
+    await waitFor(() => expect(api.updateIndividual).toHaveBeenCalledWith("FaqCard", "faq-1", { question: "修改问题" }, "sha256:a"));
+  });
+
   it("退役全链路：list 行退役按钮→retireIndividual→清单刷新", async () => {
     api.fetchIndividual.mockResolvedValue(record);
     api.retireIndividual.mockResolvedValue({ success: true, data: { retired: true } });

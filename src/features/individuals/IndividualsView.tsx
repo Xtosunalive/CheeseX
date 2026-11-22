@@ -60,15 +60,18 @@ export function IndividualsView() {
 
 
   async function handleEdit(item: IndividualListItem) {
-    if (!classId) return;
+    if (!classId || !config) return;
     setBusy(true);
     setError(null);
     try {
       const recordEnv = await fetchIndividual(classId, item.individualId);
       if (!recordEnv.success) throw new Error(recordEnv.error ?? INDIVIDUALS_COPY.NEUTRAL_FALLBACK);
-      const systemKeys = new Set(["class_id", "individual_id", "lifecycle_status", "created", "updated", "retired"]);
       const userFields: Record<string, unknown> = {};
-      for (const [k, v] of Object.entries(recordEnv.data.fields)) if (!systemKeys.has(k)) userFields[k] = v;
+      for (const { name } of config.fields) {
+        if (Object.prototype.hasOwnProperty.call(recordEnv.data.fields, name)) {
+          userFields[name] = recordEnv.data.fields[name];
+        }
+      }
       setFormValues(userFields);
       setFormMode({ kind: "edit", individualId: item.individualId, revision: recordEnv.data.revision });
     } catch (e) {

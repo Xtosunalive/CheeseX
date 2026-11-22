@@ -214,6 +214,7 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
   }
 
   function list(classId) {
+    assertIds(classId, "list");
     const fs = require("node:fs");
     const dir = classDir(classId);
     if (!fs.existsSync(dir)) return [];

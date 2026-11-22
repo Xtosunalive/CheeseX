@@ -79,3 +79,15 @@ test("读通道：readVault 签发的凭据与服务端 revision 同源（PR-083
   const viaReadVault = readVault(path.join(vaultPath, created.path));
   assert.equal(viaReadVault.sha256, created.revision, "contentRevision 单源");
 });
+
+// 读侧路径隔离：HTTP 解码后的类参数也必须经过与写侧相同的校验。
+test("list：拒绝越界类参数，不泄露 wiki 上级 Markdown", () => {
+  const { service, vaultPath } = makeEnv();
+  const wiki = path.join(vaultPath, "知识库", "wiki");
+  fs.mkdirSync(path.join(wiki, "individuals"), { recursive: true });
+  fs.writeFileSync(path.join(wiki, "private.md"), "---\ntitle: private\n---\n");
+  for (const classId of ["..", "../", "..\\", "/tmp", ""]) {
+    assert.throws(() => service.list(classId), (e) => e.code === "INDIVIDUAL_CLASS_INVALID");
+  }
+  assert.deepEqual(service.list("FaqCard"), []);
+});
