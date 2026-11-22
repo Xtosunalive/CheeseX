@@ -691,8 +691,16 @@ def _find_configured_product(text):
 
 
 def _manifest_source_files():
+    # WP-221（PR-340 根因修复）：指纹面补列 raw/precleaned——collect_md_files 旧默认剪 "raw"
+    # 目录族（历史口径：raw=投稿过渡区不计指纹），但 precleaned 是文档抽取主力扫描根之一，
+    # 剔除即「标准化文档增删改对增量管线不可见」——diff 恒判无变化→整跑跳过→图停留旧态
+    #（2026-11-22 马具实测实锤）。补列＝precleaned 单独收集（不剪 raw），其余 raw 子族旧语义保持。
     skip_dirs = {".obsidian", ".git", ".claude", "Attachments"}
     files = collect_md_files(VAULT, skip_dirs=skip_dirs)
+    files.extend(collect_md_files(
+        os.path.join(VAULT, "raw", "precleaned"),
+        skip_dirs={".obsidian", ".git", ".claude", "Attachments"},
+    ))
     product, version = _architecture_product_version()
     semantic_arch = os.path.join(VAULT, "architecture", product, version, "semantic_architecture.json")
     if os.path.exists(semantic_arch):
@@ -799,6 +807,53 @@ def _write_incremental_manifest(manifest):
     with open(tmp, "w", encoding="utf-8") as f:
         json.dump(manifest, f, ensure_ascii=False, indent=2)
     os.rename(tmp, INCREMENTAL_MANIFEST)
+
+# WP-221（PR-340）：文档族前缀——与 extract_document_nodes 扫描根同源（知识库前缀＝VAULT_ROOT
+# 相对，与增量 manifest 键、旧图 doc 节点 properties.file_path 三处同形，delta 匹配前提）
+_DOC_FAMILY_PREFIXES = (
+    "知识库/raw/precleaned/",
+    "知识库/wiki/articles/",
+    "知识库/wiki/sources/",
+    "知识库/wiki/overview/",
+    "知识库/wiki/queries/",
+    "知识库/wiki/comparisons/",
+    "知识库/wiki/todo/",
+)
+
+
+def _prepare_document_delta(diff):
+    """WP-221（PR-340）：文档族文档级增量准备。
+
+    触发条件（任一不满足即返回 None＝全量，语义与历史一致）：变更面非空且全部落在
+    文档族前缀内；旧 master_graph.json 在盘可解析。
+
+    返回：fresh_kb_paths（现抽刀口，知识库相对形）/ affected_paths（manifest 形——
+    末尾合并层剪旧依据）/ doc_id_seed_for_unchanged（裸链解析种子）。
+    """
+    changed_paths = set(diff["created"]) | set(diff["changed"]) | set(diff["deleted"])
+    if not changed_paths:
+        return None
+    # PR-340 真实闭环之一：抽取每轮把 graph-status.md 状态报告写回 vault——该文件在指纹面内、
+    # 每轮内容必变 → 下轮 diff 恒含自身 → 永远全量（自激励）。机器自写产物从变更面剔除。
+    changed_paths -= {"知识库/wiki/graph-status.md"}
+    if not changed_paths:
+        return None
+    if any(p.startswith(".ledger/vocab/") for p in changed_paths):
+        return None  # 词表变更＝全量（词汇面影响全部类型解析，保守正确）
+    doc_changed = {p for p in changed_paths if p.startswith(_DOC_FAMILY_PREFIXES)}
+    if doc_changed != changed_paths:
+        return None  # 含非文档族变更（实体/概念/其他）＝全量（v1 保守边界）
+    if not os.path.exists(MASTER_JSON):
+        return None
+    try:
+        with open(MASTER_JSON, "r", encoding="utf-8") as f:
+            json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return None
+    fresh_kb_paths = set()
+    for p in changed_paths:
+        fresh_kb_paths.add(p[len("知识库/"):] if p.startswith("知识库/") else p)
+    return {"fresh_kb_paths": fresh_kb_paths, "affected_paths": set(changed_paths)}
 
 
 def slugify(text):
@@ -1746,11 +1801,15 @@ def extract_concept_nodes(name_to_id):
 
 # ── Step 7: 全库 .md → Document 节点 + DOCUMENTS 边 ──
 
-def extract_document_nodes(arch_node_ids, name_to_id, concept_names, old_doc_props=None, admitted_article_paths=None):
+def extract_document_nodes(arch_node_ids, name_to_id, concept_names, old_doc_props=None, admitted_article_paths=None,
+                           only_kb_paths=None, pre_doc_id_set=None):
+    """WP-221（PR-340）：only_kb_paths＝文档级增量刀口（None＝全量语义不变）——仅抽给定
+    知识库相对路径集合内的文档，未列文件由调用方（末尾 existing 合并层）保留原节点。
+    pre_doc_id_set＝复用文档 id 种子——裸链 REFERENCES 解析与全量跑同形。"""
     nodes = []
     edges = []
     doc_bodies = []  # pass 2: (doc_id, body, source_file, source_hash, line_offset) 待扫正文 wikilink
-    doc_id_set = set()  # 全部 Document 节点 id，用于裸链仅对 Document 目标产出 REFERENCES
+    doc_id_set = set(pre_doc_id_set or ())  # 全部 Document 节点 id，用于裸链仅对 Document 目标产出 REFERENCES
     unclassified_docs = []  # 收集无 module 的文档
     version_pending_docs = []  # 收集有 module 但无 version 的文档，在 cockpit「文档版本审核」处理
     version_nodes_by_key = {}  # (product, version) → version_node_id
@@ -1798,6 +1857,8 @@ def extract_document_nodes(arch_node_ids, name_to_id, concept_names, old_doc_pro
             scan_prefix, skip_dir_names=(".git", ".obsidian", "Attachments")
         ):
             for fname, kb_rel, doc in dir_docs:
+                if only_kb_paths is not None and kb_rel not in only_kb_paths:
+                    continue  # WP-221：文档级增量——未列文件由末尾合并层保留旧节点
                 try:
                         if not fname.endswith(".md"):
                             continue
@@ -2966,6 +3027,7 @@ def main():
                 return 0
             print(f"  {yellow('⚠')} --force 已指定，忽略锁继续执行")
     incremental_manifest = None
+    delta_ctx = None  # WP-221（PR-340）：文档级增量上下文（增量模式内才可能启用）
     if mode_incremental:
         incremental_manifest = _build_incremental_manifest()
         previous_manifest = _read_incremental_manifest()
@@ -2984,6 +3046,9 @@ def main():
             "  [增量] "
             f"新增 {len(diff['created'])}，删除 {len(diff['deleted'])}，变更 {len(diff['changed'])}"
         )
+        delta_ctx = _prepare_document_delta(diff)
+        if delta_ctx:
+            print(f"  [增量δ] 文档级增量启用：现抽 {len(delta_ctx['fresh_kb_paths'])} 文件，其余复用旧图存留面")
 
     all_nodes = []
     all_edges = []
@@ -3062,11 +3127,20 @@ def main():
         except (json.JSONDecodeError, OSError):
             pass
 
+    # WP-221（PR-340）：文档级增量——只抽 fresh 文件；未变文件由末尾 existing 合并层保留
+    # 原节点，删除/变更文件的旧节点由合并层 stale 过滤剪除（_is_delta_superseded_doc＋
+    # _is_stale_deleted_entity 的 precleaned 扩面）
+    doc_props_for_fresh = old_doc_props
+    only_paths = (delta_ctx or {}).get("fresh_kb_paths")
+    doc_id_seed = (delta_ctx or {}).get("doc_id_seed_for_unchanged")
     nodes, edges, unclassified_docs, version_pending_docs = extract_document_nodes(
-        arch_node_ids, name_to_id, concept_names, old_doc_props, admitted_article_paths
+        arch_node_ids, name_to_id, concept_names, doc_props_for_fresh, admitted_article_paths,
+        only_kb_paths=only_paths, pre_doc_id_set=doc_id_seed,
     )
     all_nodes.extend(nodes)
     all_edges.extend(edges)
+    if delta_ctx:
+        print(f"  [增量δ] 现抽 {len(only_paths or set())} 文件完成（其余复用旧图存留面）")
     all_edges = apply_article_association_overrides(all_nodes, all_edges)
     if unclassified_docs:
         print(f"    ⚠️ {len(unclassified_docs)} 个文档缺少 module 字段，已加入待审核")
@@ -3534,7 +3608,9 @@ def main():
             fp = str(props.get("file_path", "") or "").replace(chr(92), "/")
             if not fp:
                 return False
-            if not fp.startswith("知识库/wiki/"):
+            # WP-221（PR-340）：raw/precleaned 并入删除检测面——标准化文档删除后其投影节点
+            # 此前永生（马具实测：全量/增量双模式残留），与 wiki 同款 ADR063 源投影原则
+            if not (fp.startswith("知识库/wiki/") or fp.startswith("知识库/raw/precleaned/")):
                 return False
             return not os.path.exists(os.path.join(VAULT_ROOT, fp))
 
@@ -3599,8 +3675,21 @@ def main():
             dupes_removed = len(merged_nodes) - len(seen_nodes)
             merged_nodes = [entry[1] for entry in seen_nodes.values()]
             print(f"  [清理] 移除 {dupes_removed} 个重复 ID 节点（同名 ID 保留信息更完整者）")
+        def _is_delta_superseded_doc(n):
+            """WP-221（PR-340）：本轮 delta 变更面上的文档节点＝被新装配超越——旧节点剔除
+            （变更文件的现抽版本走 master_nodes 侧；删除文件则彻底离场）。"""
+            if not delta_ctx:
+                return False
+            if "Document" not in (n.get("labels") or []):
+                return False
+            fp = str((n.get("properties", {}) or {}).get("file_path", "") or "")
+            return fp in delta_ctx["affected_paths"]
+
+        delta_superseded_ids = ({n["id"] for n in existing_nodes if _is_delta_superseded_doc(n)}
+                                | {n["id"] for n in existing_nodes if _is_stale_deleted_entity(n) and "Document" in (n.get("labels") or [])})
         stale_ids = ({n["id"] for n in existing_nodes if _is_stale_entity_node(n)}
                      | {n["id"] for n in existing_nodes if _is_stale_deleted_entity(n)}
+                     | delta_superseded_ids
                      | {n["id"] for n in existing_nodes if _is_stale_plate_node(n)}
                      | {n["id"] for n in existing_nodes if _is_stale_dict_artifact_node(n)}
                      | {n["id"] for n in existing_nodes if _is_unadmitted_article_node(n)})
