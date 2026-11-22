@@ -6,7 +6,7 @@
   },
   "src/lib/pipeline-api.ts": {
     "no-restricted-syntax": {
-      "count": 4
+      "count": 1
     }
   }
 }

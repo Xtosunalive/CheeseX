@@ -55,7 +55,8 @@ describe("application bar", () => {
     expect(screen.getByRole("button", { name: SUBMISSION_ACTION_LABEL })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: TERM.DOCUMENT_SEARCH_ACTION })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: `打开${TERM.ENTITY_OVERVIEW}` })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: TERM.OPEN_GRAPH_PIPELINE_ACTION })).toBeInTheDocument();
+    // 图谱管道控制已整体退役（2026-11-22 Master「做」）——观测改由停摆横幅承载（常态零渲染）
+    expect(screen.queryByRole("button", { name: TERM.OPEN_GRAPH_PIPELINE_ACTION })).not.toBeInTheDocument();
   });
 
   it("shows the current page short name and its task domain in the app bar", () => {

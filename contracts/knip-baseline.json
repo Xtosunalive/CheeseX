@@ -14,7 +14,6 @@
     "export|src/components/entity-repair/index.ts|validateRequiredFields",
     "export|src/components/entity-repair/managed-article-field-helpers.ts|managedArticleFieldLabel",
     "export|src/components/entity-repair/managed-article-field-helpers.ts|managedArticleOptionsFor",
-    "export|src/components/pipeline/index.ts|PipelinePanel",
     "export|src/components/pool-panel/PoolShell.tsx|POOL_WIDTH",
     "export|src/components/pool-panel/index.ts|POOL_EDGE",
     "export|src/components/pool-panel/index.ts|POOL_NARROW_BREAKPOINT",

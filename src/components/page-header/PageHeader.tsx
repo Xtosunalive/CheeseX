@@ -6,7 +6,6 @@ import { Box, FilePenLine } from "lucide-react";
 import { TERM } from "@/constants/term-const";
 import type { NavGroup } from "@/components/app-navigation";
 import { FloatingSearch } from "@/components/floating-search";
-import { GlobalPipelineControl } from "@/components/pipeline";
 import { SidebarTrigger } from "@/components/aria/sidebar";
 import { PAGE_HEADER_COPY } from "../components-copy";
 
@@ -114,9 +113,6 @@ export function PageHeader({
           <span data-testid="entity-overview-status-dot" className="absolute right-0.5 top-0.5 h-2 w-2 rounded-full bg-accent-base" />
         )}
       </button>
-
-      {/* ── 图谱管道：跨页面共享运行状态、门禁与日志 ── */}
-      <GlobalPipelineControl />
 
       {/* ── 文档搜索 ── */}
       <FloatingSearch />
