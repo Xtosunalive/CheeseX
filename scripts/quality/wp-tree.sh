@@ -5,6 +5,13 @@
 # 不带 .githooks，post-commit 记账静默失效，产品提交会漏进 dev-log 台账。
 # 本脚本把「开树」与「接线」合成一个动作，不依赖任何人记得额外跑一步。
 #
+# 目录前缀按当前树身份自动选择，只用于人眼分辨工作树归属；分支名 task/<id> 始终不变
+# （post-commit 记账、对账脚本与历史合同均依赖该分支命名）：
+#   治理仓自身（有 GOVERNANCE-KIT.md，NEED_MOUNT=0）→ ../gov-wp-<task-id>
+#   挂载治理 kit 的开发仓（有 .governance-kit，NEED_MOUNT=1）→ ../cheesex-wp-<task-id>
+# WP-224（2026-11-23）前的旧目录名 ../cheeseh-<task-id> 是旧项目名前缀残留；
+# 已存在的旧树不自动改名/迁移，处置见 WP-224 只读取证清单。
+#
 # 用法: scripts/quality/wp-tree.sh <task-id> [base-ref]
 set -eu
 TASK_ID="${1:?用法: wp-tree.sh <task-id> [base-ref]}"
@@ -22,7 +29,12 @@ else
   exit 1
 fi
 
-TREE="../cheeseh-${TASK_ID}"
+# 前缀只决定新树目录名；git 分支名保持 task/${TASK_ID} 不变。
+if [ "$NEED_MOUNT" = "1" ]; then
+  TREE="../cheesex-wp-${TASK_ID}"
+else
+  TREE="../gov-wp-${TASK_ID}"
+fi
 git worktree add "$TREE" -b "task/${TASK_ID}" "$BASE"
 TREE_ABS="$(cd "$TREE" && pwd)"
 
