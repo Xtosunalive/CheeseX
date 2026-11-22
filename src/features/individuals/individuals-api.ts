@@ -11,6 +11,18 @@ export async function fetchIndividualConfig(classId: string): Promise<Individual
   return apiFetchJson<IndividualConfigEnvelope>(`/api/individuals/${encodeURIComponent(classId)}/config`);
 }
 
+// WP-219：可用类清单（复用本体 GET——approved 类 id 排序返回；拉取失败由调用方静默回退手输）
+export async function fetchIndividualClasses(): Promise<string[]> {
+  const env = await apiFetchJson<{ success: boolean; data: { node_types: Record<string, { lifecycle_status?: string }> } }>("/api/schema/ontology");
+  const nodeTypes = env.data?.node_types ?? {};
+  return Object.keys(nodeTypes)
+    .filter((id) => {
+      const status = nodeTypes[id]?.lifecycle_status;
+      return status === undefined || status === "approved";
+    })
+    .sort();
+}
+
 export async function fetchIndividualList(classId: string): Promise<IndividualListEnvelope> {
   return apiFetchJson<IndividualListEnvelope>(`/api/individuals/${encodeURIComponent(classId)}`);
 }

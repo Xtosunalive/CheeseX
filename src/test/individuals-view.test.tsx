@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { IndividualsView } from "@/features/individuals/IndividualsView";
 
 const api = vi.hoisted(() => ({
+  fetchIndividualClasses: vi.fn(),
   fetchIndividualConfig: vi.fn(),
   fetchIndividualList: vi.fn(),
   fetchIndividual: vi.fn(),
@@ -39,6 +40,7 @@ async function loadClass() {
 describe("IndividualsView（派生面）", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    api.fetchIndividualClasses.mockResolvedValue(["FaqCard", "Entity"]);
   });
 
   it("config 驱动动态表单：中文 display 渲染＋必填标记＋未声明标注", async () => {
@@ -66,6 +68,13 @@ describe("IndividualsView（派生面）", () => {
     fireEvent.click(screen.getByRole("button", { name: "退役" }));
     await waitFor(() => expect(api.retireIndividual).toHaveBeenCalledWith("FaqCard", "faq-1", "sha256:a"));
     await waitFor(() => expect(screen.getByText(/空数据态合法/)).toBeDefined());
+  });
+
+  it("挂载即拉可用类清单作输入候选（WP-219）", async () => {
+    api.fetchIndividualConfig.mockResolvedValue(config);
+    api.fetchIndividualList.mockResolvedValue({ success: true, data: [] });
+    render(<IndividualsView />);
+    await waitFor(() => expect(api.fetchIndividualClasses).toHaveBeenCalledTimes(1));
   });
 
   it("类管理地图渲染：四族×管理面×通道一处看全", async () => {

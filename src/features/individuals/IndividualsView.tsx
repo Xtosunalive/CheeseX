@@ -1,10 +1,11 @@
 // WP-210（SPEC-100 批 4）：个体派生面视图——类选择→config 动态渲染表单/清单→创建/编辑/退役
 // 全链路走批 2 generic:* 通用面（单一执法点：后端按类绑定校验，前端只转述）。
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   createIndividual,
+  fetchIndividualClasses,
   fetchIndividual,
   fetchIndividualConfig,
   fetchIndividualList,
@@ -27,6 +28,12 @@ export function IndividualsView() {
   const [formValues, setFormValues] = useState<Record<string, unknown>>({});
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [classOptions, setClassOptions] = useState<string[]>([]);
+
+  // WP-219：挂载即拉可用类清单作输入候选（失败静默回退手输——宽进不变）
+  useEffect(() => {
+    fetchIndividualClasses().then((list) => setClassOptions(list)).catch(() => setClassOptions([]));
+  }, []);
 
   const loadClass = useCallback(async (target: string) => {
     setBusy(true);
@@ -139,9 +146,15 @@ export function IndividualsView() {
           <Input
             value={classIdInput}
             placeholder={INDIVIDUALS_COPY.CLASS_PLACEHOLDER}
+            list="individual-class-options"
             onChange={(event) => setClassIdInput(event.target.value)}
             className="ml-2 h-8 w-64"
           />
+          <datalist id="individual-class-options">
+            {classOptions.map((option) => (
+              <option key={option} value={option} />
+            ))}
+          </datalist>
         </label>
         <Button type="button" disabled={busy || !classIdInput.trim()} onClick={() => void loadClass(classIdInput.trim())}>
           {INDIVIDUALS_COPY.LOAD_BUTTON}
