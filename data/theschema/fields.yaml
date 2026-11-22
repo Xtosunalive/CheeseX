@@ -17,7 +17,7 @@
 schema_version: 2
 last_updated: 2026-11-19
 keys:
-  faq_card:
+  FaqCard:
     primary: individual_id
     display: question
   entity:
@@ -77,6 +77,14 @@ keys:
 classes:
   FaqCard:
     properties:
+      - name: individual_id
+        display: 个体 ID
+        type: string
+        required: 否
+        layer: 管理属性
+        description: 系统铸造身份锚（创建时由引擎写入，调用方不可供给——WP-215 R2 键闭合）
+        value_domain:
+          source: free
       - name: question
         display: 问题
         type: string

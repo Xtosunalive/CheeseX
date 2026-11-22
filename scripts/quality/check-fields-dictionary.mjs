@@ -61,8 +61,11 @@ if (!classes || !Array.isArray(classes.entity?.properties) || !Array.isArray(cla
 const enumsTop = createRequire(import.meta.url)("../../server/shared/vocab-load-port.cjs").readVocabDoc(path.dirname(FIELDS_PATH), "enums", null) || {};
 const legalSources = new Set(["free", "versions", ...Object.keys(enumsTop && typeof enumsTop === "object" ? enumsTop : {})]);
 
-const propCount = { entity: 0, article: 0 };
-for (const cls of ["entity", "article"]) {
+// WP-215（PR-338 R2 清偿）：巡全部已声明类（entity/article 结构必需保留于上方结构检查；
+// FaqCard 等后续类随声明入巡——13 骨架类 keys-only 不进 classes 段，不在本巡面，如实注记）
+const propCount = {};
+for (const cls of Object.keys(classes)) {
+  if (!propCount[cls]) propCount[cls] = 0;
   const seen = new Map(); // name → display（类内唯一）
   const seenSemantic = new Map(); // semantic 值 → 首占属性（类内唯一）
   for (const f of classes[cls].properties) {
@@ -93,7 +96,7 @@ for (const cls of ["entity", "article"]) {
     }
     if (Array.isArray(f?.aliases) && f.aliases.length > 10) violations.push(`[召回超限] ${cls}.${name} aliases ${f.aliases.length} 个 >10（BKN Aliases 惯例）`);
   }
-  // keys 段闭合（三键 ∈ 类属性集）
+  // keys 段闭合（三键 ∈ 类属性集）——已声明类全巡（WP-215）；骨架类 keys-only 登记不在此面
   const names = new Set(seen.keys());
   const k = (doc.keys && doc.keys[cls]) || {};
   for (const slot of ["primary", "display"]) {
@@ -154,5 +157,5 @@ for (const file of sourceFiles) {
 }
 
 if (violations.length === 0) {
-  console.log(`fields_dictionary=ok entity=${propCount.entity} article=${propCount.article}（类内唯一＋display 绑定≤40＋值域引用闭合＋enum 闭合＋必填枚举合法＋keys 闭合＋semantic 受控联动＋aliases≤10＋白名单字面量表禁入 server/src）`);
+  console.log(`fields_dictionary=ok entity=${propCount.entity || 0} article=${propCount.article || 0} classes=${Object.keys(classes).length}（类内唯一＋display 绑定≤40＋值域引用闭合＋enum 闭合＋必填枚举合法＋keys 闭合＋semantic 受控联动＋aliases≤10＋白名单字面量表禁入 server/src）`);
 } else fail();

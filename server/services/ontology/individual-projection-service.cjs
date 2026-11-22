@@ -59,6 +59,16 @@ function createIndividualProjectionService({ vaultPath, db, logger, bindingsReso
     )`);
     const existing = new Set();
     for (const row of db.prepare(`PRAGMA table_info(${table})`).all()) existing.add(row.name);
+    // WP-215（PR-338 R8 清偿）：列名碰撞守卫——两字段 sanitize 同列即 fail-closed 显式报错
+    // （上层投影端口 fail-open 转告警，主写不受影响；静默同列互踩＝数据串列，不容忍）
+    const colOwners = new Map();
+    for (const field of fields) {
+      const col = `f_${sanitizeIdent(field.name)}`;
+      if (colOwners.has(col) && colOwners.get(col) !== field.name) {
+        throw new Error(`投影列名碰撞：字段 '${colOwners.get(col)}' 与 '${field.name}' 净化后同为 ${col}——请改字段名`);
+      }
+      colOwners.set(col, field.name);
+    }
     for (const field of fields) {
       const col = `f_${sanitizeIdent(field.name)}`;
       if (!existing.has(col)) {

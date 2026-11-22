@@ -28,9 +28,6 @@
         "article": {
           "$ref": "#/$defs/classKeys"
         },
-        "faq_card": {
-          "$ref": "#/$defs/classKeys"
-        },
         "Document": {
           "$ref": "#/$defs/classKeys"
         },
@@ -68,6 +65,9 @@
           "$ref": "#/$defs/classKeys"
         },
         "runtime_view": {
+          "$ref": "#/$defs/classKeys"
+        },
+        "FaqCard": {
           "$ref": "#/$defs/classKeys"
         }
       },
