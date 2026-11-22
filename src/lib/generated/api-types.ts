@@ -8840,6 +8840,408 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/individuals/{classId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * 通用个体清单（individuals.list／generic:list）
+         * @description WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。返回该类全部未退役个体（空数组＝空数据态合法）。
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    classId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        /**
+         * 通用个体创建（individuals.create／generic:create）
+         * @description WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。body.fields 按类绑定校验；个体 ID 服务端铸造（slug+短熵）。
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    classId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description 个体字段 */
+                        fields: Record<string, never>;
+                    };
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description 乐观锁冲突/已退役/撞号 */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+                /** @description 字段校验未过 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/individuals/{classId}/{individualId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classId: string;
+                individualId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * 通用个体读取（individuals.read／generic:read）
+         * @description WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。返回 frontmatter 全量＋乐观锁 revision。
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    classId: string;
+                    individualId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description 个体不存在 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+            };
+        };
+        /**
+         * 通用个体更新（individuals.update／generic:update）
+         * @description WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。乐观锁 expectedRevision 必填；retired 态拒 409。
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    classId: string;
+                    individualId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        fields: Record<string, never>;
+                        expectedRevision: string;
+                    };
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description 个体不存在 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+                /** @description 乐观锁冲突/已退役/撞号 */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+                /** @description 字段校验未过 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/individuals/{classId}/{individualId}/retire": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classId: string;
+                individualId: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * 通用个体退役（individuals.retire／generic:retire）
+         * @description WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。lifecycle_status→retired（非硬删）；乐观锁必填。
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    classId: string;
+                    individualId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        expectedRevision: string;
+                    };
+                };
+            };
+            responses: {
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description 个体不存在 */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+                /** @description 乐观锁冲突/已退役/撞号 */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/individuals/{classId}/config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                classId: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * 个体派生 UI 配置（WP-210／SPEC-100 批 4）
+         * @description 服务端派生：字段名/中文 display（fields.yaml v2 display 单源，未声明回退字段名并标注 declared:false）/必填/类型＋generic:* 动作路由表。前端派生渲染器据此动态渲染。
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    classId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 成功 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiEnvelope_Data"] & {
+                            data: {
+                                classId?: string;
+                                fields?: {
+                                    name?: string;
+                                    display?: string;
+                                    required?: boolean;
+                                    type?: string;
+                                    declared?: boolean;
+                                }[];
+                                actions?: {
+                                    create?: string;
+                                    list?: string;
+                                    read?: string;
+                                    update?: string;
+                                    retire?: string;
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description classId 缺失 */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+                /** @description uiConfigFor 端口未装配 */
+                503: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["IndividualErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/permissions/catalog": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * 权限点目录（WP-211／SPEC-100 批 5·交付物④）
+         * @description 动作注册快照派生（approved 动作：actionId/路由/required_roles/载荷敏感升级）＋route-roles 静态车道分列——单一事实源只读目录，内建同源自证（目录与运行时角色门不一致即 500）。
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description 成功 */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ApiEnvelope_Data"] & {
+                            data: {
+                                generatedFrom?: string | null;
+                                actions?: {
+                                    actionId?: string;
+                                    httpRoute?: string | null;
+                                    requiredRoles?: string[];
+                                    payloadRoleOverrides?: Record<string, never>[];
+                                }[];
+                                staticRoutes?: {
+                                    route?: string;
+                                    requiredRoles?: string[];
+                                }[];
+                            };
+                        };
+                    };
+                };
+                /** @description 同源对账失败（目录失真当场红） */
+                500: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["PermissionCatalogErrorResponse"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -11090,6 +11492,8 @@ export interface components {
                     to: string;
                 };
             }[];
+            /** @description WP-218（PR-344 清偿）：多类推广计划面（批 1 交付）——其余 approved 类＋类无关动作（generic:*）的编译计划 */
+            allClassPlans?: components["schemas"]["DerivationClassPlan"][];
         };
         PrecleanedArticleDetail: {
             /** @description SPEC-030 §十一批1：blocked 态阻断原因（与 getStatusCandidate 同源 record.admissionBlockers） */
@@ -13779,6 +14183,28 @@ export interface components {
             } & {
                 [key: string]: unknown;
             };
+        };
+        /** @description WP-208 通用个体面错误（generic:* 执行器域）——SPEC-100 批 2 */
+        IndividualErrorResponse: {
+            /** @enum {string} */
+            error_code?: "INDIVIDUAL_FIELDS_INVALID" | "INDIVIDUAL_NOT_FOUND" | "INDIVIDUAL_REVISION_CONFLICT" | "INDIVIDUAL_RETIRED" | "INDIVIDUAL_CLASS_INVALID" | "INDIVIDUAL_ID_INVALID" | "INDIVIDUAL_ID_COLLISION" | "INDIVIDUAL_FRONTMATTER_INVALID" | "INDIVIDUAL_BINDINGS_UNAVAILABLE" | "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN";
+            details?: Record<string, never>;
+        };
+        /** @description WP-211 权限点目录面错误（同源对账失败即 500 当场红） */
+        PermissionCatalogErrorResponse: {
+            /** @enum {string} */
+            error_code?: "PERMISSION_CATALOG_MISMATCH";
+            details?: Record<string, never>;
+        };
+        /** @description WP-218（PR-344 清偿）：多类推广计划条目——其余 approved 类或类无关动作的编译计划；编译失败的类降级为 error 计划（version/classId/uiConfig 可空） */
+        DerivationClassPlan: {
+            version?: string | null;
+            classId?: string | null;
+            apiRoutes?: Record<string, never>[];
+            storageFields?: Record<string, never>[] | null;
+            uiConfig?: Record<string, never> | null;
+            /** @description 编译失败降级计划的原因（显式可见，不静默丢类） */
+            error?: string | null;
         };
     };
     responses: never;

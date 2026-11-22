@@ -7989,6 +7989,13 @@
                 }
               }
             }
+          },
+          "allClassPlans": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DerivationClassPlan"
+            },
+            "description": "WP-218（PR-344 清偿）：多类推广计划面（批 1 交付）——其余 approved 类＋类无关动作（generic:*）的编译计划"
           }
         }
       },
@@ -17126,6 +17133,52 @@
           },
           "details": {
             "type": "object"
+          }
+        }
+      },
+      "DerivationClassPlan": {
+        "type": "object",
+        "description": "WP-218（PR-344 清偿）：多类推广计划条目——其余 approved 类或类无关动作的编译计划；编译失败的类降级为 error 计划（version/classId/uiConfig 可空）",
+        "properties": {
+          "version": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "classId": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "apiRoutes": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "storageFields": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "object"
+            }
+          },
+          "uiConfig": {
+            "type": [
+              "object",
+              "null"
+            ]
+          },
+          "error": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "编译失败降级计划的原因（显式可见，不静默丢类）"
           }
         }
       }
@@ -29561,7 +29614,17 @@
             ]
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "classId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
     },
     "/api/individuals/{classId}/{individualId}": {
       "get": {
@@ -29684,7 +29747,25 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "classId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "individualId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
     },
     "/api/individuals/{classId}/{individualId}/retire": {
       "post": {
@@ -29762,7 +29843,25 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "classId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "name": "individualId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
     },
     "/api/individuals/{classId}/config": {
       "get": {
@@ -29863,7 +29962,17 @@
             }
           }
         }
-      }
+      },
+      "parameters": [
+        {
+          "name": "classId",
+          "in": "path",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ]
     },
     "/api/permissions/catalog": {
       "get": {
