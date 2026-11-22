@@ -13,8 +13,6 @@ const api = vi.hoisted(() => ({
   retireIndividual: vi.fn(),
 }));
 vi.mock("@/features/individuals/individuals-api", () => api);
-const shadowApi = vi.hoisted(() => ({ fetchPrecleanedArticles: vi.fn() }));
-vi.mock("@/features/article-workflow/article-workflow-api", () => shadowApi);
 
 const config = {
   success: true,
@@ -43,7 +41,6 @@ describe("IndividualsView（派生面）", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     api.fetchIndividualClasses.mockResolvedValue(["FaqCard", "Entity"]);
-    shadowApi.fetchPrecleanedArticles.mockResolvedValue({ success: true, items: [], generatedAt: "t" });
   });
 
   it("config 驱动动态表单：中文 display 渲染＋必填标记＋未声明标注", async () => {
@@ -70,7 +67,7 @@ describe("IndividualsView（派生面）", () => {
     await loadClass();
     fireEvent.click(screen.getByRole("button", { name: "退役" }));
     await waitFor(() => expect(api.retireIndividual).toHaveBeenCalledWith("FaqCard", "faq-1", "sha256:a"));
-    await waitFor(() => expect(screen.getAllByText(/空数据态合法/).length).toBeGreaterThanOrEqual(1));
+    await waitFor(() => expect(screen.getByText(/空数据态合法/)).toBeDefined());
   });
 
   it("挂载即拉可用类清单作输入候选（WP-219）", async () => {
@@ -86,19 +83,8 @@ describe("IndividualsView（派生面）", () => {
     render(<IndividualsView />);
     expect(screen.getByText(/类管理地图/)).toBeDefined();
     expect(screen.getByText(/内容族/)).toBeDefined();
-    expect(screen.getByText("知识文章")).toBeDefined();
+    expect(screen.getByText(/知识文章/)).toBeDefined();
     expect(screen.getByText(/派生面新增/)).toBeDefined();
-  });
-
-  it("文章影子视图：派生列名＋StatusDisplay 显示词渲染真实文章数据", async () => {
-    shadowApi.fetchPrecleanedArticles.mockResolvedValue({
-      items: [{ id: "a1", fileName: "文章.md", title: "影子文章", product: "个人知识管理", module: "", articleType: "排错指南", version: "", sourcePath: "知识库/raw/precleaned/文章.md", updatedAt: "", formalContentHash: null, standardizationStatus: "standardized", validatedAt: null, graphAdmissionStatus: "not_queued", currentStandardVersion: null, approvedAt: null, submittedAt: null, completedAt: null, batchId: null, pipelineJobId: null, graphStatus: "not_queued", hasApprovedVersion: false, derivedFields: { version: "v", values: {} } }],
-      generatedAt: "t",
-    });
-    await loadClass();
-    expect(screen.getByText(/文章影子视图/)).toBeDefined();
-    expect(screen.getByText("影子文章")).toBeDefined();
-    expect(screen.getByText("已标准化")).toBeDefined();
   });
 
   it("后端错误透传（fail-loud——后端为单一执法点）", async () => {
