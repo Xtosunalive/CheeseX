@@ -16,6 +16,7 @@ import { CLASS_MANAGEMENT_MAP, INDIVIDUALS_COPY } from "./individuals-copy";
 import type { IndividualListItem, IndividualUiConfig } from "./individuals-types";
 import { DerivedFieldForm } from "./components/DerivedFieldForm";
 import { DerivedIndividualsTable } from "./components/DerivedIndividualsTable";
+import { ArticleShadowTable } from "./components/ArticleShadowTable";
 
 type FormMode = { kind: "create" } | { kind: "edit"; individualId: string; revision: string } | null;
 
@@ -121,6 +122,13 @@ export function IndividualsView() {
       <div>
         <h2 className="text-sm font-medium text-text-main">{INDIVIDUALS_COPY.VIEW_TITLE}</h2>
         <p className="text-xs text-text-hint">{INDIVIDUALS_COPY.VIEW_HINT}</p>
+      </div>
+
+      {/* WP-220 迁移试点：文章准入读侧影子——派生通道复刻"看数据"，写侧留老页面（业务守卫不可派生） */}
+      <div className="space-y-2">
+        <p className="text-xs font-medium text-text-main">{INDIVIDUALS_COPY.SHADOW_TITLE}</p>
+        <p className="text-xs text-text-hint">{INDIVIDUALS_COPY.SHADOW_HINT}</p>
+        <ArticleShadowTable />
       </div>
 
       {/* WP-214 类管理地图：四族×管理面×通道——入口层"各在哪管"一处看全（机制层已统一，语义层按类分治） */}

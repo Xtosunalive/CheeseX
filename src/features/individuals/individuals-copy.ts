@@ -26,6 +26,11 @@ export const INDIVIDUALS_COPY = {
   REQUIRED_MARK: "必填",
   UNDECLARED_NOTE: "字段未在 fields.yaml 声明 display（回退字段名）",
   MAP_SUMMARY: "类管理地图（15 类＋新类各在哪管）",
+  SHADOW_TITLE: "文章影子视图（迁移试点）",
+  SHADOW_HINT: "迁移试点（Master 2026-11-22 点名文章准入页）：用派生通道只读复刻文章清单——列名走字段字典派生、状态走显示词单源；写操作（审批/标准化/发布/退役）仍走文章准入页，业务守卫不可派生。成本实测报告见治理仓 docs/plans/文章准入迁移试点报告-2026-11-22.md",
+  SHADOW_TABLE_ARIA: "文章影子清单表",
+  SHADOW_EMPTY: "暂无标准化区文章（空数据态合法）",
+  SHADOW_STATUS_COL: "标准化状态",
 } as const;
 
 /** WP-214 类管理地图：四族×管理面×通道（声明性治理文案——依据批 A 处置提案＋Wave3 交付边界）。
