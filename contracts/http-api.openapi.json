@@ -3782,8 +3782,15 @@
                 "items": {
                   "$ref": "#/components/schemas/ArchitectureVersionRelation"
                 }
+              },
+              "changed": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/ArchitectureVersionRelation"
+                }
               }
-            }
+            },
+            "description": " WP-222（契约探针缺口清偿）：changed[] E2E 实测在返回，补声明。"
           },
           "documents": {
             "type": "object",
@@ -17181,7 +17188,31 @@
             "type": [
               "object",
               "null"
-            ]
+            ],
+            "description": "WP-222（契约探针缺口清偿）：按类 UI 配置——四子字段与派生器实产出一致（IndividualsView 消费）；编译错误档（error 计划）为 null",
+            "properties": {
+              "classId": {
+                "type": "string"
+              },
+              "inheritanceChain": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "displayFields": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "actionIds": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "error": {
             "type": [

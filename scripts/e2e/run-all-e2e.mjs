@@ -144,6 +144,32 @@ async function seedIds(apiBase) {
     ["nodeId", "/api/graph/master", "id"],
   ];
   const ids = {};
+  // WP-222（契约探针取参清偿）：architecture-version-compare 的 source/target——产品版本清单
+  // 取前两个版本号（fixture 注册 ≥2 版本时才可填，否则照旧如实 skip）
+  try {
+    const res = await fetch(apiBase + "/api/kg/product-versions", { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const j = await res.json();
+      // 形状＝data.items[]（每项 product+version，WP-221 实测）——取首末两个版本号做对比参数；
+      // 单版本时 source=target 同值对比（合法调用，端点自身处理）
+      const items = ((j.data ?? j) || {}).items ?? [];
+      const versions = items.map((it) => String(it.version || "")).filter(Boolean);
+      if (versions.length >= 1) { ids.source = versions[0]; ids.target = versions[versions.length - 1]; }
+    }
+  } catch { /* miss 照旧如实 skip */ }
+  // WP-222：classId——本体 approved 类清单（/api/schema/ontology node_types 键序首个 approved）
+  try {
+    const res = await fetch(apiBase + "/api/schema/ontology", { signal: AbortSignal.timeout(8000) });
+    if (res.ok) {
+      const j = await res.json();
+      const nodeTypes = ((j.data ?? j) || {}).node_types ?? {};
+      const approved = Object.keys(nodeTypes).filter((k) => {
+        const st = nodeTypes[k]?.lifecycle_status;
+        return st === undefined || st === "approved";
+      });
+      if (approved.length) ids.classId = approved.sort()[0];
+    }
+  } catch { /* miss 照旧如实 skip */ }
   // documentId 命名空间兜底：本仓文档 id＝"entity:"+entityId（历史种子命中两回实证的仓内约定；
   // 红队 P1 修复——ids 声明必须先于本块，此前 TDZ 使兜底结构性坏死并被 catch 静默吞掉）
   try {

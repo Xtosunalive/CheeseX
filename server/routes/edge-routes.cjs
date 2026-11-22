@@ -111,6 +111,7 @@ function register(registerRoute, deps) {
     }
   });
 
+  // WP-222：maxParamLength=1024 实例级（http-app 构造器）——复合边 ID URL 编码形态可过
   registerRoute("GET", "/api/edges/:edgeId", (req, res) => {
     const edgeId = (req.params && req.params.edgeId) || "";
     if (!edgeId) return sendJSON(res, 400, { error_code: "INVALID_QUERY", message: "edgeId 必填" });

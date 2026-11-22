@@ -62,6 +62,10 @@ function createHttpApp(options = {}) {
   const cors = auth ? auth.cors : options.cors;
   const pinoInstance = logger && logger.raw ? logger.raw : null;
   const app = Fastify({
+    // WP-222：maxParamLength=1024（find-my-way 默认 100）——复合边 ID（含中文节点名，URL 编码后
+    // 数百字符）进路径参数触发 FST_ERR_MAX_PARAM_LENGTH（414 族，E2E 契约探针实录）；1024 覆盖
+    // 长中文复合 ID 的编码形态。routerOptions 形（实例级 maxParamLength 顶层键已弃用——FSTDEP022）
+    routerOptions: { maxParamLength: 1024 },
     ...(pinoInstance ? { loggerInstance: pinoInstance } : { logger: false }),
     // 日志行形状由 pino-http 原样承载（trace_id/subsystem/error_code）；框架自带的 incoming/completed 行关闭
     //（5.12 起顶层 disableRequestLogging 弃用，改经 LogController 实例）
