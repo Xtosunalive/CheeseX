@@ -240,31 +240,12 @@ export function poolSourceTitle(sourceKey: string): string {
   return `来源文档：${sourceKey}`;
 }
 
-// ── PipelinePanel（图谱管道浮层）──
-export const PIPELINE_PANEL_COPY = {
-  READING_STATUS: "正在读取运行状态",
-  STATE_UNKNOWN: "状态未知",
-  RUNNING_REBUILD: "正在执行完整图谱重建",
-  RUNNING_DIAGNOSTIC: "正在执行全局管道诊断",
-  OPEN_PENDING_ISSUES: `打开${TERM.PENDING_ISSUES}`,
+// ── GraphStallNotice（图谱自动更新停摆横幅——失败才渲染，OpenMAIC StorageHealthNotice 同构）──
+export const PIPELINE_NOTICE_COPY = {
+  STALL_TITLE: "图谱自动更新已停摆",
+  STALL_FALLBACK_REASON: "管道最近一次运行失败",
+  STALL_LOGS: (count: number) => `失败日志 (${count})`,
 } as const;
-
-/** 管道作业状态显示（键＝契约 job.state） */
-export const PIPELINE_STATE_LABELS: Record<string, string> = {
-  idle: "尚未运行",
-  running: "运行中",
-  cancelling: "正在取消",
-  cancelled: "已取消",
-  succeeded: "最近运行成功",
-  failed: "最近运行失败",
-};
-
-export function pipelineStageSuffix(stage: string | number): string {
-  return ` · 阶段 ${stage}`;
-}
-export function pipelineRunLogs(count: number): string {
-  return `运行日志 (${count})`;
-}
 
 // ── ReasoningSummary（变更决策状态摘要；键＝契约 ReasoningEvaluation.status）──
 export const REASONING_STATUS_COPY = {

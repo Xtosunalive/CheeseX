@@ -1,26 +1,17 @@
-// Pipeline API — shared API functions for pipeline run/status/cancel.
-// Migrated from features/dashboard/pipeline-api.ts (Phase 1 store decoupling).
+// Pipeline API — 管道状态读取（观测单源）。
+// 2026-11-22 纯观测化：run/rebuild/cancel 前端触发器随控制 UI 退役——通道归服务端（自愈链路
+// ＋路由层维修口：POST /api/pipeline/rebuild 为断路器人工出口与 resume 宿主）。本文件只剩
+// fetchPipelineStatus（GraphStallNotice／pipeline-store 消费）。
 
 import type { paths } from "@/lib/generated/api-types";
 import { pipelineRequestFailed } from "./lib-copy";
 
 type RunEnvelope =
   paths["/api/pipeline/run"]["post"]["responses"][202]["content"]["application/json"];
-type RebuildEnvelope =
-  paths["/api/pipeline/rebuild"]["post"]["responses"][202]["content"]["application/json"];
 type StatusEnvelope =
   paths["/api/pipeline/status"]["get"]["responses"][200]["content"]["application/json"];
 
 export type PipelineJob = RunEnvelope["data"];
-
-// 诊断档（默认）：只读对账——刷新来源状态并将阻断汇入待处理问题，不重写任何派生投影（ADR063 名实相符）。
-export const PIPELINE_RUN_ACTION = {
-  id: "pipeline.run",
-  risk: "medium",
-  dataChannel: "POST /api/pipeline/run",
-  writes: [],
-} as const;
-
 
 async function readEnvelope<T>(response: Response): Promise<T> {
   const body = (await response.json()) as T & {
@@ -31,24 +22,6 @@ async function readEnvelope<T>(response: Response): Promise<T> {
     throw new Error(body.message || body.error || pipelineRequestFailed(response.status));
   }
   return body;
-}
-
-export async function runPipeline(): Promise<PipelineJob> {
-  const response = await fetch("/api/pipeline/run?mode=full", {
-    method: "POST",
-    cache: "no-store",
-  });
-  const envelope = await readEnvelope<RunEnvelope>(response);
-  return envelope.data;
-}
-
-export async function rebuildPipeline(): Promise<PipelineJob> {
-  const response = await fetch("/api/pipeline/rebuild", {
-    method: "POST",
-    cache: "no-store",
-  });
-  const envelope = await readEnvelope<RebuildEnvelope>(response);
-  return envelope.data;
 }
 
 export async function fetchPipelineStatus(): Promise<PipelineJob> {
@@ -67,10 +40,4 @@ export async function fetchPipelineStatus(): Promise<PipelineJob> {
     }
   }
   return job;
-}
-
-export async function cancelPipeline(): Promise<PipelineJob> {
-  const response = await fetch("/api/pipeline/cancel", { method: "POST", cache: "no-store" });
-  const envelope = await readEnvelope<StatusEnvelope>(response);
-  return envelope.data;
 }

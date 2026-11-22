@@ -24,14 +24,9 @@ vi.mock("@/features/schema-manager/dependencies-api", () => ({
   validateDependencyRules: vi.fn(),
   updateDependencyRules: vi.fn(),
 }));
-vi.mock("@/lib/pipeline-api", () => ({
-  runPipeline: vi.fn(),
-}));
-
 import { fetchEnums, previewEnumsChanges } from "@/features/schema-manager/schema-manager-api";
 import { writeEnums } from "@/features/schema-manager/schema-write-api";
 import { fetchDependencyRules, previewDependencyRules } from "@/features/schema-manager/dependencies-api";
-import { runPipeline } from "@/lib/pipeline-api";
 import { useSchemaManagerStore } from "@/features/schema-manager/schema-manager-store";
 import { TAB_LABELS } from "@/features/schema-manager/schema-manager-types";
 
@@ -278,7 +273,6 @@ describe("SchemaManagerView", () => {
     expect(confirmButton).not.toHaveTextContent("重跑");
     fireEvent.click(confirmButton);
     await waitFor(() => expect(writeEnums).toHaveBeenCalledWith("sha256:rules", expect.objectContaining({ subdomains: expect.objectContaining({ ops: [{ id: "release" }, { id: "monitor" }] }) }))); // ADR-008 D1 词条对象形态
-    expect(runPipeline).not.toHaveBeenCalled();
   });
 
   it("shows error message with retry button on load failure", async () => {

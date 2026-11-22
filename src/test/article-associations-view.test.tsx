@@ -26,7 +26,7 @@ describe("ArticleAssociationsView", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     window.location.hash = "#/article-associations";
-    usePipelineStore.setState({ open: false });
+    usePipelineStore.setState({ job: null });
     useArticleAssociationsStore.setState({ data: null, preview: null, status: "idle", saving: false, error: null, articleId: "", action: "replace", componentIds: [], versionIds: [] });
   });
   it("直接写回：保存映射立即生效（AA1，不走 Proposal）", async () => {

@@ -24,6 +24,7 @@ const AnomalyWorkbenchView = lazy(() => import("@/features/anomaly-workbench/Ano
 // DEV-only 主题预览（PR-025 阶段 4）：懒加载，生产构建不进主 chunk
 const ThemePreviewView = lazy(() => import("@/features/theme-preview/ThemePreviewView").then(m => ({ default: m.ThemePreviewView })));
 import { EntityHubDrawer } from "@/components/app-shell/EntityHubDrawer";
+import { GraphStallNotice } from "@/components/pipeline";
 import { useHubDrawerState } from "@/components/app-shell/entity-hub-drawer-store";
 import { PageHeader } from "@/components/page-header";
 import { AppSidebar } from "@/components/app-sidebar";
@@ -264,6 +265,8 @@ export default function App() {
       {/* ── Global overlays（全局快捷操作的触发器已统一迁入应用栏 PageHeader） ── */}
       <EntityHubDrawer />
       <EntityRepairDrawer />
+      {/* 图谱自动更新停摆横幅（OpenMAIC StorageHealthNotice 同构——失败才渲染，常态零存在） */}
+      <GraphStallNotice />
       <Toaster />
     </div>
     </SidebarProvider>
