@@ -54,7 +54,9 @@ def test_entity_node_carries_exemptions(monkeypatch):
     by_name = {n["properties"]["name"]: n for n in nodes}
     # 红队修正后：自建节点豁免也走 node_exemptions 单通道（props 直写会被主流程 merge 误删）
     assert "exempt_rules" not in by_name["svc-a"]["properties"]
-    assert exemptions == {"entity-svc-a": ["isolated_entity", "low_confidence"]}
+    # WP-232（统一铸造）：键＝铸号 UUID（从产出节点取，不硬编码兜底键）
+    minted_a = by_name["svc-a"]["id"]
+    assert exemptions == {minted_a: ["isolated_entity", "low_confidence"]}
 
 
 def test_is_system_branch_collects_exemptions(monkeypatch):

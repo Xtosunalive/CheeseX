@@ -116,18 +116,29 @@ test("L3 真进程：文档级豁免闭环——豁免方不进清单、未豁�
     const gaps = data.gaps || [];
     const isolated = gaps.filter((g) => g.type === "isolated_entity");
 
+    // WP-232（统一铸造）：targetId＝铸号 UUID——从抽取产物 master_graph 按页面名映射（拓扑体形状不再假设）
+    const mgPath = path.join(dataDir, "staging", "master_graph.json");
+    const mg = JSON.parse(fs.readFileSync(mgPath, "utf8"));
+    const idByName = {};
+    for (const n of mg.nodes || []) {
+      const nm = (n.properties && (n.properties.name || n.properties.title)) || n.label || "";
+      if (nm) idByName[nm] = n.id;
+    }
+    const plainId = idByName["svc-plain"];
+    const exemptId = idByName["svc-exempt"];
+    assert.ok(plainId && exemptId, `抽取图应含夹具两实体（铸号态）`);
     // 反例①：未豁免实体 svc-plain 的孤立缺口仍在列
-    assert.ok(isolated.some((g) => g.targetId === "entity-svc-plain"), "未豁免实体 svc-plain 的 isolated_entity 仍报");
+    assert.ok(isolated.some((g) => g.targetId === plainId), "未豁免实体 svc-plain 的 isolated_entity 仍报");
     // 正例：豁免实体 svc-exempt 的孤立缺口不进清单
-    assert.ok(!isolated.some((g) => g.targetId === "entity-svc-exempt"), "豁免实体 svc-exempt 的 isolated_entity 不在 gaps");
+    assert.ok(!isolated.some((g) => g.targetId === exemptId), "豁免实体 svc-exempt 的 isolated_entity 不在 gaps");
     // 反例②：豁免只按类型——豁免方的未豁免类型（missing_document_ref）仍报
-    assert.ok(gaps.some((g) => g.type === "missing_document_ref" && g.targetId === "entity-svc-exempt"), "豁免方的 missing_document_ref 仍报（类型精确匹配）");
+    assert.ok(gaps.some((g) => g.type === "missing_document_ref" && g.targetId === exemptId), "豁免方的 missing_document_ref 仍报（类型精确匹配）");
     // 可追溯：计数＋明细＋豁免归属
     assert.equal(data.gapsExempted, 1, "gapsExempted=1");
     const items = data.gapsExemptedItems || [];
     assert.equal(items.length, 1, "豁免明细 1 条");
     assert.equal(items[0].type, "isolated_entity");
-    assert.equal(items[0].exemptedBy, "entity-svc-exempt", "豁免归属=声明规则的源实体");
+    assert.equal(items[0].exemptedBy, exemptId, "豁免归属=声明规则的源实体（铸号）");
     // 文案人话：gaps 中无内部话术禁词
     for (const g of gaps) assert.ok(!/master_graph|labels:|入度\+出度|REFERENCES/.test(g.detail), `detail 人话化：${g.detail}`);
   } finally {

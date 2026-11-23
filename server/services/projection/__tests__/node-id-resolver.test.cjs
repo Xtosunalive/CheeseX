@@ -53,9 +53,12 @@ test("撞名与未知值都不猜：同名多节点、无命中一律 null", () 
   assert.strictEqual(resolver.resolveNodeId("   "), null);
 });
 
-test("影响分析种子剥前缀（查询面，保留）", () => {
+test("影响分析种子剥前缀（查询面）——WP-232：entity- 兼容删除（键不复产出），system-/concept- 保留", () => {
   const resolver = createNodeIdResolver(nodes, edges);
-  assert.strictEqual(resolver.anchorImpactSeed("entity-api-gateway").nodeId, "api-gateway");
+  // WP-232：entity- 前缀剥皮专线已删（键不复产出）——旧前缀种子不再命中（不猜，fail-closed 向）；
+  // system- 剥离保留（system- 键现役）
+  assert.strictEqual(resolver.anchorImpactSeed("entity-api-gateway").nodeId, null, "entity- 前缀不再剥（返回 nodeId=null）");
+  assert.strictEqual(resolver.anchorImpactSeed("system-auth-service").nodeId, "auth-service");
   assert.strictEqual(resolver.anchorImpactSeed("system-auth-service").nodeId, "auth-service");
 });
 
