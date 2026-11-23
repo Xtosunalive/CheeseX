@@ -68,7 +68,7 @@ function main() {
   const packageId = args._[0];
   if (!packageId || !args.title) {
     console.error("用法：npm run wp:start -- <package_id> --title <标题> [--kind mainline] [--spec <路径>] [--adr <路径>]");
-    console.error("编号惯例：业务包沿用既有（如 EDGE-RELATION-GOV-001）；机制包 WP-00N。建树：git worktree add ../cheeseh-<短名> -b task/<短名> main（GIT-CONTEXT §四）");
+    console.error("编号惯例：业务包沿用既有（如 EDGE-RELATION-GOV-001）；机制包 WP-00N。开树优先用 scripts/quality/wp-tree.sh <id> [base-ref]（按当前仓身份自动建 ../gov-wp-<id> 或 ../cheesex-wp-<id>，分支名仍为 task/<id>）；手工等价：git worktree add ../<仓前缀>-wp-<id> -b task/<id> origin/main（GIT-CONTEXT §四）");
     process.exit(2);
   }
   const schema = JSON.parse(fs.readFileSync(path.join(ROOT, "contracts/work-package.schema.json"), "utf8"));
