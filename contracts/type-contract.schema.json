@@ -1,0 +1,95 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "type-contract.schema.json",
+  "title": "统一类型契约·种类总目录（合流编译产物，禁手改——server/shared/type-contract 再生）",
+  "type": "object",
+  "required": ["catalog_version", "generated_by", "entries", "labels", "meta"],
+  "properties": {
+    "catalog_version": { "const": 1 },
+    "generated_by": { "type": "string", "description": "再生命令（gen:type-catalog）" },
+    "entries": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["type_id", "display_name", "family", "kind", "storage", "sources", "lifecycle_status"],
+        "properties": {
+          "type_id": { "type": "string", "pattern": "^[A-Za-z][A-Za-z0-9_:-]*$", "description": "现有注册表键（ADR-021 §1.1：不新发一套、不改名）" },
+          "display_name": { "type": "string", "minLength": 1, "description": "类级中文显示名，屏幕唯一权威（必填——缺失即编译红）" },
+          "aliases": { "type": "array", "items": { "type": "string" } },
+          "family": { "enum": ["object", "value-type", "registry", "view", "dictionary-card"], "description": "家族：图谱对象／值域词表／注册表／视图／词典专属" },
+          "kind": { "type": ["string", "null"], "description": "object_kind 分类标签（business_object/config_object/ledger/document/runtime_view；仅标签，非可建类）" },
+          "parent_type_id": { "type": ["string", "null"] },
+          "system_projection": { "type": "boolean", "default": false, "description": "系统生成的只读种类（词典卡节点）；不可经个体通道新建" },
+          "keys": {
+            "type": ["object", "null"],
+            "properties": {
+              "owner": { "type": ["string", "null"], "description": "字段账属主键（类同名直查；KnowledgeArticle→article；实体族→entity）" },
+              "primary": { "type": "array", "items": { "type": "string" } },
+              "display": { "type": ["string", "null"] },
+              "incremental": { "type": ["string", "null"] }
+            }
+          },
+          "properties": {
+            "type": "array",
+            "description": "属性名与中文 display（完整定义单源在 fields.yaml，此处只列目录）",
+            "items": {
+              "type": "object",
+              "required": ["name", "display"],
+              "properties": { "name": { "type": "string" }, "display": { "type": "string" } }
+            }
+          },
+          "relations": { "type": "array", "items": { "type": "string" }, "description": "allows_relations（最近声明替换语义，未做继承解析）" },
+          "actions": {
+            "type": "array",
+            "description": "绑定动作 id（class_id 命中）＋类无关 generic:* 全局面",
+            "items": { "type": "string" }
+          },
+          "screen": {
+            "type": ["object", "null"],
+            "description": "U1 最小屏幕段（导航归属沿用词典 edited_by_tab；列表/表单/详情属 U3）",
+            "properties": {
+              "nav_region": { "type": ["string", "null"] },
+              "nav_item": { "type": ["string", "null"] },
+              "renderer": { "type": "string", "default": "generic" }
+            }
+          },
+          "storage": {
+            "type": "object",
+            "required": ["kind"],
+            "properties": {
+              "kind": { "enum": ["markdown-individual", "yaml-vocabulary", "yaml-registry", "vault-document", "projection-only"] },
+              "write_channel": { "type": ["string", "null"] }
+            }
+          },
+          "lifecycle_status": { "enum": ["draft", "submitted", "approved", "reserved", "retired"] },
+          "sources": {
+            "type": "object",
+            "description": "互链坐标（该种类来自哪些源；三源仍可写，目录只读）",
+            "properties": {
+              "ontology": { "type": ["string", "null"] },
+              "fields_owner": { "type": ["string", "null"] },
+              "dictionary_id": { "type": ["string", "null"], "description": "object-dictionary object_id" },
+              "vocabulary_segment": { "type": ["string", "null"], "description": "enums.yaml 段名或 versions/dependencies" }
+            }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "labels": {
+      "type": "object",
+      "description": "object_kind 五标签的登记位（从可建类降级为纯标签——ADR-021 §1.4/§4.2）",
+      "additionalProperties": { "type": "object", "properties": { "display_name": { "type": "string" } } }
+    },
+    "meta": {
+      "type": "object",
+      "required": ["compiled_at_runtime", "pending_dictionary_entries"],
+      "properties": {
+        "compiled_at_runtime": { "type": "boolean", "description": "true＝装载期产物（正典）；文件副本仅作对账快照" },
+        "pending_dictionary_entries": { "type": "array", "items": { "type": "string" }, "description": "暂未定键的词典专属卡（诚实清单，不硬造键）" },
+        "notes": { "type": "string" }
+      }
+    }
+  },
+  "additionalProperties": false
+}
