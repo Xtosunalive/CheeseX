@@ -551,6 +551,26 @@
       "metrics": null,
       "last_updated": "2026-11-21",
       "generator": "gen:derivation-contract"
+    },
+    {
+      "id": "type-catalog",
+      "name": "统一类型契约·种类总目录（三源合流编译产物，禁手改）",
+      "status": "candidate",
+      "authority": null,
+      "contract": "docs/adr/ADR-021-统一类型契约与身份三层口径.md §1.3＋docs/spec/SPEC-101-屏幕契约与逐页迁移-统一类型与屏幕契约U1-U4.md §一",
+      "gate": "npm run gen:type-catalog -- --check（挂 check-derivation-sync 自动纳管——WP-228 红队必修1清偿：手改检测由手工可达转常驻执法）",
+      "tests": [
+        "server/shared/type-contract/__tests__/compile-type-catalog.test.cjs"
+      ],
+      "writers": [],
+      "recipes": null,
+      "guide": null,
+      "register_entry": "docs/work-packages/WP-228.json",
+      "note": "WP-228（2026-11-23）：合流编译器从三源（ontology/fields/object-dictionary）现编译只读种类总目录；确定性输出（重建两遍逐字节一致）；缺类级中文显示名即编译红；装载期现编译为正典（ADR-015 写时算），文件副本仅对账快照。",
+      "verification_evidence": "task/WP-228 5e7bde2（内核）＋ccffb3f 批 --check 实测；重建确定性 git hash-object 同值实测",
+      "metrics": null,
+      "last_updated": "2026-11-23",
+      "generator": "gen:type-catalog"
     }
   ]
 }

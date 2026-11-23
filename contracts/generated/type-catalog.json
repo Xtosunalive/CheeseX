@@ -103,14 +103,7 @@
       "relations": [
         "BELONGS_TO"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": {
         "renderer": "generic",
         "nav_region": "region-config-audit",
@@ -231,14 +224,7 @@
         "DOCUMENTS",
         "MENTIONS"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": null,
       "storage": {
         "kind": "vault-document",
@@ -358,14 +344,7 @@
         "BELONGS_TO",
         "HAS_SYMPTOM"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": null,
       "storage": {
         "kind": "vault-document",
@@ -482,14 +461,7 @@
         "REFERENCES",
         "DOCUMENTS"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": null,
       "storage": {
         "kind": "vault-document",
@@ -660,13 +632,7 @@
         "articles.retire",
         "articles.standardize",
         "articles.status",
-        "articles.upload",
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
+        "articles.upload"
       ],
       "screen": {
         "renderer": "custom:article-workflow",
@@ -789,14 +755,7 @@
         "DOCUMENTS",
         "ASSOCIATED_WITH"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": {
         "renderer": "generic",
         "nav_region": "region-config-audit",
@@ -919,14 +878,7 @@
         "REFERENCES",
         "INDEXES"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": null,
       "storage": {
         "kind": "projection-only",
@@ -1042,14 +994,7 @@
         "HAS_VERSION",
         "APPLIES_TO"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": {
         "renderer": "generic",
         "nav_region": "region-config-audit",
@@ -1170,14 +1115,7 @@
         "APPLIES_TO",
         "HAS_VERSION"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": {
         "renderer": "generic",
         "nav_region": "region-config-audit",
@@ -1296,14 +1234,7 @@
       "relations": [
         "BELONGS_TO"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": {
         "renderer": "generic",
         "nav_region": "region-config-audit",
@@ -1427,14 +1358,7 @@
         "USES",
         "HAS_VERSION"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": null,
       "storage": {
         "kind": "vault-document",
@@ -1549,14 +1473,7 @@
       "relations": [
         "REFERENCES"
       ],
-      "actions": [
-        "individuals.config",
-        "individuals.create",
-        "individuals.list",
-        "individuals.read",
-        "individuals.update",
-        "individuals.retire"
-      ],
+      "actions": [],
       "screen": null,
       "storage": {
         "kind": "projection-only",
@@ -1674,7 +1591,7 @@
         "ontology": null,
         "fields_owner": null,
         "dictionary_id": "7a9e7361-d746-4d9f-a50d-05d22764ae8f",
-        "vocabulary_segment": "domains"
+        "vocabulary_segment": "subdomains.concept"
       }
     },
     {

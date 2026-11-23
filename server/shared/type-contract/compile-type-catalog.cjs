@@ -58,7 +58,7 @@ const DICTIONARY_ONLY = {
   "07955c25-6850-4906-b1c9-4c3ff36bb6e3": { type_id: "arch_category", segment: "arch_categories", storage: "yaml-vocabulary" },
   "67ad9163-b172-4207-bdc9-cd1abb4822f8": { type_id: "tag_vocabulary", segment: "tags", storage: "yaml-vocabulary" },
   "65ece684-3770-4cdd-b9a8-aa19bca38926": { type_id: "disabled_tag", segment: "tags", storage: "yaml-vocabulary" },
-  "7a9e7361-d746-4d9f-a50d-05d22764ae8f": { type_id: "concept_vocabulary", segment: "domains", storage: "yaml-vocabulary" },
+  "7a9e7361-d746-4d9f-a50d-05d22764ae8f": { type_id: "concept_vocabulary", segment: "subdomains.concept", storage: "yaml-vocabulary" }, // 概念域子域词表（词典卡权威：enums.yaml subdomains.concept）
   "8638b7d3-ec85-42f5-8116-7e5e93dd1173": { type_id: "article_field_value_domain", segment: null, storage: "yaml-vocabulary" },
   "6d704bce-150a-4217-85c0-1579999c7729": { type_id: "subdomain_constraint", segment: "subdomain_constraints", storage: "yaml-vocabulary" },
   "4b05a42e-e9af-4bdf-8997-c53c8b25f28e": { type_id: "dependency_version_range", segment: "dependencies", storage: "yaml-registry" },
@@ -131,11 +131,14 @@ function compileTypeCatalog({ ontology, fields, dictionary, enums } = {}) {
       e.properties = props.map((p) => ({ name: p.name, display: p.display || p.name }));
     }
     e.relations = Array.isArray(def.allows_relations) ? def.allows_relations.slice() : [];
-    e.actions = [...(actionsByClass.get(classId) || []).sort(), ...GENERIC_ACTIONS];
-
     const st = STORAGE_TABLE[classId] || { kind: "vault-document", write_channel: null };
     e.storage = { kind: st.kind, write_channel: st.write_channel };
     e.sources.vocabulary_segment = st.vocabulary_segment || null;
+    // ADR-021 §4.1/§3.2：通用个体动作只登记给 markdown-individual 存储形态（Plate/System 等
+    //   只读类不再携带 generic 全套——防 U3 按契约直渲按钮；写侧另有运行时 422 兜底）。
+    e.actions = [...(actionsByClass.get(classId) || []).sort(),
+      ...(e.storage.kind === "markdown-individual" ? GENERIC_ACTIONS : [])];
+
     if (SCREEN_TABLE[classId]) e.screen = { renderer: "generic", ...SCREEN_TABLE[classId] };
     entries.push(e);
   }

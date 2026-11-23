@@ -75,8 +75,13 @@ test("属主映射口径：类同名直查→KnowledgeArticle→article→实体
   const art = cat.entries.find((e) => e.type_id === "KnowledgeArticle");
   assert.equal(art.keys.owner, "article");
   assert.equal(art.parent_type_id, "Document");
-  assert.ok(art.actions.includes("articles.retire"));
-  for (const g of ["individuals.create", "individuals.retire", "individuals.config"]) assert.ok(art.actions.includes(g));
+  assert.ok(art.actions.includes("articles.retire"), "类绑定动作保留");
+  for (const g of ["individuals.create", "individuals.retire", "individuals.config"]) {
+    assert.ok(!art.actions.includes(g), `非 markdown-individual 类不携带 generic 动作（${g}）——ADR-021 §4.1/§3.2`);
+  }
+  const faqEntry = cat.entries.find((e) => e.type_id === "FaqCard");
+  for (const g of ["individuals.create", "individuals.retire", "individuals.config"]) assert.ok(faqEntry.actions.includes(g), "markdown-individual 类携带 generic 全套");
+
 });
 
 test("真仓 smoke：27 条、pending 归零、13 节点种类全有中文名、写口径矩阵成立", () => {
@@ -86,6 +91,10 @@ test("真仓 smoke：27 条、pending 归零、13 节点种类全有中文名、
   const objectEntries = cat.entries.filter((e) => e.sources.ontology);
   assert.equal(objectEntries.length, 13);
   for (const e of objectEntries) assert.match(e.display_name, /[\u4e00-\u9fff]/, `${e.type_id} 需中文显示名`);
+  const plate = cat.entries.find((e) => e.type_id === "Plate");
+  assert.ok(plate && !plate.actions.includes("individuals.create"), "Plate 无新建动作（ADR-021 §4.1——红队记档2）");
+  const sys = cat.entries.find((e) => e.type_id === "System");
+  assert.ok(sys && sys.actions.length === 0, "System 只读类零 generic 动作");
   assert.equal(individualWriteAllowed(cat, "FaqCard").allowed, true);
   for (const c of ["KnowledgeArticle", "Plate", "System", "Module", "Team"]) {
     assert.equal(individualWriteAllowed(cat, c).allowed, false, `${c} 应拒`);
