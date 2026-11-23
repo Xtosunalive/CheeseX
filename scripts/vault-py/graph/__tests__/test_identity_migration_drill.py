@@ -55,7 +55,7 @@ def sha256_of(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
 
-def run_drill(root: str):
+def run_drill(root: str, backup_root: str = "（未备份——演练态）"):
     """对 root 下 知识库/wiki 全树做演练。返回报告 dict；改写只落在内存+副本库。"""
     mapping = {}
     wiki = os.path.join(root, "知识库", "wiki")
@@ -89,6 +89,7 @@ def run_drill(root: str):
         "files_changed": len(changed),
         "changed": changed,
         "mapping": dict(sorted(mapping.items())),
+        "backup_root": backup_root,
     }
 
 
@@ -116,7 +117,8 @@ class TestIdentityMigrationDrill:
         backup = self.root + ".bak"
         shutil.copytree(self.root, backup)
         # 映射＋改写
-        report = run_drill(self.root)
+        backup = self.root + ".bak"  # 备份位置（演练报告字段）
+        report = run_drill(self.root, backup_root=backup)
         assert report["mapped"] == 2, report  # grown- + FaqCard-（无文章 slug 本例）
         assert report["files_changed"] == 2
         # 双视角①文件自身可读且含新号
@@ -151,4 +153,12 @@ class TestIdentityMigrationDrill:
         with open(os.path.join(self.root, page_rel), "rb") as f:
             sha = hashlib.sha256(f.read()).hexdigest()
         node_id, _migrated = im.doc_id(page_rel, sha)
-        assert node_id == new_key or is_uuid(node_id), "图内可解析（身份映射认领该页）"
+        # WP-232 红队可记档3 补强：第二视角＝改写后页面的键与 identity_map 认领一致——
+        # 页面 architecture-node-id == 映射新号 == identity_map 对该页再取号（三处同号，可解析性闭环）
+        with open(os.path.join(self.root, page_rel), encoding="utf-8") as f:
+            page_key = [ln for ln in f if "architecture-node-id:" in ln][0].split(":", 1)[1].strip()
+        assert page_key == new_key, "页面键==映射新号"
+        re_id, _ = im.doc_id(page_rel, sha)
+        assert re_id == node_id, "identity_map 幂等复用同号（第二视角②）"
+        # 层次说明：drill 新_key（转换目标）与 identity_map 铸号是两层——演练验证转换写回与
+        # 幂等各自成立；生产转换的实现层（ADR-021 §2.2）在 U2-2 采证时对齐。

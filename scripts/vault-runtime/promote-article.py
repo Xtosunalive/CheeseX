@@ -247,7 +247,7 @@ def mint_article_id():
         _exc = exc
     raise SystemExit(
         "article_id 铸造失败：Node 铸造点不可达——统一身份纪律不回落标题转写；"
-        "请在本机安装 Node 后重试，或手工指定 --article-id。"
+        "请在本机安装 Node 后重试。"
     )
 
 

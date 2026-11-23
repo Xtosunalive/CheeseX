@@ -1189,7 +1189,10 @@ def extract_entity_nodes(arch_node_ids, name_to_id, apply_write=True):
     # WP-117 批2：遍历面改信封过滤——wiki/entities 顶层 .md（原 :915 os.listdir 口径：
     # 不下钻子目录、无目录名剪枝；目录缺失＝空清单，与原 isdir 早退同形返回）
     entity_docs = _doc_envelope_flat_md_docs("wiki/entities")
-
+    # WP-232 红队必修1：doc_id 迁移排除集＝本轮实体页 rel 全集（防同内容双页经 sha16 迁移共用铸号）
+    _entity_rels = set()
+    for _fname, _kb_rel, _doc in entity_docs:
+        _entity_rels.add(_kb_rel)
     nodes = []
     edges = []
     wikilink_deps = []  # (source_id, target_id, target_name, link_type) from 依赖::
@@ -1243,7 +1246,7 @@ def extract_entity_nodes(arch_node_ids, name_to_id, apply_write=True):
                     _rel = os.path.relpath(filepath, VAULT_ROOT).replace("\\", "/")
                     with open(os.path.join(VAULT_ROOT, _rel), "rb") as _f:
                         _sha = hashlib.sha256(_f.read()).hexdigest()
-                    node_id, _migrated = IDENTITY_MAP.doc_id(_rel, _sha)
+                    node_id, _migrated = IDENTITY_MAP.doc_id(_rel, _sha, current_paths=_entity_rels)
                     if apply_write:
                         _backfill_entity_key(VAULT_ROOT, _rel, node_id)
                 else:
