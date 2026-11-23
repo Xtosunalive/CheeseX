@@ -353,8 +353,8 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:277",
-        "server/shared/http-app.cjs:281"
+        "server/shared/http-app.cjs:281",
+        "server/shared/http-app.cjs:285"
       ]
     },
     "AUTH_STATE_MISMATCH": {
@@ -370,7 +370,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:193"
+        "server/shared/http-app.cjs:197"
       ]
     },
     "BODY_REQUIRED": {
@@ -378,7 +378,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:195"
+        "server/shared/http-app.cjs:199"
       ]
     },
     "BUILDER_UNAVAILABLE": {
@@ -898,8 +898,8 @@ module.exports = {
         "server/routes/kg-routes.cjs:493",
         "server/routes/kg-routes.cjs:506",
         "server/routes/sync-routes.cjs:84",
-        "server/shared/http-app.cjs:132",
-        "server/shared/http-app.cjs:264"
+        "server/shared/http-app.cjs:136",
+        "server/shared/http-app.cjs:268"
       ]
     },
     "INVALID_ALIAS_TARGET": {
