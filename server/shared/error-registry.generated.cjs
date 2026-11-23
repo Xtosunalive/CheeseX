@@ -813,6 +813,12 @@ module.exports = {
         "server/services/ontology/individual-crud-service.cjs:84"
       ]
     },
+    "INDIVIDUAL_CHANNEL_FORBIDDEN": {
+      "statuses": [],
+      "sites": [
+        "server/shared/individual-executors.cjs:20"
+      ]
+    },
     "INDIVIDUAL_CLASS_INVALID": {
       "statuses": [
         422
