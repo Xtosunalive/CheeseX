@@ -11,6 +11,7 @@
 //   KnowledgeArticle→article→实体族→entity），此处只登记不改名。
 
 const GOVERNANCE_LABELS = ["business_object", "config_object", "runtime_view"];
+const LABEL_DISPLAY_NAMES = { business_object: "业务对象", config_object: "配置对象", runtime_view: "运行视图" };
 
 // 字段账属主解析（口径镜像 ontology-inheritance-resolver.cjs:196-204，禁在此另造）
 function ownerKeyOf(fields, classId) {
@@ -175,7 +176,7 @@ function compileTypeCatalog({ ontology, fields, dictionary, enums } = {}) {
   const labels = {};
   for (const label of GOVERNANCE_LABELS) {
     const def = nodeTypes[label];
-    labels[label] = { display_name: (def && def.display_name) || label };
+    labels[label] = { display_name: (def && def.display_name) || LABEL_DISPLAY_NAMES[label] || label };
   }
 
   return {

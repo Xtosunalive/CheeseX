@@ -899,12 +899,10 @@ export const RELATION_TYPES = {
   "derivation": {
     "label": "派生",
     "domain": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "range": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "description": "治理语义边——本对象由目标对象派生（或反向）",
     "semanticRole": "governance_semantics",
@@ -933,12 +931,10 @@ export const RELATION_TYPES = {
   "usage": {
     "label": "被消费",
     "domain": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "range": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "description": "治理语义边——本对象被目标（门禁/校验器/管线）消费",
     "semanticRole": "governance_semantics",
@@ -967,12 +963,10 @@ export const RELATION_TYPES = {
   "reference": {
     "label": "值域引用",
     "domain": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "range": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "description": "治理语义边——本对象是目标对象（或其字段）的合法值域",
     "semanticRole": "governance_semantics",
@@ -1001,12 +995,10 @@ export const RELATION_TYPES = {
   "co_editing": {
     "label": "共编",
     "domain": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "range": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "description": "治理语义边——本对象与目标对象同段多页签共编",
     "semanticRole": "governance_semantics",
@@ -1035,12 +1027,10 @@ export const RELATION_TYPES = {
   "containment": {
     "label": "包含",
     "domain": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "range": [
-      "business_object",
-      "config_object"
+      "object_dictionary_card"
     ],
     "description": "治理语义边——本对象包含目标对象（主体层挂载等包含关系）",
     "semanticRole": "governance_semantics",
@@ -1136,7 +1126,8 @@ export const CATEGORY_CLASSES = {
     "KnowledgeArticle"
   ],
   "概念": [
-    "Concept"
+    "Concept",
+    "FaqCard"
   ],
   "域": [
     "BusinessDomain",
@@ -1153,10 +1144,5 @@ export const CATEGORY_CLASSES = {
   ],
   "板块": [
     "Plate"
-  ],
-  "对象": [
-    "business_object",
-    "config_object",
-    "runtime_view"
   ]
 } as const;

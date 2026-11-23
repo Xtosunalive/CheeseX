@@ -17121,6 +17121,7 @@
           "error_code": {
             "type": "string",
             "enum": [
+              "INDIVIDUAL_CHANNEL_FORBIDDEN",
               "INDIVIDUAL_FIELDS_INVALID",
               "INDIVIDUAL_NOT_FOUND",
               "INDIVIDUAL_REVISION_CONFLICT",

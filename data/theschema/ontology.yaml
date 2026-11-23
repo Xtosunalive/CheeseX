@@ -125,39 +125,6 @@ node_types:
       - APPLIES_TO
       - REFERENCES
       - INDEXES
-  business_object:
-    display_name: 业务对象
-    description: 对象字典业务对象卡（治理图节点——对象本体批 ADR-012 D1；词表锚定
-      contracts/object-dictionary.json object_kind）
-    category: 对象
-    color: cyan
-    icon: database
-    allows_relations:
-      - derivation
-      - usage
-      - reference
-      - co_editing
-      - containment
-  config_object:
-    display_name: 配置对象
-    description: 对象字典配置对象卡（治理图节点——对象本体批 ADR-012 D1；词表锚定
-      contracts/object-dictionary.json object_kind）
-    category: 对象
-    color: teal
-    icon: settings
-    allows_relations:
-      - derivation
-      - usage
-      - reference
-      - co_editing
-      - containment
-  runtime_view:
-    display_name: 运行视图
-    description: 对象字典运行视图卡（治理图节点——「未收录值」观察哨；当前无关系类型以其为端点词表）
-    category: 对象
-    color: slate
-    icon: eye
-    allows_relations: []
   FaqCard:
     display_name: 问题卡
     description: 问题卡（WP-212 终验实例类——问题/答案结构化知识条目）
@@ -913,11 +880,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep
@@ -943,11 +908,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep
@@ -973,11 +936,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep
@@ -1003,11 +964,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep
@@ -1033,11 +992,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep

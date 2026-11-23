@@ -114,7 +114,7 @@ function createEdgeProjectionService({ store, readGraph, readRelations, listRela
     const nodes = (source.objects || []).map((o) => ({
       nodeId: o.objectId,
       label: o.canonicalName,
-      category: o.objectKind,
+      category: o.nodeType || o.objectKind, // WP-228：词典卡投影类目＝object_dictionary_card
       labels: o.subtype ? [o.subtype] : [],
       degree: degree.get(o.objectId) || 0,
       properties: { origin: "governance", canonical_name: o.canonicalName },

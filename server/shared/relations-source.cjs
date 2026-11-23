@@ -24,6 +24,7 @@ function loadGovernanceRelations({ vaultPath, logger } = {}) {
       objectId: c.object_id,
       canonicalName: c.canonical_name,
       objectKind: c.object_kind || "business_object",
+      nodeType: "object_dictionary_card", // WP-228：词典卡节点归系统生成只读种类（ADR-021 §1.4）
       subtype: c.subtype || null,
     }));
   } catch (error) {
