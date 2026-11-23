@@ -16,7 +16,9 @@ test("绿：真仓全量 pytest 退出码 0，且不污染 git 跟踪的治理�
   // 服务 15s 自循环管线）在场，门禁量法对"跑前后哈希差"失去归因力→拒判（fail-safe 指明
   // 凶手待排除），不再把窗口内一切写入记到 pytest 头上（诬告即假红）。
   const quiesceProbe1 = hashOf();
-  spawnSync(process.execPath, ["-e", "setTimeout(()=>{},2500)"]);
+  // WP-228：探针窗口须覆盖一个完整写入周期（常驻 dev 服务 15s 自循环／重启引导管线突发）——
+  // 2.5s 抽样对 15s 周期漏检率约 83%（起步复跑实录：探针窗口安静、87s pytest 窗口被写入→假红）。
+  spawnSync(process.execPath, ["-e", "setTimeout(()=>{},17000)"]);
   const quiesceProbe2 = hashOf();
   const ambientWriter = quiesceProbe1 !== quiesceProbe2;
   const before = quiesceProbe2;

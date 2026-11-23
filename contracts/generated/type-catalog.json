@@ -1,0 +1,1883 @@
+{
+  "catalog_version": 1,
+  "generated_by": "node scripts/generate-type-catalog.mjs（装载期现编译为正典；文件副本仅对账快照）",
+  "entries": [
+    {
+      "type_id": "BusinessDomain",
+      "display_name": "知识域",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "BELONGS_TO"
+      ],
+      "actions": [],
+      "screen": {
+        "renderer": "generic",
+        "nav_region": "region-config-audit",
+        "nav_item": "schema"
+      },
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": "PUT /api/schema/enums"
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "BusinessDomain",
+        "fields_owner": "entity",
+        "dictionary_id": "bd061091-c542-43a5-9fdb-fdb319f0b92f",
+        "vocabulary_segment": "domains"
+      }
+    },
+    {
+      "type_id": "Concept",
+      "display_name": "概念",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "REFERENCES",
+        "DOCUMENTS",
+        "MENTIONS"
+      ],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "vault-document",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "Concept",
+        "fields_owner": "entity",
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "Document",
+      "display_name": "文档",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "DOCUMENTS",
+        "REFERENCES",
+        "MENTIONS",
+        "APPLIES_TO",
+        "BELONGS_TO",
+        "HAS_SYMPTOM"
+      ],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "vault-document",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "Document",
+        "fields_owner": "entity",
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "Entity",
+      "display_name": "实体",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "BELONGS_TO",
+        "REFERENCES",
+        "DOCUMENTS"
+      ],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "vault-document",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "Entity",
+        "fields_owner": "entity",
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "FaqCard",
+      "display_name": "问题卡",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "FaqCard",
+        "primary": [
+          "individual_id"
+        ],
+        "display": "question",
+        "incremental": null
+      },
+      "properties": [
+        {
+          "name": "individual_id",
+          "display": "个体 ID"
+        },
+        {
+          "name": "question",
+          "display": "问题"
+        },
+        {
+          "name": "answer",
+          "display": "答案"
+        },
+        {
+          "name": "weight",
+          "display": "权重"
+        }
+      ],
+      "relations": [],
+      "actions": [
+        "individuals.config",
+        "individuals.create",
+        "individuals.list",
+        "individuals.read",
+        "individuals.update",
+        "individuals.retire"
+      ],
+      "screen": {
+        "renderer": "generic",
+        "nav_region": "region-config-audit",
+        "nav_item": "individuals"
+      },
+      "storage": {
+        "kind": "markdown-individual",
+        "write_channel": "/api/individuals/FaqCard"
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "FaqCard",
+        "fields_owner": "FaqCard",
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "KnowledgeArticle",
+      "display_name": "知识文章",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": "Document",
+      "system_projection": false,
+      "keys": {
+        "owner": "article",
+        "primary": [
+          "article_id"
+        ],
+        "display": "title",
+        "incremental": null
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "标题"
+        },
+        {
+          "name": "article_id",
+          "display": "文章标识"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "article_type",
+          "display": "知识文章类型"
+        },
+        {
+          "name": "doc-type",
+          "display": "文档类型"
+        },
+        {
+          "name": "validation_status",
+          "display": "机器校验戳"
+        },
+        {
+          "name": "validation_override",
+          "display": "校验豁免标记"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "业务分类"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "product",
+          "display": "产品"
+        },
+        {
+          "name": "version",
+          "display": "产品版本"
+        },
+        {
+          "name": "status",
+          "display": "文档生命周期状态"
+        },
+        {
+          "name": "body",
+          "display": "正文"
+        }
+      ],
+      "relations": [],
+      "actions": [
+        "approval.transition",
+        "article-associations.remove",
+        "article-associations.save",
+        "articles.drafts-promote",
+        "articles.drafts-validate",
+        "articles.lifecycle.archive",
+        "articles.lifecycle.promote",
+        "articles.lifecycle.publish",
+        "articles.lifecycle.retire",
+        "articles.patch-fields",
+        "articles.retire",
+        "articles.standardize",
+        "articles.status",
+        "articles.upload"
+      ],
+      "screen": {
+        "renderer": "custom:article-workflow",
+        "nav_region": "region-approval-publish",
+        "nav_item": "article-workflow"
+      },
+      "storage": {
+        "kind": "vault-document",
+        "write_channel": "POST /api/articles/upload"
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "KnowledgeArticle",
+        "fields_owner": "article",
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "Module",
+      "display_name": "产品模块",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "BELONGS_TO",
+        "REFERENCES",
+        "DOCUMENTS",
+        "ASSOCIATED_WITH"
+      ],
+      "actions": [],
+      "screen": {
+        "renderer": "generic",
+        "nav_region": "region-config-audit",
+        "nav_item": "schema"
+      },
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": "PUT /api/schema/enums"
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "Module",
+        "fields_owner": "entity",
+        "dictionary_id": "b8edcd53-13ad-4a9c-97f0-9386fac854d5",
+        "vocabulary_segment": "modules"
+      }
+    },
+    {
+      "type_id": "Plate",
+      "display_name": "知识板块（聚合视图）",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "BELONGS_TO",
+        "ASSOCIATED_WITH",
+        "APPLIES_TO",
+        "REFERENCES",
+        "INDEXES"
+      ],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "projection-only",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "Plate",
+        "fields_owner": "entity",
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "Product",
+      "display_name": "产品",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "HAS_VERSION",
+        "APPLIES_TO"
+      ],
+      "actions": [],
+      "screen": {
+        "renderer": "generic",
+        "nav_region": "region-config-audit",
+        "nav_item": "schema"
+      },
+      "storage": {
+        "kind": "yaml-registry",
+        "write_channel": "PUT /api/schema/product-identity"
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "Product",
+        "fields_owner": "entity",
+        "dictionary_id": null,
+        "vocabulary_segment": "architecture_projection"
+      }
+    },
+    {
+      "type_id": "ProductVersion",
+      "display_name": "产品版本",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "USES",
+        "APPLIES_TO",
+        "HAS_VERSION"
+      ],
+      "actions": [],
+      "screen": {
+        "renderer": "generic",
+        "nav_region": "region-config-audit",
+        "nav_item": "schema"
+      },
+      "storage": {
+        "kind": "yaml-registry",
+        "write_channel": "PUT /api/schema/versions"
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "ProductVersion",
+        "fields_owner": "entity",
+        "dictionary_id": "72a641da-dd78-45ca-9c19-eaed00a6d24c",
+        "vocabulary_segment": "versions"
+      }
+    },
+    {
+      "type_id": "Subdomain",
+      "display_name": "子域",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "BELONGS_TO"
+      ],
+      "actions": [],
+      "screen": {
+        "renderer": "generic",
+        "nav_region": "region-config-audit",
+        "nav_item": "schema"
+      },
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": "PUT /api/schema/enums"
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "Subdomain",
+        "fields_owner": "entity",
+        "dictionary_id": "bd061091-c542-43a5-9fdb-fdb319f0b92f",
+        "vocabulary_segment": "subdomains"
+      }
+    },
+    {
+      "type_id": "System",
+      "display_name": "系统",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "DEPENDS_ON",
+        "DOCUMENTS",
+        "REFERENCES",
+        "RELATED",
+        "USES",
+        "HAS_VERSION"
+      ],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "vault-document",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "System",
+        "fields_owner": "entity",
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "Team",
+      "display_name": "团队",
+      "aliases": [],
+      "family": "object",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": {
+        "owner": "entity",
+        "primary": [
+          "architecture-node-id"
+        ],
+        "display": "title",
+        "incremental": "updated"
+      },
+      "properties": [
+        {
+          "name": "title",
+          "display": "实体名称"
+        },
+        {
+          "name": "aliases",
+          "display": "别名"
+        },
+        {
+          "name": "tags",
+          "display": "标签"
+        },
+        {
+          "name": "category-path",
+          "display": "知识域目录"
+        },
+        {
+          "name": "impact_level",
+          "display": "影响面等级"
+        },
+        {
+          "name": "is_core",
+          "display": "核心标记"
+        },
+        {
+          "name": "architecture-node-id",
+          "display": "架构组件 ID"
+        },
+        {
+          "name": "arch_layer",
+          "display": "架构分层"
+        },
+        {
+          "name": "arch_category",
+          "display": "实体类别"
+        },
+        {
+          "name": "arch_subdomain",
+          "display": "子域"
+        },
+        {
+          "name": "arch_since",
+          "display": "组件有效期起点"
+        },
+        {
+          "name": "arch_until",
+          "display": "组件有效期终点"
+        },
+        {
+          "name": "arch_version_overrides",
+          "display": "版本属性覆盖"
+        },
+        {
+          "name": "module",
+          "display": "产品模块"
+        },
+        {
+          "name": "arch_component",
+          "display": "是否架构组件"
+        },
+        {
+          "name": "arch_status",
+          "display": "架构状态"
+        },
+        {
+          "name": "status",
+          "display": "生命周期状态"
+        },
+        {
+          "name": "date",
+          "display": "创建日期"
+        },
+        {
+          "name": "updated",
+          "display": "最后更新日期"
+        },
+        {
+          "name": "review-cycle",
+          "display": "审查周期"
+        }
+      ],
+      "relations": [
+        "REFERENCES"
+      ],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "projection-only",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": "Team",
+        "fields_owner": "entity",
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "arch_category",
+      "display_name": "实体类别",
+      "aliases": [],
+      "family": "value-type",
+      "kind": "business_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "07955c25-6850-4906-b1c9-4c3ff36bb6e3",
+        "vocabulary_segment": "arch_categories"
+      }
+    },
+    {
+      "type_id": "arch_layer",
+      "display_name": "架构分层",
+      "aliases": [],
+      "family": "value-type",
+      "kind": "business_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "0866f383-9128-415b-b119-d31c25163ec2",
+        "vocabulary_segment": "layers"
+      }
+    },
+    {
+      "type_id": "article_field_value_domain",
+      "display_name": "文章字段值域",
+      "aliases": [
+        "体裁（article_type）",
+        "载体（doc-type）",
+        "所属模块（modules）",
+        "文档分类"
+      ],
+      "family": "value-type",
+      "kind": "config_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "8638b7d3-ec85-42f5-8116-7e5e93dd1173",
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "concept_vocabulary",
+      "display_name": "概念词表",
+      "aliases": [
+        "概念域词表"
+      ],
+      "family": "value-type",
+      "kind": "business_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "7a9e7361-d746-4d9f-a50d-05d22764ae8f",
+        "vocabulary_segment": "subdomains.concept"
+      }
+    },
+    {
+      "type_id": "dependency_version_range",
+      "display_name": "依赖版本区间",
+      "aliases": [
+        "版本富化层"
+      ],
+      "family": "registry",
+      "kind": "config_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-registry",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "4b05a42e-e9af-4bdf-8997-c53c8b25f28e",
+        "vocabulary_segment": "dependencies"
+      }
+    },
+    {
+      "type_id": "disabled_tag",
+      "display_name": "停用标签",
+      "aliases": [],
+      "family": "value-type",
+      "kind": "business_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": null
+      },
+      "lifecycle_status": "reserved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "65ece684-3770-4cdd-b9a8-aa19bca38926",
+        "vocabulary_segment": "tags"
+      }
+    },
+    {
+      "type_id": "discovered_value",
+      "display_name": "未收录值",
+      "aliases": [
+        "待沉淀队列",
+        "野生值"
+      ],
+      "family": "view",
+      "kind": "runtime_view",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "projection-only",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "092cc25c-4d84-4af3-980a-14faae69f8dc",
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "field_dictionary",
+      "display_name": "字段字典",
+      "aliases": [
+        "frontmatter 字段数据字典",
+        "DATA-DICTIONARY（人读版）"
+      ],
+      "family": "registry",
+      "kind": "business_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-registry",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "f212819f-9a97-482f-9d46-4baa3775e474",
+        "vocabulary_segment": "fields"
+      }
+    },
+    {
+      "type_id": "graph_projection_config",
+      "display_name": "图谱投影配置",
+      "aliases": [
+        "架构投影"
+      ],
+      "family": "value-type",
+      "kind": "config_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "1242551d-e453-4e63-b21d-5715b86ab994",
+        "vocabulary_segment": "architecture_projection"
+      }
+    },
+    {
+      "type_id": "knowledge_ontology",
+      "display_name": "知识本体",
+      "aliases": [
+        "本体（ontology）",
+        "实体与关系"
+      ],
+      "family": "registry",
+      "kind": "business_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-registry",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "c54f6781-1669-4576-ba6e-c504c1b8f927",
+        "vocabulary_segment": "ontology"
+      }
+    },
+    {
+      "type_id": "object_dictionary_card",
+      "display_name": "对象词典卡（系统生成）",
+      "aliases": [],
+      "family": "dictionary-card",
+      "kind": null,
+      "parent_type_id": null,
+      "system_projection": true,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "projection-only",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": null,
+        "vocabulary_segment": null
+      }
+    },
+    {
+      "type_id": "relation_type",
+      "display_name": "关系类型",
+      "aliases": [
+        "边类型（edge type）"
+      ],
+      "family": "registry",
+      "kind": "business_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-registry",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "92bd5bd8-3cc4-4e00-a659-941fa7303a9e",
+        "vocabulary_segment": "ontology"
+      }
+    },
+    {
+      "type_id": "subdomain_constraint",
+      "display_name": "子域约束",
+      "aliases": [
+        "子域类别约束"
+      ],
+      "family": "value-type",
+      "kind": "config_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": null
+      },
+      "lifecycle_status": "reserved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "6d704bce-150a-4217-85c0-1579999c7729",
+        "vocabulary_segment": "subdomain_constraints"
+      }
+    },
+    {
+      "type_id": "tag_vocabulary",
+      "display_name": "标签词表",
+      "aliases": [
+        "柔性检索标签"
+      ],
+      "family": "value-type",
+      "kind": "business_object",
+      "parent_type_id": null,
+      "system_projection": false,
+      "keys": null,
+      "properties": [],
+      "relations": [],
+      "actions": [],
+      "screen": null,
+      "storage": {
+        "kind": "yaml-vocabulary",
+        "write_channel": null
+      },
+      "lifecycle_status": "approved",
+      "sources": {
+        "ontology": null,
+        "fields_owner": null,
+        "dictionary_id": "67ad9163-b172-4207-bdc9-cd1abb4822f8",
+        "vocabulary_segment": "tags"
+      }
+    }
+  ],
+  "labels": {
+    "business_object": {
+      "display_name": "业务对象"
+    },
+    "config_object": {
+      "display_name": "配置对象"
+    },
+    "runtime_view": {
+      "display_name": "运行视图"
+    }
+  },
+  "meta": {
+    "compiled_at_runtime": false,
+    "pending_dictionary_entries": [],
+    "notes": "三源仍可写（ADR-021 §1.3）；本目录只读、可删重建；屏幕段 U1 只含导航，列表/表单/详情属 U3。"
+  }
+}

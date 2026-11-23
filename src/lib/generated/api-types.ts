@@ -10257,9 +10257,11 @@ export interface components {
                 removed: components["schemas"]["ArchitectureVersionComponent"][];
                 changed: components["schemas"]["ArchitectureVersionComponentChange"][];
             };
+            /** @description WP-222（契约探针缺口清偿）：changed[] E2E 实测在返回，补声明。 */
             relations: {
                 added: components["schemas"]["ArchitectureVersionRelation"][];
                 removed: components["schemas"]["ArchitectureVersionRelation"][];
+                changed?: components["schemas"]["ArchitectureVersionRelation"][];
             };
             documents: {
                 added: components["schemas"]["ArchitectureVersionDocument"][];
@@ -14195,7 +14197,7 @@ export interface components {
         /** @description WP-208 通用个体面错误（generic:* 执行器域）——SPEC-100 批 2 */
         IndividualErrorResponse: {
             /** @enum {string} */
-            error_code?: "INDIVIDUAL_FIELDS_INVALID" | "INDIVIDUAL_NOT_FOUND" | "INDIVIDUAL_REVISION_CONFLICT" | "INDIVIDUAL_RETIRED" | "INDIVIDUAL_CLASS_INVALID" | "INDIVIDUAL_ID_INVALID" | "INDIVIDUAL_ID_COLLISION" | "INDIVIDUAL_FRONTMATTER_INVALID" | "INDIVIDUAL_BINDINGS_UNAVAILABLE" | "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN";
+            error_code?: "INDIVIDUAL_CHANNEL_FORBIDDEN" | "INDIVIDUAL_FIELDS_INVALID" | "INDIVIDUAL_NOT_FOUND" | "INDIVIDUAL_REVISION_CONFLICT" | "INDIVIDUAL_RETIRED" | "INDIVIDUAL_CLASS_INVALID" | "INDIVIDUAL_ID_INVALID" | "INDIVIDUAL_ID_COLLISION" | "INDIVIDUAL_FRONTMATTER_INVALID" | "INDIVIDUAL_BINDINGS_UNAVAILABLE" | "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN";
             details?: Record<string, never>;
         };
         /** @description WP-211 权限点目录面错误（同源对账失败即 500 当场红） */
@@ -14210,7 +14212,13 @@ export interface components {
             classId?: string | null;
             apiRoutes?: Record<string, never>[];
             storageFields?: Record<string, never>[] | null;
-            uiConfig?: Record<string, never> | null;
+            /** @description WP-222（契约探针缺口清偿）：按类 UI 配置——四子字段与派生器实产出一致（IndividualsView 消费）；编译错误档（error 计划）为 null */
+            uiConfig?: {
+                classId?: string;
+                inheritanceChain?: string[];
+                displayFields?: string[];
+                actionIds?: string[];
+            } | null;
             /** @description 编译失败降级计划的原因（显式可见，不静默丢类） */
             error?: string | null;
         };

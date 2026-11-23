@@ -439,7 +439,16 @@ const individualCrudService = require("./services/ontology/individual-crud-servi
   loadFields: () => { const b = loadVocabBundle(vaultPath, { files: ["fields"] }); return b.files.fields; },
 });
 // 类绑定活解析（个体写低频——每次现读成本可接受，快照缓存注记同款先例）——单源闭包共用（引擎＋批 3 投影）
-require("./shared/individual-executors.cjs").registerIndividualExecutors({ service: individualCrudService, registerActionExecutor, uiConfigFor: individualsUiConfigFor });
+// WP-228（SPEC-101 §3.4-1）：统一类型契约守卫——三源现编译（ADR-015 写时算：本体/字段/词典
+// 写后即变，不静默读旧值）；编译失败大声记日志并按「目录缺位」拒绝（写入 fail-closed）。
+const { loadTypeCatalog, individualWriteAllowed } = require("./shared/type-contract/index.cjs");
+const TYPE_CONTRACT_ROOT = path.resolve(__dirname, "..");
+const individualsWriteGuard = (classId) => {
+  const state = loadTypeCatalog(TYPE_CONTRACT_ROOT);
+  if (state.error) logger.error({ event: "type-catalog-compile-failed", error: state.error });
+  return individualWriteAllowed(state.catalog, classId);
+};
+require("./shared/individual-executors.cjs").registerIndividualExecutors({ service: individualCrudService, registerActionExecutor, uiConfigFor: individualsUiConfigFor, writeGuard: individualsWriteGuard });
 require("./routes/individual-routes.cjs").register(registerRoute, { uiConfigFor: individualsUiConfigFor });
 // WP-211（SPEC-100 批 5）：权限点目录只读面（动作快照单源派生＋同源自证）
 require("./routes/permission-catalog-routes.cjs").register(registerRoute);

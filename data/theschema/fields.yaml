@@ -27,7 +27,7 @@ keys:
   article:
     primary: article_id
     display: title
-  # WP-214（批 A 照准落纸）：13 骨架类身份三键——keys-only 登记（零手工字段，不进 classes 段；
+  # WP-214（批 A 照准落纸）：骨架类身份三键——keys-only 登记（WP-228：三治理标签键段随 kind 降级移除）（零手工字段，不进 classes 段；
   # 实例非 frontmatter 文档，主键语义随各源登记册：词表键/系统铸造 id/归一化路径）
   Document:
     primary: source_file
@@ -62,16 +62,6 @@ keys:
     primary: id
     display: name
   Plate:
-    primary: id
-    display: name
-  business_object:
-    primary: id
-    display: name
-    incremental: updated
-  config_object:
-    primary: id
-    display: name
-  runtime_view:
     primary: id
     display: name
 classes:

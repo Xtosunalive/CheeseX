@@ -34,6 +34,7 @@
     "gates:fold": "node scripts/quality/gates-fold.mjs",
     "gen:api-types": "openapi-typescript contracts/http-api.openapi.json -o src/lib/generated/api-types.ts",
     "gen:derivation-contract": "node scripts/generate-derivation-contract.mjs",
+    "gen:type-catalog": "node scripts/generate-type-catalog.mjs",
     "gen:error-registry": "node scripts/quality/gen-error-registry.mjs",
     "gen:ui-stat-provenance": "node scripts/quality/gen-ui-stat-provenance.mjs",
     "gen:value-domains": "node scripts/quality/gen-value-domains.mjs",

@@ -58,15 +58,6 @@
         "Plate": {
           "$ref": "#/$defs/classKeys"
         },
-        "business_object": {
-          "$ref": "#/$defs/classKeys"
-        },
-        "config_object": {
-          "$ref": "#/$defs/classKeys"
-        },
-        "runtime_view": {
-          "$ref": "#/$defs/classKeys"
-        },
         "FaqCard": {
           "$ref": "#/$defs/classKeys"
         }

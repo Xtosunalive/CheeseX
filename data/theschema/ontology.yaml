@@ -1,5 +1,6 @@
 node_types:
   System:
+    display_name: 系统
     description: 架构图中的系统/服务节点（审定架构组件）
     category: 服务
     color: blue
@@ -12,6 +13,7 @@ node_types:
       - USES
       - HAS_VERSION
   Entity:
+    display_name: 实体
     description: 知识库实体节点（wiki/entities 中的 .md 文件）
     category: 服务
     color: green
@@ -21,6 +23,7 @@ node_types:
       - REFERENCES
       - DOCUMENTS
   Document:
+    display_name: 文档
     description: 技术文档节点（raw/precleaned 中的 .md 文件）
     category: 文档
     color: amber
@@ -33,6 +36,7 @@ node_types:
       - BELONGS_TO
       - HAS_SYMPTOM
   KnowledgeArticle:
+    display_name: 知识文章
     description: 受管知识文章的个体类型
     category: 文档
     color: amber
@@ -42,6 +46,7 @@ node_types:
       title:
         required: true
   Concept:
+    display_name: 概念
     description: 抽象概念、方法论、术语定义
     category: 概念
     color: purple
@@ -51,6 +56,8 @@ node_types:
       - DOCUMENTS
       - MENTIONS
   BusinessDomain:
+    display_name: 知识域
+    dictionary_id: bd061091-c542-43a5-9fdb-fdb319f0b92f
     description: 业务域（ops, ref, concept, product, meta, arch）
     category: 域
     color: slate
@@ -58,6 +65,8 @@ node_types:
     allows_relations:
       - BELONGS_TO
   Subdomain:
+    display_name: 子域
+    dictionary_id: bd061091-c542-43a5-9fdb-fdb319f0b92f
     description: 子域（如 deploy, cluster）
     category: 域
     color: slate
@@ -65,6 +74,7 @@ node_types:
     allows_relations:
       - BELONGS_TO
   Product:
+    display_name: 产品
     description: 产品（AnyShare / AnyBackup / AnyRobot）
     category: 产品
     color: indigo
@@ -73,6 +83,8 @@ node_types:
       - HAS_VERSION
       - APPLIES_TO
   ProductVersion:
+    display_name: 产品版本
+    dictionary_id: 72a641da-dd78-45ca-9c19-eaed00a6d24c
     description: 产品版本（如 7.0.6.8）
     category: 版本
     color: indigo
@@ -82,6 +94,7 @@ node_types:
       - APPLIES_TO
       - HAS_VERSION
   Team:
+    display_name: 团队
     description: 团队/组织
     category: 其他
     color: gray
@@ -89,6 +102,8 @@ node_types:
     allows_relations:
       - REFERENCES
   Module:
+    display_name: 产品模块
+    dictionary_id: b8edcd53-13ad-4a9c-97f0-9386fac854d5
     description: 知识库 module 分组节点
     category: 服务
     color: teal
@@ -99,6 +114,7 @@ node_types:
       - DOCUMENTS
       - ASSOCIATED_WITH
   Plate:
+    display_name: 知识板块（聚合视图）
     description: 知识板块聚合节点（product × article_type / doc-type / module 维度），权限边界实体承载桩
     category: 板块
     color: emerald
@@ -109,37 +125,8 @@ node_types:
       - APPLIES_TO
       - REFERENCES
       - INDEXES
-  business_object:
-    description: 对象字典业务对象卡（治理图节点——对象本体批 ADR-012 D1；词表锚定
-      contracts/object-dictionary.json object_kind）
-    category: 对象
-    color: cyan
-    icon: database
-    allows_relations:
-      - derivation
-      - usage
-      - reference
-      - co_editing
-      - containment
-  config_object:
-    description: 对象字典配置对象卡（治理图节点——对象本体批 ADR-012 D1；词表锚定
-      contracts/object-dictionary.json object_kind）
-    category: 对象
-    color: teal
-    icon: settings
-    allows_relations:
-      - derivation
-      - usage
-      - reference
-      - co_editing
-      - containment
-  runtime_view:
-    description: 对象字典运行视图卡（治理图节点——「未收录值」观察哨；当前无关系类型以其为端点词表）
-    category: 对象
-    color: slate
-    icon: eye
-    allows_relations: []
   FaqCard:
+    display_name: 问题卡
     description: 问题卡（WP-212 终验实例类——问题/答案结构化知识条目）
     category: 概念
     color: purple
@@ -893,11 +880,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep
@@ -923,11 +908,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep
@@ -953,11 +936,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep
@@ -983,11 +964,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep
@@ -1013,11 +992,9 @@ relation_types:
     fact_encoding: governance_assertion
     projected: true
     source_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     target_types:
-      - business_object
-      - config_object
+      - object_dictionary_card
     versionable: false
     impact_propagation: none
     legacy_policy: keep

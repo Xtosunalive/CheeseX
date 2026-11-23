@@ -620,6 +620,9 @@ function validateNodeType(key, value, allRelationKeys, errors, fieldDefinitions)
   }
 }
 
+// WP-228（ADR-021 §1.4）：关系端点类型放行系统生成的只读种类（词典卡投影——替代三治理标签节点）
+var SYSTEM_PROJECTION_TYPES = ["object_dictionary_card"];
+
 function validateRelationType(key, value, allNodeKeys, errors) {
   if (!key || typeof key !== "string" || !key.trim()) {
     errors.push("relation_types: key must be non-empty string");
@@ -648,7 +651,7 @@ function validateRelationType(key, value, allNodeKeys, errors) {
     errors.push("relation_types." + key + ".source_types: must be an array");
   } else if (allNodeKeys.length) {
     for (var j = 0; j < value.source_types.length; j++) {
-      if (!allNodeKeys.includes(value.source_types[j])) {
+      if (!allNodeKeys.includes(value.source_types[j]) && !SYSTEM_PROJECTION_TYPES.includes(value.source_types[j])) {
         errors.push("relation_types." + key + ".source_types[" + j + "]: unknown node type '" + value.source_types[j] + "'");
       }
     }
@@ -657,7 +660,7 @@ function validateRelationType(key, value, allNodeKeys, errors) {
     errors.push("relation_types." + key + ".target_types: must be an array");
   } else if (allNodeKeys.length) {
     for (var k = 0; k < value.target_types.length; k++) {
-      if (!allNodeKeys.includes(value.target_types[k])) {
+      if (!allNodeKeys.includes(value.target_types[k]) && !SYSTEM_PROJECTION_TYPES.includes(value.target_types[k])) {
         errors.push("relation_types." + key + ".target_types[" + k + "]: unknown node type '" + value.target_types[k] + "'");
       }
     }
