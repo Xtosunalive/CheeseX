@@ -229,10 +229,26 @@ def run_article_validation(filepath, stamp=False):
     return result.returncode == 0, payload, (result.stderr or result.stdout).strip(), fatal
 
 
-def generate_article_id(title):
-    """从标题生成 article_id slug（小写 ASCII，空格/特殊字符转连字符）。"""
-    slug = re.sub(r"[^a-z0-9\u4e00-\u9fff]+", "-", title.lower()).strip("-")
-    return slug or "untitled"
+def mint_article_id():
+    """统一铸造点取号（WP-232／ADR-021 §2.2）：本脚本为人工通道，无 Node 服务在环——
+    经 node 子进程向 Node 侧铸造规格（crypto.randomUUID）取号；Node 不可达即中止，
+    不回落标题转写（写路径不允许隐式回落）。"""
+    import subprocess
+    try:
+        out = subprocess.run(
+            ["node", "-e", "console.log(require('node:crypto').randomUUID())"],
+            capture_output=True, text=True, timeout=15,
+        )
+        if out.returncode == 0:
+            minted = out.stdout.strip()
+            if minted:
+                return minted
+    except Exception as exc:
+        _exc = exc
+    raise SystemExit(
+        "article_id 铸造失败：Node 铸造点不可达——统一身份纪律不回落标题转写；"
+        "请在本机安装 Node 后重试，或手工指定 --article-id。"
+    )
 
 
 def ensure_article_id(filepath, fm):
@@ -241,7 +257,7 @@ def ensure_article_id(filepath, fm):
     if existing and str(existing).strip():
         return False, str(existing).strip()
     title = str(fm.get("title", os.path.splitext(os.path.basename(filepath))[0]))
-    article_id = generate_article_id(title)
+    article_id = mint_article_id()
     # 写入 frontmatter
     # 写前自读（WP-155 定性，human_edit_guard 同族先例）：写前现盘原文插入 article_id 后原子写回——
     # 写主权面自读，非文档装载消费链，不经信封。
