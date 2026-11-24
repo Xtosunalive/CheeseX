@@ -79,6 +79,21 @@
         },
         "FaqCard": {
           "$ref": "#/$defs/classDecl"
+        },
+        "Module": {
+          "$ref": "#/$defs/classDecl"
+        },
+        "BusinessDomain": {
+          "$ref": "#/$defs/classDecl"
+        },
+        "Subdomain": {
+          "$ref": "#/$defs/classDecl"
+        },
+        "Product": {
+          "$ref": "#/$defs/classDecl"
+        },
+        "ProductVersion": {
+          "$ref": "#/$defs/classDecl"
         }
       },
       "additionalProperties": false

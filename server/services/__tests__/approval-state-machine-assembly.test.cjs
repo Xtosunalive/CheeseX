@@ -188,6 +188,18 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     };
     const shippingOntology = yaml.parse(fs.readFileSync(path.resolve(__dirname, "../../../data/theschema/ontology.yaml"), "utf8"));
     definitions.action_types["articles.status"] = shippingOntology.action_types["articles.status"];
+    definitions.action_types["individuals.config"] = shippingOntology.action_types["individuals.config"];
+    definitions.action_types["individuals.create"] = shippingOntology.action_types["individuals.create"];
+    for (const [actionId, action] of Object.entries(definitions.action_types)) {
+      if (!Array.isArray(action.impact)) action.impact = [];
+      if (!action.display_name && shippingOntology.action_types[actionId]?.display_name) action.display_name = shippingOntology.action_types[actionId].display_name;
+      if (action.class_id === undefined && shippingOntology.action_types[actionId]?.class_id) action.class_id = shippingOntology.action_types[actionId].class_id;
+    }
+    for (const [typeId, definition] of Object.entries(definitions.node_types)) {
+      if (!definition.display_name && shippingOntology.node_types[typeId]?.display_name) definition.display_name = shippingOntology.node_types[typeId].display_name;
+    }
+    definitions.node_types.KnowledgeArticle.display_name = "知识文章";
+    definitions.screen_contracts = { KnowledgeArticle: structuredClone(shippingOntology.screen_contracts.KnowledgeArticle) };
     fs.writeFileSync(ontologyPath, yaml.stringify(definitions));
   }
   const wp170DataDir = fs.mkdtempSync(path.join(os.tmpdir(), "wp170-data-"));
@@ -230,6 +242,33 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     assert.equal(initialDerivation.status, 200, JSON.stringify(initialDerivation.body));
     assert.equal(initialDerivation.body.data.classId, "KnowledgeArticle");
     assert.equal(initialDerivation.body.data.apiRoutes.find(({ actionId }) => actionId === "articles.status").pathTemplate, "/api/articles/:id/status");
+    const articleConfig = await request("GET", "/api/individuals/KnowledgeArticle/config");
+    assert.equal(articleConfig.status, 200, JSON.stringify(articleConfig.body));
+    assert.deepEqual(articleConfig.body.data.screen, initialDerivation.body.data.uiConfig.screen, "两个既有只读端点必须投影同一屏幕契约");
+    assert.equal(initialDerivation.body.data.uiConfig.screen.renderer, "custom:article-workflow");
+    assert(initialDerivation.body.data.uiConfig.screen.buttons.every((button) => typeof button.availability.allowed === "boolean"), "HTTP 屏幕按钮必须收窄为布尔可用性");
+    {
+      const ontologyPath = path.join(serverEnv.THESCHEMA_DIR, "ontology.yaml");
+      const validRaw = fs.readFileSync(ontologyPath, "utf8");
+      const broken = yaml.parse(validRaw);
+      delete broken.action_types["individuals.config"].impact;
+      fs.writeFileSync(ontologyPath, yaml.stringify(broken));
+      try {
+        const unavailableConfig = await request("GET", "/api/individuals/KnowledgeArticle/config");
+        assert.equal(unavailableConfig.status, 503, "运行期坏契约不得继续投影旧屏幕");
+        assert.equal(unavailableConfig.body.error_code, "VALIDATOR_UNAVAILABLE");
+        const unavailableDerivation = await request("GET", derivationPath);
+        assert.equal(unavailableDerivation.status, 503, "文章派生端点同样 fail-closed");
+        const blockedWrite = await request("POST", "/api/individuals/KnowledgeArticle", { fields: { title: "坏契约探针" } });
+        assert.equal(blockedWrite.status, 422, `坏契约下通用个体写必须拒绝：${JSON.stringify(blockedWrite.body)}`);
+        assert.equal(blockedWrite.body.error_code, "INDIVIDUAL_CHANNEL_FORBIDDEN");
+        assert.equal(blockedWrite.body.details.reason, "TYPE_CONTRACT_UNAVAILABLE");
+      } finally {
+        fs.writeFileSync(ontologyPath, validRaw);
+      }
+      const recovered = await request("GET", "/api/individuals/KnowledgeArticle/config");
+      assert.equal(recovered.status, 200, "契约恢复后同进程重新激活");
+    }
     const parameterized = await request("GET", statusPath);
     assert.equal(parameterized.body.data.article_id, id);
     assert.equal(parameterized.body.data.derivation_version, initialDerivation.body.data.version);
@@ -341,6 +380,7 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     const ontologyPath = path.join(serverEnv.THESCHEMA_DIR, "ontology.yaml");
     const definitions = yaml.parse(fs.readFileSync(ontologyPath, "utf8"));
     definitions.node_types.KnowledgeArticle = {
+      ...definitions.node_types.KnowledgeArticle,
       subClassOf: "Document", data_properties: { title: { required: true } },
     };
     const saveOntology = () => write(vaultPath, "知识库/TheSchema/ontology.yaml", yaml.stringify(definitions));
@@ -351,18 +391,21 @@ test("HTTP 真进程：正式文件外部改动后状态与变更摘要经公开
     assert.equal(candidateBefore.derivedFields.version, beforeField.version);
     assert.equal(candidateBefore.derivedFields.values.title, candidateBefore.title);
     definitions.node_types.KnowledgeArticle.data_properties.module = { required: false };
+    definitions.screen_contracts.KnowledgeArticle.button_layout[0].label_cn = "上传新文章";
     saveOntology();
     const revised = (await request("GET", derivationPath)).body.data;
     assert.notEqual(revised.version, beforeField.version);
     assert(revised.uiConfig.displayFields.includes("module"));
+    assert.equal(revised.uiConfig.screen.buttons[0].label_cn, "上传新文章", "只改屏幕契约也应现编进 HTTP 产物，无需改页面代码");
     const revisedFields = (await request("GET", candidatePath)).body.data.derivedFields;
     assert.equal(revisedFields.version, revised.version);
     assert.equal(revisedFields.values.module, "fixture-module");
     definitions.node_types.KnowledgeArticle.data_properties.unregistered_wp185_field = { required: true };
     saveOntology();
     const retained = await request("GET", derivationPath);
+    assert.equal(retained.status, 503, "运行期坏契约不得返回旧派生屏幕");
     assert.equal(retained.retained, "true");
-    assert.deepEqual(retained.body.data, revised, "不合法的定义不能激活");
+    assert.equal(retained.body.error_code, "VALIDATOR_UNAVAILABLE");
     assert.deepEqual((await request("GET", candidatePath)).body.data.derivedFields, revisedFields);
     delete definitions.node_types.KnowledgeArticle.data_properties.unregistered_wp185_field;
     delete definitions.node_types.KnowledgeArticle.data_properties.module;

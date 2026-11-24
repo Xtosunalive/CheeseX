@@ -557,6 +557,70 @@ async function run() { // PR-056：freezeVersion 异步化随迁
     assert.match(fs.readFileSync(enumsAbs, "utf8"), /写回探针/, "对照写真实落盘");
   } finally { makeWritable(env.root); fs.rmSync(env.root, { recursive: true, force: true }); }
 
+  // 10. WP-233 U3：模块条目原语复用 enums 写门；OCC、全表语义与重复追加幂等。
+  env = createFixture();
+  try {
+    const svc = createSchemaWriteService({ vaultPath: env.repo });
+    const enumsAbs = path.join(env.repo, "知识库", "TheSchema", "enums.yaml");
+    const initialRevision = sha256(fs.readFileSync(enumsAbs));
+    svc.writeEnums({ revision: initialRevision, patch: { modules: { "fixture-module": { system: "夹具系统", subdomain: "maintain", products: [] } } } });
+    const revision = sha256(fs.readFileSync(enumsAbs));
+    const saved = svc.upsertModule({
+      moduleId: "结算",
+      revision,
+      definition: { system: "结算系统", subdomain: "maintain", products: [], description: "U3 模块样板" },
+    });
+    assert.equal(saved.category, "enums");
+    assert.equal(saved.moduleId, "结算");
+    let data = require("yaml").parse(fs.readFileSync(enumsAbs, "utf8"));
+    assert.ok(Object.hasOwn(data.modules, "结算"), "upsert 必须回读为自有模块键");
+    assert.equal(data.modules["结算"].description, "U3 模块样板");
+    assert.throws(
+      () => svc.upsertModule({ moduleId: "结算", revision, definition: { system: "另一系统", subdomain: "maintain" } }),
+      (e) => e.code === "ENUMS_REVISION_CONFLICT" && e.status === 409,
+    );
+    const appended = svc.appendModuleProduct({ moduleId: "结算", value: "产品A", revision: saved.revision });
+    assert.equal(appended.appended, true);
+    data = require("yaml").parse(fs.readFileSync(enumsAbs, "utf8"));
+    assert.deepEqual(data.modules["结算"].products, ["产品A"]);
+    const repeated = svc.appendModuleProduct({ moduleId: "结算", value: "产品A", revision: appended.revision });
+    assert.equal(repeated.appended, false);
+    assert.equal(repeated.revision, appended.revision);
+    data = require("yaml").parse(fs.readFileSync(enumsAbs, "utf8"));
+    assert.deepEqual(data.modules["结算"].products, ["产品A"]);
+    const beforeReject = fs.readFileSync(enumsAbs);
+    assert.throws(
+      () => svc.appendModuleProduct({ moduleId: "缺席", value: "产品B", revision: repeated.revision }),
+      (e) => e.code === "VALIDATION_ERROR" && e.status === 400,
+    );
+    assert.throws(
+      () => svc.upsertModule({ moduleId: "坏模块", revision: repeated.revision, definition: { system: "", subdomain: "maintain" } }),
+      (e) => e.code === "VALIDATION_ERROR" && e.status === 400,
+    );
+    assert.throws(
+      () => svc.upsertModule({ moduleId: "__proto__", revision: repeated.revision, definition: { system: "原型系统", subdomain: "maintain", products: [] } }),
+      (e) => e.code === "VALIDATION_ERROR" && e.status === 400,
+      "原型继承名不得冒充模块",
+    );
+    assert.throws(
+      () => svc.appendModuleProduct({ moduleId: "__proto__", value: "产品B", revision: repeated.revision }),
+      (e) => e.code === "VALIDATION_ERROR" && e.status === 400,
+      "append 不得读取继承属性冒充模块",
+    );
+    assert.deepEqual(fs.readFileSync(enumsAbs), beforeReject, "拒绝路径零落盘");
+
+    const legacyDoc = require("yaml").parse(fs.readFileSync(enumsAbs, "utf8"));
+    legacyDoc.modules["旧模块"] = { system: "旧系统", subdomain: "maintain", products: "legacy-product" };
+    fs.writeFileSync(enumsAbs, require("yaml").stringify(legacyDoc));
+    const beforeLegacy = fs.readFileSync(enumsAbs);
+    assert.throws(
+      () => svc.appendModuleProduct({ moduleId: "旧模块", value: "2.0.0", revision: sha256(beforeLegacy) }),
+      (e) => e.code === "VALIDATION_ERROR" && e.status === 400 && /products/.test(e.message),
+      "旧标量 products 必须拒绝，不得静默覆盖为数组",
+    );
+    assert.deepEqual(fs.readFileSync(enumsAbs), beforeLegacy, "旧形状拒绝零落盘");
+  } finally { makeWritable(env.root); fs.rmSync(env.root, { recursive: true, force: true }); }
+
   console.log("Schema write service tests passed");
 }
 

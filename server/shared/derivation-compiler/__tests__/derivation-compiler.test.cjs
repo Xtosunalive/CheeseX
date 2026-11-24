@@ -7,6 +7,7 @@ const path = require("node:path");
 const yaml = require("yaml");
 const { compileClassDerivation } = require("../derivation-compiler.cjs");
 const { assembleDerivedRoutes } = require("../index.cjs");
+const { compileTypeCatalog } = require("../../type-contract/compile-type-catalog.cjs");
 
 const repoRoot = path.resolve(__dirname, "..", "..", "..", "..");
 const ontology = yaml.parse(
@@ -36,6 +37,24 @@ test("编译确定性：同输入两次产物完全一致", () => {
   assert.deepEqual(first, second);
   assert.notEqual(first.version, revised.version);
   assert.equal(first.apiRoutes.find((route) => route.actionId === "articles.status").pathTemplate, "/api/articles/:id/status");
+});
+
+test("U3 屏幕同源：derivation 深拷目录 screen，改契约即改版本与产物", () => {
+  const dictionary = JSON.parse(fs.readFileSync(path.join(repoRoot, "contracts/object-dictionary.json"), "utf8"));
+  const enums = yaml.parse(fs.readFileSync(path.join(repoRoot, "data/theschema/enums.yaml"), "utf8"));
+  const emptyStates = JSON.parse(fs.readFileSync(path.join(repoRoot, "contracts/empty-state-semantics.json"), "utf8"));
+  const catalog = compileTypeCatalog({ ontology, fields, dictionary, enums, emptyStates });
+  const expected = catalog.entries.find((entry) => entry.type_id === "KnowledgeArticle").screen;
+  const compiled = compileClassDerivation(ontology, fields, "KnowledgeArticle", catalog);
+  assert.deepEqual(compiled.uiConfig.screen, expected);
+  assert.equal(compiled.uiConfig.screen.renderer, "custom:article-workflow");
+
+  const changed = structuredClone(ontology);
+  changed.screen_contracts.KnowledgeArticle.button_layout[0].label_cn = "上传新文章";
+  const changedCatalog = compileTypeCatalog({ ontology: changed, fields, dictionary, enums, emptyStates });
+  const revised = compileClassDerivation(changed, fields, "KnowledgeArticle", changedCatalog);
+  assert.notEqual(revised.version, compiled.version, "屏幕契约进入 derivation 版本哈希");
+  assert.equal(revised.uiConfig.screen.buttons[0].label_cn, "上传新文章");
 });
 
 test("编译产物不包含手写逻辑，全部来自本体单源", () => {

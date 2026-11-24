@@ -8,7 +8,10 @@ vi.mock("@/features/schema-manager/schema-manager-api", () => ({
   previewEnumsChanges: vi.fn(),
 }));
 vi.mock("@/features/schema-manager/schema-write-api", () => ({
-  writeOntology: vi.fn(), writeEnums: vi.fn(), writeDependencies: vi.fn(), writeVersions: vi.fn(), writeProductIdentity: vi.fn(), freezeVersion: vi.fn(), absorbDiscovery: vi.fn(), rollbackEnums: vi.fn(),
+  writeOntology: vi.fn(), writeEnums: vi.fn(), writeDependencies: vi.fn(), writeVersions: vi.fn(), writeProductIdentity: vi.fn(), freezeVersion: vi.fn(), absorbDiscovery: vi.fn(), rollbackEnums: vi.fn(), upsertModule: vi.fn(), appendModuleProduct: vi.fn(),
+}));
+vi.mock("@/features/individuals/individuals-api", () => ({
+  fetchIndividualConfig: vi.fn().mockResolvedValue({ success: false, data: null }),
 }));
 vi.mock("@/features/schema-manager/dependencies-api", () => ({
   fetchDependencyRules: vi.fn(), validateDependencyRules: vi.fn(), updateDependencyRules: vi.fn(),

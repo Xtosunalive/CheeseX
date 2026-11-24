@@ -226,6 +226,7 @@ export const useSchemaManagerStore = create<SchemaManagerState>((set, get) => ({
       });
     } catch (e) {
       set(requestFailed(e, SM_REQUEST_COPY.RULES_LOAD_FAILED));
+      throw e;
     }
   },
 

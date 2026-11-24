@@ -893,6 +893,29 @@
         }
       }
     },
+    "/api/schema/enums/append": {
+      "post": {
+        "operationId": "schema.enums.append",
+        "tags": [
+          "Module"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "POST /api/schema/enums/append requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/schema/enums/rollback": {
       "post": {
         "operationId": "schema.enums.rollback",
@@ -933,6 +956,29 @@
             "application/json": {
               "schema": {
                 "contract_ref": "PUT /api/schema/fields requestBody"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schema/modules/{moduleId}": {
+      "put": {
+        "operationId": "schema.modules.upsert",
+        "tags": [
+          "Module"
+        ],
+        "responses": {
+          "200": {
+            "description": "成功"
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "contract_ref": "PUT /api/schema/modules/{moduleId} requestBody"
               }
             }
           }
@@ -1170,5 +1216,5 @@
       }
     }
   },
-  "source_revision": "sha256:de40fad9c254426d3c908b1f3e863691a1c2c4647ef889529e82ad8268768288"
+  "source_revision": "sha256:bbeb99d62e458c18be6009e05ae20dee8bd172555f05173411d04f49b4326f61"
 }

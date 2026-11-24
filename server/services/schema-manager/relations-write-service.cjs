@@ -18,7 +18,6 @@ const { replaceTheSchemaFile } = require("../../shared/theschema-write.cjs"); //
 const { validateDocumentStrict } = require("../../shared/theschema-loader.cjs");
 const { assertRevisionGiven } = require("../../shared/schema-write-guards.cjs");
 const ROOT = require("node:path").resolve(__dirname, "..", "..", "..");
-const repoRel = (absPath) => require("node:path").relative(ROOT, absPath).split(require("node:path").sep).join("/");
 
 function revision(raw) {
   return "sha256:" + crypto.createHash("sha256").update(raw).digest("hex");
@@ -126,7 +125,7 @@ function writeRelations(options) {
 }
 
 function listSnapshots(vaultPath) {
-  return listGitSnapshots(repoRel(readRelationsFile(vaultPath).filePath));
+  return listGitSnapshots(readRelationsFile(vaultPath).filePath);
 }
 
 function rollbackSnapshot(vaultPath, expectedRevision, snapshotId) {
@@ -137,7 +136,7 @@ function rollbackSnapshot(vaultPath, expectedRevision, snapshotId) {
   if (current.revision !== expectedRevision) throw serviceError("RELATIONS_REVISION_CONFLICT", "relations.yaml changed after it was loaded", 409);
   let raw;
   try {
-    raw = readGitSnapshot(repoRel(current.filePath), snapshotId);
+    raw = readGitSnapshot(current.filePath, snapshotId);
   } catch (e) {
     if (e.code === "INVALID_SNAPSHOT_ID") throw serviceError("INVALID_SNAPSHOT_ID", e.message, 400);
     throw serviceError("SNAPSHOT_NOT_FOUND", "Schema snapshot not found", 404);

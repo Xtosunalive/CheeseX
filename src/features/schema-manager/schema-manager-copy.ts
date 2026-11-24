@@ -577,7 +577,25 @@ export const MODULES_COPY = {
   NEW_NAME_ARIA: "新增产品模块名称",
   ADD_ARIA: "添加产品模块",
   ADD_ACTION: "添加",
+  CONTRACT_UNAVAILABLE: "显示层契约不可用",
+  CONTRACT_FALLBACK_PREFIX: "显示层契约不可用，已回退到页面现有实现：",
+  MODULE_ID_REQUIRED: "模块 ID 不能为空",
+  SAVE_FAILED: "模块保存失败",
+  APPEND_FAILED: "适用产品追加失败",
+  CREATE_TITLE: "新建模块",
+  CONTRACT_ARIA: "产品模块",
+  APPEND_PREFIX: "追加到「",
+  APPEND_SUFFIX: "」的适用产品",
+  CONFIRM_APPEND: "确认追加",
 } as const;
+
+export function editModuleTitle(moduleId: string): string {
+  return `编辑模块：${moduleId}`;
+}
+
+export function appendProductLabel(moduleId: string): string {
+  return `${MODULES_COPY.APPEND_PREFIX}${moduleId}${MODULES_COPY.APPEND_SUFFIX}`;
+}
 
 // ── components/AssertionPolicyEditor（关系断言政策编辑器）──
 export const POLICY_COPY = {

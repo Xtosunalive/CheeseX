@@ -11,6 +11,8 @@ export type SchemaWriteResult = {
   version?: string;
   /** WP-B 出生反查（field=entity create 时返回）：提及该新实体的文章坐标 */
   backlinks?: Array<{ file: string; coordinate?: string }>;
+  moduleId?: string;
+  appended?: boolean;
 };
 
 function write(method: "PUT" | "POST", path: string, payload: unknown, fallback: string): Promise<SchemaWriteResult> {
@@ -27,6 +29,14 @@ export function writeOntology(revision: string, patch: Record<string, unknown>):
 
 export function writeEnums(revision: string, patch: Record<string, unknown>): Promise<SchemaWriteResult> {
   return write("PUT", "/api/schema/enums", { revision, patch }, SM_REQUEST_COPY.RULES_SAVE_FAILED);
+}
+
+export function upsertModule(moduleId: string, definition: Record<string, unknown>, revision: string): Promise<SchemaWriteResult> {
+  return write("PUT", `/api/schema/modules/${encodeURIComponent(moduleId)}`, { revision, definition }, SM_REQUEST_COPY.RULES_SAVE_FAILED);
+}
+
+export function appendModuleProduct(moduleId: string, value: string, revision: string): Promise<SchemaWriteResult> {
+  return write("POST", "/api/schema/enums/append", { revision, moduleId, value }, SM_REQUEST_COPY.RULES_SAVE_FAILED);
 }
 
 export function writeDependencies(revision: string, patch: Record<string, unknown>): Promise<SchemaWriteResult> {

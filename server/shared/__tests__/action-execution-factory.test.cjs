@@ -152,6 +152,15 @@ test('未找到 approved 动作：500 ACTION_NOT_ACTIVE，不调执行器，事�
 test('风险四处置：block/未声明风险 403 拒；confirm 未确认 409、confirm:true 放行；approve 恒拒 403', async () => {
   const vault = makeVault(baseDefs(), RISKS);
   registerActionExecutor('x.success', () => ({ revision: 'r' }));
+  const confirmAvailability = checkActionAvailability({
+    actionId: 't.riskconfirm',
+    snapshot: getActiveActionSnapshot(),
+    body: {},
+    principal: { roles: [] },
+  });
+  assert.equal(confirmAvailability.allowed, true, 'confirm 档可由界面二次确认后执行');
+  assert.equal(confirmAvailability.method, 'PUT');
+  assert.equal(confirmAvailability.path, '/api/schema/relations');
 
   const blocked = await run('t.riskblock', {});
   assert.equal(blocked.error.code, 'ACTION_RISK_BLOCKED');

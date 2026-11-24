@@ -11,10 +11,11 @@ const { docField } = require("../document-load-port.cjs");
  * 输出：可直接消费的API路由、存储投影、UI配置
  * 同输入永远同输出，无副作用，不碰文件不连库
  */
-function compileClassDerivation(ontology, fields, classId) {
+function compileClassDerivation(ontology, fields, classId, catalog = null) {
   const resolvedClass = resolveClassInheritance(ontology, classId, fields);
+  const screen = catalog?.entries?.find((entry) => entry.type_id === classId)?.screen ?? null;
   const version = "sha256:" + createHash("sha256")
-    .update(JSON.stringify([classId, ontology, fields])).digest("hex");
+    .update(JSON.stringify([classId, ontology, fields, screen])).digest("hex");
 
   // 1. 派生API路由：直接取类绑定的动作，不重复定义
   const apiRoutes = resolvedClass.action_types.map((boundAction) => {
@@ -49,6 +50,7 @@ function compileClassDerivation(ontology, fields, classId) {
     inheritanceChain: resolvedClass.inheritance_chain,
     displayFields: storageFields.map((f) => f.fieldName),
     actionIds: resolvedClass.action_types.map((a) => a.id),
+    screen,
   };
 
   return {
@@ -95,14 +97,14 @@ function compileLifecycleRoutes(lifecycle) {
 
 // WP-207（SPEC-100 批 1·多类推广）：全 approved 类遍历——路由计划面泛化到任意类。单类编译失败
 // 降级为 error 计划（显式可见，不静默丢类）；无 data_properties／无绑定动作的类产出空计划（合法）。
-function compileAllClassDerivations(ontology, fields) {
+function compileAllClassDerivations(ontology, fields, catalog = null) {
   const out = [];
   const nodeTypes = (ontology && ontology.node_types) || {};
   for (const [classId, def] of Object.entries(nodeTypes)) {
     const status = def && def.lifecycle_status === undefined ? "approved" : def.lifecycle_status;
     if (status !== "approved") continue;
     try {
-      out.push(compileClassDerivation(ontology, fields || {}, classId));
+      out.push(compileClassDerivation(ontology, fields || {}, classId, catalog));
     } catch (error) {
       out.push({ version: null, classId, apiRoutes: [], uiConfig: null, error: error.message });
     }

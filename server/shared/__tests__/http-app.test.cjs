@@ -181,6 +181,7 @@ test("HA-13 CORS：任意 OPTIONS → 204＋ACAO *；普通响应带 ACAO *", as
   assert.equal(preflight.headers["access-control-allow-origin"], "*");
   const res = await http.app.inject({ method: "GET", url: "/api/health", headers: { origin: "http://example.test" } });
   assert.equal(res.headers["access-control-allow-origin"], "*");
+  assert.match(res.headers["access-control-expose-headers"], /X-Derivation-Retained/);
   await http.close();
 });
 

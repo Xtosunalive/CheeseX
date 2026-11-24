@@ -159,7 +159,11 @@ function checkActionAvailability({ actionId, snapshot, body, params = {}, princi
   // Availability has no full transport request. It cannot promise success for
   // an action with request-dependent preconditions.
   if (action.preconditions?.length) return { allowed: false, reason: "ACTION_PRECONDITION_FAILED" };
-  const risk = evaluateStaticRisk(actionId, action, snapshot, body);
+  const riskDecision = action.risk_id ? snapshot.risks.get(action.risk_id)?.decision : null;
+  const candidateBody = riskDecision === "confirm" && body?.confirm !== true
+    ? { ...(body && typeof body === "object" ? body : {}), confirm: true }
+    : body;
+  const risk = evaluateStaticRisk(actionId, action, snapshot, candidateBody);
   return risk.allowed ? { allowed: true, method, path } : { allowed: false, reason: risk.code };
 }
 

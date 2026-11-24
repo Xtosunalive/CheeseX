@@ -55,6 +55,35 @@ test("合并窗口：同域两次写合并为一笔提交", async () => {
   assert.ok(adds[0].includes("a.yaml") && adds[0].includes("b.yaml"), "两个文件都进同一笔 add");
 });
 
+test("异域冲窗与 flush 串行落账，不并发触碰 Git index", async () => {
+  const calls = [];
+  let active = 0;
+  let maxActive = 0;
+  const ledger = createVaultGitLedger({
+    vaultPath: "/tmp/vault",
+    logger: { info() {}, warn() {}, error() {} },
+    windowMs: 1,
+    gitRunner(args, cb) {
+      calls.push(args);
+      if (args[0] === "status" && args.includes("--porcelain")) {
+        active += 1;
+        maxActive = Math.max(maxActive, active);
+        setTimeout(() => {
+          active -= 1;
+          cb(null, "M a.yaml\n", "");
+        }, 15);
+        return;
+      }
+      cb(null, "", "");
+    },
+  });
+  ledger.scheduleLedger("schema-page", "写回一", ["a.yaml"]);
+  ledger.scheduleLedger("ontology-action", "动作事件", [".ledger/decisions.jsonl"]);
+  await ledger.flush();
+  assert.equal(maxActive, 1, "任意时点只能有一笔提交链在跑");
+  assert.equal(calls.filter((a) => a.includes("commit") && a.includes("-m")).length, 2);
+});
+
 test("干净跳过：status 为空不产 add/commit", async () => {
   const calls = [];
   const ledger = createVaultGitLedger({

@@ -16,6 +16,7 @@ const realInputs = () => ({
   fields: YAML.parse(fs.readFileSync(path.join(ROOT, "data/theschema/fields.yaml"), "utf8")),
   dictionary: JSON.parse(fs.readFileSync(path.join(ROOT, "contracts/object-dictionary.json"), "utf8")),
   enums: YAML.parse(fs.readFileSync(path.join(ROOT, "data/theschema/enums.yaml"), "utf8")),
+  emptyStates: JSON.parse(fs.readFileSync(path.join(ROOT, "contracts/empty-state-semantics.json"), "utf8")),
 });
 
 const FIXTURE = {
@@ -27,7 +28,7 @@ const FIXTURE = {
       business_object: { display_name: "业务对象" },
     },
     action_types: {
-      "articles.retire": { class_id: "KnowledgeArticle", http_route: "POST /api/articles/retire", executor: "x" },
+      "articles.retire": { class_id: "KnowledgeArticle", http_route: "POST /api/articles/retire", executor: "x", impact: [] },
     },
   },
   fields: {
@@ -84,6 +85,28 @@ test("属主映射口径：类同名直查→KnowledgeArticle→article→实体
 
 });
 
+test("类名撞上原型键时不误读继承 screen、字段属主或存储登记", () => {
+  const inputs = realInputs();
+  inputs.ontology.node_types.constructor = { display_name: "原型键类" };
+  const entry = compileTypeCatalog(inputs).entries.find((candidate) => candidate.type_id === "constructor");
+  assert.ok(entry);
+  assert.equal(entry.screen, null);
+  assert.equal(entry.storage.kind, "vault-document");
+  assert.equal(entry.keys.owner, "entity");
+});
+
+test("词典卡 object_id 撞上原型键时保持未登记，不生成畸形条目", () => {
+  for (const objectId of ["constructor", "__proto__"]) {
+    const inputs = realInputs();
+    const canonicalName = `未登记-${objectId}`;
+    inputs.dictionary.core_objects.push({ object_id: objectId, canonical_name: canonicalName, object_kind: "business_object" });
+    const catalog = compileTypeCatalog(inputs);
+    assert.equal(catalog.entries.length, 27);
+    assert.ok(catalog.meta.pending_dictionary_entries.includes(`${canonicalName}(${objectId})`));
+    assert.ok(catalog.entries.every((entry) => typeof entry.type_id === "string" && entry.storage && typeof entry.storage.kind === "string"));
+  }
+});
+
 test("真仓 smoke：27 条、pending 归零、13 节点种类全有中文名、写口径矩阵成立", () => {
   const cat = compileTypeCatalog(realInputs());
   assert.equal(cat.entries.length, 27);
@@ -102,4 +125,76 @@ test("真仓 smoke：27 条、pending 归零、13 节点种类全有中文名、
   for (const label of GOVERNANCE_LABELS) assert.equal(individualWriteAllowed(cat, label).reason, "TYPE_NOT_IN_CATALOG");
   assert.equal(individualWriteAllowed(null, "FaqCard").reason, "TYPE_CATALOG_UNAVAILABLE");
   assert.equal(individualWriteAllowed(cat, "NoSuch").reason, "TYPE_NOT_IN_CATALOG");
+});
+
+test("U3 真仓：approved 动作 impact 全声明，屏幕按钮与动作影响同源", () => {
+  const inputs = realInputs();
+  const actions = Object.values(inputs.ontology.action_types).filter((action) => action.lifecycle_status === undefined || action.lifecycle_status === "approved");
+  assert.equal(actions.length, 56);
+  assert.ok(actions.every((action) => Array.isArray(action.impact)), "approved 动作不得缺 impact（只读用 []）");
+  const cat = compileTypeCatalog(inputs);
+  const buttons = cat.entries.flatMap((entry) => entry.screen?.buttons || []);
+  assert.ok(buttons.length > 0);
+  for (const button of buttons) {
+    assert.deepEqual(button.impact, inputs.ontology.action_types[button.action_id].impact, `${button.action_id} 影响说明同源`);
+    assert.equal(button.availability_source, "action-execution-factory");
+  }
+  const faq = cat.entries.find((entry) => entry.type_id === "FaqCard");
+  assert.deepEqual(faq.screen.empty.guide, inputs.emptyStates.absence_kinds["faq-card-empty"] && {
+    what: inputs.emptyStates.absence_kinds["faq-card-empty"].what,
+    where: inputs.emptyStates.absence_kinds["faq-card-empty"].where,
+  });
+});
+
+test("U3 编译器负例：未知字段、控件、空态与字段序均拒绝", () => {
+  const unknownField = realInputs();
+  unknownField.ontology.screen_contracts.FaqCard.list.columns.push("not-declared");
+  assert.throws(() => compileTypeCatalog(unknownField), /FaqCard list\.columns 引用未知字段/);
+
+  const unknownWidget = realInputs();
+  unknownWidget.ontology.screen_contracts.Module.form.widget_overrides[0].widget = "made-up";
+  assert.throws(() => compileTypeCatalog(unknownWidget), /Module form 控件覆盖非法/);
+
+  const unknownEmpty = realInputs();
+  unknownEmpty.ontology.screen_contracts.Module.empty.absence_kind = "not-registered";
+  assert.throws(() => compileTypeCatalog(unknownEmpty), /Module 空态种类未注册/);
+
+  const badOrder = realInputs();
+  badOrder.ontology.screen_contracts.FaqCard.form.field_order = ["question", "answer"];
+  assert.throws(() => compileTypeCatalog(badOrder), /form\.field_order 须与分区字段一一对账/);
+});
+
+test("U3 编译器负例：approved 动作缺 impact 即红，custom 绑定必须同 key", () => {
+  const missingImpact = realInputs();
+  delete missingImpact.ontology.action_types["articles.upload"].impact;
+  assert.throws(() => compileTypeCatalog(missingImpact), /approved 动作缺少 impact: articles\.upload/);
+
+  const badBinding = realInputs();
+  badBinding.ontology.screen_contracts.KnowledgeArticle.custom_binding_key = "another-workflow";
+  assert.throws(() => compileTypeCatalog(badBinding), /custom renderer 必须绑定同 key/);
+});
+
+test("U3 编译器负例：屏幕状态必须通过完整 ScreenContract 形状校验", () => {
+  const badRetry = realInputs();
+  badRetry.ontology.screen_contracts.FaqCard.states.error.retry = "yes";
+  assert.throws(
+    () => compileTypeCatalog(badRetry),
+    /FaqCard screen 形状非法.*states\/error\/retry/,
+  );
+});
+
+test("U3 编译器负例：通用写按钮不得在没有表单契约时成为死按钮", () => {
+  const inputs = realInputs();
+  inputs.ontology.screen_contracts.FaqCard.form = null;
+  assert.throws(() => compileTypeCatalog(inputs), /FaqCard.*写按钮.*form/);
+});
+
+test("U3 风险 allow 映射为无确认，不生成非法屏幕按钮", () => {
+  const allowRisk = realInputs();
+  allowRisk.ontology.risk_types["individual-retire"].decision = "allow";
+  const catalog = compileTypeCatalog(allowRisk);
+  const retireButton = catalog.entries
+    .find((entry) => entry.type_id === "FaqCard")
+    .screen.buttons.find((button) => button.action_id === "individuals.retire");
+  assert.equal(retireButton.confirmation, "none");
 });

@@ -230,12 +230,23 @@ copyFromFixture("知识库/TheSchema/ontology.yaml");
   const fixtureOntology = fs.existsSync(fixtureOntologyPath) ? (YAML.parse(fs.readFileSync(fixtureOntologyPath, "utf8")) || {}) : {};
   if (repoOntology.action_types) fixtureOntology.action_types = repoOntology.action_types;
   if (repoOntology.risk_types) fixtureOntology.risk_types = repoOntology.risk_types;
+  if (repoOntology.screen_contracts) fixtureOntology.screen_contracts = repoOntology.screen_contracts;
   if (repoOntology.node_types?.KnowledgeArticle) {
     fixtureOntology.node_types = { ...fixtureOntology.node_types, KnowledgeArticle: repoOntology.node_types.KnowledgeArticle };
+  }
+  if (repoOntology.node_types?.FaqCard) {
+    fixtureOntology.node_types = { ...fixtureOntology.node_types, FaqCard: repoOntology.node_types.FaqCard };
+  }
+  if (repoOntology.node_types?.Module) {
+    fixtureOntology.node_types = { ...fixtureOntology.node_types, Module: repoOntology.node_types.Module };
+  }
+  for (const [typeId, definition] of Object.entries(fixtureOntology.node_types || {})) {
+    if (!definition.display_name && repoOntology.node_types?.[typeId]?.display_name) definition.display_name = repoOntology.node_types[typeId].display_name;
   }
   fs.writeFileSync(fixtureOntologyPath, YAML.stringify(fixtureOntology));
 }
 write("知识库/TheSchema/dependencies.yaml", "rules: []\n");
+write("知识库/TheSchema/relations.yaml", "relations: []\n");
 // ADR-008 D2／WP-195 v2 类属主：字段数据字典＝产品主源 data/theschema/fields.yaml 原样照抄
 // （entity 20＋article 16 全量类属主属性；禁手造——字典即声明集，check:fields-registry 声明集
 // 与消费锚点对账天然同源；配方引用闭合由上方词表增补保证，§8 对账兜底）。
@@ -499,6 +510,7 @@ const required = [
   "知识库/TheSchema/enums.yaml",
   "知识库/TheSchema/versions.yaml",
   "知识库/TheSchema/ontology.yaml",
+  "知识库/TheSchema/relations.yaml",
   "知识库/TheSchema/fields.yaml", // WP-195 v2：类属主字段字典（产品主源照抄件）——自检清单随批补
   "知识库/TheSchema/resolved-domains.json", // 解析物投影（校验器必填集/值域单源）——同批补
   "知识库/wiki/entities/e2e-complete-component.md",

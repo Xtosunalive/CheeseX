@@ -11,7 +11,6 @@ const { repoWrite, listGitSnapshots, readGitSnapshot } = require("../../shared/r
 const { createError: serviceError } = require("../../shared/error-factory.cjs");
 const { assertRevisionGiven } = require("../../shared/schema-write-guards.cjs");
 
-const ROOT = path.resolve(__dirname, "..", "..", "..");
 const SCHEMA_FILES = {
   ontology: "ontology.yaml",
   dependencies: "dependencies.yaml",
@@ -25,17 +24,13 @@ function schemaFilePath(vaultPath, category) {
   return path.join(resolveTheSchemaDir(vaultPath), SCHEMA_FILES[category]);
 }
 
-function repoRel(absPath) {
-  return path.relative(ROOT, absPath).split(path.sep).join("/");
-}
-
 // 〔退役〕写点不再自动存 fs 快照（保留签名供 schema-write-service 既有调用——no-op）
 function writeSnapshot(_vaultPath, _category, _raw) {
   return { retired: true };
 }
 
 function listSnapshots(vaultPath, category) {
-  return listGitSnapshots(repoRel(schemaFilePath(vaultPath, category)));
+  return listGitSnapshots(schemaFilePath(vaultPath, category));
 }
 
 function rollbackSnapshot(vaultPath, category, expectedRevision, snapshotId, io) {
@@ -59,7 +54,7 @@ function rollbackSnapshot(vaultPath, category, expectedRevision, snapshotId, io)
   }
   let raw;
   try {
-    raw = readSnapshot(repoRel(filePath), snapshotId);
+    raw = readSnapshot(filePath, snapshotId);
   } catch (e) {
     if (e.code === "INVALID_SNAPSHOT_ID") throw serviceError("INVALID_SNAPSHOT_ID", e.message, 400);
     throw serviceError("SNAPSHOT_NOT_FOUND", "Schema snapshot not found", 404);

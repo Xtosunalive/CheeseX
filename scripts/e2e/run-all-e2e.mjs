@@ -50,6 +50,12 @@ const tests = [
     runner: "playwright",
   },
   {
+    name: "Screen Contract → FaqCard & Module Samples",
+    script: "screen-contract-samples.spec.mjs",
+    requiresVault: true,
+    runner: "playwright",
+  },
+  {
     name: "Schema Release → Promote Flow",
     script: "schema-release-promote-flow.spec.mjs",
     requiresVault: false,

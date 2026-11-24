@@ -172,14 +172,16 @@
       "register_entry": "docs/plans/problem-register.md#PR-077（开启补账——surveying 待验证）",
       "verification_evidence": null,
       "metrics": null,
-      "last_updated": "2026-11-08",
+      "last_updated": "2026-11-24",
       "note": "证据不足：需 surveying 先盘点 formatApiErrorMessage 之外的散落面（16:56 评估）。",
       "tests": [
         "scripts/quality/__tests__/check-empty-state-semantics.test.mjs",
         "server/shared/__tests__/availability-view.test.cjs",
+        "server/shared/type-contract/__tests__/compile-type-catalog.test.cjs",
+        "src/test/module-contract-view.test.tsx",
         "scripts/quality/__tests__/guards/error-codes.test.mjs"
       ],
-      "description": "｜WP-070（2026-11-02）首张 authority 落表：空态语义契约——三类消费面（form/display/consumer）×行为、缺失种类 what/where/requires（依赖序单源）、站点登记；指引文案唯一组装点 server/shared/availability-view.cjs（guidanceFor/availabilityView/displayAvailability/formOptionAvailability）；执法 check:empty-state-semantics 四面（形状/边闭合/站点闭合/文案 tripwire——第二文案源即红）。裁决：Master 2026-11-02「同意」三类语义（WP-069 D1 结案）。"
+      "description": "｜WP-070（2026-11-02）首张 authority 落表：空态语义契约——三类消费面（form/display/consumer）×行为、缺失种类 what/where/requires（依赖序单源）、站点登记；指引文案唯一组装点 server/shared/availability-view.cjs（guidanceFor/availabilityView/displayAvailability/formOptionAvailability）；执法 check:empty-state-semantics 四面（形状/边闭合/站点闭合/文案 tripwire——第二文案源即红）。裁决：Master 2026-11-02「同意」三类语义（WP-069 D1 结案）。｜WP-233（2026-11-24）：faq-card-empty 与 modules-empty 两空态种类及 individuals-list、schema-modules 两站点入册；运行时由屏幕契约 empty.guide 投递，FaqCard/产品模块首条创建与写失败不伪装空态有测试。"
     },
     {
       "id": "navigation",
@@ -326,13 +328,16 @@
       "register_entry": "docs/plans/problem-register.md#PR-071（本批立条）",
       "verification_evidence": "2026-10-21 政策落地：原生 <button 棘轮基线首算 90 文件／223 处（机器生成）；check:ui-kit 三面（基线外即红／只减不增／归零必缩）首跑 ok；回归测试 5 用例（三探针红＋下降不拦）｜2026-10-21 二次扩面（Master 审计「门禁只管 button 没管 input」）：input 纳入同一条棘轮（基线 v2 分标签计数：button 223／input 85／101 文件）；新建 src/components/ui/input.tsx（与 ui/button 同族 shadcn 词表，theme 双门禁绿），首消费＝TablePagination 页码输入（迁移 1 处，存量 84 处按触碰收敛）；门禁回归测试 7 用例",
       "metrics": null,
-      "last_updated": "2026-11-22",
-      "note": "A4 归域（2026-10-16 Master 审计批）：ui/tag(13 消费)/alert-dialog(5)/button(22)/checkbox(1)/select(1) 五件跨域通用但 table-base 不含 ui/——两不管。本域候选立案统管。ui/input 死件已删（0 消费）。aria/ 目录＝侧栏自闭环链（App→sidebar→aria/button+sheet+input），不在此域——处理方案见登记簿。｜2026-10-21 复用效力复查（Master「看是否属实」批）：原生 <input>/<button>/<select>/<textarea> 散约 130 文件，ui/button 仅 22 消费——收编率低。裁定路径＝不专项替换（手写样式与 ui/button 风格差异大，强换改视觉），改为「新代码必须走 ui/button，存量按触碰迁移」——落成棘轮基线＋门禁（contract 字段即基线文件，$comment 载政策）。status→migrating：契约已立、存量按触碰收敛中；推进 gating 仍需 PR-071 子项三的第二落地场景（表单域/导航域/通知系统任一）。input 已于 2026-10-21 二次扩面入棘轮（ui/input 建件＋首消费）；select/textarea 待对应基础件成熟后再入。；F4 体检收账批（2026-10-26）：ui/sonner 重接线——next-themes useTheme（无 Provider 恒 system）换应用 useMode 共享源、next-themes 依赖退役；toast 展示类不变。；WP-037 批（2026-10-29）：EmptyState 空态组件入域（P4 配方 empty-state 落件，两变体 no-data/no-match＋表头保留契约），tests 收编 empty-state 组件测（1→2）。；WP 批（2026-10-29）：TableToolbar/TableToolbarSearch 入域（工具条归一化，12 处手写收编），tests 收编 table-toolbar-guard。；WP-134 波0（2026-11-06）：MissingValue 自 data-dashboard/EntityDetailPanel.tsx:50 的文件内私有件升入 src/components/no-data/（未知呈现单源，禁以 0 冒充缺口），tests 收编 ui-quantity-no-data-kit；同批三处展示件 props 加 `| null`（statistic/Statistic、table-pagination/TablePagination、app-shell/sidebar-primitives SidebarHeader）——假零的制造端是 props 不收 null，闸口打在类型面，执法由既有 typecheck 承担，本域不新增门禁。｜2026-11-07 WP-146：基线重算 211→208（原生按钮净减 3＝EntityHubTrigger 死组件删除＋管线改版收纳，只减不增同向）｜WP-153 沉淀复勘（PR-296）：本批追加行系 WP-146 旧注复写已摘除——销账收官批对本域无实质变更，不塞卡；运行概览退役批（2026-11-17，Master 裁 B）：构成分布与 ReleaseMintCard 迁入 data-dashboard（原生 button 改 ui Button 基础件；活性基线随批 --write 重算 208→207 只减不增）。WP-195（2026-11-19）：ui-kit-baseline 重算（FieldsEditor 列改造，原生 input −2，安全方向）｜2026-11-22 重建按钮 UI 退役批随批沉淀：原生 <button> 基线 207→204 重算（重建钮/确认卡两枚确认钮拆除，check-ui-kit --write；inputs 67 不变）——棘轮减向兑现｜2026-11-22 诊断按钮退役批随批沉淀：原生 <button> 基线 204→203 重算（面板纯状态化，诊断钮拆除；inputs 67 不变）——棘轮减向兑现｜2026-11-22 停摆横幅批随批沉淀：原生 <button> 基线 203→201 重算＋files 95→93（GlobalPipelineControl/PipelinePanel 两件整体退役；新增 GraphStallNotice 无原生 button）——棘轮减向兑现",
+      "last_updated": "2026-11-24",
+      "note": "A4 归域（2026-10-16 Master 审计批）：ui/tag(13 消费)/alert-dialog(5)/button(22)/checkbox(1)/select(1) 五件跨域通用但 table-base 不含 ui/——两不管。本域候选立案统管。ui/input 死件已删（0 消费）。aria/ 目录＝侧栏自闭环链（App→sidebar→aria/button+sheet+input），不在此域——处理方案见登记簿。｜2026-10-21 复用效力复查（Master「看是否属实」批）：原生 <input>/<button>/<select>/<textarea> 散约 130 文件，ui/button 仅 22 消费——收编率低。裁定路径＝不专项替换（手写样式与 ui/button 风格差异大，强换改视觉），改为「新代码必须走 ui/button，存量按触碰迁移」——落成棘轮基线＋门禁（contract 字段即基线文件，$comment 载政策）。status→migrating：契约已立、存量按触碰收敛中；推进 gating 仍需 PR-071 子项三的第二落地场景（表单域/导航域/通知系统任一）。input 已于 2026-10-21 二次扩面入棘轮（ui/input 建件＋首消费）；select/textarea 待对应基础件成熟后再入。；F4 体检收账批（2026-10-26）：ui/sonner 重接线——next-themes useTheme（无 Provider 恒 system）换应用 useMode 共享源、next-themes 依赖退役；toast 展示类不变。；WP-037 批（2026-10-29）：EmptyState 空态组件入域（P4 配方 empty-state 落件，两变体 no-data/no-match＋表头保留契约），tests 收编 empty-state 组件测（1→2）。；WP 批（2026-10-29）：TableToolbar/TableToolbarSearch 入域（工具条归一化，12 处手写收编），tests 收编 table-toolbar-guard。；WP-134 波0（2026-11-06）：MissingValue 自 data-dashboard/EntityDetailPanel.tsx:50 的文件内私有件升入 src/components/no-data/（未知呈现单源，禁以 0 冒充缺口），tests 收编 ui-quantity-no-data-kit；同批三处展示件 props 加 `| null`（statistic/Statistic、table-pagination/TablePagination、app-shell/sidebar-primitives SidebarHeader）——假零的制造端是 props 不收 null，闸口打在类型面，执法由既有 typecheck 承担，本域不新增门禁。｜2026-11-07 WP-146：基线重算 211→208（原生按钮净减 3＝EntityHubTrigger 死组件删除＋管线改版收纳，只减不增同向）｜WP-153 沉淀复勘（PR-296）：本批追加行系 WP-146 旧注复写已摘除——销账收官批对本域无实质变更，不塞卡；运行概览退役批（2026-11-17，Master 裁 B）：构成分布与 ReleaseMintCard 迁入 data-dashboard（原生 button 改 ui Button 基础件；活性基线随批 --write 重算 208→207 只减不增）。WP-195（2026-11-19）：ui-kit-baseline 重算（FieldsEditor 列改造，原生 input −2，安全方向）｜2026-11-22 重建按钮 UI 退役批随批沉淀：原生 <button> 基线 207→204 重算（重建钮/确认卡两枚确认钮拆除，check-ui-kit --write；inputs 67 不变）——棘轮减向兑现｜2026-11-22 诊断按钮退役批随批沉淀：原生 <button> 基线 204→203 重算（面板纯状态化，诊断钮拆除；inputs 67 不变）——棘轮减向兑现｜2026-11-22 停摆横幅批随批沉淀：原生 <button> 基线 203→201 重算＋files 95→93（GlobalPipelineControl/PipelinePanel 两件整体退役；新增 GraphStallNotice 无原生 button）——棘轮减向兑现｜WP-233（2026-11-24）：通用屏幕渲染器族入域，复用 ui/button、ui/input、ui/checkbox、EmptyState、DataTable、Alert；FaqCard 与产品模块两正式路由测试收编，check-ui-kit --write 复算保持零新增原生标签。",
       "tests": [
         "src/test/empty-state.test.tsx",
         "src/test/table-toolbar-guard.test.ts",
         "src/test/ui-quantity-no-data-kit.test.tsx",
         "src/test/anomaly-preview-unknown-not-zero.test.tsx",
+        "src/test/individuals-view.test.tsx",
+        "src/test/module-contract-view.test.tsx",
+        "src/test/contract-renderer.test.tsx",
         "scripts/quality/__tests__/guards/ui-kit.test.mjs",
         "scripts/quality/__tests__/guards/recipe-usage.test.mjs"
       ],
@@ -355,13 +360,14 @@
         "server/shared/__tests__/runtime-observability-integration.test.cjs",
         "scripts/quality/__tests__/check-contract-route-parity.test.mjs",
         "server/shared/__tests__/action-execution-factory.test.cjs",
-        "server/routes/__tests__/individual-write-guard.test.cjs"
+        "server/routes/__tests__/individual-write-guard.test.cjs",
+        "server/routes/__tests__/schema-module-routes.test.cjs"
       ],
       "guide": null,
       "register_entry": "docs/plans/problem-register.md#PR-085",
       "verification_evidence": "第 0 步探针 23/23；第 1 步 route-dispatch/route-pattern 退役＋31 路由测试迁 inject＋parity 首跑 100⇄94；第 2 步身份接缝（auth-stack 三态／Principal·ALS／OIDC 桩 IdP 全链／writer-gate 通道轴）单测＋集成 12 用例；第 3 步角色（operator-roles 登记表＋route-roles 绑定表 20 键＋ROLE-1..5）；收官（PR-085 closed 68，c694eff5）：main 全量重测 test:node 1130/0＋gates:ci 26/26＋e2e 6/6×2 独立运行＋红队三向破坏红绿；gate check:contract-route-parity CI 常驻（execution=ci，routes=104⇄contract_ops=98 零违例）",
       "metrics": null,
-      "last_updated": "2026-11-08",
+      "last_updated": "2026-11-24",
       "note": "2026-10-21 PR-085 第 2 步开行（Master 2026-10-20 批准 v2 决策卡）：机制＝Fastify 装配 http-app.cjs＋契约推导请求校验 contract-request-schema.cjs＋身份接缝 server/shared/auth/*（有序认证方法序列三态／Principal 入 AsyncLocalStorage／OIDC 标准件／无状态签名会话）。四步迁移（契约预备→框架→认证→角色），第 3 步角色登记表落地后转 gating。与 api-contract 域分界：api-contract 管契约文件与类型消费；本域管契约的运行时执法位与身份。｜2026-10-21 收官转 gating（自设触发条件达成：第 3 步角色登记表落地＋PR-085 关账 closed 68）：机制复用面＝1 套传输层服务 104 路由键（90 字面＋10 墓碑／26 模块；迁移前 18 份手写管线→0）；requestBody 推导器 1 个覆盖 37 带体操作（另 12 写操作 bodyless 执法）；身份/角色/通道三钩子全域承载（路由文件内身份解析代码 0）；测试面 31→1（route-harness，29 文件实际接入）。待办＝真 IdP 集成（部署选型后，SPEC-024 上线清单）——完成前不转 completed。"
     },
     {

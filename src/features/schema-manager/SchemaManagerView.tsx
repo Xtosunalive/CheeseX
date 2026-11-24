@@ -34,6 +34,7 @@ import { VIEW_COPY } from "./schema-manager-copy";
 import { VersionRegistryEditor } from "./VersionRegistryEditor";
 import { DocumentTaxonomyEditor } from "./DocumentTaxonomyEditor";
 import { ModuleRegistryEditor } from "./components/ModuleRegistryEditor";
+import { ModuleContractView } from "./components/ModuleContractView";
 import { SubdomainChangePreviewDialog } from "./components";
 import { GraphFreshnessChip } from "./GraphFreshnessChip"; // WP-027（PR-142）：图谱跟随状态提示
 import { previewEnumsChanges } from "./schema-manager-api";
@@ -93,7 +94,7 @@ export function SchemaManagerView() {
     if (requested && requested in TAB_LABELS) store.setActiveTab(requested as TabId);
   }, [navQuery]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { store.load(); }, []); // eslint-disable-line
+  useEffect(() => { void store.load().catch(() => undefined); }, []); // eslint-disable-line
 
   // R4：懒加载接线声明驱动单点——当前页签需补拉的子资源由 changeOf 依 TAB_EDIT_META 给出
   // （守卫：数据缺席且读请求非 loading）；此前为 ontology/discovery/dependencies/versions(+modules)
@@ -155,7 +156,7 @@ export function SchemaManagerView() {
   const currentSaveError = wiring.saveError;
 
   if (store.status === "loading" && !store.enums) return <div className="flex h-full items-center justify-center"><Loader2 className="h-5 w-5 animate-spin text-status-inferred" /></div>;
-  if (store.error && !store.enums) return <div className="flex h-full flex-col items-center justify-center gap-3"><p className="text-sm text-status-error">{store.error}</p><button onClick={() => store.load()} className="rounded-md bg-accent-bg text-[var(--color-accent-fg)] ring-1 ring-[var(--color-border-focus)] px-3 py-1.5 text-sm">{TERM.RETRY_ACTION}</button></div>;
+  if (store.error && !store.enums) return <div className="flex h-full flex-col items-center justify-center gap-3"><p className="text-sm text-status-error">{store.error}</p><button onClick={() => void store.load().catch(() => undefined)} className="rounded-md bg-accent-bg text-[var(--color-accent-fg)] ring-1 ring-[var(--color-border-focus)] px-3 py-1.5 text-sm">{TERM.RETRY_ACTION}</button></div>;
   if (!store.enums) return null;
 
   const selectedDomainId = store.enums.domains[classificationSelection.domainId]
@@ -193,7 +194,17 @@ export function SchemaManagerView() {
       </div>
     ),
     "taxonomy-editor": () => (<div className="p-5"><DocumentTaxonomyEditor disabled={isEditingDisabled} /></div>),
-    "module-registry": () => (<div className="p-5"><ModuleRegistryEditor modules={enums?.modules ?? {}} subdomainGroups={Object.entries(enums?.subdomains ?? {}).map(([domainId, entries]) => ({ domainId, domainLabel: enums?.domains?.[domainId] ?? domainId, entries: entries ?? [] }))} onGoDomains={isEditingDisabled ? undefined : () => store.setActiveTab("domains")} productNames={Object.keys(store.versions?.products ?? {})} onGoVersions={isEditingDisabled ? undefined : () => store.setActiveTab("versions")} versionsLoading={store.versionsRequest.status === "loading"} disabled={isEditingDisabled} onChange={(modules) => enums && store.setModules(modules)} /></div>),
+    "module-registry": () => (
+      <div className="p-5">
+        <ModuleContractView
+          modules={enums?.modules ?? {}}
+          revision={enums?.revision ?? ""}
+          disabled={isEditingDisabled}
+          onWritten={async () => { await store.load(); setFreshnessTick((tick) => tick + 1); }}
+          fallback={<ModuleRegistryEditor modules={enums?.modules ?? {}} subdomainGroups={Object.entries(enums?.subdomains ?? {}).map(([domainId, entries]) => ({ domainId, domainLabel: enums?.domains?.[domainId] ?? domainId, entries: entries ?? [] }))} onGoDomains={isEditingDisabled ? undefined : () => store.setActiveTab("domains")} productNames={Object.keys(store.versions?.products ?? {})} onGoVersions={isEditingDisabled ? undefined : () => store.setActiveTab("versions")} versionsLoading={store.versionsRequest.status === "loading"} disabled={isEditingDisabled} onChange={(modules) => enums && store.setModules(modules)} />}
+        />
+      </div>
+    ),
     "tag-governance": () => (<div className="p-5"><TagGovernanceEditor disabled={isEditingDisabled} /></div>),
     "discovery-intake": () => (<div className="p-5"><SchemaDiscoveryTab /></div>),
     "concept-vocabulary": () => (<div className="p-5"><ConceptVocabularyTab disabled={isEditingDisabled} /></div>),

@@ -25,10 +25,11 @@ function makeFixture() {
 test("buildE2EEnv 钉 contracts/runtime-scope 声明的写面全集，且各落临时目录/fixture", async () => {
   const fixture = makeFixture();
   const env = buildE2EEnv(fixture, {});
+  const canonicalFixture = fs.realpathSync(fixture);
   for (const key of E2E_SCOPE_PINS) assert.ok(env[key], `${key} 未钉`);
-  assert.equal(env.VAULT_PATH, fixture);
-  assert.equal(env.KB_VAULT, fixture);
-  assert.equal(env.THESCHEMA_DIR, path.join(fixture, "知识库", "TheSchema")); // 显式钉死，不走三级阶梯
+  assert.equal(env.VAULT_PATH, canonicalFixture);
+  assert.equal(env.KB_VAULT, canonicalFixture);
+  assert.equal(env.THESCHEMA_DIR, path.join(canonicalFixture, "知识库", "TheSchema")); // 显式钉死，不走三级阶梯
   for (const key of ["KB_DATA_DIR", "PIPELINE_TRAJECTORIES_DIR", "DECISIONS_MIRROR_DIR"]) {
     assert.match(env[key], /e2e-/, `${key} 应落 e2e- 前缀临时目录`);
     assert.ok(fs.existsSync(env[key]), `${key} 目录未创建`);

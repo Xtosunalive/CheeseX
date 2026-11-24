@@ -4809,7 +4809,7 @@ export interface paths {
                     content: {
                         "application/json": components["schemas"]["ApiEnvelope_Data"] & {
                             data?: {
-                                snapshots?: Record<string, never>[];
+                                snapshots?: components["schemas"]["SchemaSnapshot"][];
                             };
                         };
                     };
@@ -5419,6 +5419,40 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/schema/modules/{moduleId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** 单条目写入产品模块词表（U3 模块样板） */
+        put: operations["schema.modules.upsert"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/schema/enums/append": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 向闭合数组词表追加一个值（U3 模块产品追加） */
+        post: operations["schema.enums.append"];
         delete?: never;
         options?: never;
         head?: never;
@@ -8868,11 +8902,24 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
+                /** @description 成功 */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["ApiEnvelope_Data"] & {
+                            data: {
+                                individualId: string;
+                                title?: string;
+                                revision: string;
+                                /** @description frontmatter 全量；屏幕契约列从此读取 */
+                                fields: {
+                                    [key: string]: unknown;
+                                };
+                            }[];
+                        };
+                    };
                 };
             };
         };
@@ -8957,11 +9004,24 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
+                /** @description 成功 */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["ApiEnvelope_Data"] & {
+                            data: {
+                                classId: string;
+                                individualId: string;
+                                /** @description frontmatter 全量 */
+                                fields: {
+                                    [key: string]: unknown;
+                                };
+                                revision: string;
+                            };
+                        };
+                    };
                 };
                 /** @description 个体不存在 */
                 404: {
@@ -9069,6 +9129,8 @@ export interface paths {
                 content: {
                     "application/json": {
                         expectedRevision: string;
+                        /** @description 个体退役风险二次确认；统一执行工厂要求 true */
+                        confirm?: boolean;
                     };
                 };
             };
@@ -9137,26 +9199,32 @@ export interface paths {
                     content: {
                         "application/json": components["schemas"]["ApiEnvelope_Data"] & {
                             data: {
-                                classId?: string;
-                                fields?: {
+                                classId: string;
+                                /**
+                                 * @description 统一类型目录中的类生命周期；retired 时屏幕显示退役语义
+                                 * @enum {string|null}
+                                 */
+                                lifecycle_status?: "draft" | "review" | "approved" | "deprecated" | "retired" | null;
+                                fields: {
                                     name?: string;
                                     display?: string;
                                     required?: boolean;
                                     type?: string;
                                     declared?: boolean;
                                 }[];
-                                actions?: {
+                                actions: {
                                     create?: string;
                                     list?: string;
                                     read?: string;
                                     update?: string;
                                     retire?: string;
                                 };
+                                screen: components["schemas"]["ScreenContract"];
                             };
                         };
                     };
                 };
-                /** @description classId 缺失 */
+                /** @description classId 缺失或不在统一类型目录（VALIDATION_ERROR） */
                 422: {
                     headers: {
                         [name: string]: unknown;
@@ -9165,7 +9233,7 @@ export interface paths {
                         "application/json": components["schemas"]["IndividualErrorResponse"];
                     };
                 };
-                /** @description uiConfigFor 端口未装配 */
+                /** @description 统一类型契约不可用（VALIDATOR_UNAVAILABLE），屏幕配置 fail-closed */
                 503: {
                     headers: {
                         [name: string]: unknown;
@@ -9773,11 +9841,131 @@ export interface components {
                 items: components["schemas"]["SchemaSnapshot"][];
             };
         };
+        ActionImpact: {
+            class_id: string;
+            /** @enum {unknown} */
+            operation: "add" | "modify" | "delete";
+            fields: string[];
+            description?: string;
+        };
+        ScreenButton: {
+            action_id: string;
+            label_cn: string;
+            /** @enum {unknown} */
+            placement: "toolbar" | "detail" | "row" | "menu";
+            http_route: string | null;
+            required_roles: string[];
+            impact: components["schemas"]["ActionImpact"][];
+            risk_id: string | null;
+            /** @enum {unknown} */
+            confirmation: "none" | "confirm" | "approve" | "block";
+            /** @constant */
+            availability_source: "action-execution-factory";
+            availability: {
+                allowed: boolean | null;
+                reason: string | null;
+            };
+        };
+        ScreenList: {
+            columns: string[];
+            filters: {
+                field: string;
+                /** @enum {unknown} */
+                operator: "contains" | "equals";
+                value?: string | number | boolean | null;
+            }[];
+            default_sort: {
+                field: string;
+                /** @enum {unknown} */
+                direction: "asc" | "desc";
+            } | null;
+        } | null;
+        ScreenSection: {
+            id: string;
+            title_cn: string;
+            fields: string[];
+            relations?: string[];
+        };
+        ScreenForm: {
+            sections: components["schemas"]["ScreenSection"][];
+            field_order: string[];
+            widget_overrides: {
+                field: string;
+                /** @enum {unknown} */
+                widget: "text" | "textarea" | "number" | "checkbox" | "array";
+            }[];
+        } | null;
+        ScreenDetail: {
+            sections: components["schemas"]["ScreenSection"][];
+        } | null;
+        ScreenStates: {
+            loading: {
+                /** @constant */
+                component: "TableLoading";
+                label_cn: string;
+            };
+            error: {
+                /** @constant */
+                component: "TableErrorState";
+                retry: boolean;
+            };
+            forbidden: {
+                /** @constant */
+                component: "Alert";
+                /** @constant */
+                variant: "warn";
+                message_cn: string;
+            };
+            retired: {
+                /** @constant */
+                component: "Alert";
+                /** @constant */
+                variant: "error";
+                message_cn: string;
+                replacement_type_id: string | null;
+            };
+        };
+        ScreenContract: {
+            nav_region: string | null;
+            nav_item: string | null;
+            renderer: string;
+            list: components["schemas"]["ScreenList"];
+            form: components["schemas"]["ScreenForm"];
+            detail: components["schemas"]["ScreenDetail"];
+            buttons: components["schemas"]["ScreenButton"][];
+            empty: {
+                /** @constant */
+                component: "EmptyState";
+                /** @enum {unknown} */
+                variant: "no-data" | "no-match";
+                absence_kind: string | null;
+                primary_action_id: string | null;
+                guide: {
+                    what: string;
+                    where: string;
+                } | null;
+            };
+            custom_binding_key: string | null;
+            states: components["schemas"]["ScreenStates"];
+        } | null;
+        ModuleMutationEnvelope: {
+            /** @constant */
+            success: true;
+            data: {
+                category: string;
+                revision: string;
+                affectedFile?: string;
+                moduleId?: string;
+                appended?: boolean;
+            };
+            trace_id?: string;
+        };
         SchemaModuleDefinition: {
             subdomain?: string;
             parent_id?: string;
             system?: string;
             since?: string;
+            label?: string;
             until?: string;
             products?: string[];
             /** @description 模块说明（enums.yaml modules.<name>.description） */
@@ -11484,6 +11672,7 @@ export interface components {
                 inheritanceChain: string[];
                 displayFields: string[];
                 actionIds: string[];
+                screen: components["schemas"]["ScreenContract"];
             };
             /** @description Wave3 走查缺口①阶段一：article-lifecycle.json transitions 边派生的路由计划（计划面——inContract=false 的端点契约待登记，漂移显式可见） */
             lifecycleRoutes?: {
@@ -14197,7 +14386,7 @@ export interface components {
         /** @description WP-208 通用个体面错误（generic:* 执行器域）——SPEC-100 批 2 */
         IndividualErrorResponse: {
             /** @enum {string} */
-            error_code?: "INDIVIDUAL_CHANNEL_FORBIDDEN" | "INDIVIDUAL_FIELDS_INVALID" | "INDIVIDUAL_NOT_FOUND" | "INDIVIDUAL_REVISION_CONFLICT" | "INDIVIDUAL_RETIRED" | "INDIVIDUAL_CLASS_INVALID" | "INDIVIDUAL_ID_INVALID" | "INDIVIDUAL_ID_COLLISION" | "INDIVIDUAL_FRONTMATTER_INVALID" | "INDIVIDUAL_BINDINGS_UNAVAILABLE" | "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN";
+            error_code?: "ACTION_CONFIRM_REQUIRED" | "INDIVIDUAL_CHANNEL_FORBIDDEN" | "INDIVIDUAL_FIELDS_INVALID" | "INDIVIDUAL_NOT_FOUND" | "INDIVIDUAL_REVISION_CONFLICT" | "INDIVIDUAL_RETIRED" | "INDIVIDUAL_CLASS_INVALID" | "INDIVIDUAL_ID_INVALID" | "INDIVIDUAL_ID_COLLISION" | "INDIVIDUAL_FRONTMATTER_INVALID" | "INDIVIDUAL_BINDINGS_UNAVAILABLE" | "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN" | "VALIDATION_ERROR" | "VALIDATOR_UNAVAILABLE";
             details?: Record<string, never>;
         };
         /** @description WP-211 权限点目录面错误（同源对账失败即 500 当场红） */
@@ -14212,12 +14401,13 @@ export interface components {
             classId?: string | null;
             apiRoutes?: Record<string, never>[];
             storageFields?: Record<string, never>[] | null;
-            /** @description WP-222（契约探针缺口清偿）：按类 UI 配置——四子字段与派生器实产出一致（IndividualsView 消费）；编译错误档（error 计划）为 null */
+            /** @description 按类 UI 配置——字段、动作路由与屏幕契约同源；编译错误档（error 计划）为 null */
             uiConfig?: {
                 classId?: string;
                 inheritanceChain?: string[];
                 displayFields?: string[];
                 actionIds?: string[];
+                screen?: components["schemas"]["ScreenContract"];
             } | null;
             /** @description 编译失败降级计划的原因（显式可见，不静默丢类） */
             error?: string | null;
@@ -14231,6 +14421,157 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    "schema.modules.upsert": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                moduleId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 当前 enums.yaml revision */
+                    revision: string;
+                    definition: components["schemas"]["SchemaModuleDefinition"];
+                };
+            };
+        };
+        responses: {
+            /** @description 模块已写入 */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleMutationEnvelope"];
+                };
+            };
+            /** @description 参数或模块语义非法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 角色或写通道拒绝 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description revision 冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Schema 写服务未装配 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
+    "schema.enums.append": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": {
+                    /** @description 当前 enums.yaml revision */
+                    revision: string;
+                    /** @description 已注册模块 ID */
+                    moduleId: string;
+                    /** @description 追加到模块 products 数组的版本化词表值 */
+                    value: string;
+                };
+            };
+        };
+        responses: {
+            /** @description 追加结果；重复值返回 appended=false */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ModuleMutationEnvelope"];
+                };
+            };
+            /** @description 路径非数组或值非法 */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 未认证 */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description 角色或写通道拒绝 */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description revision 冲突 */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+            /** @description Schema 写服务未装配 */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiError"];
+                };
+            };
+        };
+    };
     entityCheckOne: {
         parameters: {
             query: {
@@ -14569,8 +14910,6 @@ export interface operations {
             /** @description 编译成功，返回路由、字段、UI配置 */
             200: {
                 headers: {
-                    /** @description 候选修订被拒绝，响应仍为上一有效修订 */
-                    "X-Derivation-Retained"?: "true";
                     [name: string]: unknown;
                 };
                 content: {
@@ -14594,6 +14933,8 @@ export interface operations {
             /** @description 文章派生配置未通过校验 */
             503: {
                 headers: {
+                    /** @description 候选修订被拒绝，未返回保留快照 */
+                    "X-Derivation-Retained"?: "true";
                     [name: string]: unknown;
                 };
                 content: {
