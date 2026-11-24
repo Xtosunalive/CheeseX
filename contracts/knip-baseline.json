@@ -42,7 +42,6 @@
     "export|src/features/impact-analysis/components/index.ts|ImpactHopGroup",
     "export|src/features/impact-analysis/components/index.ts|ImpactRelationLineage",
     "export|src/features/property-gov/property-gov-ui.tsx|ErrorBlock",
-    "export|src/features/schema-manager/components/index.ts|ModuleRegistryEditor",
     "export|src/features/schema-manager/schema-write-api.ts|freezeVersion",
     "export|src/features/schema-manager/subdomain-entries.ts|subdomainIdsOf",
     "export|src/lib/dashboard-containers.ts|buildNodeContainerMap",
