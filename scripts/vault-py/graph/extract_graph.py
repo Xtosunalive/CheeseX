@@ -446,9 +446,46 @@ IDENTITY_CONFLICTS = []
 MISSING_COMPONENT_IDENTITIES = []
 MISSING_IDENTITY_PENDING_PREFIX = "missing-identity:"
 
+def _backfill_entity_key(vault_root: str, rel_path: str, node_id: str) -> None:
+    """缺号非组件实体：把铸号原子写回页面 frontmatter（WP-232 统一铸造——「写入系统主键」）。
+    身份稳定性由 identity_map 持久保证（本写回是页面可见性增强，非身份来源）：
+    写回失败＝大声告警＋跳过（不炸图段、不阻断抽取）；已有键则跳过防重复。"""
+    abs_path = os.path.join(vault_root, rel_path)
+    try:
+        text = Path(abs_path).read_text(encoding="utf-8")
+    except OSError as e:
+        print(f"    ⚠ 实体页不可读，跳过主键写回：{rel_path}（{e}）")
+        return
+    head = text.split("---", 2)
+    if len(head) < 2 or "architecture-node-id" in head[1]:
+        return  # 已有键（防重复插入）
+    try:
+        import importlib
+        try:
+            gw = importlib.import_module("write_gateway")
+        except ImportError:
+            import sys as _sys
+            for _cand in (
+                os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "vault-runtime"),
+                os.path.join(vault_root, "知识库", ".claude", "scripts"),
+            ):
+                if os.path.isdir(_cand):
+                    _sys.path.insert(0, _cand)
+                    try:
+                        gw = importlib.import_module("write_gateway")
+                        break
+                    except ImportError:
+                        _sys.path.pop(0)
+                        gw = None
+            if gw is None:
+                raise ImportError("write_gateway 不可达（仓内 vault-runtime 与库内 .claude/scripts 均未命中）")
+        gw.write_text_atomic(abs_path, text.replace("---", f"---\narchitecture-node-id: {node_id}", 1))
+    except Exception as e:  # noqa: BLE001——写回失败降级：身份已由 identity_map 持久，页面缺键下轮重试
+        print(f"    ⚠ 主键写回失败（身份不受影响，identity_map 已持久）：{rel_path}（{e}）")
+
 
 def _missing_identity_entry(entity_name, source_file):
-    """缺号组件的待审条目——形状逐字段对齐 D1 撞键条目（id/reason/architectureNodeId/
+    """缺号实体的待审条目（WP-232 扩面：组件＋非组件）——形状逐字段对齐 D1 撞键条目（id/reason/architectureNodeId/
     sources/nodeCount/title），复用同一条出口，不自造新面、不新开文件。"""
     return {
         "id": MISSING_IDENTITY_PENDING_PREFIX + entity_name,
@@ -456,7 +493,7 @@ def _missing_identity_entry(entity_name, source_file):
         "architectureNodeId": "",
         "sources": [source_file],
         "nodeCount": 0,  # 本项不产出任何节点——与 D1「整批不产出」同口径可核
-        "title": "缺身份号的组件：" + entity_name,
+        "title": "缺身份号的实体：" + entity_name,
     }
 
 
@@ -1145,14 +1182,17 @@ def _frontmatter_exempt_rules(fm):
     return [str(r).strip() for r in raw if r is not None and str(r).strip()]
 
 
-def extract_entity_nodes(arch_node_ids, name_to_id):
+def extract_entity_nodes(arch_node_ids, name_to_id, apply_write=True):
     # WP-113 M4：本次文档扫描为准——每轮扫描重建缺号清单（防旧图残留成待审幽灵，
     # 与 pendingReview 每轮重算的既有口径一致）
     MISSING_COMPONENT_IDENTITIES.clear()
     # WP-117 批2：遍历面改信封过滤——wiki/entities 顶层 .md（原 :915 os.listdir 口径：
     # 不下钻子目录、无目录名剪枝；目录缺失＝空清单，与原 isdir 早退同形返回）
     entity_docs = _doc_envelope_flat_md_docs("wiki/entities")
-
+    # WP-232 红队必修1：doc_id 迁移排除集＝本轮实体页 rel 全集（防同内容双页经 sha16 迁移共用铸号）
+    _entity_rels = set()
+    for _fname, _kb_rel, _doc in entity_docs:
+        _entity_rels.add(_kb_rel)
     nodes = []
     edges = []
     wikilink_deps = []  # (source_id, target_id, target_name, link_type) from 依赖::
@@ -1198,13 +1238,19 @@ def extract_entity_nodes(arch_node_ids, name_to_id):
                     )
                     continue
 
-                # Use architecture-node-id if present, else entity-{slug} fallback
-                # （兜底只服务非组件——组件身份号的现编通道已于 WP-113 M4 撤销）
-                slug = re.sub(r'[^\w]', '-', entity_name.lower())
-                if arch_id:
-                    node_id = arch_id
+                # WP-232（U2；Master 2026-11-23 裁定统一铸造）：entity-{slug} 兜底撤除——
+                # 缺号非组件实体由身份映射首见铸号（唯一图铸号层，重建两遍同号），
+                # 并把铸号写回页面 architecture-node-id（apply 态；写经 write_gateway 原子写，
+                # 预览不写页）。下轮起走 arch_id 直取，身份稳定。组件缺号仍走待审面（WP-113 M4 既签口径）。
+                if not arch_id:
+                    _rel = os.path.relpath(filepath, VAULT_ROOT).replace("\\", "/")
+                    with open(os.path.join(VAULT_ROOT, _rel), "rb") as _f:
+                        _sha = hashlib.sha256(_f.read()).hexdigest()
+                    node_id, _migrated = IDENTITY_MAP.doc_id(_rel, _sha, current_paths=_entity_rels)
+                    if apply_write:
+                        _backfill_entity_key(VAULT_ROOT, _rel, node_id)
                 else:
-                    node_id = f"entity-{slug}"
+                    node_id = arch_id
                 labels = ["Module"]
                 tags = _frontmatter_tags(fm)
                 is_promoted_arch_component = _is_promoted_arch_component(fm)
@@ -3086,7 +3132,7 @@ def main():
 
     # Step 4-5: Wiki entities → Module/System补全
     print("  [4-5] 提取 wiki 实体页 → System/Module 补全...")
-    nodes, edges, wikilink_deps, unresolved_wikilinks, entity_exemptions = extract_entity_nodes(arch_node_ids, name_to_id)
+    nodes, edges, wikilink_deps, unresolved_wikilinks, entity_exemptions = extract_entity_nodes(arch_node_ids, name_to_id, apply_write=mode_apply)
     all_nodes.extend(nodes)
     all_edges.extend(edges)
     # WP-031：本批实体文档覆盖的节点集（豁免规则以本次文档扫描为准——防旧图残留）
@@ -3094,7 +3140,7 @@ def main():
     print(f"    → {len(nodes)} 节点, {len(edges)} 边, {len(wikilink_deps)} 依赖声明")
     if MISSING_COMPONENT_IDENTITIES:
         print(
-            f"    → 缺身份号组件不产出：{len(MISSING_COMPONENT_IDENTITIES)} 个"
+            f"    → 缺身份号实体不产出：{len(MISSING_COMPONENT_IDENTITIES)} 个"
             f"（{_brief_missing_identities()}）"
             "——身份只在唯一铸造口取号，建图侧不现编；已入待审清单交人裁"
         )

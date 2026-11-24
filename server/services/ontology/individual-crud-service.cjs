@@ -13,6 +13,8 @@
 const path = require("node:path");
 const crypto = require("node:crypto");
 const YAML = require("yaml");
+// WP-232：统一业务实例铸造点（实体主键/个体编号同源——ADR-021 §2.2）
+const { mintEntityId } = require("../../shared/entity-identity-mint.cjs");
 const { createError: serviceError } = require("../../shared/error-factory.cjs");
 const vaultIO = require("../../shared/vault-io.cjs");
 
@@ -117,16 +119,21 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
     }
   }
 
-  function mintIndividualId(classId, fields) {
-    const display = String(fields.title || fields.name || "").trim();
-    const slug = display ? display.replace(/\s+/g, "-").replace(/[^A-Za-z0-9_\u4e00-\u9fa5-]/g, "").slice(0, 24) : classId;
-    const short = crypto.createHash("sha256").update(`${classId}|${display}|${Date.now()}|${crypto.randomBytes(8).toString("hex")}`).digest("hex").slice(0, 8);
-    return `${slug || classId}-${short}`;
+  // WP-232（ADR-021 §2.2／U2）：个体编号并入统一铸造点（UUID v4）——标题片段＋短哈希现编关停。
+  // mintEntityId 即 server 侧唯一业务实例铸造模块（实体主键同源；taken＝同类目录判重，64 次上限）。
+  function mintIndividualId(classId) {
+    const id = mintEntityId({
+      taken: (candidate) => {
+        try { return fs.existsSync(path.join(root, classId, `${candidate}.md`)); } catch { return false; }
+      },
+    });
+    if (!id) throw serviceError("INDIVIDUAL_ID_COLLISION", `个体 ID 铸造 64 次全撞（概率趋零）——重试`, 409);
+    return id;
   }
 
   function create({ classId, fields }) {
     validateFields(classId, fields || {});
-    const individualId = mintIndividualId(classId, fields || {});
+    const individualId = mintIndividualId(classId);
     const absPath = individualPath(classId, individualId);
     const now = new Date().toISOString();
     const fm = {

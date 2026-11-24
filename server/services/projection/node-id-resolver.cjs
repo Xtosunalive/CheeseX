@@ -1,7 +1,9 @@
 // @responsible: 确定性解析图节点标识并为影响分析重映射种子节点。
 // Shared deterministic node identifier resolver.
 
-const COMMON_PREFIXES = ["entity-", "system-", "concept-"];
+// WP-232（U2 三条件齐：兜底键裁撤统一铸造／图与暂存删库重建／运行账清点留档）——entity- 键
+// 不复产出，其读侧前缀兼容删除；concept-（派生键保留）与 system-（现役）兼容保留。
+const COMMON_PREFIXES = ["system-", "concept-"];
 const COMMON_SUFFIXES = [
   "-cluster", "-service", "-gateway", "-controller", "-center",
   "-extension", "-preview", "-online", "-edit",

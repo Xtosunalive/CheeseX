@@ -509,10 +509,12 @@ async function run() { // PR-056：freezeVersion 异步化随迁
     const grow = (name) => svc.discoveryEdit({ revision: null, patch: { field: "entity", value: name, assignMode: "create", sources: ["知识库/raw/precleaned/x.md"] } });
     const first = grow("复核 网关");
     assert.equal(first.action, "create", "首笔生长应正常建实体");
-    assert.throws(() => grow("复核-网关"), (e) => e.code === "SCHEMA_VALUE_CONFLICT" && e.status === 409 && String(e.message).includes("grown-复核-网关"), "连字符写法归一成同一身份 → 必须拒并点名身份");
+        // WP-232（U2）：铸造改 UUID（grown- 拼名现编关停）；归一名冲突检测语义保留——
+    // 变体写法（连字符/下划线）仍 409 并点名归一名；首笔落盘身份为 UUID v4。
+    assert.throws(() => grow("复核-网关"), (e) => e.code === "SCHEMA_VALUE_CONFLICT" && e.status === 409 && String(e.message).includes("归一名 复核-网关"), "连字符写法归一成同一归一名 → 必须拒并点名");
     assert.throws(() => grow("复核_网关"), (e) => e.code === "SCHEMA_VALUE_CONFLICT", "下划线写法同理被拒");
     const kept = fs.readFileSync(path.join(env.repo, "知识库", "wiki", "entities", "复核 网关.md"), "utf8");
-    assert.match(kept, /architecture-node-id: grown-复核-网关/, "被拒不影响首笔落盘");
+    assert.match(kept, /architecture-node-id: [0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/, "被拒不影响首笔落盘（身份＝UUID v4，出自统一铸造点）");
   } finally { makeWritable(env.root); fs.rmSync(env.root, { recursive: true, force: true }); }
   // WP-199 波3：值域引用段删除保护端到端（writeEnumsPatch 页面入口）——
   // 夹具 vault 造 fields.yaml（article.status 引用 lifecycle 段）→ patch 清空 lifecycle → 409 拒写并点名引用方；

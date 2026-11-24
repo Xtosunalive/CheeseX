@@ -538,16 +538,19 @@ function createSchemaWriteService(options) {
       // 原面只查同名文件不查身份，而 slugify 把空格/下划线/连字符归一成同一串——
       // 「复核 网关」「复核-网关」「复核_网关」三种写法可铸出同一个 grown-复核-网关 并三连落盘（实测），
       // 两个实体的关系于是画进同一个节点。判定不另抄：与实体修复写门同源（scanner＋buildEntityIndexes.idOwners）。
-      const grownId = slugifyNodeId(name);
-      const clash = grownIdentityHolders(grownId, name);
+      // WP-232（ADR-021 §2.2／U2「3处理」裁定延伸）：生长铸造改走统一铸造点（UUID v4）——
+      // grown- 拼名现编关停。同名/变体名冲突检测语义保真：归一名（原 slug 判据）查持有者，命中即 409。
+      const grownKey = slugifyNodeId(name);
+      const clash = grownNameHolders(grownKey, name);
       if (clash.length) {
         throw serviceError(
           "SCHEMA_VALUE_CONFLICT",
-          `身份 ${grownId} 已被占用（持有者：${clash.join("、")}）——生长不撞键，请改用已有实体或换名`,
+          `归一名 ${grownKey} 已被占用（持有者：${clash.join("、")}）——生长不撞键，请改用已有实体或换名`,
           409,
-          { architectureNodeId: grownId, holders: clash }
+          { grownKey, holders: clash }
         );
       }
+      const grownId = require("../../shared/entity-identity-mint.cjs").mintEntityId();
       fs.mkdirSync(entitiesDir, { recursive: true });
       // 继承字段（MAIC 继承批，Master 2026-11-15 裁 B）：生长骨架顺带写入来源文章的可映射字段，
       // arch_component 自动激活（文章声明它就是模块/架构组件——合规 F03 即此语义）；module＝生长名本体。
@@ -615,18 +618,21 @@ function createSchemaWriteService(options) {
     return { category: "entity-growth", action: "link-existing", alias: name, entity: targetName.trim(), affectedFile: path.relative(vaultPath, dest).split(path.sep).join("/") };
   }
 
-  function grownIdentityHolders(candidateId, newName) {
-    // 只读现算（与写门同约束）：取全库实体的身份持有者，排除"就是这一篇自己"。
+  function grownNameHolders(slugKey, newName) {
+    // 只读现算（与写门同约束）：取全库实体的归一名持有者，排除"就是这一篇自己"。
+    // WP-232：判据从 id 等值改为归一名等值（身份改铸 UUID 后，撞键语义＝同归一名多实体）。
     // 扫不到（空库/权限异常）按无持有者处理——生长面本就只读判撞，不因读失败而放行写之外的动作。
     try {
       const { scanEntities } = require("../entity-compliance/entity-source-scanner.cjs");
-      const compliance = require("../entity-compliance/entity-compliance-service.cjs");
       const docs = scanEntities(vaultPath).map((item) => item.doc);
-      const indexes = compliance.buildEntityIndexes(docs);
-      const owners = (indexes.idOwners && indexes.idOwners[candidateId]) || [];
-      return owners
-        .filter((o) => !o || String(o.title || "").trim() !== String(newName || "").trim())
-        .map((o) => (o.title || o.fileName || "未命名") + "（" + (o.fileName || "") + "）");
+      const owners = docs
+        .map((item) => {
+          const fm = item.frontmatter || {};
+          return { title: String(fm.title || "").trim(), fileName: item.fileName || "" };
+        })
+        .filter((o) => o.title && slugifyNodeId(o.title) === slugKey && o.title !== String(newName || "").trim())
+        .map((o) => `${o.title}（${o.fileName}）`);
+      return owners;
     } catch (error) {
       if (typeof console?.warn === "function") console.warn("grown-identity-scan-failed", error && error.message);
       return [];
@@ -634,8 +640,8 @@ function createSchemaWriteService(options) {
   }
 
   function slugifyNodeId(name) {
-    const s = String(name).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-").replace(/^-+|-+$/g, "");
-    return `grown-${s || Date.now().toString(36)}`;
+    // WP-232：仅作同名/变体名冲突键（归一：小写＋非字母数字汉字→连字符）；不再铸造身份。
+    return String(name).toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-").replace(/^-+|-+$/g, "");
   }
 
   // WP-B：出生反查——复用 entity-growth 扫描器（B02/B04 同源提取器）扫全文章提及。

@@ -36,7 +36,7 @@ test("A3 create：出生即带 origin/grown_from/first_seen（article-grown 语�
   assert.match(raw, /origin: article-grown/, "origin 字段");
   assert.match(raw, /grown_from:\n  - "知识库\/wiki\/articles\/b\.md 提及×2"/, "来源链（H2）");
   assert.match(raw, /first_seen: \d{4}-\d{2}-\d{2}/, "首现日期");
-  assert.match(raw, /architecture-node-id: grown-/, "node id 派生");
+  assert.match(raw, /architecture-node-id: [0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/, "node id＝统一铸造点 UUID v4（WP-232：grown- 拼名现编关停）");
 });
 
 test("A3 create：同名实体已存在 → 409（F02b 唯一性在出生路径执法）", () => {

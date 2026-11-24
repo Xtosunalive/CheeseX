@@ -100,16 +100,22 @@ def test_有身份号的组件照常进图_节点与连线数与改前一致(mon
     assert eg.MISSING_COMPONENT_IDENTITIES == [], "有号即不进待审——否则待审面变噪声源"
 
 
-def test_非组件缺号仍按既有兜底命名_正对照(monkeypatch):
-    """③ 本刀只收「组件身份」一条：arch_component 不为真的缺号实体保持 entity-{slug} 兜底。"""
+def test_非组件缺号改铸号写回(monkeypatch):
+    """③ WP-232（Master 裁定统一铸造）：非组件缺号实体——节点产出（铸号 UUID）、
+    页面写回 architecture-node-id；entity-{slug} 兜底撤销。extract_entity_nodes 默认
+    apply_write=True（单测层验写回；预览门控由管线层传 False）。"""
     _root, ents = _fresh_vault(monkeypatch, "eg-miss-c-")
-    (ents / "svc-x.md").write_text("---\ntitle: svc-x\n---\n正文\n", encoding="utf-8")
+    page = ents / "svc-x.md"
+    page.write_text("---\ntitle: svc-x\n---\n正文\n", encoding="utf-8")
     install_doc_envelope(_root)
     nodes, _edges, _deps, _unresolved, _ex = eg.extract_entity_nodes(set(), {})
 
-    assert [n["id"] for n in nodes] == ["entity-svc-x"], f"非组件行为不得变，实况 {nodes}"
+    import re as _re
+    assert len(nodes) == 1 and _re.match(r"^[0-9a-f-]{36}$", nodes[0]["id"]), f"节点身份＝铸号 UUID，实况 {nodes}"
     assert nodes[0]["labels"] == ["Module"], nodes[0]["labels"]
-    assert eg.MISSING_COMPONENT_IDENTITIES == []
+    back = page.read_text(encoding="utf-8")
+    assert "architecture-node-id: " + nodes[0]["id"] in back, "铸号写回页面（统一铸造——写入系统主键）"
+    assert eg.MISSING_COMPONENT_IDENTITIES == [], "非组件缺号不进组件待审（铸号写回路径）"
 
 
 def test_标签晋升的组件缺号同样不产出(monkeypatch):

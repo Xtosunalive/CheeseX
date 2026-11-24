@@ -810,7 +810,7 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:84"
+        "server/services/ontology/individual-crud-service.cjs:86"
       ]
     },
     "INDIVIDUAL_CHANNEL_FORBIDDEN": {
@@ -824,7 +824,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:42"
+        "server/services/ontology/individual-crud-service.cjs:44"
       ]
     },
     "INDIVIDUAL_FIELDS_INVALID": {
@@ -832,8 +832,8 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:116",
-        "server/services/ontology/individual-crud-service.cjs:190"
+        "server/services/ontology/individual-crud-service.cjs:118",
+        "server/services/ontology/individual-crud-service.cjs:197"
       ]
     },
     "INDIVIDUAL_FRONTMATTER_INVALID": {
@@ -841,7 +841,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:73"
+        "server/services/ontology/individual-crud-service.cjs:75"
       ]
     },
     "INDIVIDUAL_ID_COLLISION": {
@@ -849,7 +849,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:146"
+        "server/services/ontology/individual-crud-service.cjs:130",
+        "server/services/ontology/individual-crud-service.cjs:153"
       ]
     },
     "INDIVIDUAL_ID_INVALID": {
@@ -857,7 +858,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:45"
+        "server/services/ontology/individual-crud-service.cjs:47"
       ]
     },
     "INDIVIDUAL_NOT_FOUND": {
@@ -865,7 +866,7 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:61"
+        "server/services/ontology/individual-crud-service.cjs:63"
       ]
     },
     "INDIVIDUAL_RETIRED": {
@@ -873,7 +874,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:171"
+        "server/services/ontology/individual-crud-service.cjs:178"
       ]
     },
     "INDIVIDUAL_REVISION_CONFLICT": {
@@ -881,8 +882,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:167",
-        "server/services/ontology/individual-crud-service.cjs:205"
+        "server/services/ontology/individual-crud-service.cjs:174",
+        "server/services/ontology/individual-crud-service.cjs:212"
       ]
     },
     "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN": {
@@ -890,7 +891,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/services/ontology/individual-crud-service.cjs:94"
+        "server/services/ontology/individual-crud-service.cjs:96"
       ]
     },
     "INTERNAL_ERROR": {
@@ -1031,8 +1032,8 @@ module.exports = {
         "server/services/schema-manager/schema-write-service.cjs:357",
         "server/services/schema-manager/schema-write-service.cjs:366",
         "server/services/schema-manager/schema-write-service.cjs:529",
-        "server/services/schema-manager/schema-write-service.cjs:598",
-        "server/services/schema-manager/schema-write-service.cjs:600"
+        "server/services/schema-manager/schema-write-service.cjs:601",
+        "server/services/schema-manager/schema-write-service.cjs:603"
       ]
     },
     "INVALID_DOCUMENT": {
@@ -1892,7 +1893,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/schema-manager/schema-write-service.cjs:65",
-        "server/services/schema-manager/schema-write-service.cjs:603"
+        "server/services/schema-manager/schema-write-service.cjs:606"
       ]
     },
     "SCHEMA_REVISION_CONFLICT": {
@@ -1930,7 +1931,7 @@ module.exports = {
         "server/services/schema-manager/schema-write-service.cjs:315",
         "server/services/schema-manager/schema-write-service.cjs:371",
         "server/services/schema-manager/schema-write-service.cjs:536",
-        "server/services/schema-manager/schema-write-service.cjs:544"
+        "server/services/schema-manager/schema-write-service.cjs:546"
       ]
     },
     "SCHEMA_WRITE_FAILED": {

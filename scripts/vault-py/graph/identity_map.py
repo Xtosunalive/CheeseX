@@ -156,6 +156,12 @@ class IdentityMap:
         if registry_identity:
             entry = prods.get(canonical)
             if not entry or entry.get("id") != registry_identity:
+                # R8 剪枝（WP-232）：在册 id ≠ 注册表给定 id＝换值漂移——大声告警＋renames 记账，
+                # 不静默换值（红队 WP-215 R8：静默换值使旧号成幽灵双节点）
+                if entry and entry.get("id"):
+                    import sys as _sys
+                    _sys.stderr.write(f"IDENTITY_REGISTRY_CHANGE: {canonical} 在册 {entry.get('id')} → 注册表给定 {registry_identity}——节点 id 将随新值重建，旧号经 renames 留痕\n")
+                    self._append_rename({"from": entry.get("id"), "to": registry_identity, "at": _now()})
                 prods[canonical] = {
                     "id": registry_identity,
                     "source": "registry",
@@ -179,7 +185,7 @@ class IdentityMap:
                 "migratedAt": _now(),
             }
             del prods[via]  # 旧键移除——别名解析恒先于本查询，旧名不会再来直查
-            self.data["renames"].append({"from": via, "to": canonical, "at": _now()})
+            self._append_rename({"from": via, "to": canonical, "at": _now()})
             self.dirty = True
             return same_id
 
@@ -188,6 +194,15 @@ class IdentityMap:
         prods[canonical] = {"id": new_id, "mintedAt": _now()}
         self.dirty = True
         return new_id
+
+
+    def _append_rename(self, entry: dict) -> None:
+        """R6 剪枝（WP-232）：renames 账单按 (from,to) 去重——重复迁移不再无界增长
+        （红队 WP-215 R6 实测：环别名每轮 +4）；首见记录即事实，后续同对静默幂等。"""
+        renames = self.data.setdefault("renames", [])
+        if any(r.get("from") == entry.get("from") and r.get("to") == entry.get("to") for r in renames):
+            return
+        renames.append(entry)
 
     def apply_alias_renames(self, alias_pairs) -> None:
         """注册表别名＝改名声明（D-1 B）——每轮抽取前按别名对预迁移，顺序无关。
@@ -210,7 +225,7 @@ class IdentityMap:
                     same_id = old_entry["id"]
                     prods[new] = {"id": same_id, "renamedFrom": old, "migratedAt": _now()}
                     del prods[old]
-                    self.data["renames"].append({"from": old, "to": new, "at": _now()})
+                    self._append_rename({"from": old, "to": new, "at": _now()})
                     self.dirty = True
                 elif new_entry["id"] != old_entry["id"]:
                     merged_id = old_entry["id"]
@@ -226,7 +241,7 @@ class IdentityMap:
                         "migratedAt": _now(),
                     }
                     del prods[old]
-                    self.data["renames"].append({"from": old, "to": new, "at": _now()})
+                    self._append_rename({"from": old, "to": new, "at": _now()})
                     self.dirty = True
 
     # ── 文档路径 fallback 身份（D-2 B：保留＋sha16 精确迁移） ──
@@ -268,7 +283,7 @@ class IdentityMap:
                         "migratedAt": _now(),
                     }
                     del docs[old_path]
-                    self.data["renames"].append({"from": old_path, "to": rel_path, "at": _now()})
+                    self._append_rename({"from": old_path, "to": rel_path, "at": _now()})
                     self.dirty = True
                     return same_id, old_path
 
