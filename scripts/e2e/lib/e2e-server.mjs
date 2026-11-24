@@ -59,14 +59,14 @@ function spawnLogged(label, args, env, logs) {
 }
 
 /**
- * startE2EStack({ vaultPath, withVite=true, readyTimeoutMs=90000 })
+ * startE2EStack({ vaultPath, withVite=true, readyTimeoutMs=90000, baseEnv=process.env })
  * @returns {Promise<{apiBase:string, baseUrl:string|null, env:NodeJS.ProcessEnv, apiPort:number, vitePort:number|null, stop:()=>Promise<void>, logs:Record<string,string>}>}
  */
-export async function startE2EStack({ vaultPath, withVite = true, readyTimeoutMs = 90000 } = {}) {
+export async function startE2EStack({ vaultPath, withVite = true, readyTimeoutMs = 90000, baseEnv = process.env } = {}) {
   if (!vaultPath) throw new Error("startE2EStack: vaultPath 必填（经 requireE2EVault 验证）");
   const apiPort = await freePort();
   const vitePort = withVite ? await freePort() : null;
-  const env = buildE2EEnv(vaultPath);
+  const env = buildE2EEnv(vaultPath, baseEnv);
   env.API_PORT = String(apiPort);
   if (vitePort) env.VITE_PORT = String(vitePort);
   if (!env.VAULT_GIT_LEDGER_DISABLE) env.VAULT_GIT_LEDGER_DISABLE = "1"; // 同 persistence-journey：fixture 不落 git 账

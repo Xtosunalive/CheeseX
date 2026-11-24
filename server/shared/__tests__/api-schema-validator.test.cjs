@@ -85,6 +85,15 @@ describe("EG-1a 契约可执行化地基（RED→GREEN）", () => {
     assert.strictEqual(validator.pickValidator(route, 404), null, "未声明状态码必须跳过（族兜底会误拦合法 fail-closed 响应）");
   });
 
+  test("SEQ196-4b: 静态路由优先于同名参数路由", () => {
+    const validator = require(VALIDATOR_PATH);
+    for (const url of ["/api/individuals/FaqCard/config", "/api/individuals/BusinessDomain/config"]) {
+      const route = validator.matchRoute("get", url);
+      assert.ok(route, `${url} 必须命中契约路由`);
+      assert.strictEqual(route.tpl, "/api/individuals/{x}/config", `${url} 不得误配为个体详情`);
+    }
+  });
+
   test("SEQ196-5: enforce 探针语义——合规 pass / 违规 block / 契约外与渐进面 pass", () => {
     const validator = require(VALIDATOR_PATH);
     delete process.env.API_RESPONSE_SCHEMA_SHADOW;

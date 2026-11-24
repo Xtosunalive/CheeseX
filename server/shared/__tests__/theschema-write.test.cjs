@@ -98,8 +98,53 @@ test("全权替换同样单路：钉扎领地可用、vault 侧未钉扎即拒",
 });
 
 // ── WP-203 测试回落拒写闸（repo-schema-io 落点谓词）──
-const { REPO_SCHEMA_ROOT } = require("../repo-schema-io.cjs");
+const { REPO_SCHEMA_ROOT, listGitSnapshots, readGitSnapshot, repoWrite } = require("../repo-schema-io.cjs");
 const { execFileSync } = require("node:child_process");
+
+test("git 历史适配器按目标文件所属仓解析，并规范化 macOS 临时路径别名", function (t) {
+  const base = tmpDir("schema-history-e2e-");
+  t.after(() => fs.rmSync(base, { recursive: true, force: true }));
+  const target = path.join(base, "知识库", "TheSchema", "enums.yaml");
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.writeFileSync(target, "modules: {}\n");
+  execFileSync("git", ["init", "-q"], { cwd: base });
+  execFileSync("git", ["add", "--", "知识库/TheSchema/enums.yaml"], { cwd: base });
+  execFileSync("git", ["-c", "user.name=U3 Test", "-c", "user.email=u3@example.invalid", "commit", "-qm", "fixture"], { cwd: base });
+  const sha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: base, encoding: "utf8" }).trim();
+  const alias = path.join(os.tmpdir(), path.basename(base), "知识库", "TheSchema", "enums.yaml");
+  const snapshots = listGitSnapshots(alias);
+  assert.equal(snapshots.length, 1);
+  assert.equal(snapshots[0].id, sha.slice(0, 10));
+  assert.equal(readGitSnapshot(alias, sha), "modules: {}\n");
+});
+
+test("git 历史适配器可读取并回滚已提交删除的 schema 文件", function (t) {
+  const base = tmpDir("schema-history-deleted-");
+  const schemaDir = path.join(base, "知识库", "TheSchema");
+  const target = path.join(schemaDir, "enums.yaml");
+  const previous = process.env.THESCHEMA_DIR;
+  process.env.THESCHEMA_DIR = schemaDir;
+  t.after(() => {
+    if (previous === undefined) delete process.env.THESCHEMA_DIR;
+    else process.env.THESCHEMA_DIR = previous;
+    fs.rmSync(base, { recursive: true, force: true });
+  });
+  fs.mkdirSync(schemaDir, { recursive: true });
+  fs.writeFileSync(target, "modules: {}\n");
+  execFileSync("git", ["init", "-q"], { cwd: base });
+  execFileSync("git", ["add", "--", "知识库/TheSchema/enums.yaml"], { cwd: base });
+  execFileSync("git", ["-c", "user.name=U3 Test", "-c", "user.email=u3@example.invalid", "commit", "-qm", "create schema"], { cwd: base });
+  const sha = execFileSync("git", ["rev-parse", "HEAD"], { cwd: base, encoding: "utf8" }).trim();
+  fs.unlinkSync(target);
+  execFileSync("git", ["add", "-u"], { cwd: base });
+  execFileSync("git", ["-c", "user.name=U3 Test", "-c", "user.email=u3@example.invalid", "commit", "-qm", "delete schema"], { cwd: base });
+
+  const snapshots = listGitSnapshots(target);
+  assert.equal(snapshots.length, 1);
+  assert.equal(snapshots[0].id, sha.slice(0, 10));
+  repoWrite(target, readGitSnapshot(target, sha), { silent: true });
+  assert.equal(fs.readFileSync(target, "utf8"), "modules: {}\n");
+});
 
 test("WP-203 闸：测试上下文写真仓 data/theschema → 拒且零落盘（夹具投影穿透实录防线）", function (t) {
   const previous = { dir: process.env.THESCHEMA_DIR, runnerRoot: process.env.NODE_TEST_RUNNER_ROOT };

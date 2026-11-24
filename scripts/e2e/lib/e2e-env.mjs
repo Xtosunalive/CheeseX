@@ -11,10 +11,13 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { computeVaultId } from "../../../server/shared/vault-id.cjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..", "..", "..");
+const require = createRequire(import.meta.url);
+const { loadDestinations } = require("../../../server/shared/vault-write-destinations.cjs");
 
 /**
  * 解析真实 vault 路径（从 cheeseh .env 的 VAULT_PATH 读取）。
@@ -71,6 +74,7 @@ export function ensureE2EDataDir() {
  * @returns {NodeJS.ProcessEnv}
  */
 export function buildE2EEnv(fixtureVault, baseEnv = process.env) {
+  fixtureVault = validateE2EVaultPath(fixtureVault);
   const env = { ...baseEnv };
   const tmp = (prefix) => fs.mkdtempSync(path.join(os.tmpdir(), prefix));
   env.VAULT_PATH = fixtureVault;
@@ -175,8 +179,84 @@ export async function requireE2EServiceScope(apiBase, fixtureVault, opts = {}) {
   return { vaultId: actual };
 }
 
-export function requireE2EVault() {
-  const vaultPath = process.env.VAULT_PATH;
+// 不存在路径也要解析最近现存祖先，避免祖先链接把 fixture 指向真实 vault。
+function canonicalPath(target) {
+  let current = path.resolve(target);
+  const missing = [];
+  while (true) {
+    try {
+      fs.lstatSync(current);
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+      const parent = path.dirname(current);
+      if (parent === current) return path.join(current, ...missing);
+      missing.unshift(path.basename(current));
+      current = parent;
+      continue;
+    }
+    return path.join(fs.realpathSync(current), ...missing);
+  }
+}
+
+function isSameOrDescendant(parent, child) {
+  const relative = path.relative(parent, child);
+  return relative === "" || (relative !== ".." && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
+}
+
+function isTemporaryPath(target) {
+  return /^\/(?:private\/)?(?:tmp|var\/folders)(?:\/|$)/.test(target);
+}
+
+function assertNotSymlink(target) {
+  try {
+    if (fs.lstatSync(target).isSymbolicLink()) throw new Error(`E2E_GUARD: symbolic link is not allowed (${target})`);
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+}
+
+function isRuntimeCodeLink(link, vaultRoot) {
+  const relative = path.relative(vaultRoot, link).split(path.sep).join("/");
+  if (!/^知识库\/\.claude\/scripts\/[^/]+\.(?:cjs|mjs)$/.test(relative)) return false;
+  const runtimeRoot = fs.realpathSync(path.join(REPO_ROOT, "scripts", "vault-runtime"));
+  const target = fs.realpathSync(link);
+  return target.startsWith(runtimeRoot + path.sep) && fs.statSync(target).isFile();
+}
+
+function assertNoSymlinks(target, vaultRoot) {
+  assertNotSymlink(target);
+  let stat;
+  try {
+    stat = fs.statSync(target);
+  } catch (error) {
+    if (error.code === "ENOENT") return;
+    throw error;
+  }
+  if (!stat.isDirectory()) return;
+  for (const entry of fs.readdirSync(target, { withFileTypes: true })) {
+    const child = path.join(target, entry.name);
+    if (entry.isSymbolicLink()) {
+      if (!isRuntimeCodeLink(child, vaultRoot)) throw new Error(`E2E_GUARD: symbolic link is not allowed (${child})`);
+    } else if (entry.isDirectory()) {
+      assertNoSymlinks(child, vaultRoot);
+    }
+  }
+}
+
+function assertWriteSurfaceNoSymlinks(vaultRoot) {
+  const { allowedPermanent, migrationWhitelist } = loadDestinations();
+  for (const declared of [...Object.keys(allowedPermanent), ...Object.keys(migrationWhitelist)]) {
+    let current = vaultRoot;
+    const parts = declared.split("/").filter(Boolean);
+    for (const part of parts) {
+      current = path.join(current, part);
+      assertNotSymlink(current);
+    }
+    if (declared.endsWith("/")) assertNoSymlinks(current, vaultRoot);
+  }
+}
+
+export function validateE2EVaultPath(vaultPath, configuredRealVaultPath) {
   if (!vaultPath) {
     const msg =
       "❌ E2E guard: VAULT_PATH 未设置。\n" +
@@ -187,9 +267,15 @@ export function requireE2EVault() {
     throw new Error("E2E_GUARD: VAULT_PATH not set");
   }
 
+  if (configuredRealVaultPath !== undefined && (typeof configuredRealVaultPath !== "string" || !configuredRealVaultPath.trim())) {
+    throw new Error("E2E_GUARD: protected vault path must be a non-empty string");
+  }
   const resolved = path.resolve(vaultPath);
-  const realVault = resolveRealVaultPath();
-  if (realVault && path.resolve(realVault) === resolved) {
+  assertNotSymlink(resolved);
+  const canonical = canonicalPath(resolved);
+  const configuredRealVault = configuredRealVaultPath === undefined ? resolveRealVaultPath() : configuredRealVaultPath;
+  const realVault = configuredRealVault && canonicalPath(configuredRealVault);
+  if (realVault && isSameOrDescendant(realVault, canonical)) {
     const msg =
       "❌ E2E guard: VAULT_PATH 指向真实 vault，拒绝运行！\n" +
       `   真实 vault：${realVault}\n` +
@@ -200,9 +286,9 @@ export function requireE2EVault() {
     throw new Error("E2E_GUARD: VAULT_PATH points to real vault");
   }
 
-  const lc = resolved.toLowerCase();
+  const lc = canonical.toLowerCase();
   const isE2E = lc.includes("e2e");
-  const isTmp = lc.startsWith("/tmp") || lc.startsWith("/var/folders");
+  const isTmp = isTemporaryPath(canonical);
   if (!isE2E && !isTmp) {
     const msg =
       "❌ E2E guard: VAULT_PATH 路径不含 'e2e' 且不在 /tmp——疑似非 fixture vault，拒绝运行！\n" +
@@ -212,7 +298,17 @@ export function requireE2EVault() {
     throw new Error("E2E_GUARD: VAULT_PATH looks like a non-fixture vault");
   }
 
-  return resolved;
+  const gitMarker = path.join(canonical, ".git");
+  assertNotSymlink(gitMarker);
+  if (fs.existsSync(gitMarker) && !fs.statSync(gitMarker).isDirectory()) {
+    throw new Error(`E2E_GUARD: linked worktree .git pointer is not allowed (${gitMarker})`);
+  }
+  assertWriteSurfaceNoSymlinks(canonical);
+  return canonical;
+}
+
+export function requireE2EVault() {
+  return validateE2EVaultPath(process.env.VAULT_PATH);
 }
 
 /**

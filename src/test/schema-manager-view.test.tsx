@@ -6,6 +6,7 @@ import { SchemaManagerView } from "@/features/schema-manager/SchemaManagerView";
 
 vi.mock("@/features/schema-manager/schema-manager-api", () => ({
   fetchEnums: vi.fn(),
+  fetchSchemaHistory: vi.fn(),
   previewEnumsChanges: vi.fn(),
 }));
 vi.mock("@/features/schema-manager/schema-write-api", () => ({
@@ -24,8 +25,8 @@ vi.mock("@/features/schema-manager/dependencies-api", () => ({
   validateDependencyRules: vi.fn(),
   updateDependencyRules: vi.fn(),
 }));
-import { fetchEnums, previewEnumsChanges } from "@/features/schema-manager/schema-manager-api";
-import { writeEnums } from "@/features/schema-manager/schema-write-api";
+import { fetchEnums, fetchSchemaHistory, previewEnumsChanges } from "@/features/schema-manager/schema-manager-api";
+import { writeEnums, rollbackEnums } from "@/features/schema-manager/schema-write-api";
 import { fetchDependencyRules, previewDependencyRules } from "@/features/schema-manager/dependencies-api";
 import { useSchemaManagerStore } from "@/features/schema-manager/schema-manager-store";
 import { TAB_LABELS } from "@/features/schema-manager/schema-manager-types";
@@ -281,6 +282,32 @@ describe("SchemaManagerView", () => {
     await waitFor(() => {
       expect(screen.getByText("网络错误")).toBeInTheDocument();
     });
+  });
+
+  it("刷新失败向写调用方抛错，保存不得伪装成功", async () => {
+    vi.mocked(fetchEnums).mockResolvedValueOnce(MOCK_ENUMS).mockRejectedValueOnce(new Error("REFRESH_FAILED"));
+    await useSchemaManagerStore.getState().load();
+    useSchemaManagerStore.setState({
+      enums: { ...MOCK_ENUMS, categories: ["服务"] },
+      savedEnums: MOCK_ENUMS,
+      saveStatus: "dirty",
+    });
+    await expect(useSchemaManagerStore.getState().saveEnums()).resolves.toBe(false);
+    expect(writeEnums).toHaveBeenCalledWith("sha256:rules", { categories: ["服务"] });
+    expect(useSchemaManagerStore.getState().saveStatus).toBe("error");
+    expect(useSchemaManagerStore.getState().saveError).toBe("REFRESH_FAILED");
+    expect(useSchemaManagerStore.getState().enums?.revision).toBe("sha256:rules");
+  });
+
+  it("回滚成功但刷新失败时显示错误，不伪装回滚完成", async () => {
+    window.location.hash = "#/schema?tab=history";
+    vi.mocked(fetchEnums).mockResolvedValueOnce(MOCK_ENUMS).mockRejectedValueOnce(new Error("REFRESH_FAILED"));
+    vi.mocked(fetchSchemaHistory).mockResolvedValue([{ id: "snap-1", generatedAt: "2026-11-24T00:00:00.000Z", revision: "sha256:before", sourceFile: "知识库/TheSchema/enums.yaml" }]);
+    vi.mocked(rollbackEnums).mockResolvedValue({ category: "enums", revision: "sha256:before" });
+    render(<SchemaManagerView />);
+    fireEvent.click(await screen.findByRole("button", { name: "回滚" }));
+    expect(await screen.findByText("REFRESH_FAILED")).toBeDefined();
+    expect(rollbackEnums).toHaveBeenCalledWith("sha256:rules", "snap-1");
   });
 
   it("renders dependency rules with shared controls and accurate boundary copy", async () => {

@@ -64,6 +64,34 @@ class RealContractLoading(unittest.TestCase):
                 break
         self.assertTrue(hit, "$ref 展开应产出深层字段路径")
 
+    def test_nullable_screen_children_are_not_global_required(self):
+        loader = probe.SpecLoader(str(CONTRACT))
+        op = next(o for o in loader.operations(face="ex")
+                  if o["method"] == "GET" and o["url"] == "/api/derivation/article")
+        fields = op["doc_fields"]
+        prefixes = (
+            "data.uiConfig.screen.list.",
+            "data.uiConfig.screen.form.",
+            "data.uiConfig.screen.detail.",
+            "data.uiConfig.screen.empty.guide.",
+        )
+        for prefix in prefixes:
+            children = [k for k in fields if k.startswith(prefix)]
+            self.assertTrue(children, f"应展开屏幕字段：{prefix}")
+            self.assertFalse(any(fields[k][1] for k in children),
+                             f"nullable 屏幕对象的子字段不得标为全局必填：{prefix}")
+        self.assertIn("data.allClassPlans[].uiConfig.screen", fields,
+                      "多类派生计划必须声明屏幕契约")
+
+    def test_retained_derivation_header_belongs_to_503(self):
+        loader = probe.SpecLoader(str(CONTRACT))
+        doc = loader._load(str(CONTRACT))
+        responses = doc["paths"]["/api/derivation/article"]["get"]["responses"]
+        self.assertNotIn("X-Derivation-Retained", responses["200"].get("headers", {}))
+        header = responses["503"]["headers"]["X-Derivation-Retained"]
+        self.assertEqual(header["schema"], {"type": "string", "const": "true"})
+        self.assertIn("未返回保留快照", header["description"])
+
 
 class FieldFlattening(unittest.TestCase):
     """schema 摊平规则（含适配③ type 数组与上游既有规则）。"""

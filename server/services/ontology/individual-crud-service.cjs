@@ -11,7 +11,7 @@
 "use strict";
 
 const path = require("node:path");
-const crypto = require("node:crypto");
+const fs = require("node:fs");
 const YAML = require("yaml");
 // WP-232：统一业务实例铸造点（实体主键/个体编号同源——ADR-021 §2.2）
 const { mintEntityId } = require("../../shared/entity-identity-mint.cjs");
@@ -232,7 +232,7 @@ function createIndividualCrudService({ vaultPath, logger, loadFields, io } = {})
         const raw = fs.readFileSync(path.join(dir, name), "utf8");
         const { fm } = parseFrontmatter(raw);
         if (fm.lifecycle_status === "retired") continue;
-        out.push({ individualId: fm.individual_id || name.replace(/\.md$/, ""), title: fm.title, revision: vaultIO.contentRevision(raw) });
+        out.push({ individualId: fm.individual_id || name.replace(/\.md$/, ""), title: fm.title, revision: vaultIO.contentRevision(raw), fields: fm });
       } catch (_error) {
         // 单文件坏不拖垮清单（fail-open 读面）——坏行由 read 接口显式报错
       }

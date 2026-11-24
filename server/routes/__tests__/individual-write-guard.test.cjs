@@ -1,7 +1,7 @@
-// WP-228（SPEC-101 §3.4-1）：个体通道写执法测试——守卫注入后，create/update/retire/config
+// WP-228（SPEC-101 §3.4-1）：个体通道写执法测试——守卫注入后，create/update/retire
 // 对不该经通用个体通道的类一律 422 INDIVIDUAL_CHANNEL_FORBIDDEN（details.reason 点名判据），
-// 放行类照常透传 service；守卫缺省（既有测试族形态）行为不变。真库矩阵（六类抽样）在
-// compile-type-catalog.test.cjs 的 individualWriteAllowed 段钉住。
+// config 是只读动作不套写守卫；放行类照常透传 service；守卫缺省（既有测试族形态）行为不变。
+// 真库矩阵（六类抽样）在 compile-type-catalog.test.cjs 的 individualWriteAllowed 段钉住。
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -59,7 +59,7 @@ function buildRuntime(writeGuard) {
   return { harness, calls, vaultPath };
 }
 
-test("守卫拒绝：storage 非 markdown-individual 的类，四口全 422 且 reason 点名，不触达 service", async () => {
+test("守卫拒绝：storage 非 markdown-individual 的类，三个写口全 422 且 reason 点名，config 仍可读", async () => {
   const { harness, calls, vaultPath } = buildRuntime((classId) => (classId === "KnowledgeArticle"
     ? { allowed: false, reason: "TYPE_STORAGE_NOT_INDIVIDUAL" }
     : { allowed: true, reason: null }));
@@ -68,14 +68,15 @@ test("守卫拒绝：storage 非 markdown-individual 的类，四口全 422 且 
       ["POST /api/individuals/:classId", { params: { classId: "KnowledgeArticle" }, body: { fields: { title: "x" } } }],
       ["PUT /api/individuals/:classId/:individualId", { params: { classId: "KnowledgeArticle", individualId: "n1" }, body: { fields: { title: "x" }, expectedRevision: "r" } }],
       ["POST /api/individuals/:classId/:individualId/retire", { params: { classId: "KnowledgeArticle", individualId: "n1" }, body: { expectedRevision: "r" } }],
-      ["GET /api/individuals/:classId/config", { params: { classId: "KnowledgeArticle" } }],
     ]) {
       const res = await harness.request(key, call);
       assert.equal(res.status, 422, `${key} 应 422（实得 ${res.status}:${res.body?.error_code}）`);
       assert.equal(res.body.error_code, "INDIVIDUAL_CHANNEL_FORBIDDEN");
       assert.equal(res.body.details.reason, "TYPE_STORAGE_NOT_INDIVIDUAL");
     }
-    assert.deepEqual(calls, [], "被拒类不得触达 service");
+    const cfg = await harness.request("GET /api/individuals/:classId/config", { params: { classId: "KnowledgeArticle" } });
+    assert.equal(cfg.status, 200, "只读 config 不得被个体写守卫误拦");
+    assert.deepEqual(calls, [], "被拒写类不得触达 service");
   } finally {
     teardownActionRuntime();
     fs.rmSync(vaultPath, { recursive: true, force: true });

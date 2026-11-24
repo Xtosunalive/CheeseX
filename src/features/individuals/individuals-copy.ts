@@ -26,6 +26,11 @@ export const INDIVIDUALS_COPY = {
   REQUIRED_MARK: "必填",
   UNDECLARED_NOTE: "字段未在 fields.yaml 声明 display（回退字段名）",
   MAP_SUMMARY: "类管理地图（15 类＋新类各在哪管）",
+  RETIRED_TYPE: "该种类已退役",
+  REPLACEMENT_TYPE_PREFIX: "替代种类：",
+  MANAGED_ELSEWHERE: "该种类由所属管理面维护，本页不挂载通用清单或写按钮",
+  GO_TO_HOST: "前往所属管理面",
+  UNSUPPORTED_ACTION: "当前页面不支持动作：",
 } as const;
 
 /** WP-214 类管理地图：四族×管理面×通道（声明性治理文案——依据批 A 处置提案＋Wave3 交付边界）。

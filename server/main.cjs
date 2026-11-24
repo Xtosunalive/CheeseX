@@ -75,6 +75,10 @@ const readRequestActionSnapshot = () => {
     : getActiveActionSnapshot();
 };
 const readArticleDerivation = () => readRequestActionSnapshot()?.articleDerivation ?? null;
+const TYPE_CONTRACT_ROOT = path.resolve(__dirname, "..");
+const { loadTypeCatalog, individualWriteAllowed } = require("./shared/type-contract/index.cjs");
+const { projectScreenAvailability } = require("./shared/type-contract/screen-actions.cjs");
+const { createError } = require("./shared/error-factory.cjs");
 let refreshArticleManifests = null;
 const initialActions = initActionRegistry({
   vaultPath,
@@ -96,9 +100,12 @@ const initialActions = initActionRegistry({
       }
       // WP-207（SPEC-100 批 1·多类推广）：文章类仍是绑定主计划（bind 流不变）；其余 approved 类
       // 全量编译为计划面（additionalPlans）——执行器缺位的路由显式 pending 不安装（装配层泛化）。
-      const articleCompiled = compileClassDerivation(ontology.data, fields.data, "KnowledgeArticle");
+      const typeCatalogState = loadTypeCatalog(TYPE_CONTRACT_ROOT, { ontology: ontology.data, fields: fields.data });
+      if (typeCatalogState.error) throw new Error(`统一类型契约不可用：${typeCatalogState.error}`);
+      const typeCatalog = typeCatalogState.catalog;
+      const articleCompiled = compileClassDerivation(ontology.data, fields.data, "KnowledgeArticle", typeCatalog);
       const allClassPlans = [
-        ...compileAllClassDerivations(ontology.data, fields.data).filter((plan) => plan.classId !== "KnowledgeArticle"),
+        ...compileAllClassDerivations(ontology.data, fields.data, typeCatalog).filter((plan) => plan.classId !== "KnowledgeArticle"),
         compileUnboundActionsPlan(ontology.data),
       ];
       return { ...articleCompiled, allClassPlans, lifecycleRoutes: compileLifecycleRoutes(ARTICLE_LIFECYCLE) };
@@ -404,10 +411,14 @@ const articleRoutes = assembleDerivedRoutes({
 const registerRoute = articleRoutes.bind;
 // WP-208（SPEC-100 批 2）：通用个体面——引擎＋generic:* 执行器＋路由注册（本体声明即接线）
 // WP-210（SPEC-100 批 4）：派生 UI 配置闭包——字段中文走 fields.yaml v2 display 单源（未声明回退字段名）
-const individualsUiConfigFor = (classId) => {
+const individualsUiConfigFor = (classId, snapshot) => {
+  if (isRetainedActionSnapshot(snapshot)) {
+    throw createError("VALIDATOR_UNAVAILABLE", "统一类型契约重建失败，屏幕配置暂不可用", 503);
+  }
   const fieldsBundle = loadVocabBundle(vaultPath, { files: ["fields"] });
-  const fieldsDoc = fieldsBundle.files.fields.data;
-  const resolved = individualBindingsResolver(classId);
+  const fieldsDoc = snapshot?.articleInputs?.fields ?? fieldsBundle.files.fields.data;
+  const ontology = snapshot?.articleInputs?.ontology ?? readOntology(vaultPath).data;
+  const resolved = require("./shared/ontology-inheritance-resolver.cjs").resolveClassInheritance(ontology, classId, fieldsDoc);
   const clsKeys = [classId, classId === "KnowledgeArticle" ? "article" : "entity"];
   const declared = new Map();
   for (const key of clsKeys) {
@@ -421,9 +432,16 @@ const individualsUiConfigFor = (classId) => {
     type: String(def.type || "text").toLowerCase(),
     declared: declared.has(name),
   }));
+  const typeCatalogState = loadTypeCatalog(TYPE_CONTRACT_ROOT, { ontology, fields: fieldsDoc });
+  if (typeCatalogState.error) throw createError("VALIDATOR_UNAVAILABLE", `统一类型契约不可用：${typeCatalogState.error}`, 503);
+  const entry = typeCatalogState.catalog.entries.find((item) => item.type_id === classId);
+  if (!entry) throw createError("VALIDATION_ERROR", `类 ${classId} 不在统一类型目录`, 422, { class_id: classId });
+  const screen = projectScreenAvailability(entry.screen, { snapshot, classId });
   return {
     classId,
+    lifecycle_status: entry.lifecycle_status,
     fields,
+    screen,
     actions: {
       create: "POST /api/individuals/{classId}",
       list: "GET /api/individuals/{classId}",
@@ -441,10 +459,14 @@ const individualCrudService = require("./services/ontology/individual-crud-servi
 // 类绑定活解析（个体写低频——每次现读成本可接受，快照缓存注记同款先例）——单源闭包共用（引擎＋批 3 投影）
 // WP-228（SPEC-101 §3.4-1）：统一类型契约守卫——三源现编译（ADR-015 写时算：本体/字段/词典
 // 写后即变，不静默读旧值）；编译失败大声记日志并按「目录缺位」拒绝（写入 fail-closed）。
-const { loadTypeCatalog, individualWriteAllowed } = require("./shared/type-contract/index.cjs");
-const TYPE_CONTRACT_ROOT = path.resolve(__dirname, "..");
-const individualsWriteGuard = (classId) => {
-  const state = loadTypeCatalog(TYPE_CONTRACT_ROOT);
+const individualsWriteGuard = (classId, snapshot) => {
+  if (isRetainedActionSnapshot(snapshot)) {
+    return { allowed: false, reason: "TYPE_CONTRACT_UNAVAILABLE" };
+  }
+  const state = loadTypeCatalog(TYPE_CONTRACT_ROOT, {
+    ontology: snapshot?.articleInputs?.ontology,
+    fields: snapshot?.articleInputs?.fields,
+  });
   if (state.error) logger.error({ event: "type-catalog-compile-failed", error: state.error });
   return individualWriteAllowed(state.catalog, classId);
 };
@@ -1069,13 +1091,15 @@ logger.info({ subsystem: "api", event: "api_response_schema_enforce_on", contrac
 // PR-109：TheSchema 自检同汇合（fail-open——纯读校验，慢/失败不阻断 listen）
 registerRoute("GET", "/api/derivation/article", function (_req, res) {
   const snapshot = readRequestActionSnapshot();
-  if (snapshot?.articleDerivationUnavailable) {
+  const retained = isRetainedActionSnapshot(snapshot);
+  if (snapshot?.articleDerivationUnavailable || retained) {
+    if (retained) res.header("X-Derivation-Retained", "true");
     return sendJSON(res, 503, { error_code: "VALIDATOR_UNAVAILABLE", message: "文章派生配置未通过校验" });
   }
   const derivation = snapshot?.articleDerivation;
   if (!derivation) return sendJSON(res, 404, { error_code: "NOT_FOUND", message: "当前本体没有知识文章派生配置" });
-  if (isRetainedActionSnapshot(snapshot)) res.header("X-Derivation-Retained", "true");
-  return sendJSON(res, 200, derivation);
+  const screen = projectScreenAvailability(derivation.uiConfig?.screen ?? null, { snapshot, classId: "KnowledgeArticle" });
+  return sendJSON(res, 200, { ...derivation, uiConfig: { ...derivation.uiConfig, screen } });
 });
 // WP-207：finish 返回装配摘要——执行器缺位的计划路由显式 pending（响亮日志，不安装不假绿）
 const finishSummary = articleRoutes.finish();

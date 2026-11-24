@@ -8,14 +8,15 @@ const path = require("node:path");
 const YAML = require("yaml");
 const { compileTypeCatalog } = require("./compile-type-catalog.cjs");
 
-function loadTypeCatalog(rootDir) {
+function loadTypeCatalog(rootDir, sources = {}) {
   const read = (p) => fs.readFileSync(path.join(rootDir, p), "utf8");
   try {
     const catalog = compileTypeCatalog({
-      ontology: YAML.parse(read("data/theschema/ontology.yaml")),
-      fields: YAML.parse(read("data/theschema/fields.yaml")),
-      dictionary: JSON.parse(read("contracts/object-dictionary.json")),
-      enums: YAML.parse(read("data/theschema/enums.yaml")),
+      ontology: sources.ontology ?? YAML.parse(read("data/theschema/ontology.yaml")),
+      fields: sources.fields ?? YAML.parse(read("data/theschema/fields.yaml")),
+      dictionary: sources.dictionary ?? JSON.parse(read("contracts/object-dictionary.json")),
+      enums: sources.enums ?? YAML.parse(read("data/theschema/enums.yaml")),
+      emptyStates: sources.emptyStates ?? JSON.parse(read("contracts/empty-state-semantics.json")),
     });
     return { catalog, error: null };
   } catch (error) {
@@ -29,9 +30,11 @@ function individualWriteAllowed(catalog, classId) {
   if (!catalog) return { allowed: false, reason: "TYPE_CATALOG_UNAVAILABLE" };
   const entry = (catalog.entries || []).find((e) => e.type_id === classId);
   if (!entry) return { allowed: false, reason: "TYPE_NOT_IN_CATALOG" };
+  if (entry.lifecycle_status !== "approved") return { allowed: false, reason: "TYPE_NOT_APPROVED" };
   if (entry.system_projection) return { allowed: false, reason: "TYPE_SYSTEM_PROJECTION" };
   if (entry.storage.kind !== "markdown-individual") return { allowed: false, reason: "TYPE_STORAGE_NOT_INDIVIDUAL" };
-  if (entry.screen && String(entry.screen.renderer || "").startsWith("custom:")) return { allowed: false, reason: "TYPE_RENDERER_CUSTOM" };
+  if (!entry.screen) return { allowed: false, reason: "TYPE_SCREEN_UNAVAILABLE" };
+  if (entry.screen.renderer !== "generic") return { allowed: false, reason: "TYPE_RENDERER_CUSTOM" };
   return { allowed: true, reason: null };
 }
 

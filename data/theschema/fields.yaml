@@ -15,7 +15,7 @@
 # 对账门禁：check:fields-registry（server 消费键 ⊆ 类属性集，(类,name) 口径）；check:fields-dictionary（类内唯一/display≤40/引用闭合）。
 # keys 段（BKN Keys 小节对应物）：primary＝系统铸造身份锚（创建后不可改）；display＝显示名键；incremental＝增量更新键。
 schema_version: 2
-last_updated: 2026-11-19
+last_updated: 2026-11-24
 keys:
   FaqCard:
     primary: individual_id
@@ -50,7 +50,6 @@ keys:
   Product:
     primary: id
     display: name
-    incremental: updated
   ProductVersion:
     primary: id
     display: name
@@ -97,6 +96,152 @@ classes:
         required: 否
         layer: 业务属性
         description: 排序权重（选填）
+        value_domain:
+          source: free
+  BusinessDomain:
+    properties:
+      - name: id
+        display: 知识域 ID
+        type: string
+        required: 否
+        layer: 管理属性
+        description: domains 词表的条目键
+        value_domain:
+          source: free
+      - name: name
+        display: 知识域名称
+        type: string
+        required: 是
+        layer: 内容属性
+        description: 知识域显示名称
+        value_domain:
+          source: free
+  Subdomain:
+    properties:
+      - name: id
+        display: 子域 ID
+        type: string
+        required: 否
+        layer: 管理属性
+        description: subdomains 词表的条目键
+        value_domain:
+          source: free
+      - name: name
+        display: 子域名称
+        type: string
+        required: 是
+        layer: 内容属性
+        description: 子域显示名称
+        value_domain:
+          source: free
+  Product:
+    properties:
+      - name: id
+        display: 产品 ID
+        type: string
+        required: 否
+        layer: 管理属性
+        description: 产品身份注册表的条目键
+        value_domain:
+          source: free
+      - name: name
+        display: 产品名称
+        type: string
+        required: 是
+        layer: 内容属性
+        description: 产品显示名称
+        value_domain:
+          source: free
+  ProductVersion:
+    properties:
+      - name: id
+        display: 产品版本 ID
+        type: string
+        required: 否
+        layer: 管理属性
+        description: 版本注册表的条目键
+        value_domain:
+          source: free
+      - name: name
+        display: 产品版本名称
+        type: string
+        required: 是
+        layer: 内容属性
+        description: 产品版本显示名称
+        value_domain:
+          source: free
+  Module:
+    properties:
+      - name: id
+        display: 模块 ID
+        type: string
+        required: 否
+        layer: 管理属性
+        description: modules 词表的条目键；由保存动作写入，表单不编辑
+        value_domain:
+          source: free
+      - name: name
+        display: 模块名称
+        type: string
+        required: 是
+        layer: 业务属性
+        description: 产品模块的人读名称与词表键
+        value_domain:
+          source: free
+      - name: system
+        display: 所属系统
+        type: string
+        required: 是
+        layer: 业务属性
+        description: 模块所属系统；全库唯一
+        value_domain:
+          source: free
+      - name: subdomain
+        display: 所属子域
+        type: string
+        required: 是
+        layer: 业务属性
+        description: 模块所属知识子域
+        value_domain:
+          source: free
+      - name: parent_id
+        display: 父模块
+        type: string
+        required: 否
+        layer: 管理属性
+        description: 父模块条目键；空值表示顶层模块
+        value_domain:
+          source: free
+      - name: since
+        display: 生效版本
+        type: string
+        required: 否
+        layer: 管理属性
+        description: 模块开始生效的版本标识
+        value_domain:
+          source: free
+      - name: until
+        display: 失效版本
+        type: string
+        required: 否
+        layer: 管理属性
+        description: 模块停止生效的版本标识
+        value_domain:
+          source: free
+      - name: products
+        display: 适用产品
+        type: list
+        required: 否
+        layer: 业务属性
+        description: 模块适用的版本化产品词表值
+        value_domain:
+          source: free
+      - name: description
+        display: 模块说明
+        type: string
+        required: 否
+        layer: 业务属性
+        description: 产品模块语义说明
         value_domain:
           source: free
   entity:

@@ -44,15 +44,7 @@
             "description": "绑定动作 id（class_id 命中）＋类无关 generic:* 全局面",
             "items": { "type": "string" }
           },
-          "screen": {
-            "type": ["object", "null"],
-            "description": "U1 最小屏幕段（导航归属沿用词典 edited_by_tab；列表/表单/详情属 U3）",
-            "properties": {
-              "nav_region": { "type": ["string", "null"] },
-              "nav_item": { "type": ["string", "null"] },
-              "renderer": { "type": "string", "default": "generic" }
-            }
-          },
+          "screen": { "$ref": "#/$defs/ScreenContract" },
           "storage": {
             "type": "object",
             "required": ["kind"],
@@ -88,6 +80,225 @@
         "compiled_at_runtime": { "type": "boolean", "description": "true＝装载期产物（正典）；文件副本仅作对账快照" },
         "pending_dictionary_entries": { "type": "array", "items": { "type": "string" }, "description": "暂未定键的词典专属卡（诚实清单，不硬造键）" },
         "notes": { "type": "string" }
+      }
+    }
+  },
+  "$defs": {
+    "ScreenContract": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["nav_region", "nav_item", "renderer", "list", "form", "detail", "buttons", "empty", "custom_binding_key", "states"],
+          "properties": {
+            "nav_region": { "type": ["string", "null"] },
+            "nav_item": { "type": ["string", "null"] },
+            "renderer": { "anyOf": [{ "const": "generic" }, { "type": "string", "pattern": "^custom:[a-z][a-z0-9-]*$" }] },
+            "list": { "$ref": "#/$defs/ScreenList" },
+            "form": { "$ref": "#/$defs/ScreenForm" },
+            "detail": { "$ref": "#/$defs/ScreenDetail" },
+            "buttons": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/ScreenButton" }
+            },
+            "empty": { "$ref": "#/$defs/ScreenEmpty" },
+            "custom_binding_key": { "type": ["string", "null"] },
+            "states": { "$ref": "#/$defs/ScreenStates" }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "ScreenList": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["columns", "filters", "default_sort"],
+          "properties": {
+            "columns": { "type": "array", "items": { "type": "string" } },
+            "filters": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["field", "operator"],
+                "properties": {
+                  "field": { "type": "string" },
+                  "operator": { "type": "string" },
+                  "value": { "type": ["string", "number", "boolean", "null"] }
+                }
+              }
+            },
+            "default_sort": {
+              "type": ["object", "null"],
+              "additionalProperties": false,
+              "required": ["field", "direction"],
+              "properties": {
+                "field": { "type": "string" },
+                "direction": { "enum": ["asc", "desc"] }
+              }
+            }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "ScreenSection": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "title_cn", "fields"],
+      "properties": {
+        "id": { "type": "string" },
+        "title_cn": { "type": "string" },
+        "fields": { "type": "array", "items": { "type": "string" } },
+        "relations": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "ScreenForm": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sections", "field_order", "widget_overrides"],
+          "properties": {
+            "sections": { "type": "array", "items": { "$ref": "#/$defs/ScreenSection" } },
+            "field_order": { "type": "array", "items": { "type": "string" } },
+            "widget_overrides": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["field", "widget"],
+                "properties": {
+                  "field": { "type": "string" },
+                  "widget": { "enum": ["text", "textarea", "number", "checkbox", "array"] }
+                }
+              }
+            }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "ScreenDetail": {
+      "anyOf": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["sections"],
+          "properties": {
+            "sections": { "type": "array", "items": { "$ref": "#/$defs/ScreenSection" } }
+          }
+        },
+        { "type": "null" }
+      ]
+    },
+    "ActionImpact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["class_id", "operation", "fields"],
+      "properties": {
+        "class_id": { "type": "string" },
+        "operation": { "enum": ["add", "modify", "delete"] },
+        "fields": { "type": "array", "items": { "type": "string" } },
+        "description": { "type": "string" }
+      }
+    },
+    "ScreenButton": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action_id", "label_cn", "placement", "http_route", "required_roles", "impact", "risk_id", "confirmation", "availability_source", "availability"],
+      "properties": {
+        "action_id": { "type": "string" },
+        "label_cn": { "type": "string" },
+        "placement": { "enum": ["toolbar", "detail", "row", "menu"] },
+        "http_route": { "type": ["string", "null"] },
+        "required_roles": { "type": "array", "items": { "type": "string" } },
+        "impact": { "type": "array", "items": { "$ref": "#/$defs/ActionImpact" } },
+        "risk_id": { "type": ["string", "null"] },
+        "confirmation": { "enum": ["none", "confirm", "approve", "block"] },
+        "availability_source": { "const": "action-execution-factory" },
+        "availability": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["allowed", "reason"],
+          "properties": {
+            "allowed": { "type": ["boolean", "null"] },
+            "reason": { "type": ["string", "null"] }
+          }
+        }
+      }
+    },
+    "ScreenEmpty": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["component", "variant", "absence_kind", "primary_action_id", "guide"],
+      "properties": {
+        "component": { "const": "EmptyState" },
+        "variant": { "enum": ["no-data", "no-match"] },
+        "absence_kind": { "type": ["string", "null"] },
+        "primary_action_id": { "type": ["string", "null"] },
+        "guide": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["what", "where"],
+              "properties": {
+                "what": { "type": "string" },
+                "where": { "type": "string" }
+              }
+            },
+            { "type": "null" }
+          ]
+        }
+      }
+    },
+    "ScreenStates": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["loading", "error", "forbidden", "retired"],
+      "properties": {
+        "loading": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "label_cn"],
+          "properties": {
+            "component": { "const": "TableLoading" },
+            "label_cn": { "type": "string" }
+          }
+        },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "retry"],
+          "properties": {
+            "component": { "const": "TableErrorState" },
+            "retry": { "type": "boolean" }
+          }
+        },
+        "forbidden": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "variant", "message_cn"],
+          "properties": {
+            "component": { "const": "Alert" },
+            "variant": { "const": "warn" },
+            "message_cn": { "type": "string" }
+          }
+        },
+        "retired": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["component", "variant", "message_cn", "replacement_type_id"],
+          "properties": {
+            "component": { "const": "Alert" },
+            "variant": { "const": "error" },
+            "message_cn": { "type": "string" },
+            "replacement_type_id": { "type": ["string", "null"] }
+          }
+        }
       }
     }
   },

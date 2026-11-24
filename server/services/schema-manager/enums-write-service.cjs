@@ -27,8 +27,6 @@ const { replaceTheSchemaFile } = require("../../shared/theschema-write.cjs"); //
 const { assertRevisionGiven } = require("../../shared/schema-write-guards.cjs");
 // WP-199 波3：值域引用段删除保护读 fields.yaml 经装载端口（state 三态——缺席静默跳过的判据来源）
 const { loadVocabBundle } = require("../../shared/vocab-load-port.cjs");
-const ROOT = require("node:path").resolve(__dirname, "..", "..", "..");
-const repoRel = (absPath) => require("node:path").relative(ROOT, absPath).split(require("node:path").sep).join("/");
 
 // PR-052 health 痕迹：形态偏差与写侧非规范自校验的落地位置（宽容不静默、可粘贴复核）。
 // SPEC-012 WP-B：痕迹迁 telemetry.db（消费面走 API；vault 不再有 health 落盘）。
@@ -62,7 +60,7 @@ function writeSnapshot(_vaultPath, _raw) {
 }
 
 function listSnapshots(vaultPath) {
-  return listGitSnapshots(repoRel(readEnums(vaultPath).filePath || path.join(vaultPath, "知识库", "TheSchema", "enums.yaml")));
+  return listGitSnapshots(readEnums(vaultPath).filePath || path.join(vaultPath, "知识库", "TheSchema", "enums.yaml"));
 }
 
 function rollbackSnapshot(vaultPath, expectedRevision, snapshotId) {  // 红队中-2 修复：回滚也是 enums.yaml 写点——解析物联动不可漏（fire-and-forget＋门禁兜底）
@@ -82,7 +80,7 @@ function rollbackSnapshot(vaultPath, expectedRevision, snapshotId) {  // 红队�
   // SPEC-023 波 3：快照源＝git 历史（fs 快照退役）
   let raw;
   try {
-    raw = readGitSnapshot(repoRel(current.filePath), snapshotId);
+    raw = readGitSnapshot(current.filePath, snapshotId);
   } catch (e) {
     if (e.code === "INVALID_SNAPSHOT_ID") throw serviceError("INVALID_SNAPSHOT_ID", e.message, 400);
     throw serviceError("SNAPSHOT_NOT_FOUND", "Schema snapshot not found", 404);

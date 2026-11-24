@@ -47,10 +47,10 @@ export async function updateIndividual(classId: string, individualId: string, fi
   });
 }
 
-export async function retireIndividual(classId: string, individualId: string, expectedRevision: string): Promise<IndividualMutationEnvelope> {
+export async function retireIndividual(classId: string, individualId: string, expectedRevision: string, confirmation = true): Promise<IndividualMutationEnvelope> {
   return apiFetchJson<IndividualMutationEnvelope>(`/api/individuals/${encodeURIComponent(classId)}/${encodeURIComponent(individualId)}/retire`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ expectedRevision }),
+    body: JSON.stringify({ expectedRevision, confirm: confirmation }),
   });
 }

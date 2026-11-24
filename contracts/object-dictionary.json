@@ -949,7 +949,7 @@
         "data/theschema/enums.yaml:125（modules 段）",
         "contracts/theschema-roles.json:71-76（modules 段 → modules 页签，SCHEMA-IA-001 批10）"
       ],
-      "write_path": "页面 #/schema→产品模块 页签→PUT /api/schema/enums（modules 节）；非页面写者经 scripts/vault-runtime/schema-write-client.mjs（modules-upsert，scripts/vault-runtime/schema-write-client.mjs:26-28）；禁直写",
+      "write_path": "页面 #/schema→产品模块 页签→PUT /api/schema/modules/{moduleId}（modules-upsert）／POST /api/schema/enums/append（enum-append）；两者继续经 writeEnums、revision、预览/回滚与审计链，最终由 TheSchema 唯一写门落盘；非页面写者经 scripts/vault-runtime/schema-write-client.mjs（modules-upsert，scripts/vault-runtime/schema-write-client.mjs:26-28）；禁直写",
       "relationships": [
         "module.subdomain → 知识域/子域 词表（挂靠）",
         "module.system → 架构 System 节点（kebab 唯一）",

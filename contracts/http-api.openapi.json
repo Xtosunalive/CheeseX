@@ -1959,6 +1959,238 @@
           }
         ]
       },
+      "ActionImpact": {
+        "type": "object",
+        "required": ["class_id", "operation", "fields"],
+        "properties": {
+          "class_id": { "type": "string" },
+          "operation": { "enum": ["add", "modify", "delete"] },
+          "fields": { "type": "array", "items": { "type": "string" } },
+          "description": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "ScreenButton": {
+        "type": "object",
+        "required": ["action_id", "label_cn", "placement", "http_route", "required_roles", "impact", "risk_id", "confirmation", "availability_source", "availability"],
+        "properties": {
+          "action_id": { "type": "string" },
+          "label_cn": { "type": "string" },
+          "placement": { "enum": ["toolbar", "detail", "row", "menu"] },
+          "http_route": { "type": ["string", "null"] },
+          "required_roles": { "type": "array", "items": { "type": "string" } },
+          "impact": { "type": "array", "items": { "$ref": "#/components/schemas/ActionImpact" } },
+          "risk_id": { "type": ["string", "null"] },
+          "confirmation": { "enum": ["none", "confirm", "approve", "block"] },
+          "availability_source": { "const": "action-execution-factory" },
+          "availability": {
+            "type": "object",
+            "required": ["allowed", "reason"],
+            "properties": {
+              "allowed": { "type": ["boolean", "null"] },
+              "reason": { "type": ["string", "null"] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "additionalProperties": false
+      },
+      "ScreenList": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["columns", "filters", "default_sort"],
+            "properties": {
+              "columns": { "type": "array", "items": { "type": "string" } },
+              "filters": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["field", "operator"],
+                  "properties": {
+                    "field": { "type": "string" },
+                    "operator": { "enum": ["contains", "equals"] },
+                    "value": { "type": ["string", "number", "boolean", "null"] }
+                  }
+                }
+              },
+              "default_sort": {
+                "type": ["object", "null"],
+                "additionalProperties": false,
+                "required": ["field", "direction"],
+                "properties": {
+                  "field": { "type": "string" },
+                  "direction": { "enum": ["asc", "desc"] }
+                }
+              }
+            }
+          },
+          { "type": "null" }
+        ]
+      },
+      "ScreenSection": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "title_cn", "fields"],
+        "properties": {
+          "id": { "type": "string" },
+          "title_cn": { "type": "string" },
+          "fields": { "type": "array", "items": { "type": "string" } },
+          "relations": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "ScreenForm": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sections", "field_order", "widget_overrides"],
+            "properties": {
+              "sections": { "type": "array", "items": { "$ref": "#/components/schemas/ScreenSection" } },
+              "field_order": { "type": "array", "items": { "type": "string" } },
+              "widget_overrides": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["field", "widget"],
+                  "properties": {
+                    "field": { "type": "string" },
+                    "widget": { "enum": ["text", "textarea", "number", "checkbox", "array"] }
+                  }
+                }
+              }
+            }
+          },
+          { "type": "null" }
+        ]
+      },
+      "ScreenDetail": {
+        "anyOf": [
+          {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["sections"],
+            "properties": {
+              "sections": { "type": "array", "items": { "$ref": "#/components/schemas/ScreenSection" } }
+            }
+          },
+          { "type": "null" }
+        ]
+      },
+      "ScreenStates": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["loading", "error", "forbidden", "retired"],
+        "properties": {
+          "loading": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["component", "label_cn"],
+            "properties": {
+              "component": { "const": "TableLoading" },
+              "label_cn": { "type": "string" }
+            }
+          },
+          "error": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["component", "retry"],
+            "properties": {
+              "component": { "const": "TableErrorState" },
+              "retry": { "type": "boolean" }
+            }
+          },
+          "forbidden": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["component", "variant", "message_cn"],
+            "properties": {
+              "component": { "const": "Alert" },
+              "variant": { "const": "warn" },
+              "message_cn": { "type": "string" }
+            }
+          },
+          "retired": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["component", "variant", "message_cn", "replacement_type_id"],
+            "properties": {
+              "component": { "const": "Alert" },
+              "variant": { "const": "error" },
+              "message_cn": { "type": "string" },
+              "replacement_type_id": { "type": ["string", "null"] }
+            }
+          }
+        }
+      },
+      "ScreenContract": {
+        "anyOf": [
+          {
+            "type": "object",
+            "required": ["nav_region", "nav_item", "renderer", "list", "form", "detail", "buttons", "empty", "custom_binding_key", "states"],
+            "properties": {
+              "nav_region": { "type": ["string", "null"] },
+              "nav_item": { "type": ["string", "null"] },
+              "renderer": { "type": "string", "pattern": "^(generic|custom:[a-z][a-z0-9-]*)$" },
+              "list": { "$ref": "#/components/schemas/ScreenList" },
+              "form": { "$ref": "#/components/schemas/ScreenForm" },
+              "detail": { "$ref": "#/components/schemas/ScreenDetail" },
+              "buttons": { "type": "array", "items": { "$ref": "#/components/schemas/ScreenButton" } },
+              "empty": {
+                "type": "object",
+                "required": ["component", "variant", "absence_kind", "primary_action_id", "guide"],
+                "properties": {
+                  "component": { "const": "EmptyState" },
+                  "variant": { "enum": ["no-data", "no-match"] },
+                  "absence_kind": { "type": ["string", "null"] },
+                  "primary_action_id": { "type": ["string", "null"] },
+                  "guide": {
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "required": ["what", "where"],
+                        "properties": {
+                          "what": { "type": "string" },
+                          "where": { "type": "string" }
+                        },
+                        "additionalProperties": false
+                      },
+                      { "type": "null" }
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "custom_binding_key": { "type": ["string", "null"] },
+              "states": { "$ref": "#/components/schemas/ScreenStates" }
+            },
+            "additionalProperties": false
+          },
+          { "type": "null" }
+        ]
+      },
+      "ModuleMutationEnvelope": {
+        "type": "object",
+        "required": ["success", "data"],
+        "properties": {
+          "success": { "const": true },
+          "data": {
+            "type": "object",
+            "required": ["category", "revision"],
+            "properties": {
+              "category": { "type": "string" },
+              "revision": { "type": "string" },
+              "affectedFile": { "type": "string" },
+              "moduleId": { "type": "string" },
+              "appended": { "type": "boolean" }
+            }
+          },
+          "trace_id": { "type": "string" }
+        }
+      },
       "SchemaModuleDefinition": {
         "type": "object",
         "properties": {
@@ -1972,6 +2204,9 @@
             "type": "string"
           },
           "since": {
+            "type": "string"
+          },
+          "label": {
             "type": "string"
           },
           "until": {
@@ -7918,7 +8153,8 @@
               "classId",
               "inheritanceChain",
               "displayFields",
-              "actionIds"
+              "actionIds",
+              "screen"
             ],
             "properties": {
               "classId": {
@@ -7941,6 +8177,9 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "screen": {
+                "$ref": "#/components/schemas/ScreenContract"
               }
             }
           },
@@ -17121,6 +17360,7 @@
           "error_code": {
             "type": "string",
             "enum": [
+              "ACTION_CONFIRM_REQUIRED",
               "INDIVIDUAL_CHANNEL_FORBIDDEN",
               "INDIVIDUAL_FIELDS_INVALID",
               "INDIVIDUAL_NOT_FOUND",
@@ -17131,7 +17371,9 @@
               "INDIVIDUAL_ID_COLLISION",
               "INDIVIDUAL_FRONTMATTER_INVALID",
               "INDIVIDUAL_BINDINGS_UNAVAILABLE",
-              "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN"
+              "INDIVIDUAL_SYSTEM_KEY_FORBIDDEN",
+              "VALIDATION_ERROR",
+              "VALIDATOR_UNAVAILABLE"
             ]
           },
           "details": {
@@ -17190,7 +17432,7 @@
               "object",
               "null"
             ],
-            "description": "WP-222（契约探针缺口清偿）：按类 UI 配置——四子字段与派生器实产出一致（IndividualsView 消费）；编译错误档（error 计划）为 null",
+            "description": "按类 UI 配置——字段、动作路由与屏幕契约同源；编译错误档（error 计划）为 null",
             "properties": {
               "classId": {
                 "type": "string"
@@ -17212,6 +17454,9 @@
                 "items": {
                   "type": "string"
                 }
+              },
+              "screen": {
+                "$ref": "#/components/schemas/ScreenContract"
               }
             }
           },
@@ -23478,7 +23723,7 @@
                             "snapshots": {
                               "type": "array",
                               "items": {
-                                "type": "object"
+                                "$ref": "#/components/schemas/SchemaSnapshot"
                               }
                             }
                           }
@@ -24312,6 +24557,77 @@
               }
             }
           }
+        }
+      }
+    },
+    "/api/schema/modules/{moduleId}": {
+      "put": {
+        "summary": "单条目写入产品模块词表（U3 模块样板）",
+        "operationId": "schema.modules.upsert",
+        "tags": ["schema"],
+        "parameters": [
+          { "name": "moduleId", "in": "path", "required": true, "schema": { "type": "string", "minLength": 1 } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["revision", "definition"],
+                "properties": {
+                  "revision": { "type": "string", "description": "当前 enums.yaml revision" },
+                  "definition": { "$ref": "#/components/schemas/SchemaModuleDefinition" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "模块已写入",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ModuleMutationEnvelope" } } }
+          },
+          "400": { "description": "参数或模块语义非法", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } },
+          "401": { "description": "未认证", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } },
+          "403": { "description": "角色或写通道拒绝", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } },
+          "409": { "description": "revision 冲突", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } },
+          "503": { "description": "Schema 写服务未装配", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
+        }
+      }
+    },
+    "/api/schema/enums/append": {
+      "post": {
+        "summary": "向闭合数组词表追加一个值（U3 模块产品追加）",
+        "operationId": "schema.enums.append",
+        "tags": ["schema"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["revision", "moduleId", "value"],
+                "properties": {
+                  "revision": { "type": "string", "description": "当前 enums.yaml revision" },
+                  "moduleId": { "type": "string", "minLength": 1, "description": "已注册模块 ID" },
+                  "value": { "type": "string", "minLength": 1, "description": "追加到模块 products 数组的版本化词表值" }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "追加结果；重复值返回 appended=false",
+            "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ModuleMutationEnvelope" } } }
+          },
+          "400": { "description": "路径非数组或值非法", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } },
+          "401": { "description": "未认证", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } },
+          "403": { "description": "角色或写通道拒绝", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } },
+          "409": { "description": "revision 冲突", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } },
+          "503": { "description": "Schema 写服务未装配", "content": { "application/json": { "schema": { "$ref": "#/components/schemas/ApiError" } } } }
         }
       }
     },
@@ -28695,15 +29011,6 @@
         "responses": {
           "200": {
             "description": "编译成功，返回路由、字段、UI配置",
-            "headers": {
-              "X-Derivation-Retained": {
-                "description": "候选修订被拒绝，响应仍为上一有效修订",
-                "schema": {
-                  "type": "string",
-                  "const": "true"
-                }
-              }
-            },
             "content": {
               "application/json": {
                 "schema": {
@@ -28741,6 +29048,15 @@
           },
           "503": {
             "description": "文章派生配置未通过校验",
+            "headers": {
+              "X-Derivation-Retained": {
+                "description": "候选修订被拒绝，未返回保留快照",
+                "schema": {
+                  "type": "string",
+                  "const": "true"
+                }
+              }
+            },
             "content": {
               "application/json": {
                 "schema": {
@@ -29634,36 +29950,49 @@
         "description": "WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。返回该类全部未退役个体（空数组＝空数据态合法）。",
         "responses": {
           "200": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ApiEnvelope_Data"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "data"
-                ],
-                "properties": {
-                  "data": {
-                    "type": "array",
-                    "items": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope_Data"
+                    },
+                    {
                       "type": "object",
+                      "required": [
+                        "data"
+                      ],
                       "properties": {
-                        "individualId": {
-                          "type": "string"
-                        },
-                        "title": {
-                          "type": "string"
-                        },
-                        "revision": {
-                          "type": "string"
+                        "data": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "required": ["individualId", "revision", "fields"],
+                            "properties": {
+                              "individualId": {
+                                "type": "string"
+                              },
+                              "title": {
+                                "type": "string"
+                              },
+                              "revision": {
+                                "type": "string"
+                              },
+                              "fields": {
+                                "type": "object",
+                                "additionalProperties": true,
+                                "description": "frontmatter 全量；屏幕契约列从此读取"
+                              }
+                            }
+                          }
                         }
                       }
                     }
-                  }
+                  ]
                 }
               }
-            ]
+            }
           }
         }
       },
@@ -29684,22 +30013,40 @@
         "description": "WP-208／SPEC-100 批 2 通用个体面（generic:* 执行器，类无关动作＋classId 路径参数——一份代码服务所有类；字段按本体类绑定校验 fail-closed；移除=生命周期退役 ADR-017 非硬删）。返回 frontmatter 全量＋乐观锁 revision。",
         "responses": {
           "200": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/ApiEnvelope_Data"
-              },
-              {
-                "type": "object",
-                "required": [
-                  "data"
-                ],
-                "properties": {
-                  "data": {
-                    "type": "object"
-                  }
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiEnvelope_Data"
+                    },
+                    {
+                      "type": "object",
+                      "required": [
+                        "data"
+                      ],
+                      "properties": {
+                        "data": {
+                          "type": "object",
+                          "required": ["classId", "individualId", "fields", "revision"],
+                          "properties": {
+                            "classId": { "type": "string" },
+                            "individualId": { "type": "string" },
+                            "fields": {
+                              "type": "object",
+                              "additionalProperties": true,
+                              "description": "frontmatter 全量"
+                            },
+                            "revision": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  ]
                 }
               }
-            ]
+            }
           },
           "404": {
             "description": "个体不存在",
@@ -29886,6 +30233,10 @@
                 "properties": {
                   "expectedRevision": {
                     "type": "string"
+                  },
+                  "confirm": {
+                    "type": "boolean",
+                    "description": "个体退役风险二次确认；统一执行工厂要求 true"
                   }
                 },
                 "required": [
@@ -29937,9 +30288,15 @@
                       "properties": {
                         "data": {
                           "type": "object",
+                          "required": ["classId", "fields", "actions", "screen"],
                           "properties": {
                             "classId": {
                               "type": "string"
+                            },
+                            "lifecycle_status": {
+                              "type": ["string", "null"],
+                              "enum": ["draft", "review", "approved", "deprecated", "retired", null],
+                              "description": "统一类型目录中的类生命周期；retired 时屏幕显示退役语义"
                             },
                             "fields": {
                               "type": "array",
@@ -29983,6 +30340,9 @@
                                   "type": "string"
                                 }
                               }
+                            },
+                            "screen": {
+                              "$ref": "#/components/schemas/ScreenContract"
                             }
                           }
                         }
@@ -29994,7 +30354,7 @@
             }
           },
           "422": {
-            "description": "classId 缺失",
+            "description": "classId 缺失或不在统一类型目录（VALIDATION_ERROR）",
             "content": {
               "application/json": {
                 "schema": {
@@ -30004,7 +30364,7 @@
             }
           },
           "503": {
-            "description": "uiConfigFor 端口未装配",
+            "description": "统一类型契约不可用（VALIDATOR_UNAVAILABLE），屏幕配置 fail-closed",
             "content": {
               "application/json": {
                 "schema": {

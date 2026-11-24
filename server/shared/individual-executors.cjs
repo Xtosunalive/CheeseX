@@ -13,9 +13,9 @@ const { createError: guardError } = require("./error-factory.cjs");
 
 function registerIndividualExecutors({ service, registerActionExecutor, uiConfigFor, writeGuard }) {
   if (typeof registerActionExecutor !== "function") throw new TypeError("[individual-executors] 需要 registerActionExecutor");
-  const guarded = (classId) => {
+  const guarded = (classId, snapshot) => {
     if (typeof writeGuard !== "function") return;
-    const verdict = writeGuard(classId) || {};
+    const verdict = writeGuard(classId, snapshot) || {};
     if (!verdict.allowed) {
       throw guardError("INDIVIDUAL_CHANNEL_FORBIDDEN",
         `类 ${classId} 不经通用个体通道（统一类型契约：${verdict.reason || "TYPE_NOT_IN_CATALOG"}）`, 422,
@@ -24,14 +24,14 @@ function registerIndividualExecutors({ service, registerActionExecutor, uiConfig
   };
   registerActionExecutor("generic:create", (ctx) => {
     const classId = ctx.request?.params?.classId;
-    guarded(classId);
+    guarded(classId, ctx.snapshot);
     return service.create({ classId, fields: (ctx.body && ctx.body.fields) || {} });
   });
   registerActionExecutor("generic:read", (ctx) =>
     service.read(ctx.request?.params?.classId, ctx.request?.params?.individualId));
   registerActionExecutor("generic:update", (ctx) => {
     const classId = ctx.request?.params?.classId;
-    guarded(classId);
+    guarded(classId, ctx.snapshot);
     return service.update({
       classId,
       individualId: ctx.request?.params?.individualId,
@@ -41,7 +41,7 @@ function registerIndividualExecutors({ service, registerActionExecutor, uiConfig
   });
   registerActionExecutor("generic:retire", (ctx) => {
     const classId = ctx.request?.params?.classId;
-    guarded(classId);
+    guarded(classId, ctx.snapshot);
     return service.retire({
       classId,
       individualId: ctx.request?.params?.individualId,
@@ -56,8 +56,7 @@ function registerIndividualExecutors({ service, registerActionExecutor, uiConfig
   if (typeof uiConfigFor === "function") {
     registerActionExecutor("generic:config", (ctx) => {
       const classId = ctx.request?.params?.classId;
-      guarded(classId);
-      return uiConfigFor(classId);
+      return uiConfigFor(classId, ctx.snapshot);
     });
   }
 }

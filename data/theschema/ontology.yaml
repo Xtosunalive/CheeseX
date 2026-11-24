@@ -62,6 +62,9 @@ node_types:
     category: 域
     color: slate
     icon: layers
+    data_properties:
+      id: {}
+      name: { required: true }
     allows_relations:
       - BELONGS_TO
   Subdomain:
@@ -71,6 +74,9 @@ node_types:
     category: 域
     color: slate
     icon: layers
+    data_properties:
+      id: {}
+      name: { required: true }
     allows_relations:
       - BELONGS_TO
   Product:
@@ -79,6 +85,9 @@ node_types:
     category: 产品
     color: indigo
     icon: package
+    data_properties:
+      id: {}
+      name: { required: true }
     allows_relations:
       - HAS_VERSION
       - APPLIES_TO
@@ -89,6 +98,9 @@ node_types:
     category: 版本
     color: indigo
     icon: tag
+    data_properties:
+      id: {}
+      name: { required: true }
     allows_relations:
       - USES
       - APPLIES_TO
@@ -113,6 +125,16 @@ node_types:
       - REFERENCES
       - DOCUMENTS
       - ASSOCIATED_WITH
+    data_properties:
+      id: {}
+      name: { required: true }
+      system: { required: true }
+      subdomain: { required: true }
+      parent_id: {}
+      since: {}
+      until: {}
+      products: {}
+      description: {}
   Plate:
     display_name: 知识板块（聚合视图）
     description: 知识板块聚合节点（product × article_type / doc-type / module 维度），权限边界实体承载桩
@@ -1055,47 +1077,237 @@ confidence_suggestion:
 # lifecycle_status 缺省 approved（ADR-014 §3.1），仅 approved 进入活消费面。
 # WP-172（SPEC-095 §3.5 首批）：风险类型首批登记——登记即执法（工厂 evaluateStaticRisk 四档消费）。
 # decision 四档：allow 直过 / confirm 二次确认 / approve 人工审批 / block 静态阻断；不可判定默认阻断。
+# SPEC-101 U3：屏幕契约权威声明。编译器联接 approved 动作/风险/impact，目录与两个只读端点同源。
+screen_contracts:
+  FaqCard:
+    nav_region: region-config-audit
+    nav_item: individuals
+    renderer: generic
+    list:
+      columns: [question, weight, revision]
+      filters: []
+      default_sort: { field: question, direction: asc }
+    form:
+      sections:
+        - { id: content, title_cn: 问题内容, fields: [question, answer] }
+        - { id: management, title_cn: 管理信息, fields: [weight] }
+      field_order: [question, answer, weight]
+      widget_overrides: []
+    detail:
+      sections:
+        - { id: content, title_cn: 问题内容, fields: [question, answer], relations: [] }
+        - { id: management, title_cn: 管理信息, fields: [weight, revision], relations: [] }
+    button_layout:
+      - { action_id: individuals.create, label_cn: 新建问题卡, placement: toolbar }
+      - { action_id: individuals.update, label_cn: 编辑, placement: row }
+      - { action_id: individuals.update, label_cn: 保存修改, placement: detail }
+      - { action_id: individuals.retire, label_cn: 退役问题卡, placement: row }
+    empty: { component: EmptyState, variant: no-data, absence_kind: faq-card-empty, primary_action_id: individuals.create }
+    custom_binding_key: null
+    states:
+      loading: { component: TableLoading, label_cn: 正在加载问题卡 }
+      error: { component: TableErrorState, retry: true }
+      forbidden: { component: Alert, variant: warn, message_cn: 当前身份无权执行此动作 }
+      retired: { component: Alert, variant: error, message_cn: 该问题卡已退役, replacement_type_id: null }
+  Module:
+    nav_region: region-config-audit
+    nav_item: schema
+    renderer: generic
+    list:
+      columns: [name, system, subdomain, products]
+      filters: []
+      default_sort: { field: name, direction: asc }
+    form:
+      sections:
+        - { id: identity, title_cn: 模块身份, fields: [name, system, subdomain] }
+        - { id: lifecycle, title_cn: 版本与产品, fields: [parent_id, since, until, products, description] }
+      field_order: [name, system, subdomain, parent_id, since, until, products, description]
+      widget_overrides:
+        - { field: products, widget: array }
+        - { field: description, widget: textarea }
+    detail:
+      sections:
+        - { id: identity, title_cn: 模块身份, fields: [name, system, subdomain], relations: [] }
+        - { id: lifecycle, title_cn: 版本与产品, fields: [parent_id, since, until, products, description], relations: [] }
+    button_layout:
+      - { action_id: schema.modules.upsert, label_cn: 新建模块, placement: toolbar }
+      - { action_id: schema.modules.upsert, label_cn: 编辑模块, placement: row }
+      - { action_id: schema.modules.upsert, label_cn: 保存模块, placement: detail }
+      - { action_id: schema.enums.append, label_cn: 追加适用产品, placement: row }
+    empty: { component: EmptyState, variant: no-data, absence_kind: modules-empty, primary_action_id: schema.modules.upsert }
+    custom_binding_key: null
+    states:
+      loading: { component: TableLoading, label_cn: 正在加载产品模块 }
+      error: { component: TableErrorState, retry: true }
+      forbidden: { component: Alert, variant: warn, message_cn: 当前身份无权修改产品模块 }
+      retired: { component: Alert, variant: error, message_cn: 该产品模块已退役, replacement_type_id: null }
+  BusinessDomain:
+    nav_region: region-config-audit
+    nav_item: schema
+    renderer: generic
+    list: { columns: [name], filters: [], default_sort: { field: name, direction: asc } }
+    form: null
+    detail: null
+    button_layout: []
+    empty: { component: EmptyState, variant: no-data, absence_kind: null, primary_action_id: null }
+    custom_binding_key: null
+    states:
+      loading: { component: TableLoading, label_cn: 正在加载知识域 }
+      error: { component: TableErrorState, retry: true }
+      forbidden: { component: Alert, variant: warn, message_cn: 当前身份无权查看知识域 }
+      retired: { component: Alert, variant: error, message_cn: 该知识域已退役, replacement_type_id: null }
+  Subdomain:
+    nav_region: region-config-audit
+    nav_item: schema
+    renderer: generic
+    list: { columns: [name], filters: [], default_sort: { field: name, direction: asc } }
+    form: null
+    detail: null
+    button_layout: []
+    empty: { component: EmptyState, variant: no-data, absence_kind: null, primary_action_id: null }
+    custom_binding_key: null
+    states:
+      loading: { component: TableLoading, label_cn: 正在加载子域 }
+      error: { component: TableErrorState, retry: true }
+      forbidden: { component: Alert, variant: warn, message_cn: 当前身份无权查看子域 }
+      retired: { component: Alert, variant: error, message_cn: 该子域已退役, replacement_type_id: null }
+  Product:
+    nav_region: region-config-audit
+    nav_item: schema
+    renderer: generic
+    list: { columns: [name], filters: [], default_sort: { field: name, direction: asc } }
+    form: null
+    detail: null
+    button_layout: []
+    empty: { component: EmptyState, variant: no-data, absence_kind: product-identity-unmounted, primary_action_id: null }
+    custom_binding_key: null
+    states:
+      loading: { component: TableLoading, label_cn: 正在加载产品 }
+      error: { component: TableErrorState, retry: true }
+      forbidden: { component: Alert, variant: warn, message_cn: 当前身份无权查看产品 }
+      retired: { component: Alert, variant: error, message_cn: 该产品已退役, replacement_type_id: null }
+  ProductVersion:
+    nav_region: region-config-audit
+    nav_item: schema
+    renderer: generic
+    list: { columns: [name], filters: [], default_sort: { field: name, direction: asc } }
+    form: null
+    detail: null
+    button_layout: []
+    empty: { component: EmptyState, variant: no-data, absence_kind: versions-empty, primary_action_id: null }
+    custom_binding_key: null
+    states:
+      loading: { component: TableLoading, label_cn: 正在加载产品版本 }
+      error: { component: TableErrorState, retry: true }
+      forbidden: { component: Alert, variant: warn, message_cn: 当前身份无权查看产品版本 }
+      retired: { component: Alert, variant: error, message_cn: 该产品版本已退役, replacement_type_id: null }
+  KnowledgeArticle:
+    nav_region: region-approval-publish
+    nav_item: article-workflow
+    renderer: custom:article-workflow
+    list: null
+    form: null
+    detail: null
+    button_layout:
+      - { action_id: articles.upload, label_cn: 上传文章, placement: toolbar }
+      - { action_id: approval.transition, label_cn: 审批流转, placement: detail }
+      - { action_id: articles.retire, label_cn: 退役文章, placement: detail }
+    empty: { component: EmptyState, variant: no-data, absence_kind: null, primary_action_id: null }
+    custom_binding_key: article-workflow
+    states:
+      loading: { component: TableLoading, label_cn: 正在加载知识文章 }
+      error: { component: TableErrorState, retry: true }
+      forbidden: { component: Alert, variant: warn, message_cn: 当前身份无权执行文章动作 }
+      retired: { component: Alert, variant: error, message_cn: 该文章已退役, replacement_type_id: null }
+
 risk_types:
   article-destructive:
     decision: approve
     label_cn: 文章破坏性操作
     description: 不可逆的文章级破坏操作（退役删除沿 source_file 链全清）——必经人工审批后单次放行
+  individual-retire:
+    decision: confirm
+    label_cn: 个体退役
+    description: 将个体生命周期改为 retired；保留存储文件，需要二次确认
 action_types:
   individuals.create:
     http_route: POST /api/individuals/:classId
     executor: generic:create
     required_roles: []
+    impact:
+      - { class_id: "*", operation: add, fields: ["*"], description: 按路径 classId 新建一个通用个体 }
     description: 通用个体创建（SPEC-100 批 2——类无关动作，类来自路径参数；字段按类绑定校验）
   individuals.list:
     http_route: GET /api/individuals/:classId
     executor: generic:list
     required_roles: []
+    impact: []
     description: 通用个体清单（未退役）
   individuals.read:
     http_route: GET /api/individuals/:classId/:individualId
     executor: generic:read
     required_roles: []
+    impact: []
     description: 通用个体读取（frontmatter 全量＋revision）
   individuals.update:
     http_route: PUT /api/individuals/:classId/:individualId
     executor: generic:update
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: ["*"], description: 按路径 classId 与 optimistic revision 更新个体字段 }
     description: 通用个体更新（乐观锁必填；retired 拒）
   individuals.retire:
     http_route: POST /api/individuals/:classId/:individualId/retire
     executor: generic:retire
     required_roles: []
+    risk_id: individual-retire
+    impact:
+      - { class_id: "*", operation: modify, fields: [lifecycle_status, retired], description: 个体退役是生命周期修改，不删除存储文件 }
     description: 通用个体退役（lifecycle_status 翻转，ADR-017）
   individuals.config:
     http_route: GET /api/individuals/:classId/config
     executor: generic:config
     required_roles: []
+    impact: []
     description: 个体派生 UI 配置（WP-213 红队 M1 动作化——服务端派生字段/中文绑定/必填/类型）
+
+  schema.modules.upsert:
+    class_id: Module
+    http_route: "PUT /api/schema/modules/{moduleId}"
+    executor: schema-write.modules-upsert
+    required_roles: [ admin ]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    impact:
+      - class_id: Module
+        operation: modify
+        fields: [name, system, subdomain, parent_id, since, until, products, description]
+        description: 单条目写入 modules 词表；其他模块保持不变
+    input_schema:
+      contract_ref: "PUT /api/schema/modules/{moduleId} requestBody"
+  schema.enums.append:
+    class_id: Module
+    http_route: "POST /api/schema/enums/append"
+    executor: schema-write.enum-append
+    required_roles: [ admin ]
+    preconditions: []
+    effects:
+      - kind: revision_present
+    impact:
+      - class_id: Module
+        operation: modify
+        fields: [products]
+        description: 向已注册模块的数组字段追加一个版本化词表值；重复值幂等跳过
+    input_schema:
+      contract_ref: "POST /api/schema/enums/append requestBody"
 
   schema.ontology.write:
     http_route: "PUT /api/schema/ontology"
     executor: schema-write.ontology
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [node_types, action_types, screen_contracts, risk_types], description: 按 patch 修改本体声明 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1105,6 +1317,8 @@ action_types:
     http_route: "POST /api/schema/ontology/rollback"
     executor: schema-write.ontology-rollback
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [node_types, action_types, screen_contracts, risk_types], description: 恢复指定本体快照 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/schema/ontology/rollback requestBody"
@@ -1112,6 +1326,8 @@ action_types:
     http_route: "PUT /api/schema/enums"
     executor: schema-write.enums
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: ["*"], description: 按 patch 替换 enums 中命名的段 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1121,6 +1337,8 @@ action_types:
     http_route: "POST /api/schema/enums/rollback"
     executor: schema-write.enums-rollback
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: ["*"], description: 恢复指定 enums 快照 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1130,6 +1348,8 @@ action_types:
     http_route: "PUT /api/schema/fields"
     executor: schema-write.fields
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [keys, classes], description: 按 patch 修改字段字典 }
     preconditions: []
     input_schema:
       contract_ref: "PUT /api/schema/fields requestBody"
@@ -1137,6 +1357,8 @@ action_types:
     http_route: "PUT /api/schema/dependencies"
     executor: schema-write.dependencies
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [dependencies], description: 按 patch 修改依赖规则 }
     preconditions: []
     input_schema:
       contract_ref: "PUT /api/schema/dependencies requestBody"
@@ -1144,6 +1366,8 @@ action_types:
     http_route: "POST /api/schema/dependencies/rollback"
     executor: schema-write.dependencies-rollback
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [dependencies], description: 恢复指定依赖规则快照 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/schema/dependencies/rollback requestBody"
@@ -1151,6 +1375,8 @@ action_types:
     http_route: "PUT /api/schema/relations"
     executor: schema-write.relations
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [relations], description: 按 patch 修改关系类型注册表 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1160,6 +1386,8 @@ action_types:
     http_route: "POST /api/schema/relations/rollback"
     executor: schema-write.relations-rollback
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [relations], description: 恢复指定关系类型快照 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1169,6 +1397,8 @@ action_types:
     http_route: "PUT /api/schema/entity-parent"
     executor: schema-write.entity-parent
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [entity_parent], description: 修改实体父类绑定 }
     preconditions: []
     input_schema:
       contract_ref: "PUT /api/schema/entity-parent requestBody"
@@ -1176,6 +1406,8 @@ action_types:
     http_route: "PUT /api/schema/versions"
     executor: schema-write.versions
     required_roles: [ admin ]
+    impact:
+      - { class_id: ProductVersion, operation: modify, fields: [versions], description: 按 patch 修改产品版本注册表 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1185,6 +1417,8 @@ action_types:
     http_route: "POST /api/schema/versions/freeze"
     executor: schema-write.versions-freeze
     required_roles: [ admin ]
+    impact:
+      - { class_id: ProductVersion, operation: modify, fields: [status, frozen_at], description: 冻结一个产品版本 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1194,6 +1428,8 @@ action_types:
     http_route: "POST /api/schema/versions/deprecate"
     executor: schema-write.versions-deprecate
     required_roles: [ admin ]
+    impact:
+      - { class_id: ProductVersion, operation: modify, fields: [status, deprecated_at], description: 将已发布版本标为废弃 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1203,6 +1439,8 @@ action_types:
     http_route: "PUT /api/schema/product-identity"
     executor: schema-write.product-identity
     required_roles: [ admin ]
+    impact:
+      - { class_id: Product, operation: modify, fields: [product, version, product_aliases], description: 修改图谱产品身份挂载 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1212,6 +1450,8 @@ action_types:
     http_route: "POST /api/schema/discovery/absorb"
     executor: schema-discovery.absorb
     required_roles: []
+    impact:
+      - { class_id: "*", operation: add, fields: [layers, categories, subdomains, tags], description: 将野生发现值晋升为正式词表条目 }
     preconditions: []
     effects:
       - kind: revision_present
@@ -1221,6 +1461,8 @@ action_types:
     http_route: "POST /api/rules/lifecycle"
     executor: rules-lifecycle.transition
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [lifecycle_status], description: 执行规则对象生命周期转移 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/rules/lifecycle requestBody"
@@ -1228,6 +1470,8 @@ action_types:
     http_route: "POST /api/governance/resolve"
     executor: governance.resolve
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [governance_status, resolution], description: 记录治理问题裁定 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/governance/resolve requestBody"
@@ -1235,6 +1479,8 @@ action_types:
     http_route: "POST /api/governance/reopen"
     executor: governance.reopen
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [governance_status], description: 重开已裁定治理问题 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/governance/reopen requestBody"
@@ -1242,6 +1488,8 @@ action_types:
     http_route: "POST /api/kg/inference-conflicts/{conflictId}/review"
     executor: inference.review
     required_roles: [ review ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [review_status, resolution], description: 记录推理冲突人工复核结论 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/kg/inference-conflicts/{conflictId}/review requestBody"
@@ -1254,6 +1502,8 @@ action_types:
     http_route: "POST /api/anomalies/reconcile"
     executor: anomaly-workbench.reconcile
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [anomalies], description: 重算并更新异常问题清单 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/anomalies/reconcile requestBody"
@@ -1261,6 +1511,8 @@ action_types:
     http_route: "POST /api/anomalies/{issueId}/{operation}"
     executor: anomaly-workbench.operate
     required_roles: [ review ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [issue_status, resolution], description: 对指定异常执行登记操作 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/anomalies/{issueId}/{operation} requestBody"
@@ -1269,6 +1521,8 @@ action_types:
     http_route: "POST /api/approval/{articleId}/transition"
     executor: approval-state-machine.transition
     required_roles: [ review ]
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: [approval_status, approval_history], description: 执行文章审批状态转移 }
     payload_role_overrides:
       - body_field: operation
         equals: publish
@@ -1281,6 +1535,8 @@ action_types:
     http_route: "POST /api/article-associations/save"
     executor: article-associations.save
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: [associations], description: 保存文章关联候选 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/article-associations/save requestBody"
@@ -1289,6 +1545,8 @@ action_types:
     http_route: "POST /api/article-associations/remove"
     executor: article-associations.remove
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: delete, fields: [associations], description: 删除指定文章关联 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/article-associations/remove requestBody"
@@ -1297,6 +1555,8 @@ action_types:
     http_route: "POST /api/articles/upload"
     executor: article-workflow.upload
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: add, fields: ["*"], description: 新增一篇知识文章工作副本 }
     preconditions: []
     success_status: 201
     input_schema:
@@ -1306,6 +1566,8 @@ action_types:
     http_route: "POST /api/articles/retire"
     executor: article-workflow.retire
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: delete, fields: ["*"], description: 退役文章并沿 source_file 链清理关联 }
     preconditions: []
 
     input_schema:
@@ -1315,6 +1577,8 @@ action_types:
     http_route: "POST /api/articles/precleaned/{id}/standardization"
     executor: article-workflow.standardize
     required_roles: [ review ]
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: ["*"], description: 标准化文章字段与结构 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/precleaned/{id}/standardization requestBody"
@@ -1323,6 +1587,8 @@ action_types:
     http_route: "PATCH /api/articles/precleaned/{id}/fields"
     executor: article-workflow.patch-fields
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: ["*"], description: 按字段 patch 更新文章工作副本 }
     preconditions: []
     input_schema:
       contract_ref: "PATCH /api/articles/precleaned/{id}/fields requestBody"
@@ -1331,6 +1597,8 @@ action_types:
     http_route: "POST /api/articles/drafts/promote"
     executor: article-workflow.drafts-promote
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: [lifecycle_status], description: 将草稿提升到下一文章生命周期 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/drafts/promote requestBody"
@@ -1341,6 +1609,8 @@ action_types:
     http_route: "POST /api/articles/lifecycle/{articleId}/promote"
     executor: articles.lifecycle.promote
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: [lifecycle_status], description: 提升文章生命周期 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/lifecycle/{articleId}/promote requestBody"
@@ -1349,6 +1619,8 @@ action_types:
     http_route: "POST /api/articles/lifecycle/{articleId}/publish"
     executor: articles.lifecycle.publish
     required_roles: [ review ]
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: [lifecycle_status, release_id], description: 发布文章到正式版本 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/lifecycle/{articleId}/publish requestBody"
@@ -1357,6 +1629,8 @@ action_types:
     http_route: "POST /api/articles/lifecycle/{articleId}/archive"
     executor: articles.lifecycle.archive
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: [lifecycle_status], description: 归档文章 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/lifecycle/{articleId}/archive requestBody"
@@ -1365,6 +1639,8 @@ action_types:
     http_route: "POST /api/articles/lifecycle/{articleId}/retire"
     executor: articles.lifecycle.retire
     required_roles: [ review ]
+    impact:
+      - { class_id: KnowledgeArticle, operation: delete, fields: ["*"], description: 退役文章及其派生关联 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/lifecycle/{articleId}/retire requestBody"
@@ -1375,6 +1651,8 @@ action_types:
     http_route: "POST /api/articles/drafts/validate"
     executor: article-workflow.drafts-validate
     required_roles: []
+    impact:
+      - { class_id: KnowledgeArticle, operation: modify, fields: [validation_status, validation_snapshot], description: 校验草稿并写回验证结果 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/articles/drafts/validate requestBody"
@@ -1385,11 +1663,14 @@ action_types:
     http_route: "GET /api/articles/{id}/status"
     executor: article-workflow.status
     required_roles: []
+    impact: []
     preconditions: []
   action-approvals.create:
     http_route: "POST /api/action-approvals"
     executor: action-approvals.create
     required_roles: []
+    impact:
+      - { class_id: "*", operation: add, fields: [approval_id, action_id, input_hash], description: 创建一次性动作审批单 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/action-approvals requestBody"
@@ -1397,6 +1678,8 @@ action_types:
     http_route: "POST /api/action-approvals/:id/decision"
     executor: action-approvals.decide
     required_roles: [ review ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [status, decision], description: 裁定动作审批单 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/action-approvals/:id/decision requestBody"
@@ -1404,6 +1687,8 @@ action_types:
     http_route: "POST /api/entity/repair/apply"
     executor: entity-compliance.repair-apply
     required_roles: []
+    impact:
+      - { class_id: Entity, operation: modify, fields: ["*"], description: 应用实体字段修复写回 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/entity/repair/apply requestBody"
@@ -1411,6 +1696,8 @@ action_types:
     http_route: "POST /api/kg/review"
     executor: review.kg-review
     required_roles: [ review ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [review_status, resolution], description: 记录知识图谱人工复核 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/kg/review requestBody"
@@ -1425,6 +1712,8 @@ action_types:
     http_route: "POST /api/pipeline/run"
     executor: pipeline.run
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [derived_artifacts], description: 运行管线并更新派生产物 }
     preconditions: []
     success_status: 202
     input_schema:
@@ -1433,6 +1722,8 @@ action_types:
     http_route: "POST /api/pipeline/rebuild"
     executor: pipeline.rebuild
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [derived_artifacts], description: 全量重建派生产物 }
     preconditions: []
     success_status: 202
     input_schema:
@@ -1441,6 +1732,8 @@ action_types:
     http_route: "POST /api/pipeline/cancel"
     executor: pipeline.cancel
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [pipeline_status], description: 取消运行中的管线任务 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/pipeline/cancel requestBody"
@@ -1448,6 +1741,8 @@ action_types:
     http_route: "POST /api/property/refresh"
     executor: property.refresh
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [property_projection], description: 刷新属性合规投影 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/property/refresh requestBody"
@@ -1455,6 +1750,8 @@ action_types:
     http_route: "POST /api/releases/mint"
     executor: releases.mint
     required_roles: []
+    impact:
+      - { class_id: "*", operation: add, fields: [release_id, release_snapshot], description: 生成新的正式发布快照 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/releases/mint requestBody"
@@ -1462,6 +1759,8 @@ action_types:
     http_route: "POST /api/releases/current/restore"
     executor: releases.current-restore
     required_roles: [ admin ]
+    impact:
+      - { class_id: "*", operation: modify, fields: [current_release], description: 切换当前正式发布指针 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/releases/current/restore requestBody"
@@ -1469,6 +1768,8 @@ action_types:
     http_route: "POST /api/sync/push"
     executor: sync.push
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: ["*"], description: 将本地工作树变更推送到同步目标 }
     preconditions: []
     success_status: 202
     input_schema:
@@ -1477,6 +1778,7 @@ action_types:
     http_route: "POST /api/system/open-obsidian"
     executor: system.open-obsidian
     required_roles: []
+    impact: []
     preconditions: []
     input_schema:
       contract_ref: "POST /api/system/open-obsidian requestBody"
@@ -1484,6 +1786,8 @@ action_types:
     http_route: "POST /api/schema/derived/rebuild"
     executor: schema.derived-rebuild
     required_roles: []
+    impact:
+      - { class_id: "*", operation: modify, fields: [schema_derived], description: 重建 Schema 解析物 }
     preconditions: []
     input_schema:
       contract_ref: "POST /api/schema/derived/rebuild requestBody"

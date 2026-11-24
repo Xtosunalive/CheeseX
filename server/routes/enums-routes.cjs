@@ -147,6 +147,33 @@ function register(registerRoute, deps) {
   };
   registerActionExecutor("schema-write.enums-rollback", __exec_schema_write_enums_rollback);;
 
+  const __exec_schema_write_modules_upsert = function (ctx) {
+    if (!schemaWriteService || typeof schemaWriteService.upsertModule !== "function") throw createError("SCHEMA_WRITE_UNAVAILABLE", "Schema 直接写回服务不可用", 503);
+    return schemaWriteService.upsertModule({
+      moduleId: ctx.request?.params?.moduleId,
+      definition: ctx.body?.definition,
+      revision: ctx.body?.revision,
+    });
+  };
+  registerActionExecutor("schema-write.modules-upsert", __exec_schema_write_modules_upsert);
+
+  const __exec_schema_write_enum_append = function (ctx) {
+    if (!schemaWriteService || typeof schemaWriteService.appendModuleProduct !== "function") throw createError("SCHEMA_WRITE_UNAVAILABLE", "Schema 直接写回服务不可用", 503);
+    return schemaWriteService.appendModuleProduct({
+      moduleId: ctx.body?.moduleId,
+      value: ctx.body?.value,
+      revision: ctx.body?.revision,
+    });
+  };
+  registerActionExecutor("schema-write.enum-append", __exec_schema_write_enum_append);
+
+  registerRoute("PUT", "/api/schema/modules/:moduleId", function (req, res) {
+    return executeAction({ actionId: "schema.modules.upsert", executor: __exec_schema_write_modules_upsert, request: req, reply: res });
+  }, "schema.modules.upsert");
+  registerRoute("POST", "/api/schema/enums/append", function (req, res) {
+    return executeAction({ actionId: "schema.enums.append", executor: __exec_schema_write_enum_append, request: req, reply: res });
+  }, "schema.enums.append");
+
   registerRoute("GET", "/api/schema/enums/history", function (_req, res) {
     return sendJSON(res, 200, { items: listSnapshots(vaultPath) });
   });

@@ -60,6 +60,7 @@ function createVaultGitLedger(options) {
 
   // 合并窗口状态：batch = { files:Set, domain, summary, timer }；flush 独占取走并清空
   let batch = null;
+  let commitQueue = Promise.resolve();
 
   function runGit(args) {
     return new Promise((resolve, reject) => {
@@ -92,20 +93,26 @@ function createVaultGitLedger(options) {
     });
   })().catch(() => { /* 预检自身失败不改变落账语义（仍由 commit 失败告警兜底） */ });
 
+  function queueCommit(current) {
+    commitQueue = commitQueue.then(() => commitBatch(current));
+    return commitQueue;
+  }
+
   async function flush() {
     const current = batch;
     batch = null;
     if (current) {
       if (current.timer) clearTimeout(current.timer);
-      await commitBatch(current);
+      await queueCommit(current);
     }
     // 等待已在途的落账完成（测试退出前收尾用）
     while (batch) {
       const next = batch;
       batch = null;
       if (next.timer) clearTimeout(next.timer);
-      await commitBatch(next);
+      await queueCommit(next);
     }
+    await commitQueue;
   }
 
   async function commitBatch(current) {
@@ -143,7 +150,7 @@ function createVaultGitLedger(options) {
         const old = batch;
         batch = null;
         if (old.timer) clearTimeout(old.timer);
-        commitBatch(old); // 异步落旧批，不等它
+        queueCommit(old);
       }
       batch = { files: new Set(), domain, summary, timer: null };
     }

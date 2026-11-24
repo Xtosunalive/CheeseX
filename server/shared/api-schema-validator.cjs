@@ -21,6 +21,11 @@ const OPENAPI_PATH = path.resolve(__dirname, "..", "..", "contracts", "http-api.
 
 const ajv = new Ajv2020({ allErrors: true, strict: false, validateFormats: false });
 
+function routeSpecificity(tpl) {
+  const staticSegments = tpl.split("/").filter((segment) => segment && segment !== "{x}").length;
+  return staticSegments * 10000 + tpl.replaceAll("{x}", "").length;
+}
+
 /** 实例路径（JSON Pointer）→ 点号路径（域隔离副本，S120 toDotLocation 同参风格）。 */
 function toDotLocation(instancePath, rootLabel) {
   if (!instancePath) return rootLabel;
@@ -62,7 +67,7 @@ const routeTable = (() => {
       if (byStatus.size > 0) table.push({ method, tpl: normalizeTemplate(p), byStatus });
     }
   }
-  return table;
+  return table.sort((a, b) => routeSpecificity(b.tpl) - routeSpecificity(a.tpl));
 })();
 
 const contractRouteCount = routeTable.length;

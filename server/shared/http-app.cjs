@@ -90,6 +90,7 @@ function createHttpApp(options = {}) {
       origin: "*",
       methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "X-Trace-Id"],
+      exposedHeaders: ["X-Trace-Id", "X-Derivation-Retained"],
       strictPreflight: false, // 原装配：任意 OPTIONS → 204
       ...(cors || {}),
     });

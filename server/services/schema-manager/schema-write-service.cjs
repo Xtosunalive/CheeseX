@@ -19,7 +19,7 @@ const { createEntityParentService } = require("../release-governance/entity-pare
 // G10（PR-020 批3）：ontology/dependencies 快照存档与回滚（形状复用 enums-write-service 三函数先例）
 const schemaHistory = require("./schema-history-service.cjs");
 // enums patch 节键 → yaml 键映射（categories→arch_categories）：与路由校验闸门同一事实源
-const { SECTION_YAML_KEY_MAP, validateSection, validatePolicyReferences } = require("./schema-validators.cjs");
+const { SECTION_YAML_KEY_MAP, validateModules, validateSection, validatePolicyReferences } = require("./schema-validators.cjs");
 // PR-200：乐观锁基线必填的单点闸形（与三个写服务同闸）
 const { assertRevisionGiven } = require("../../shared/schema-write-guards.cjs");
 // PR-178 收口：本体生命周期迁移判定下移到落盘咽喉——PUT／统一写客户端／快照回滚同经此门（路由侧另留早报面）
@@ -234,6 +234,72 @@ function createSchemaWriteService(options) {
     return { category: "enums", affectedFile: SCHEMA_FILES.enums, revision: written.revision };
   }
 
+  function assertModuleId(moduleId) {
+    if (!moduleId) throw serviceError("VALIDATION_ERROR", "模块原语需要 moduleId", 400);
+    if (moduleId in Object.prototype) throw serviceError("VALIDATION_ERROR", `非法模块 ID: ${moduleId}`, 400);
+  }
+
+  function upsertModule(input) {
+    const moduleId = typeof input?.moduleId === "string" ? input.moduleId.trim() : "";
+    const definition = input?.definition;
+    assertModuleId(moduleId);
+    if (!definition || typeof definition !== "object" || Array.isArray(definition)) {
+      throw serviceError("VALIDATION_ERROR", "modules-upsert 需要 definition 对象", 400);
+    }
+    const written = writeEnums({
+      vaultPath,
+      logger,
+      expectedRevision: input.revision,
+      mutate: (doc, data) => {
+        const modules = Object.assign(Object.create(null), data.modules && typeof data.modules === "object" && !Array.isArray(data.modules) ? data.modules : {});
+        const current = Object.hasOwn(modules, moduleId) ? modules[moduleId] : undefined;
+        modules[moduleId] = { ...((current && typeof current === "object" && !Array.isArray(current)) ? current : {}), ...definition };
+        doc.set("modules", doc.createNode(modules));
+      },
+      validate: (data) => [...validateModules(data.modules || {}), ...validatePolicyReferences(data)],
+    });
+    gitLedger.scheduleLedger("schema-page", `模块保存 ${moduleId}`, [path.join(resolveTheSchemaDir(vaultPath), "enums.yaml")]);
+    notifyGraphInputWrite("enums", "modules-upsert");
+    return { category: "enums", affectedFile: SCHEMA_FILES.enums, revision: written.revision, moduleId };
+  }
+
+  function appendModuleProduct(input) {
+    const moduleId = typeof input?.moduleId === "string" ? input.moduleId.trim() : "";
+    const value = typeof input?.value === "string" ? input.value.trim() : "";
+    assertModuleId(moduleId);
+    if (!value) throw serviceError("VALIDATION_ERROR", "enum-append 需要非空 value", 400);
+    let appended = false;
+    const written = writeEnums({
+      vaultPath,
+      logger,
+      expectedRevision: input.revision,
+      mutate: (doc, data) => {
+        const modules = Object.assign(Object.create(null), data.modules && typeof data.modules === "object" && !Array.isArray(data.modules) ? data.modules : {});
+        if (!Object.hasOwn(modules, moduleId)) {
+          throw serviceError("VALIDATION_ERROR", `模块不存在: ${moduleId}`, 400);
+        }
+        const definition = modules[moduleId];
+        if (!definition || typeof definition !== "object" || Array.isArray(definition)) {
+          throw serviceError("VALIDATION_ERROR", `模块不存在: ${moduleId}`, 400);
+        }
+        if (definition.products !== undefined && !Array.isArray(definition.products)) {
+          throw serviceError("VALIDATION_ERROR", `模块 ${moduleId} 的 products 必须为数组`, 400);
+        }
+        const products = [...definition.products || []];
+        if (!products.includes(value)) {
+          products.push(value);
+          appended = true;
+        }
+        modules[moduleId] = { ...definition, products };
+        doc.set("modules", doc.createNode(modules));
+      },
+      validate: (data) => [...validateModules(data.modules || {}), ...validatePolicyReferences(data)],
+    });
+    gitLedger.scheduleLedger("schema-page", `模块追加适用产品 ${moduleId}=${value}`, [path.join(resolveTheSchemaDir(vaultPath), "enums.yaml")]);
+    notifyGraphInputWrite("enums", "enum-append");
+    return { category: "enums", affectedFile: SCHEMA_FILES.enums, revision: written.revision, moduleId, appended };
+  }
+
   // discovery：写 enums.yaml 的 layers/categories/subdomains（复用 enums-write-service）
   function discoveryEdit(input) {
     const field = input.patch && (input.patch.field || input.patch.section);
@@ -384,14 +450,11 @@ function createSchemaWriteService(options) {
   }
 
   function snapshotRevert(input) {
-    const snapshotId = input.patch?.snapshotId;
+    const snapshotId = input.snapshotId;
     // seq195：snapshotId 形状校验单源化——rollbackSnapshot（enums-write）内层同校验同错误同文案，此前置校验冗余删除（行为等价）
     const written = rollbackSnapshot(vaultPath, input.revision, snapshotId);
-    // SPEC-010-W10 WP2：回滚也是写——异步落账（enums + 快照目录）
-    gitLedger.scheduleLedger("schema-page", "snapshot 回滚（含新快照）", [
-      SCHEMA_FILES.enums,
-      path.join(path.dirname(SCHEMA_FILES.enums), "history", "enums"),
-    ]);
+    // SPEC-010-W10 WP2：回滚也是写——异步落账（git 历史即快照）
+    gitLedger.scheduleLedger("schema-page", "snapshot 回滚（含新快照）", [path.join(resolveTheSchemaDir(vaultPath), "enums.yaml")]);
     notifyGraphInputWrite("enums", "snapshot-revert"); // WP-027：回滚也是图输入写
     return { category: "snapshot-revert", affectedFile: SCHEMA_FILES.enums, revision: written.revision };
   }
@@ -677,6 +740,8 @@ function createSchemaWriteService(options) {
     writeOntology: (input) => writeYamlPatch("ontology", input),
     writeDependencies: (input) => writeYamlPatch("dependencies", input),
     writeEnums: writeEnumsPatch,
+    upsertModule,
+    appendModuleProduct,
     growCategoryMatrix,
     writeVersions,
     deprecateVersion,

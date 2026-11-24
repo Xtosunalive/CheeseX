@@ -21,6 +21,24 @@ export const SHARED_UI_COPY = {
   OPEN_OBSIDIAN: "打开 Obsidian",
 } as const;
 
+export const CONTRACT_RENDERER_COPY = {
+  SCREEN_UNAVAILABLE: "显示层契约不可用",
+  SCREEN_FALLBACK: "显示层契约不可用，已回退到页面现有实现",
+  CUSTOM_RENDERER_UNBOUND: "定制渲染器未绑定",
+  CUSTOM_RENDERER_NOT_MOUNTED: "通用渲染器不会挂载此页面",
+  RISK_BLOCKED: "风险决策为阻断",
+  APPROVAL_REQUIRED: "需人工审批后执行",
+  AVAILABILITY_UNKNOWN: "可用性尚未判定",
+  ACTIONS: "操作",
+  EMPTY_GUIDE_WHERE: "去处：「",
+  EMPTY_GUIDE_SUFFIX: "」",
+  SYSTEM_LABELS: {
+    individualId: "个体 ID",
+    title: "标题",
+    revision: "版本",
+  },
+} as const;
+
 // ── App.tsx 外壳（懒加载占位／创建流标签／任务池）──
 export const APP_SHELL_COPY = {
   THEME_PREVIEW_LOADING: "加载主题预览…",

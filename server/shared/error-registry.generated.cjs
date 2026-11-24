@@ -16,7 +16,7 @@ module.exports = {
         403
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:230"
+        "server/shared/action-execution-factory.cjs:234"
       ]
     },
     "ACTION_AUDIT_APPEND_FAILED": {
@@ -24,7 +24,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:276"
+        "server/shared/action-execution-factory.cjs:280"
       ]
     },
     "ACTION_CONFIRM_REQUIRED": {
@@ -32,7 +32,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:229"
+        "server/shared/action-execution-factory.cjs:233"
       ]
     },
     "ACTION_EXECUTOR_UNREGISTERED": {
@@ -40,7 +40,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:239"
+        "server/shared/action-execution-factory.cjs:243"
       ]
     },
     "ACTION_FACTORY_UNAVAILABLE": {
@@ -48,14 +48,14 @@ module.exports = {
         503
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:180",
-        "server/shared/action-execution-factory.cjs:190"
+        "server/shared/action-execution-factory.cjs:184",
+        "server/shared/action-execution-factory.cjs:194"
       ]
     },
     "ACTION_NOT_ACTIVE": {
       "statuses": [],
       "sites": [
-        "server/shared/action-execution-factory.cjs:199"
+        "server/shared/action-execution-factory.cjs:203"
       ]
     },
     "ACTION_POSTCHECK_FAILED": {
@@ -63,8 +63,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:263",
-        "server/shared/action-execution-factory.cjs:269"
+        "server/shared/action-execution-factory.cjs:267",
+        "server/shared/action-execution-factory.cjs:273"
       ]
     },
     "ACTION_PRECONDITION_FAILED": {
@@ -72,7 +72,7 @@ module.exports = {
         422
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:220"
+        "server/shared/action-execution-factory.cjs:224"
       ]
     },
     "ACTION_PRECONDITION_UNKNOWN": {
@@ -80,7 +80,7 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:214"
+        "server/shared/action-execution-factory.cjs:218"
       ]
     },
     "ACTION_RISK_BLOCKED": {
@@ -88,7 +88,7 @@ module.exports = {
         403
       ],
       "sites": [
-        "server/shared/action-execution-factory.cjs:231"
+        "server/shared/action-execution-factory.cjs:235"
       ]
     },
     "ALIAS_AMBIGUOUS": {
@@ -353,8 +353,8 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:281",
-        "server/shared/http-app.cjs:285"
+        "server/shared/http-app.cjs:282",
+        "server/shared/http-app.cjs:286"
       ]
     },
     "AUTH_STATE_MISMATCH": {
@@ -370,7 +370,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:197"
+        "server/shared/http-app.cjs:198"
       ]
     },
     "BODY_REQUIRED": {
@@ -378,7 +378,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/shared/http-app.cjs:199"
+        "server/shared/http-app.cjs:200"
       ]
     },
     "BUILDER_UNAVAILABLE": {
@@ -403,7 +403,7 @@ module.exports = {
       ],
       "sites": [
         "server/routes/ontology-routes.cjs:73",
-        "server/services/schema-manager/schema-history-service.cjs:84",
+        "server/services/schema-manager/schema-history-service.cjs:79",
         "server/services/schema-manager/schema-write-service.cjs:149"
       ]
     },
@@ -514,7 +514,7 @@ module.exports = {
       ],
       "sites": [
         "server/routes/enums-routes.cjs:122",
-        "server/services/schema-manager/schema-write-service.cjs:252"
+        "server/services/schema-manager/schema-write-service.cjs:318"
       ]
     },
     "DOCUMENT_INDEX_UNAVAILABLE": {
@@ -634,7 +634,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:164"
+        "server/services/schema-manager/enums-write-service.cjs:162"
       ]
     },
     "ENUMS_REVISION_CONFLICT": {
@@ -643,8 +643,8 @@ module.exports = {
       ],
       "sites": [
         "server/services/schema-manager/enums-change-preview-service.cjs:80",
-        "server/services/schema-manager/enums-write-service.cjs:81",
-        "server/services/schema-manager/enums-write-service.cjs:102"
+        "server/services/schema-manager/enums-write-service.cjs:79",
+        "server/services/schema-manager/enums-write-service.cjs:100"
       ]
     },
     "ENUMS_SEGMENT_UNREGISTERED": {
@@ -652,7 +652,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:172"
+        "server/services/schema-manager/enums-write-service.cjs:170"
       ]
     },
     "ENUMS_SHAPE_INVALID": {
@@ -660,7 +660,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:136"
+        "server/services/schema-manager/enums-write-service.cjs:134"
       ]
     },
     "EXPECTATIONS_CORRUPT": {
@@ -905,8 +905,8 @@ module.exports = {
         "server/routes/kg-routes.cjs:493",
         "server/routes/kg-routes.cjs:506",
         "server/routes/sync-routes.cjs:84",
-        "server/shared/http-app.cjs:136",
-        "server/shared/http-app.cjs:268"
+        "server/shared/http-app.cjs:137",
+        "server/shared/http-app.cjs:269"
       ]
     },
     "INVALID_ALIAS_TARGET": {
@@ -914,7 +914,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:281"
+        "server/services/schema-manager/schema-write-service.cjs:347"
       ]
     },
     "INVALID_ANOMALY": {
@@ -1000,7 +1000,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:307"
+        "server/services/schema-manager/schema-write-service.cjs:373"
       ]
     },
     "INVALID_DISCOVERY_GROUP": {
@@ -1008,8 +1008,8 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:289",
-        "server/services/schema-manager/schema-write-service.cjs:290"
+        "server/services/schema-manager/schema-write-service.cjs:355",
+        "server/services/schema-manager/schema-write-service.cjs:356"
       ]
     },
     "INVALID_DISCOVERY_LABEL": {
@@ -1017,7 +1017,7 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:311"
+        "server/services/schema-manager/schema-write-service.cjs:377"
       ]
     },
     "INVALID_DISCOVERY_PATCH": {
@@ -1026,14 +1026,14 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:255",
-        "server/services/schema-manager/schema-write-service.cjs:300",
-        "server/services/schema-manager/schema-write-service.cjs:346",
-        "server/services/schema-manager/schema-write-service.cjs:357",
+        "server/services/schema-manager/schema-write-service.cjs:321",
         "server/services/schema-manager/schema-write-service.cjs:366",
-        "server/services/schema-manager/schema-write-service.cjs:529",
-        "server/services/schema-manager/schema-write-service.cjs:601",
-        "server/services/schema-manager/schema-write-service.cjs:603"
+        "server/services/schema-manager/schema-write-service.cjs:412",
+        "server/services/schema-manager/schema-write-service.cjs:423",
+        "server/services/schema-manager/schema-write-service.cjs:432",
+        "server/services/schema-manager/schema-write-service.cjs:592",
+        "server/services/schema-manager/schema-write-service.cjs:664",
+        "server/services/schema-manager/schema-write-service.cjs:666"
       ]
     },
     "INVALID_DOCUMENT": {
@@ -1156,11 +1156,11 @@ module.exports = {
         400
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:77",
-        "server/services/schema-manager/enums-write-service.cjs:87",
-        "server/services/schema-manager/relations-write-service.cjs:142",
-        "server/services/schema-manager/schema-history-service.cjs:48",
-        "server/services/schema-manager/schema-history-service.cjs:64"
+        "server/services/schema-manager/enums-write-service.cjs:75",
+        "server/services/schema-manager/enums-write-service.cjs:85",
+        "server/services/schema-manager/relations-write-service.cjs:141",
+        "server/services/schema-manager/schema-history-service.cjs:43",
+        "server/services/schema-manager/schema-history-service.cjs:59"
       ]
     },
     "INVALID_SOURCE_COMMIT": {
@@ -1477,14 +1477,14 @@ module.exports = {
       ],
       "sites": [
         "server/routes/relations-routes.cjs:27",
-        "server/services/schema-manager/relations-write-service.cjs:59",
-        "server/services/schema-manager/relations-write-service.cjs:69",
-        "server/services/schema-manager/relations-write-service.cjs:80",
-        "server/services/schema-manager/relations-write-service.cjs:83",
-        "server/services/schema-manager/relations-write-service.cjs:87",
-        "server/services/schema-manager/relations-write-service.cjs:90",
-        "server/services/schema-manager/relations-write-service.cjs:96",
-        "server/services/schema-manager/relations-write-service.cjs:113"
+        "server/services/schema-manager/relations-write-service.cjs:58",
+        "server/services/schema-manager/relations-write-service.cjs:68",
+        "server/services/schema-manager/relations-write-service.cjs:79",
+        "server/services/schema-manager/relations-write-service.cjs:82",
+        "server/services/schema-manager/relations-write-service.cjs:86",
+        "server/services/schema-manager/relations-write-service.cjs:89",
+        "server/services/schema-manager/relations-write-service.cjs:95",
+        "server/services/schema-manager/relations-write-service.cjs:112"
       ]
     },
     "RELATIONS_REVISION_CONFLICT": {
@@ -1492,8 +1492,8 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/schema-manager/relations-write-service.cjs:107",
-        "server/services/schema-manager/relations-write-service.cjs:137"
+        "server/services/schema-manager/relations-write-service.cjs:106",
+        "server/services/schema-manager/relations-write-service.cjs:136"
       ]
     },
     "RELATION_CANDIDATE_AUTO_APPROVAL": {
@@ -1893,7 +1893,7 @@ module.exports = {
       ],
       "sites": [
         "server/services/schema-manager/schema-write-service.cjs:65",
-        "server/services/schema-manager/schema-write-service.cjs:606"
+        "server/services/schema-manager/schema-write-service.cjs:669"
       ]
     },
     "SCHEMA_REVISION_CONFLICT": {
@@ -1901,7 +1901,7 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/schema-manager/schema-history-service.cjs:58",
+        "server/services/schema-manager/schema-history-service.cjs:53",
         "server/services/schema-manager/schema-write-service.cjs:124",
         "server/shared/theschema-write.cjs:28"
       ]
@@ -1925,13 +1925,13 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/schema-manager/schema-write-service.cjs:266",
-        "server/services/schema-manager/schema-write-service.cjs:277",
-        "server/services/schema-manager/schema-write-service.cjs:302",
-        "server/services/schema-manager/schema-write-service.cjs:315",
-        "server/services/schema-manager/schema-write-service.cjs:371",
-        "server/services/schema-manager/schema-write-service.cjs:536",
-        "server/services/schema-manager/schema-write-service.cjs:546"
+        "server/services/schema-manager/schema-write-service.cjs:332",
+        "server/services/schema-manager/schema-write-service.cjs:343",
+        "server/services/schema-manager/schema-write-service.cjs:368",
+        "server/services/schema-manager/schema-write-service.cjs:381",
+        "server/services/schema-manager/schema-write-service.cjs:437",
+        "server/services/schema-manager/schema-write-service.cjs:599",
+        "server/services/schema-manager/schema-write-service.cjs:609"
       ]
     },
     "SCHEMA_WRITE_FAILED": {
@@ -1950,6 +1950,8 @@ module.exports = {
         "server/routes/dependencies-routes.cjs:35",
         "server/routes/enums-routes.cjs:110",
         "server/routes/enums-routes.cjs:140",
+        "server/routes/enums-routes.cjs:151",
+        "server/routes/enums-routes.cjs:161",
         "server/routes/ontology-routes.cjs:46",
         "server/routes/ontology-routes.cjs:100",
         "server/routes/schema-discovery-routes.cjs:235",
@@ -2018,9 +2020,9 @@ module.exports = {
         409
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:91",
-        "server/services/schema-manager/relations-write-service.cjs:146",
-        "server/services/schema-manager/schema-history-service.cjs:68"
+        "server/services/schema-manager/enums-write-service.cjs:89",
+        "server/services/schema-manager/relations-write-service.cjs:145",
+        "server/services/schema-manager/schema-history-service.cjs:63"
       ]
     },
     "SNAPSHOT_NOT_FOUND": {
@@ -2028,9 +2030,9 @@ module.exports = {
         404
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:88",
-        "server/services/schema-manager/relations-write-service.cjs:143",
-        "server/services/schema-manager/schema-history-service.cjs:65"
+        "server/services/schema-manager/enums-write-service.cjs:86",
+        "server/services/schema-manager/relations-write-service.cjs:142",
+        "server/services/schema-manager/schema-history-service.cjs:60"
       ]
     },
     "SOURCE_ARCHIVE_MISMATCH": {
@@ -2201,11 +2203,12 @@ module.exports = {
     },
     "VALIDATION_ERROR": {
       "statuses": [
-        400,
         422,
+        400,
         500
       ],
       "sites": [
+        "server/main.cjs:438",
         "server/routes/article-association-routes.cjs:38",
         "server/routes/enums-routes.cjs:114",
         "server/routes/enums-routes.cjs:127",
@@ -2295,15 +2298,22 @@ module.exports = {
         "server/services/release-governance/release-publisher-service.cjs:221",
         "server/services/schema-manager/dependencies-write-service.cjs:254",
         "server/services/schema-manager/dependency-impact-preview-service.cjs:51",
-        "server/services/schema-manager/enums-write-service.cjs:130",
+        "server/services/schema-manager/enums-write-service.cjs:128",
         "server/services/schema-manager/fields-write-service.cjs:97",
         "server/services/schema-manager/fields-write-service.cjs:110",
-        "server/services/schema-manager/schema-history-service.cjs:77",
-        "server/services/schema-manager/schema-history-service.cjs:81",
+        "server/services/schema-manager/schema-history-service.cjs:72",
+        "server/services/schema-manager/schema-history-service.cjs:76",
         "server/services/schema-manager/schema-write-service.cjs:142",
         "server/services/schema-manager/schema-write-service.cjs:146",
-        "server/services/schema-manager/schema-write-service.cjs:443",
-        "server/services/schema-manager/schema-write-service.cjs:444",
+        "server/services/schema-manager/schema-write-service.cjs:238",
+        "server/services/schema-manager/schema-write-service.cjs:239",
+        "server/services/schema-manager/schema-write-service.cjs:247",
+        "server/services/schema-manager/schema-write-service.cjs:270",
+        "server/services/schema-manager/schema-write-service.cjs:279",
+        "server/services/schema-manager/schema-write-service.cjs:283",
+        "server/services/schema-manager/schema-write-service.cjs:286",
+        "server/services/schema-manager/schema-write-service.cjs:506",
+        "server/services/schema-manager/schema-write-service.cjs:507",
         "server/shared/status-transition-guard.cjs:50"
       ]
     },
@@ -2344,6 +2354,8 @@ module.exports = {
         503
       ],
       "sites": [
+        "server/main.cjs:416",
+        "server/main.cjs:436",
         "server/services/article-workflow/validation-stamp-service.cjs:19",
         "server/services/release-governance/approval-state-machine-service.cjs:309",
         "server/services/release-governance/approval-state-machine-service.cjs:331"
@@ -2547,9 +2559,9 @@ module.exports = {
       ],
       "sites": [
         "server/services/schema-manager/dependencies-write-service.cjs:68",
-        "server/services/schema-manager/enums-write-service.cjs:50",
+        "server/services/schema-manager/enums-write-service.cjs:48",
         "server/services/schema-manager/ontology-write-service.cjs:29",
-        "server/services/schema-manager/relations-write-service.cjs:35",
+        "server/services/schema-manager/relations-write-service.cjs:34",
         "server/shared/version-registry-reader.cjs:39"
       ]
     },
@@ -2558,8 +2570,8 @@ module.exports = {
         500
       ],
       "sites": [
-        "server/services/schema-manager/enums-write-service.cjs:181",
-        "server/services/schema-manager/relations-write-service.cjs:122"
+        "server/services/schema-manager/enums-write-service.cjs:179",
+        "server/services/schema-manager/relations-write-service.cjs:121"
       ]
     }
   }

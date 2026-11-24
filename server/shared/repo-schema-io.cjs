@@ -72,13 +72,35 @@ function repoWrite(absPath, content, options = {}) {
   }
 }
 
+function snapshotGitContext(file) {
+  const requested = path.resolve(path.isAbsolute(file) ? file : path.resolve(ROOT, file));
+  let existing = requested;
+  const missing = [];
+  while (!fs.existsSync(existing)) {
+    const parent = path.dirname(existing);
+    if (parent === existing) break;
+    missing.unshift(path.basename(existing));
+    existing = parent;
+  }
+  const canonicalExisting = fs.realpathSync(existing);
+  const absPath = path.join(canonicalExisting, ...missing);
+  const searchDir = fs.statSync(canonicalExisting).isDirectory() ? canonicalExisting : path.dirname(canonicalExisting);
+  try {
+    const root = fs.realpathSync(execFileSync("git", ["rev-parse", "--show-toplevel"], { cwd: searchDir, encoding: "utf8", timeout: 10_000 }).trim());
+    return { cwd: root, repoRelFile: path.relative(root, absPath).split(path.sep).join("/") };
+  } catch {
+    return { cwd: ROOT, repoRelFile: path.relative(ROOT, absPath).split(path.sep).join("/") };
+  }
+}
+
 /** git 历史快照列（SPEC-023 波 3：fs 快照退役——git 即账）。
  *  返回形状与旧 listSnapshots 兼容：[{id, generatedAt, revision, sourceFile}]，最新在前。 */
-function listGitSnapshots(repoRelFile) {
+function listGitSnapshots(file) {
+  const { cwd, repoRelFile } = snapshotGitContext(file);
   let out;
   try {
     // eslint-disable-next-line no-restricted-syntax -- git 历史读（快照适配器）：同步子进程仅历史列表/回滚路径，10s 超时，单用户本地工具；异步化登记 SPEC-023 波 3 待办
-    out = execFileSync("git", ["log", "--follow", "--format=%H|%aI", "--", repoRelFile], { cwd: ROOT, encoding: "utf8", timeout: 10_000 });
+    out = execFileSync("git", ["log", "--follow", "--format=%H|%aI", "--", repoRelFile], { cwd, encoding: "utf8", timeout: 10_000 });
   } catch {
     return []; // 非 git 环境（测试临时目录）——无历史
   }
@@ -87,7 +109,7 @@ function listGitSnapshots(repoRelFile) {
     const [sha, iso] = line.split("|");
     let blob;
     try {
-      blob = execFileSync("git", ["show", `${sha}:${repoRelFile}`], { cwd: ROOT, encoding: "utf8", timeout: 10_000, maxBuffer: 32 * 1024 * 1024 }); // eslint-disable-line no-restricted-syntax -- git 历史读路径（同前批豁免理由）
+      blob = execFileSync("git", ["show", `${sha}:${repoRelFile}`], { cwd, encoding: "utf8", timeout: 10_000, maxBuffer: 32 * 1024 * 1024 }); // eslint-disable-line no-restricted-syntax -- git 历史读路径（同前批豁免理由）
     } catch {
       continue;
     }
@@ -103,8 +125,8 @@ function listGitSnapshots(repoRelFile) {
 }
 
 /** git 快照回滚：目标 commit 的 blob 内容经 repoWrite 落回主源（乐观锁由调用方先校验或在此校验）。 */
-function readGitSnapshot(repoRelFile, snapshotId) {
-   
+function readGitSnapshot(file, snapshotId) {
+  const { cwd, repoRelFile } = snapshotGitContext(file);
   if (!/^[0-9a-f]{7,40}$/.test(snapshotId || "")) {
     const err = new Error("Invalid snapshot id");
     err.code = "INVALID_SNAPSHOT_ID";
@@ -113,7 +135,7 @@ function readGitSnapshot(repoRelFile, snapshotId) {
   }
   let blob;
   try {
-    blob = execFileSync("git", ["show", `${snapshotId}:${repoRelFile}`], { cwd: ROOT, encoding: "utf8", timeout: 10_000, maxBuffer: 32 * 1024 * 1024 }); // eslint-disable-line no-restricted-syntax -- 同上（回滚读路径）
+    blob = execFileSync("git", ["show", `${snapshotId}:${repoRelFile}`], { cwd, encoding: "utf8", timeout: 10_000, maxBuffer: 32 * 1024 * 1024 }); // eslint-disable-line no-restricted-syntax -- 同上（回滚读路径）
   } catch {
     const err = new Error("Schema snapshot not found");
     err.code = "SNAPSHOT_NOT_FOUND";

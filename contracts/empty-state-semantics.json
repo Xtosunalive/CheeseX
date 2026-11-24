@@ -68,6 +68,18 @@
       "where": "知识审批 → 实体准入（实体准入后进入架构图与分类列表）",
       "requires": [],
       "note": "语义架构投影在场但 components 为空——与「投影缺席」（semantic-architecture-empty，需冻结版本）是两种状态：2026-11-02 实库探针——用户已冻结 1.0 仍被指去冻结，即种类粒度不足的误导"
+    },
+    "faq-card-empty": {
+      "what": "当前类还没有问题卡",
+      "where": "个体派生面 → 新建问题卡",
+      "requires": [],
+      "note": "仅契约合法且清单读取成功为空时使用；读取失败不得伪装为空态"
+    },
+    "modules-empty": {
+      "what": "产品模块注册表还没有模块",
+      "where": "规则配置 → 产品模块 → 保存模块",
+      "requires": [],
+      "note": "模块保存与适用产品追加均走带 revision 的 HTTP 动作，复用 enums 预览、回滚与审计"
     }
   },
   "sites": [
@@ -116,6 +128,26 @@
       "error_code": "PROJECTION_IDENTITY_UNMOUNTED",
       "module": "server/services/release-governance/formal-knowledge-consumer-service.cjs",
       "note": "UNMOUNTED_GUIDANCE 内联串收编——message/details.guidance 经 guidanceFor"
+    },
+    {
+      "id": "individuals-list",
+      "endpoint": "GET /api/individuals/{classId}",
+      "class": "display",
+      "kinds": [
+        "faq-card-empty"
+      ],
+      "module": "src/components/contract-renderer/renderer-registry.tsx",
+      "note": "屏幕契约 empty.absence_kind 选定空态；config/list 失败走 error，不消费本种类"
+    },
+    {
+      "id": "schema-modules",
+      "endpoint": "GET /api/schema/enums?section=modules",
+      "class": "display",
+      "kinds": [
+        "modules-empty"
+      ],
+      "module": "src/features/schema-manager/components/ModuleContractView.tsx",
+      "note": "产品模块正式页签的契约空态；主操作仍走 schema.modules.upsert"
     }
   ]
 }
