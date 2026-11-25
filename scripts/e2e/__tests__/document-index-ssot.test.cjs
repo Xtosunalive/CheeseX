@@ -39,14 +39,17 @@ function scanImportedNames(src) {
 // 全部住在 required 自检数组内，等于拿「声明要自检的件」冒充「真投递的件」：撤掉 copyFromRuntime
 // 一行只留 required 项，本执法面毫无反应（2026-11-06 破坏实验实测：pass 6 fail 0）。
 // 现取法＝真实调用点并集：copyFromRuntime/symlinkFromRuntime 件名 ＋ required 块外的路径字面量。
+// PR-351 破坏实验咬出的谓词缺口：注释掉的投递行（// symlinkFromRuntime(...)）原词法照算「已投递」——
+// 撤投递改成注释＝原事故形态的隐身变体。故先剥行首注释行再取调用点。
 function deriveDelivery(builderSrc) {
   const requiredBlock = builderSrc.match(/const required = \[([\s\S]*?)\]/);
   assert.ok(requiredBlock, '构建器必须保留 required 自检数组');
   const required = new Set([...requiredBlock[1].matchAll(/"([^"]+)"/g)].map((m) => m[1]));
   const outside = builderSrc.replace(requiredBlock[0], 'const required = [];');
+  const code = outside.split('\n').filter((line) => !/^\s*\/\//.test(line)).join('\n');
   const delivered = new Set([
-    ...outside.matchAll(/"知识库\/\.claude\/scripts\/([^"]+)"/g),
-    ...outside.matchAll(/(?:copyFromRuntime|symlinkFromRuntime)\("([^"]+)"\)/g),
+    ...code.matchAll(/"知识库\/\.claude\/scripts\/([^"]+)"/g),
+    ...code.matchAll(/(?:copyFromRuntime|symlinkFromRuntime)\("([^"]+)"\)/g),
   ].map((m) => `知识库/.claude/scripts/${m[1]}`));
   return { required, delivered, requiredPaths: [...required].filter((p) => p.startsWith('知识库/.claude/scripts/')) };
 }
@@ -224,6 +227,46 @@ test('投递面元执法泛化：每个投递 .py 的本地 import 均在投递�
     assert.ok(
       stubNames.has(n),
       `扫描面必须吃下桩的 \`import json, os, sqlite3, sys, time\` 逗号多名，缺 ${n}＝谓词退化为只取首名`,
+    );
+  }
+});
+
+// ── 面 4b（PR-351 泛化）：真身 .py 按文件名调用的 vault 位工具必须在投递清单 ──
+// 事故形态：doc_consumption.py 以 os.path.join(os.path.dirname(__file__), "dump-doc-envelope.mjs")
+// 同目录构造路径再 subprocess 调用——非 Python import，面 4 的 import 扫描对本形态失明
+// （WP-234 钉扎形态 VAULT_RUNTIME_SCRIPTS_DIR 指夹具时 freeze 500＝DOC_ENVELOPE_MATERIALIZE_TOOL_MISSING）。
+// 谓词按行分两种真投递形态，天然排除 ARCH_REPO 仓内解析（check-data-chain 类）与 print 文案行：
+//   ①同目录 join：同一行含 os.path.dirname ＋ "X.mjs/.sql" 字面量（PR-351 原形态）；
+//   ②vault scripts 目录 join：同一行含 ".claude", "scripts" ＋ 字面量（promote-article 的
+//     schema-write-client 形态——symlink 投递面）。
+// 扫描对象＝scripts/vault-runtime 真身；fixture 桩（面 5 冻结世界）不入本面，其依赖面归面 3。
+test('投递面元执法泛化：真身 .py 按文件名调用的 vault 位工具必须在投递清单（PR-351 事故形态即红）', () => {
+  const builderSrc = fs.readFileSync(BUILDER, 'utf8');
+  const { delivered } = deriveDelivery(builderSrc);
+  const pyScripts = [...delivered].filter((p) => p.endsWith('.py'));
+  const toolDeps = new Set();
+  for (const rel of pyScripts) {
+    const name = rel.split('/').pop();
+    const runtimeCopy = path.join(ROOT, 'scripts', 'vault-runtime', name);
+    if (!fs.existsSync(runtimeCopy)) continue; // fixture 桩件不入本面
+    for (const line of fs.readFileSync(runtimeCopy, 'utf8').split('\n')) {
+      const m = line.match(/["']([\w-]+\.(?:mjs|sql))["']/);
+      if (!m) continue;
+      const sameDir = /os\.path\.dirname/.test(line);
+      const scriptsDir = /["']\.claude["']\s*,\s*["']scripts["']/.test(line);
+      if (sameDir || scriptsDir) toolDeps.add(`知识库/.claude/scripts/${m[1]}`);
+    }
+  }
+  // 扫描面自证伪：谓词必须能从 doc_consumption.py 抓到 dump-doc-envelope.mjs——
+  // 退回只扫 import 的旧写法＝对 PR-351 事故形态失明（锚具体那件，不取并集默证）
+  assert.ok(
+    toolDeps.has('知识库/.claude/scripts/dump-doc-envelope.mjs'),
+    '扫描面必须从 doc_consumption.py 的同目录 join 抓到 dump-doc-envelope.mjs——谓词退化＝PR-351 事故形态失明',
+  );
+  for (const dep of toolDeps) {
+    assert.ok(
+      delivered.has(dep),
+      `${dep} 被真身 .py 按文件名调用（vault 位工具形态）但未投递——钉 VAULT_RUNTIME_SCRIPTS_DIR 指夹具即 PR-351 原 500`,
     );
   }
 });
