@@ -290,7 +290,7 @@
       "retention": "current"
     },
     {
-      "file": "data/theschema/AI_CONCEPT.md",
+      "file": "docs/schema/AI_CONCEPT.md",
       "role": "source",
       "writer": "human",
       "derives": [],
@@ -300,7 +300,7 @@
       "retention": "current"
     },
     {
-      "file": "data/theschema/DATA-DICTIONARY.md",
+      "file": "docs/schema/DATA-DICTIONARY.md",
       "role": "source",
       "writer": "human",
       "derives": [],
@@ -310,7 +310,7 @@
       "retention": "current"
     },
     {
-      "file": "data/theschema/KNOWLEDGE_SCENARIOS.md",
+      "file": "docs/schema/SCHEMA.md",
       "role": "source",
       "writer": "human",
       "derives": [],
@@ -320,37 +320,7 @@
       "retention": "current"
     },
     {
-      "file": "data/theschema/SCHEMA.md",
-      "role": "source",
-      "writer": "human",
-      "derives": [],
-      "segments": [],
-      "referenced_by": [],
-      "persistence": "tracked",
-      "retention": "current"
-    },
-    {
-      "file": "data/theschema/TheSchema.md",
-      "role": "source",
-      "writer": "human",
-      "derives": [],
-      "segments": [],
-      "referenced_by": [],
-      "persistence": "tracked",
-      "retention": "current"
-    },
-    {
-      "file": "data/theschema/entity-disambiguation.md",
-      "role": "source",
-      "writer": "human",
-      "derives": [],
-      "segments": [],
-      "referenced_by": [],
-      "persistence": "tracked",
-      "retention": "current"
-    },
-    {
-      "file": "data/theschema/entity-disambiguation-design.md",
+      "file": "docs/schema/TheSchema.md",
       "role": "source",
       "writer": "human",
       "derives": [],
@@ -369,16 +339,6 @@
       "referenced_by": [
         "fields-registry(配方对账面)"
       ],
-      "persistence": "tracked",
-      "retention": "current"
-    },
-    {
-      "file": "data/theschema/interaction-contracts.md",
-      "role": "source",
-      "writer": "human",
-      "derives": [],
-      "segments": [],
-      "referenced_by": [],
       "persistence": "tracked",
       "retention": "current"
     },
