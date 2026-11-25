@@ -243,7 +243,7 @@ function validateModules(modules) {
       errors = errors.concat(validateStringArray(definition.products, "modules." + name + ".products"));
     }
   }
-  // A14（2026-09-13）：4 条模块语义规则后端单源——此前只在前端 ModuleRegistryEditor 自算，后端写回不校验。
+  // A14（2026-09-13）：4 条模块语义规则后端单源——此前只在前端旧模块编辑器自算，后端写回不校验（旧编辑器已随 WP-234 D2 删除）。
   // ① system 非空 ② subdomain 非空 ③ system 与 subdomain 不应相同 ④ system 全库唯一。
   // Map 承载（非普通对象）：system 名恰为 "constructor" 时普通对象会命中原型同名属性，
   // 使 systemOwners[sys] 取到函数再 .push 抛 TypeError——写入口直接 500。

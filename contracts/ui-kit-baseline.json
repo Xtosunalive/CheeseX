@@ -225,10 +225,6 @@
     "src/features/schema-manager/components/DependencyImpactPreview.tsx": {
       "button": 1
     },
-    "src/features/schema-manager/components/ModuleRegistryEditor.tsx": {
-      "button": 1,
-      "input": 1
-    },
     "src/features/schema-manager/components/RelationConstraintMatrix.tsx": {
       "button": 1
     },

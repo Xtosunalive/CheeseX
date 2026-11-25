@@ -71,24 +71,12 @@ describe("Schema document taxonomy", () => {
     await waitFor(() => expect(writeEnums).toHaveBeenCalledWith("sha256:enums", expect.objectContaining({ article_types: ["排错指南", "最佳实践", "升级经验"] })));
   });
 
-  it("preserves module metadata while editing product modules", async () => {
-    render(<SchemaManagerView />);
-    const layout = await screen.findByTestId("schema-manager-layout");
-    fireEvent.click(within(layout).getByRole("button", { name: "文章字段值域" }));
-    await screen.findByTestId("document-taxonomy-editor");
-    fireEvent.click(within(layout).getByRole("button", { name: "产品模块" }));
-
-    expect(screen.getByRole("button", { name: "核心服务 subdomain" })).toBeInTheDocument();
-    // WP-040 裁⑤：父模块/起始/截止列退役——版本区间作为兼容位随编辑保留（不再暴露编辑面）
-    expect(screen.queryByRole("textbox", { name: "核心服务 until" })).not.toBeInTheDocument();
-    fireEvent.change(screen.getByRole("combobox", { name: "核心服务 system" }), { target: { value: "core-service-2" } }); // system 挂 datalist 建议——a11y 角色=combobox（until 列无 datalist 故原为 textbox）
-    expect(useSchemaManagerStore.getState().enums?.modules["核心服务"]).toEqual({
-      subdomain: "service", system: "core-service-2", since: "7.0.0", until: "", products: ["AnyShare"], // 夹具 until 本为空（原测试靠已退役的 until 编辑面填值）
-    });
-  });
+  // 「preserves module metadata while editing product modules」与「subdomain 挂靠从子域词表选取」两用例随 WP-234 D2 删旧退役：
+  // 断言对象是已删除的旧模块编辑器（U3 后仅作契约不可用 fallback 存活）；编辑元数据行为由
+  // module-contract-view.test.tsx「编辑路径元数据完整保留」承接，子域词表 FilterSelect 随 U3 契约表单（文本输入）退役。
 });
 
-// ── 批9：编辑器语义化（标题派生/子域挂靠走词表/空表引导）──
+// ── 批9：编辑器语义化（标题派生自字典正名）──
 describe("批9 模块编辑器关系接线", () => {
   it("页签标题派生自字典正名（文章字段值域），不再硬编码旧名", async () => {
     render(<SchemaManagerView />);
@@ -97,16 +85,6 @@ describe("批9 模块编辑器关系接线", () => {
     const editor = await screen.findByTestId("document-taxonomy-editor");
     expect(within(editor).getByText("文章字段值域")).toBeInTheDocument();
     expect(within(editor).queryByText("文档分类")).not.toBeInTheDocument();
-  });
-
-  it("subdomain 挂靠从子域词表选取（FilterSelect，值=子域 id）", async () => {
-    render(<SchemaManagerView />);
-    const layout = await screen.findByTestId("schema-manager-layout");
-    fireEvent.click(within(layout).getByRole("button", { name: "文章字段值域" }));
-    await screen.findByTestId("document-taxonomy-editor");
-    fireEvent.click(within(layout).getByRole("button", { name: "产品模块" }));
-    const trigger = await screen.findByRole("button", { name: "核心服务 subdomain" });
-    expect(trigger).toHaveTextContent("核心服务域 · service");
   });
 });
 

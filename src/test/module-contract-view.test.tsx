@@ -114,6 +114,24 @@ describe("ModuleContractView", () => {
     await waitFor(() => expect(onWritten).toHaveBeenCalledTimes(1));
   });
 
+  it("编辑路径元数据完整保留（承接 WP-234 D2 删旧退役的 preserves module metadata 用例）", async () => {
+    const onWritten = renderView();
+    fireEvent.click(await screen.findByRole("button", { name: "编辑模块" }));
+    expect(screen.getByLabelText(/模块名称/)).toBeDisabled();
+    fireEvent.change(screen.getByLabelText(/所属系统/), { target: { value: "deploy-service-2" } });
+    fireEvent.click(screen.getByRole("button", { name: "保存模块" }));
+    await waitFor(() => expect(api.upsertModule).toHaveBeenCalledWith("部署服务", {
+      system: "deploy-service-2",
+      subdomain: "deploy",
+      parent_id: "",
+      since: "7.0.0",
+      until: "",
+      products: ["AnyShare"],
+      description: "部署",
+    }, "sha256:rules"));
+    await waitFor(() => expect(onWritten).toHaveBeenCalledTimes(1));
+  });
+
   it("追加适用产品走 enum-append，重复与冲突由服务端裁决", async () => {
     const onWritten = renderView();
     fireEvent.click(await screen.findByRole("button", { name: "追加适用产品" }));
@@ -148,6 +166,14 @@ describe("ModuleContractView", () => {
     render(<ModuleContractView modules={modules} revision="sha256:rules" disabled={false} fallback={<div>旧模块编辑器</div>} onWritten={vi.fn()} />);
     expect(await screen.findByText("旧模块编辑器")).toBeDefined();
     expect(screen.getByText(/显示层契约不可用/)).toBeDefined();
+  });
+
+  it("契约端点不可用且无旧实现时显示统一不可用提示（WP-234 D2 删旧后回退＝Alert）", async () => {
+    api.fetchIndividualConfig.mockResolvedValue({ success: true, data: { ...config, screen: null } });
+    render(<ModuleContractView modules={modules} revision="sha256:rules" disabled={false} onWritten={vi.fn()} />);
+    expect(await screen.findByTestId("ui-alert")).toHaveTextContent(/显示层契约不可用/);
+    expect(screen.queryByRole("table")).toBeNull();
+    expect(screen.queryByRole("button", { name: "新建模块" })).toBeNull();
   });
 
   it("写错误透传且不伪装成功", async () => {

@@ -33,7 +33,6 @@ import { RelationsEditor } from "./RelationsEditor"; // EDGE-RELATION-GOV-001 �
 import { VIEW_COPY } from "./schema-manager-copy";
 import { VersionRegistryEditor } from "./VersionRegistryEditor";
 import { DocumentTaxonomyEditor } from "./DocumentTaxonomyEditor";
-import { ModuleRegistryEditor } from "./components/ModuleRegistryEditor";
 import { ModuleContractView } from "./components/ModuleContractView";
 import { SubdomainChangePreviewDialog } from "./components";
 import { GraphFreshnessChip } from "./GraphFreshnessChip"; // WP-027（PR-142）：图谱跟随状态提示
@@ -201,7 +200,6 @@ export function SchemaManagerView() {
           revision={enums?.revision ?? ""}
           disabled={isEditingDisabled}
           onWritten={async () => { await store.load(); setFreshnessTick((tick) => tick + 1); }}
-          fallback={<ModuleRegistryEditor modules={enums?.modules ?? {}} subdomainGroups={Object.entries(enums?.subdomains ?? {}).map(([domainId, entries]) => ({ domainId, domainLabel: enums?.domains?.[domainId] ?? domainId, entries: entries ?? [] }))} onGoDomains={isEditingDisabled ? undefined : () => store.setActiveTab("domains")} productNames={Object.keys(store.versions?.products ?? {})} onGoVersions={isEditingDisabled ? undefined : () => store.setActiveTab("versions")} versionsLoading={store.versionsRequest.status === "loading"} disabled={isEditingDisabled} onChange={(modules) => enums && store.setModules(modules)} />}
         />
       </div>
     ),

@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { CLASS_MANAGEMENT_MAP, INDIVIDUALS_COPY } from "./individuals-copy";
 import { useIndividualsController } from "./use-individuals-controller";
 import { ClassManagementMap } from "./components/ClassManagementMap";
-import { LegacyIndividualsView } from "./components/LegacyIndividualsView";
 import type { IndividualUiConfig } from "./individuals-types";
 
 const INDIVIDUAL_HOST_ACTIONS = new Set(["individuals.create", "individuals.update", "individuals.retire"]);
@@ -48,9 +47,6 @@ export function IndividualsView() {
     classOptions,
     loadClass,
     refreshList,
-    handleEdit,
-    handleSave,
-    handleRetire,
     handleContractAction,
   } = useIndividualsController();
   const rows: ContractRow[] = items.map((item) => ({
@@ -59,21 +55,6 @@ export function IndividualsView() {
     revision: item.revision,
     fields: item.fields || {},
   }));
-  const legacy = config ? (
-    <LegacyIndividualsView
-      fields={config.fields}
-      items={items}
-      formMode={formMode}
-      values={formValues}
-      busy={busy}
-      onChange={(name, value) => setFormValues((prev) => ({ ...prev, [name]: value }))}
-      onSave={() => void handleSave()}
-      onCancel={() => { setFormMode(null); setFormValues({}); setDetailValues(null); }}
-      onCreate={() => { setFormValues({}); setDetailValues(null); setFormMode({ kind: "create" }); }}
-      onEdit={(item) => void handleEdit(item)}
-      onRetire={(item) => void handleRetire(item)}
-    />
-  ) : null;
 
   return (
     <div className="space-y-4 p-4" aria-label={INDIVIDUALS_COPY.VIEW_TITLE}>
@@ -109,7 +90,6 @@ export function IndividualsView() {
           ) : (
             <ContractRenderer
               screen={config.screen}
-              fallback={legacy}
               fields={config.fields}
               rows={rows}
               loading={busy && items.length === 0}

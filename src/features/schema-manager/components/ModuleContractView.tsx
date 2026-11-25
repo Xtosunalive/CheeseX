@@ -15,7 +15,8 @@ interface Props {
   modules: ModuleRegistry;
   revision: string;
   disabled: boolean;
-  fallback: ReactNode;
+  /** 显示层回退位（ADR-021 §3.2）：U4 删旧后不再传旧实现；缺省时契约不可用显示统一 Alert（WP-234 D2） */
+  fallback?: ReactNode;
   onWritten: () => Promise<void>;
 }
 
@@ -129,7 +130,7 @@ export function ModuleContractView({ modules, revision, disabled, fallback, onWr
     return (
       <div className="space-y-3">
         {configError ? <Alert variant="warn">{`${MODULES_COPY.CONTRACT_FALLBACK_PREFIX}${configError}`}</Alert> : null}
-        {fallback}
+        {fallback ?? (configError ? null : <Alert variant="warn">{MODULES_COPY.CONTRACT_UNAVAILABLE}</Alert>)}
       </div>
     );
   }
