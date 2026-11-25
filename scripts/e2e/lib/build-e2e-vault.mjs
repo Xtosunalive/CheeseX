@@ -370,6 +370,9 @@ function symlinkFromRuntime(name) {
 }
 symlinkFromRuntime("schema-write-client.mjs");
 symlinkFromRuntime("article-validator-lib.cjs");
+// PR-351（WP-235）：文档信封自动物化工具——doc_consumption.py 以 os.path.join(dirname,"dump-doc-envelope.mjs")
+// 按文件名 subprocess 调用（非 import，import 扫描抓不到）。symlink 投递（真身回仓解析 ../../server 依赖链）。
+symlinkFromRuntime("dump-doc-envelope.mjs");
 // SPEC-022 波 B：e2e vault 补解析物（校验器必填集/值域单源——真库不变量由 derivation-sync 保，
 // e2e 由本构建器保）。经仓内生成器派生，不手写副本。
 execFileSync(process.execPath, [path.resolve(REPO_ROOT, "scripts/quality/project-resolved-domains.mjs")], {
@@ -524,6 +527,7 @@ const required = [
   "知识库/.claude/scripts/human_edit_guard.py", // WP-015：write_gateway 函数级 import 的裁决门
   "知识库/.claude/scripts/schema-write-client.mjs",
   "知识库/.claude/scripts/article-validator-lib.cjs",
+  "知识库/.claude/scripts/dump-doc-envelope.mjs", // PR-351：doc_consumption.py subprocess 自动物化工具（同目录按文件名调用）
   "知识库/.claude/scripts/promote-article.py",
   "知识库/.claude/scripts/kb_paths.py",
   "知识库/.claude/scripts/generate-sa.py",

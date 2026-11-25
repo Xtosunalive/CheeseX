@@ -8,8 +8,6 @@ export const INDIVIDUALS_COPY = {
   LOAD_BUTTON: "加载",
   CREATE_TITLE: "新建个体",
   EDIT_TITLE: "编辑个体",
-  RETIRE_BUTTON: "退役",
-  EDIT_BUTTON: "编辑",
   NEUTRAL_FALLBACK: "中性兜底",
   LIST_TITLE: "个体清单",
   MAP_SUMMARY: "类管理地图（15 类＋新类各在哪管）",
