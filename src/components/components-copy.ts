@@ -23,7 +23,8 @@ export const SHARED_UI_COPY = {
 
 export const CONTRACT_RENDERER_COPY = {
   SCREEN_UNAVAILABLE: "显示层契约不可用",
-  SCREEN_FALLBACK: "显示层契约不可用，已回退到页面现有实现",
+  // WP-234 U4 复核 R4：删旧后 individuals 页已无「页面现有实现」可回退，缺省 Alert 文案与实况同步（原句「已回退到页面现有实现」随之失真）
+  SCREEN_FALLBACK: "显示层契约不可用",
   CUSTOM_RENDERER_UNBOUND: "定制渲染器未绑定",
   CUSTOM_RENDERER_NOT_MOUNTED: "通用渲染器不会挂载此页面",
   RISK_BLOCKED: "风险决策为阻断",
