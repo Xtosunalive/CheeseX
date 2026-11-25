@@ -8,7 +8,7 @@
 # contract: reads enums.yaml
 """
 架构依赖解析器
-遵循架构概念定义：详见仓内 docs/schema/AI_CONCEPT.md
+遵循架构概念定义：详见治理仓 docs/schema/AI_CONCEPT.md
 
 依赖两层模型：
   - 骨架依赖：entity 文件中的 依赖::[[target]]，有效期 = 组件生命周期交集
