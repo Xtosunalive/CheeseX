@@ -300,16 +300,6 @@
       "retention": "current"
     },
     {
-      "file": "docs/schema/DATA-DICTIONARY.md",
-      "role": "source",
-      "writer": "human",
-      "derives": [],
-      "segments": [],
-      "referenced_by": [],
-      "persistence": "tracked",
-      "retention": "current"
-    },
-    {
       "file": "docs/schema/SCHEMA.md",
       "role": "source",
       "writer": "human",
