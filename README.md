@@ -50,8 +50,8 @@ npm run health:api        # http://127.0.0.1:18083/api/health
 
 # 测试
 npm test                  # 前端 vitest + Node 测试全量（test:frontend && test:node；Node 链含服务层 E2E，CI 同款）
-npm run test:e2e          # 浏览器端到端七条旅程（清单见 scripts/e2e/run-all-e2e.mjs）
-                          # 单跑：npm run test:e2e:article | dashboard | entity | review | schema
+npm run test:e2e          # 浏览器端到端十条旅程（清单见 scripts/e2e/run-all-e2e.mjs）
+                          # 单跑：npm run test:e2e:article | entity | review | schema
 
 # 质量门禁（注册单：contracts/quality-gates.json）
 npm run gates:ci          # CI 门禁全量（.github/workflows/quality.yml 同款）

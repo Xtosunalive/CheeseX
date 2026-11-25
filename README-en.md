@@ -61,7 +61,7 @@ npm run health:api    # GET /api/health
 npm run typecheck     # TS types
 npm run lint          # ESLint (includes structural rules: write-channel, no bare fs in server/)
 npm test              # frontend vitest + full Node suite (CI-equivalent)
-npm run test:e2e      # browser E2E: 7 specs — six business-flow/journey specs + a persistence journey
+npm run test:e2e      # browser E2E: 10 specs (manifest: scripts/e2e/run-all-e2e.mjs)
                       # (kill -9 → delete state DB → boot replay → consistency)
 ```
 
